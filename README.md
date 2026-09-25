@@ -141,7 +141,7 @@ Folders not tidy yet? **[CineLibrary Essentials](https://github.com/aungkokomm/C
 
 ## 🛠️ Build from source
 
-**Requirements:** Windows 10 20H1+ (19041) / Windows 11 · Visual Studio 2022+ with **.NET desktop development** and **Windows App SDK** workloads · .NET 8 SDK.
+**Requirements:** Windows 10 20H1+ (19041) / Windows 11 · Visual Studio 2026+ with **.NET desktop development** and **Windows App SDK** workloads · .NET 10 SDK.
 
 ```powershell
 git clone https://github.com/aungkokomm/CineLibraryCS.git

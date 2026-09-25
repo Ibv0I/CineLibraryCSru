@@ -2123,6 +2123,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     /// metadata written home. Excludes manual Watched &amp; Gone records (they have
     /// no drive). Optionally restricted to one drive.
     /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public List<int> GetMoviesWithFetchedData(string? onlyVolumeSerial = null)
     {
         using var cmd = _conn.CreateCommand();
@@ -2148,6 +2149,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     /// and each cast member's (name, thumb). Used by "Sync to drive" to copy
     /// fetched art into the movie's folder.
     /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public (string? Poster, string? Fanart, List<(string Name, string? Thumb)> Actors) GetMovieArtForSync(int id)
     {
         string? poster = null, fanart = null;
@@ -2340,7 +2342,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         bool sameDrive = drives.Count == 1;
         if (diffEdition) g.Summary = $"{n} versions · different editions";
         else if (diffLang) g.Summary = $"{n} versions · different audio languages";
-        else if (diffQuality) g.Summary = $"{n} copies · different quality — keep the best" + (sameDrive ? " · same drive" : "");
+        else if (diffQuality) g.Summary = $"{n} copies · different quality, keep the best" + (sameDrive ? " · same drive" : "");
         else g.Summary = $"{n} copies · same version" + (sameDrive ? " · same drive" : "");
     }
 
@@ -2416,6 +2418,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         return string.Join(",", set);
     }
 
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public HashSet<string> GetIgnoredDupeKeys()
     {
         var set = new HashSet<string>();

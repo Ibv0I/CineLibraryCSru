@@ -6,6 +6,31 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > Per-release notes for the 2.x and early-3.x versions between the two
 > entries below live on the [Releases](https://github.com/aungkokomm/CineLibraryCS/releases) page.
 
+## [3.5.0] - 2026-09-25
+
+### Changed
+- **Runs on .NET 10 and Windows App SDK 2.5.1.** .NET 8 reaches end of support
+  on 10 November 2026, and the Windows App SDK version used before (1.6) was
+  already out of support. Everything still ships inside the portable folder, so
+  there is nothing extra to install. Start-up is as quick as before and memory
+  use is slightly lower.
+
+### Fixed
+- **Uninstalling no longer deletes your library.** The uninstaller removed the
+  whole app folder, including `CineLibrary-Data`. It now removes only the app's
+  own files and leaves your database, posters and art in place.
+- **A rare error at start-up** ("Index was out of range" in
+  `startup-crash.log`). The background save of watched, favorite and note state
+  to your drives used the database connection without waiting its turn while
+  the library and sidebar loaded. Backup export and import had the same gap,
+  which could also stop an import with a "transaction" error. They now take turns.
+- **Deeply nested install folders.** CineLibrary could fail to start when
+  installed very deep in a folder tree. The new runtime handles long paths.
+- **Dupes description** now matches how Dupes works: copies in a different
+  audio language or edition are kept on purpose, copies that differ only in
+  quality or codec are flagged.
+- `startup-crash.log` now records the full details of an error.
+
 ## [3.4.4] - 2026-06-22
 
 ### Added

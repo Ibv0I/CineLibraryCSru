@@ -151,6 +151,17 @@ public static class MovieStateSidecar
         int movieId,
         IReadOnlyDictionary<string, string> connectedDrives)
     {
+        // Same lock DatabaseService's [Synchronized] methods take: the startup
+        // sweep runs this on a worker thread while the UI queries the same
+        // shared connection, and SqliteConnection is not thread-safe.
+        lock (db) return ComposeLocked(db, movieId, connectedDrives);
+    }
+
+    private static (string FolderAbs, State State)? ComposeLocked(
+        DatabaseService db,
+        int movieId,
+        IReadOnlyDictionary<string, string> connectedDrives)
+    {
         using var c = db.GetConnection().CreateCommand();
         c.CommandText = @"
             SELECT volume_serial, folder_rel_path, is_watched, is_favorite,
@@ -184,6 +195,11 @@ public static class MovieStateSidecar
     /// can recover it without the app ever rewriting the user's NFO.
     /// </summary>
     public static Meta ComposeMeta(DatabaseService db, int movieId)
+    {
+        lock (db) return ComposeMetaLocked(db, movieId);   // see Compose
+    }
+
+    private static Meta ComposeMetaLocked(DatabaseService db, int movieId)
     {
         var meta = new Meta();
         using (var c = db.GetConnection().CreateCommand())

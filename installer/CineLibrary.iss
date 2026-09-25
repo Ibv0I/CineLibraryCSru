@@ -4,7 +4,7 @@
 ; self-contained, with its library data in CineLibrary-Data\ next to the exe.
 
 #define MyAppName       "CineLibrary"
-#define MyAppVersion    "3.4.4"
+#define MyAppVersion    "3.5.0"
 #define MyAppPublisher  "Aung Ko Ko Myint"
 #define MyAppURL        "https://github.com/aungkokomm/CineLibraryCS"
 #define MyAppExeName    "CineLibrary.exe"
@@ -100,9 +100,9 @@ Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName} now"; Flags
 
 [UninstallDelete]
 ; On uninstall: leave CineLibrary-Data alone so user's library survives a reinstall.
-; To wipe everything (library too), uncomment the next line:
+; The uninstaller already removes every file it installed, and the app folder
+; too once it is empty. To wipe everything (library too), uncomment the next line:
 ; Type: filesandordirs; Name: "{app}\CineLibrary-Data"
-Type: filesandordirs; Name: "{app}"
 
 [Code]
 // Block installation into Program Files (portable installs don't belong there;

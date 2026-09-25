@@ -48,8 +48,10 @@ public partial class App : Application
             var dir = Path.Combine(AppContext.BaseDirectory, "CineLibrary-Data");
             Directory.CreateDirectory(dir);
             var path = Path.Combine(dir, "startup-crash.log");
+            // ex.ToString() includes inner exceptions and their stack traces;
+            // an unobserved task's AggregateException has none of its own.
             File.AppendAllText(path,
-                $"--- {DateTime.Now:o} [{source}] ---\n{ex.GetType().FullName}: {ex.Message}\n{ex.StackTrace}\n\n");
+                $"--- {DateTime.Now:o} [{source}] ---\n{ex}\n\n");
         }
         catch { }
     }

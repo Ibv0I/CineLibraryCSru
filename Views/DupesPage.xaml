@@ -22,7 +22,7 @@
                 <StackPanel Spacing="2" VerticalAlignment="Center">
                     <TextBlock Text="Dupes" FontSize="24" FontWeight="SemiBold"
                                Foreground="{ThemeResource TextBrush}"/>
-                    <TextBlock Text="Movies you have more than once. Copies kept in different audio languages, quality, codec or edition are kept on purpose — only same-version copies are flagged as possible duplicates."
+                    <TextBlock Text="Movies you have more than once. Copies in a different audio language or edition are kept on purpose. Other copies, including ones that differ only in quality or codec, are flagged as possible duplicates."
                                FontSize="12" Foreground="{ThemeResource MutedBrush}"
                                TextWrapping="Wrap" MaxWidth="680"/>
                 </StackPanel>
@@ -51,7 +51,7 @@
                         Background="{ThemeResource InputBgBrush}"
                         Foreground="{ThemeResource TextBrush}"
                         BorderBrush="{ThemeResource InputBorderBrush}"
-                        ToolTipService.ToolTip="Re-check the files on disk and refresh — run this after you delete a copy">
+                        ToolTipService.ToolTip="Re-check the files on disk and refresh. Run this after you delete a copy.">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <FontIcon Glyph="&#xE72C;" FontSize="13"
                                   FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
@@ -120,7 +120,7 @@
                                                         Background="{ThemeResource InputBgBrush}"
                                                         VerticalAlignment="Center"
                                                         Visibility="{x:Bind VerifyVisibility}"
-                                                        ToolTipService.ToolTip="Matched by title + year only — no TMDb/IMDb id. Worth a quick check.">
+                                                        ToolTipService.ToolTip="Matched by title + year only, no TMDb/IMDb id. Worth a quick check.">
                                                     <TextBlock Text="verify" FontSize="11"
                                                                Foreground="{ThemeResource MutedBrush}"/>
                                                 </Border>
@@ -168,7 +168,7 @@
                                                                     Background="{ThemeResource InputBgBrush}"
                                                                     VerticalAlignment="Center"
                                                                     Visibility="{x:Bind KeeperChipVisibility}"
-                                                                    ToolTipService.ToolTip="Best copy — highest quality / largest. Recommended to keep.">
+                                                                    ToolTipService.ToolTip="Best copy: highest quality, then largest. Recommended to keep.">
                                                                 <TextBlock Text="✓ keep" FontSize="12"
                                                                            Foreground="{ThemeResource TextBrush}"/>
                                                             </Border>

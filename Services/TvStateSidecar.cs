@@ -96,6 +96,14 @@ public static class TvStateSidecar
     public static (string FolderAbs, State State)? Compose(
         DatabaseService db, int showId, IReadOnlyDictionary<string, string> connected)
     {
+        // Same lock DatabaseService's [Synchronized] methods take (see
+        // MovieStateSidecar.Compose): the shared connection is not thread-safe.
+        lock (db) return ComposeLocked(db, showId, connected);
+    }
+
+    private static (string FolderAbs, State State)? ComposeLocked(
+        DatabaseService db, int showId, IReadOnlyDictionary<string, string> connected)
+    {
         var conn = db.GetConnection();
         string serial, folderRel;
         var state = new State();

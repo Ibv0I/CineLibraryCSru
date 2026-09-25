@@ -115,6 +115,14 @@ public static class BackupService
     /// </summary>
     public static Backup BuildSnapshot(DatabaseService db, string appVersion)
     {
+        // Runs on a worker thread against the shared connection: take the same
+        // lock DatabaseService's [Synchronized] methods use so the UI's queries
+        // wait instead of racing it (SqliteConnection is not thread-safe).
+        lock (db) return BuildSnapshotLocked(db, appVersion);
+    }
+
+    private static Backup BuildSnapshotLocked(DatabaseService db, string appVersion)
+    {
         var b = new Backup { AppVersion = appVersion };
         var conn = db.GetConnection();
 
@@ -323,6 +331,14 @@ public static class BackupService
     /// never leaves the DB inconsistent.
     /// </summary>
     public static ImportResult Import(DatabaseService db, Backup b)
+    {
+        // See BuildSnapshot. Holding the lock for the whole transaction also
+        // stops a UI query from running on the connection mid-transaction
+        // ("Execute requires the command to have a transaction object").
+        lock (db) return ImportLocked(db, b);
+    }
+
+    private static ImportResult ImportLocked(DatabaseService db, Backup b)
     {
         var conn = db.GetConnection();
         int moviesMerged = 0, moviesSkipped = 0;

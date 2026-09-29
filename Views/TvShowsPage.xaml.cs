@@ -838,7 +838,7 @@ public sealed partial class TvShowsPage : Page
 
         // Launch FIRST so a DB hiccup can never stop playback.
         bool launched = false;
-        try { launched = await Windows.System.Launcher.LaunchUriAsync(new Uri(path)); }
+        try { launched = await VideoPlayer.PlayAsync(path); }
         catch { launched = false; }
         if (!launched)
         {

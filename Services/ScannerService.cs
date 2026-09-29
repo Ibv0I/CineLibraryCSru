@@ -601,7 +601,7 @@ public class ScannerService
             var dir = stack.Pop();
 
             // A folder with tvshow.nfo is a TV show, not a movie — skip it
-            // (and don't descend; episodes live flat inside it). The TV
+            // (and don't descend; its episodes belong to the show). The TV
             // scanner handles these via FindTvShowFolders.
             if (File.Exists(Path.Combine(dir, "tvshow.nfo")))
                 continue;
@@ -635,8 +635,8 @@ public class ScannerService
 
     /// <summary>
     /// v2.8 — walk for TV show folders: any folder containing tvshow.nfo.
-    /// We don't descend into a show folder (episodes are flat inside it),
-    /// but we do keep descending elsewhere so shows can live in
+    /// We don't descend into a show folder (ScanEpisodeFiles covers its
+    /// season subfolders), but we do keep descending elsewhere so shows can live in
     /// subdirectories (e.g. driveRoot/TV Shows/Dark/).
     /// </summary>
     private static IEnumerable<string> FindTvShowFolders(string root)
@@ -802,15 +802,16 @@ public class ScannerService
         string? VideoRel, string? ThumbSrc, string? Srt, string? ContainerExt, long? FileSize);
 
     /// <summary>
-    /// Enumerate episode video files in a (flat) show folder. Season +
-    /// episode come from the filename; the matching .nfo (if present)
-    /// supplies title/plot/aired/runtime/streamdetails.
+    /// Enumerate episode video files in a show folder and its subfolders
+    /// (Kodi's "Season 01" layout as well as flat). Season + episode come
+    /// from the filename; the matching .nfo (if present) supplies
+    /// title/plot/aired/runtime/streamdetails.
     /// </summary>
     private static List<ScannedEpisode> ScanEpisodeFiles(string folder, string driveRoot)
     {
         var result = new List<ScannedEpisode>();
         IEnumerable<string> files;
-        try { files = Directory.EnumerateFiles(folder); }
+        try { files = Directory.EnumerateFiles(folder, "*", new EnumerationOptions { RecurseSubdirectories = true }); }
         catch { return result; }
 
         foreach (var f in files)
@@ -822,8 +823,8 @@ public class ScannerService
             int season = int.Parse(m.Groups[1].Value);
             int epnum = int.Parse(m.Groups[2].Value);
 
-            // Sibling .nfo + thumb + srt (same base name).
-            var basePath = Path.Combine(folder, name);
+            // Sibling .nfo + thumb + srt (same base name, same folder as the video).
+            var basePath = Path.Combine(Path.GetDirectoryName(f)!, name);
             var nfoPath = basePath + ".nfo";
             ParsedEpisode? parsedNfo = File.Exists(nfoPath)
                 ? NfoParser.ParseEpisode(nfoPath, season, epnum) : null;

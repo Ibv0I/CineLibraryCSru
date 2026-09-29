@@ -328,7 +328,7 @@ public sealed partial class MovieRowControl : UserControl
         try
         {
             AppState.Instance.Db.MarkPlayed(Movie.Id);
-            await Windows.System.Launcher.LaunchUriAsync(new Uri(videoPath));
+            await VideoPlayer.PlayAsync(videoPath);
             SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         }
         catch

@@ -225,9 +225,10 @@ As of **v2.8.0**, CineLibrary catalogs TV shows alongside your movies.
 ### What gets detected as a show
 
 Any folder that contains a **`tvshow.nfo`** is treated as a TV show.
-Episodes are the video files inside it whose names carry an
-`SxxExx` marker, each with a matching `.nfo` — exactly what MediaElch
-(or CineLibrary Essentials) produces:
+Episodes are the video files inside it (directly, or in season folders
+such as `Season 01`) whose names carry an `SxxExx` marker, each with a
+matching `.nfo` — exactly what MediaElch (or CineLibrary Essentials)
+produces:
 
 ```
 H:\TV\Dark\
@@ -241,8 +242,26 @@ H:\TV\Dark\
 └── …
 ```
 
-Seasons are read straight from the `Sxx` in each filename, so a show
-folder can hold every season flat in one place. Movies are unaffected —
+Kodi's layout, with a folder per season, works the same way:
+
+```
+H:\TV\Dark\
+├── tvshow.nfo
+├── poster.jpg  fanart.jpg
+├── .actors\
+├── Season 01\
+│   ├── Dark - S01E01 - Secrets.mkv
+│   ├── Dark - S01E01 - Secrets.nfo
+│   ├── Dark - S01E01 - Secrets-thumb.jpg
+│   └── …
+└── Season 02\
+    └── …
+```
+
+Seasons are read from the `Sxx` in each filename, so season folders can
+be named however you like, or left out and every season kept flat in one
+place. (Season folders are read from v3.6.0 on; earlier versions only
+found episodes placed directly in the show folder.) Movies are unaffected —
 a single drive can hold both movies and shows.
 
 ### Finding your shows
@@ -901,6 +920,16 @@ enjoy.
 lifts it — the card stays still and just shows its quick-action
 buttons. Turn this on if the hover animation bothers you, or to shave a
 little extra work on lower-end graphics.
+
+### Video player
+
+**Windows default unless you choose one.** Click **Choose…** and pick the
+program you want **Play** to use, for example `vlc.exe`, MPC-HC,
+PotPlayer or mpv. Every Play button (movie cards, the list view, the
+details window and TV episodes) then opens videos there. **Use Windows
+default** goes back to whatever Windows opens video files with. If the
+chosen program is later uninstalled, Play falls back to the Windows
+default by itself.
 
 ---
 

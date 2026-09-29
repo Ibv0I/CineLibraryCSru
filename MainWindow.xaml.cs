@@ -304,6 +304,61 @@ public sealed partial class MainWindow : Window
             FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
 
+        // ── Playback (v3.6.0) ──
+        panel.Children.Add(Header("PLAYBACK"));
+        panel.Children.Add(new TextBlock { Text = "Video player", FontSize = 13 });
+        var playerBox = new TextBox
+        {
+            IsReadOnly = true,
+            Text = UiSettings.PlayerPath,
+            PlaceholderText = "Windows default player",
+        };
+        var choosePlayer = new Button { Content = "Choose…" };
+        var defaultPlayer = new Button
+        {
+            Content = "Use Windows default",
+            IsEnabled = UiSettings.PlayerPath.Length > 0,
+            Margin = new Thickness(0, 4, 0, 0),
+        };
+        choosePlayer.Click += async (_, _) =>
+        {
+            try
+            {
+                var picker = new Windows.Storage.Pickers.FileOpenPicker
+                {
+                    SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.ComputerFolder,
+                };
+                picker.FileTypeFilter.Add(".exe");
+                WinRT.Interop.InitializeWithWindow.Initialize(picker,
+                    WinRT.Interop.WindowNative.GetWindowHandle(this));
+                var file = await picker.PickSingleFileAsync();
+                if (file == null) return;
+                UiSettings.SetPlayerPath(file.Path);
+                playerBox.Text = file.Path;
+                defaultPlayer.IsEnabled = true;
+            }
+            catch { }
+        };
+        defaultPlayer.Click += (_, _) =>
+        {
+            UiSettings.SetPlayerPath("");
+            playerBox.Text = "";
+            defaultPlayer.IsEnabled = false;
+        };
+        var playerRow = new Grid { ColumnSpacing = 8 };
+        playerRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        playerRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(choosePlayer, 1);
+        playerRow.Children.Add(playerBox);
+        playerRow.Children.Add(choosePlayer);
+        panel.Children.Add(playerRow);
+        panel.Children.Add(defaultPlayer);
+        panel.Children.Add(new TextBlock
+        {
+            Text = "Play opens videos in this program, for example VLC, MPC-HC, PotPlayer or mpv. With none chosen, Play uses whatever Windows opens video files with.",
+            FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
+        });
+
         var dialog = new ContentDialog
         {
             Title = "Settings",

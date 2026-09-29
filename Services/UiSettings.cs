@@ -18,6 +18,7 @@ public static class UiSettings
     private const string KeyCardBorders = "ui_cardBorders";
     private const string KeyMica = "ui_mica";              // legacy bool
     private const string KeyMicaLevel = "ui_micaLevel";   // v3.3.2 — off|subtle|strong
+    private const string KeyPlayerPath = "ui_playerPath"; // v3.6.0: "" = Windows default
 
     /// <summary>How much Windows Mica material shows behind the window.
     /// Off = flat solid (also best on weak GPUs); Subtle / Strong control how
@@ -39,6 +40,10 @@ public static class UiSettings
     /// <summary>Disable the card hover zoom/lift animation. Default off.</summary>
     public static bool ReduceMotion { get; private set; }
 
+    /// <summary>v3.6.0: the program Play opens videos with (VLC, MPC-HC, ...).
+    /// Empty = whatever Windows opens video files with. See VideoPlayer.</summary>
+    public static string PlayerPath { get; private set; } = "";
+
     /// <summary>Raised after any setting changes so live UI can re-apply it.</summary>
     public static event Action? Changed;
 
@@ -48,6 +53,7 @@ public static class UiSettings
         CardBorders  = AppState.Instance.GetPref(KeyCardBorders,  "true")  == "true";
         CardShadows  = AppState.Instance.GetPref(KeyCardShadows,  "false") == "true";
         ReduceMotion = AppState.Instance.GetPref(KeyReduceMotion, "false") == "true";
+        PlayerPath   = AppState.Instance.GetPref(KeyPlayerPath,   "");
 
         var lvl = AppState.Instance.GetPref(KeyMicaLevel, "");
         Mica = lvl switch
@@ -83,6 +89,13 @@ public static class UiSettings
         CardShadows = value;
         AppState.Instance.SetPref(KeyCardShadows, value ? "true" : "false");
         Changed?.Invoke();
+    }
+
+    /// <summary>No Changed event: the player choice doesn't affect any visible UI.</summary>
+    public static void SetPlayerPath(string value)
+    {
+        PlayerPath = value;
+        AppState.Instance.SetPref(KeyPlayerPath, value);
     }
 
     public static void SetReduceMotion(bool value)

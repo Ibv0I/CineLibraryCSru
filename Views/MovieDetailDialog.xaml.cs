@@ -60,6 +60,8 @@ public sealed partial class MovieDetailDialog : Window
         };
         escAcc.Invoked += (_, a) => { a.Handled = true; Close(); };
         RootGrid.KeyboardAccelerators.Add(escAcc);
+        // No floating "Esc" key tip following the pointer (same as MainWindow).
+        RootGrid.KeyboardAcceleratorPlacementMode = Microsoft.UI.Xaml.Input.KeyboardAcceleratorPlacementMode.Hidden;
 
         // Persist size on close — using AppWindow.Changed catches the final
         // resized state regardless of how the window was dismissed.
@@ -914,7 +916,7 @@ public sealed partial class MovieDetailDialog : Window
             AppState.Instance.Db.MarkPlayed(_movie.Id);
             // Tell the host so its sidebar badge updates
             WatchlistChanged?.Invoke(this, EventArgs.Empty);
-            await Launcher.LaunchUriAsync(new Uri(videoPath));
+            await VideoPlayer.PlayAsync(videoPath);
         }
     }
 

@@ -513,7 +513,7 @@ public sealed partial class MovieCardControl : UserControl
         try
         {
             AppState.Instance.Db.MarkPlayed(Movie.Id);
-            await Windows.System.Launcher.LaunchUriAsync(new Uri(videoPath));
+            await VideoPlayer.PlayAsync(videoPath);
             // Bubble so sidebar Continue Watching count refreshes
             SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         }

@@ -57,7 +57,7 @@ CineLibrary is a **reader, not a scraper**: it expects folders that already carr
 - **🧹 Find duplicates (Dupes).** Spots movies you have more than once and recommends which copy to keep, with reclaimable-space totals. Your dubbed and multi-language copies are left alone (recognised as kept on purpose). Non-destructive: it points you to the files, you decide.
 - **💾 Backup & restore** — export all personal state (favorites, notes, lists, tags, history) to one portable JSON file.
 - **🪪 State travels with the drive** — watched/favorite/notes/tags live next to each title, so they survive a drive move to another PC.
-- **⚙️ Settings** — Light/Dark/System theme, optional card shadows, reduce-motion.
+- **⚙️ Settings** — Light/Dark/System theme, optional card shadows, reduce-motion, and your own video player (VLC, MPC-HC, PotPlayer, mpv…).
 - **🚀 Native & quick** — cold start under a second; smooth scrolling through thousands of posters.
 
 > Full per-version notes live on the [**Releases**](https://github.com/aungkokomm/CineLibraryCS/releases) page.

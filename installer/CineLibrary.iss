@@ -4,7 +4,7 @@
 ; self-contained, with its library data in CineLibrary-Data\ next to the exe.
 
 #define MyAppName       "CineLibrary"
-#define MyAppVersion    "3.5.0"
+#define MyAppVersion    "3.6.0"
 #define MyAppPublisher  "Aung Ko Ko Myint"
 #define MyAppURL        "https://github.com/aungkokomm/CineLibraryCS"
 #define MyAppExeName    "CineLibrary.exe"
@@ -32,6 +32,10 @@ UsePreviousAppDir=yes
 ; No Start menu group by default — portable feel
 DisableProgramGroupPage=yes
 CreateUninstallRegKey=yes
+; v3.6 - replace the uninstall log instead of appending to it. Up to 3.4.x the log
+; held a step that deleted the whole {app} folder (CineLibrary-Data included), and
+; an appended log keeps running it even after that line was removed in 3.5.0.
+UninstallLogMode=overwrite
 
 ; No admin rights needed
 PrivilegesRequired=lowest

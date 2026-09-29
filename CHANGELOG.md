@@ -6,6 +6,27 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > Per-release notes for the 2.x and early-3.x versions between the two
 > entries below live on the [Releases](https://github.com/aungkokomm/CineLibraryCS/releases) page.
 
+## [3.6.0] - 2026-09-29
+
+### Added
+- **Choose your video player** (Settings, Playback). Pick VLC, MPC-HC,
+  PotPlayer, mpv or any other program, and every Play button opens videos
+  there. "Use Windows default" goes back to the Windows default, which is also
+  used automatically if the chosen program is later removed.
+
+### Fixed
+- **TV shows with season folders.** Episodes inside `Season 01`, `Season 02`,
+  `Specials` and similar folders (Kodi's layout, also written by CineLibrary
+  Essentials) were not found, so such shows showed 0 seasons and could not be
+  played. Episodes, their `.nfo` details and thumbnails are now read from
+  season folders as well as from the show folder itself. Rescan the drive to
+  pick them up.
+- **A floating "Esc" label** no longer appears over the movie details window
+  wherever the mouse rests.
+- **Uninstalling keeps your library, also after an upgrade.** 3.5.0 stopped the
+  uninstaller from deleting `CineLibrary-Data`, but an install upgraded from
+  3.4.x or earlier still carried the old delete step. Installing 3.6.0 removes it.
+
 ## [3.5.0] - 2026-09-25
 
 ### Changed

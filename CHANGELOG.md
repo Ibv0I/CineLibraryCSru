@@ -6,6 +6,22 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > Per-release notes for the 2.x and early-3.x versions between the two
 > entries below live on the [Releases](https://github.com/aungkokomm/CineLibraryCS/releases) page.
 
+## [3.7.0] - 2026-09-29
+
+### Added
+- **All TV shows gets a toolbar** like All movies: sort by title, year,
+  rating, date added or last watched; All / Unwatched / Watched; and
+  S / M / L / XL poster sizes. Your choices are remembered.
+
+### Changed
+- **Roomier show page header.** More space around the poster and between the
+  title, details, plot, buttons and cast, a slightly larger poster, and easier
+  line spacing for the plot, which now reads as one paragraph.
+
+### Fixed
+- **Show plot sat off to the right** on wide windows. It now lines up under
+  the title.
+
 ## [3.6.0] - 2026-09-29
 
 ### Added

@@ -23,6 +23,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Button x:Name="BackBtn" Grid.Column="0" Click="OnBackClick"
                     Background="{ThemeResource InputBgBrush}"
@@ -39,8 +40,82 @@
             <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                 <TextBlock x:Name="TitleText" Text="All TV shows" FontSize="24" FontWeight="SemiBold"
                            Foreground="{ThemeResource TextBrush}"/>
-                <TextBlock x:Name="SubText" Text="" FontSize="12"
-                           Foreground="{ThemeResource MutedBrush}"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock x:Name="SubText" Text="" FontSize="12"
+                               Foreground="{ThemeResource MutedBrush}"
+                               VerticalAlignment="Center"/>
+                    <!-- v3.7.0: watched filter, same pills as All movies. -->
+                    <StackPanel x:Name="TvFilterPills" Orientation="Horizontal" Spacing="8"
+                                Margin="12,6,0,0">
+                        <Button x:Name="TvFilterAll" Content="All" Tag="all"
+                                Style="{StaticResource PillButtonActiveStyle}" Click="OnTvFilterClick"/>
+                        <Button x:Name="TvFilterUnwatched" Content="Unwatched" Tag="unwatched"
+                                Style="{StaticResource PillButtonStyle}" Click="OnTvFilterClick"
+                                ToolTipService.ToolTip="Shows with episodes you haven't watched yet"/>
+                        <Button x:Name="TvFilterWatched" Content="Watched" Tag="watched"
+                                Style="{StaticResource PillButtonStyle}" Click="OnTvFilterClick"
+                                ToolTipService.ToolTip="Shows you've watched every episode of"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- v3.7.0: sort + poster size for All TV shows, matching All movies. -->
+            <StackPanel x:Name="TvToolbar" Grid.Column="2" Orientation="Horizontal" Spacing="12"
+                        VerticalAlignment="Top" Margin="12,4,0,0">
+                <ComboBox x:Name="TvSortCombo"
+                          SelectionChanged="OnTvSortChanged"
+                          Background="{ThemeResource InputBgBrush}"
+                          Foreground="{ThemeResource TextBrush}"
+                          BorderBrush="{ThemeResource InputBorderBrush}"
+                          MinWidth="140" Height="36" CornerRadius="8"
+                          VerticalAlignment="Center"
+                          AutomationProperties.Name="Sort shows">
+                    <ComboBoxItem Tag="title:asc"        Content="Title ↑"/>
+                    <ComboBoxItem Tag="title:desc"       Content="Title ↓"/>
+                    <ComboBoxItem Tag="year:desc"        Content="Year ↓"/>
+                    <ComboBoxItem Tag="year:asc"         Content="Year ↑"/>
+                    <ComboBoxItem Tag="rating:desc"      Content="Rating ↓"/>
+                    <ComboBoxItem Tag="rating:asc"       Content="Rating ↑"/>
+                    <ComboBoxItem Tag="date_added:desc"  Content="Date Added ↓"/>
+                    <ComboBoxItem Tag="date_added:asc"   Content="Date Added ↑"/>
+                    <ComboBoxItem Tag="last_played:desc" Content="Last Watched ↓"/>
+                    <ComboBoxItem Tag="last_played:asc"  Content="Last Watched ↑"/>
+                </ComboBox>
+                <Border Background="{ThemeResource InputBgBrush}"
+                        BorderBrush="{ThemeResource InputBorderBrush}"
+                        BorderThickness="1" CornerRadius="8" Height="36"
+                        VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <ToggleButton x:Name="TvDensityS" Click="OnTvDensityClick" Tag="S"
+                                      AutomationProperties.Name="Small posters"
+                                      ToolTipService.ToolTip="Small posters"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="12,8" Height="36" Width="36" VerticalAlignment="Center">
+                            <TextBlock Text="S" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </ToggleButton>
+                        <ToggleButton x:Name="TvDensityM" Click="OnTvDensityClick" Tag="M" IsChecked="True"
+                                      AutomationProperties.Name="Medium posters"
+                                      ToolTipService.ToolTip="Medium posters"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="12,8" Height="36" Width="36" VerticalAlignment="Center">
+                            <TextBlock Text="M" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </ToggleButton>
+                        <ToggleButton x:Name="TvDensityL" Click="OnTvDensityClick" Tag="L"
+                                      AutomationProperties.Name="Large posters"
+                                      ToolTipService.ToolTip="Large posters"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="12,8" Height="36" Width="36" VerticalAlignment="Center">
+                            <TextBlock Text="L" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </ToggleButton>
+                        <ToggleButton x:Name="TvDensityXL" Click="OnTvDensityClick" Tag="XL"
+                                      AutomationProperties.Name="Extra large posters"
+                                      ToolTipService.ToolTip="Extra large posters"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="12,8" Height="36" Width="36" VerticalAlignment="Center">
+                            <TextBlock Text="XL" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </ToggleButton>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </Grid>
 
@@ -74,7 +149,7 @@
 
                     <ItemsRepeater x:Name="ShowsRepeater" Margin="24,0,24,24">
                         <ItemsRepeater.Layout>
-                            <UniformGridLayout MinItemWidth="170" MinItemHeight="300"
+                            <UniformGridLayout x:Name="ShowsGridLayout" MinItemWidth="170" MinItemHeight="300"
                                                MinColumnSpacing="14" MinRowSpacing="14"
                                                ItemsStretch="Fill"/>
                         </ItemsRepeater.Layout>
@@ -89,7 +164,7 @@
                 <!-- LEVEL 2: Show header + Seasons grid -->
                 <StackPanel x:Name="SeasonsPanel" Visibility="Collapsed" Spacing="0">
                     <!-- Show-detail header (v2.8) -->
-                    <Grid x:Name="ShowHeader" Margin="24,0,24,20">
+                    <Grid x:Name="ShowHeader" Margin="24,4,24,24">
                         <Border CornerRadius="14" Background="{ThemeResource HeroBgBrush}">
                             <Grid>
                                 <Image x:Name="ShowFanart" Stretch="UniformToFill" Opacity="0.28"/>
@@ -101,13 +176,13 @@
                                         </LinearGradientBrush>
                                     </Border.Background>
                                 </Border>
-                                <Grid Padding="20" ColumnSpacing="20">
+                                <Grid Padding="28,24" ColumnSpacing="28">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <!-- Poster -->
-                                    <Border Grid.Column="0" Width="130" Height="195" CornerRadius="10"
+                                    <Border Grid.Column="0" Width="150" Height="225" CornerRadius="10"
                                             VerticalAlignment="Top"
                                             Background="{ThemeResource PlaceholderBgBrush}">
                                         <Grid>
@@ -117,7 +192,7 @@
                                         </Grid>
                                     </Border>
                                     <!-- Meta -->
-                                    <StackPanel Grid.Column="1" Spacing="10" VerticalAlignment="Top">
+                                    <StackPanel Grid.Column="1" Spacing="14" VerticalAlignment="Top">
                                         <TextBlock x:Name="ShowTitle" FontSize="26" FontWeight="Bold"
                                                    Foreground="White" TextWrapping="Wrap"/>
                                         <StackPanel x:Name="ShowMetaRow" Orientation="Horizontal" Spacing="14">
@@ -126,12 +201,13 @@
                                             <TextBlock x:Name="ShowStatus" FontSize="13" Foreground="#A78BFA"/>
                                             <TextBlock x:Name="ShowProgress" FontSize="13" Foreground="#D8D8D8"/>
                                         </StackPanel>
-                                        <TextBlock x:Name="ShowPlot" FontSize="13" Foreground="#E0E0E0"
-                                                   TextWrapping="Wrap" MaxLines="4"
-                                                   TextTrimming="CharacterEllipsis" MaxWidth="720"/>
+                                        <TextBlock x:Name="ShowPlot" FontSize="14" LineHeight="22" Foreground="#E0E0E0"
+                                                   TextWrapping="Wrap" MaxLines="5"
+                                                   TextTrimming="CharacterEllipsis" MaxWidth="760"
+                                                   HorizontalAlignment="Left"/>
                                         <StackPanel x:Name="ShowGenres" Orientation="Horizontal" Spacing="6"/>
                                         <!-- Action buttons -->
-                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
                                             <Button x:Name="PlayNextBtn" Click="OnPlayNext"
                                                     Background="{StaticResource BrandPurpleBrush}" Foreground="White"
                                                     BorderThickness="0" CornerRadius="8" Padding="16,7"
@@ -187,7 +263,7 @@
                                                             VerticalAlignment="Center"/>
                                         </StackPanel>
                                         <!-- Cast strip -->
-                                        <ItemsRepeater x:Name="CastRepeater" Margin="0,6,0,0">
+                                        <ItemsRepeater x:Name="CastRepeater" Margin="0,10,0,0">
                                             <ItemsRepeater.Layout>
                                                 <StackLayout Orientation="Horizontal" Spacing="14"/>
                                             </ItemsRepeater.Layout>

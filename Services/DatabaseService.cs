@@ -3402,7 +3402,9 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                    s.volume_serial, d.label, s.is_favorite, s.is_watchlist,
                    (SELECT COUNT(*) FROM tv_episodes e WHERE e.show_id=s.id) AS ep_count,
                    (SELECT COUNT(*) FROM tv_episodes e WHERE e.show_id=s.id AND e.is_watched=1) AS watched_count,
-                   (SELECT GROUP_CONCAT(g.name, ', ') FROM tv_show_genres sg JOIN genres g ON g.id=sg.genre_id WHERE sg.show_id=s.id) AS genres
+                   (SELECT GROUP_CONCAT(g.name, ', ') FROM tv_show_genres sg JOIN genres g ON g.id=sg.genre_id WHERE sg.show_id=s.id) AS genres,
+                   COALESCE(s.date_added, 0),
+                   (SELECT COALESCE(MAX(e.last_played_at), 0) FROM tv_episodes e WHERE e.show_id=s.id) AS last_played
               FROM tv_shows s
               LEFT JOIN drives d ON d.volume_serial = s.volume_serial
              ORDER BY s.sort_title, s.title";
@@ -3425,6 +3427,8 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 EpisodeCount = r.GetInt32(10),
                 WatchedCount = r.GetInt32(11),
                 GenresCsv = r.IsDBNull(12) ? null : r.GetString(12),
+                DateAdded = r.GetInt64(13),
+                LastPlayed = r.GetInt64(14),
                 IsOnline = connected.ContainsKey(serial),
             });
         }

@@ -270,6 +270,14 @@ Click **All TV Shows** in the sidebar (under All Movies). You get a
 grid of show cards, each with its poster, year, and a watched-progress
 bar. The sidebar badge shows how many shows you have.
 
+The toolbar works like the one on All Movies, and CineLibrary remembers
+your choices:
+
+- **Sort**: Title, Year, Rating, Date Added or Last Watched, either way.
+- **All / Unwatched / Watched**: Unwatched shows the shows that still
+  have episodes left; Watched shows the ones you've finished.
+- **S / M / L / XL**: the size of the show posters.
+
 ### The show page
 
 Click a show to open its page — everything on one scroll, no

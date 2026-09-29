@@ -20,6 +20,9 @@ public partial class TvShowListItem : ObservableObject
     public int EpisodeCount { get; set; }
     public int WatchedCount { get; set; }
     public string? GenresCsv { get; set; }
+    // v3.7.0: for the All TV shows sort options (unix seconds, 0 = never).
+    public long DateAdded { get; set; }
+    public long LastPlayed { get; set; }
 
     [ObservableProperty] private bool _isFavorite;
     [ObservableProperty] private bool _isWatchlist;

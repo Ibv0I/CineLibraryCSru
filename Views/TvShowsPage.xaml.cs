@@ -20,6 +20,13 @@ public sealed partial class TvShowsPage : Page
     private readonly ObservableCollection<TvShowListItem> _shows = new();
     private TvShowListItem? _currentShow;
 
+    // v3.7.0: All TV shows sort / watched filter / poster size, remembered
+    // in prefs like the All movies toolbar.
+    private string _tvSort = "title:asc";
+    private string _tvFilter = "all";
+    private bool _tvUiReady;
+    private readonly string _noShowsHint;
+
     // All episodes currently on the show page, for Play-next + event routing.
     private readonly List<TvEpisodeItem> _showEpisodes = new();
 
@@ -30,6 +37,14 @@ public sealed partial class TvShowsPage : Page
         InitializeComponent();
         ShowsRepeater.ItemsSource = _shows;
         ShowsRepeater.Tapped += OnShowsTapped;
+
+        _noShowsHint = EmptyHint.Text;
+        _tvSort = AppState.Instance.GetPref("tvSort", "title:asc");
+        _tvFilter = AppState.Instance.GetPref("tvFilter", "all");
+        if (_tvFilter is not ("all" or "unwatched" or "watched")) _tvFilter = "all";
+        ApplyTvDensity(AppState.Instance.GetPref("tvDensity", "M"));
+        SyncTvToolbar();
+        _tvUiReady = true;
 
         // Episode cards raise these statics. Wire on Loaded / unwire on
         // Unloaded — the page is cached and reused by MainWindow, so doing
@@ -225,21 +240,129 @@ public sealed partial class TvShowsPage : Page
         BackBtn.Visibility       = _level == Level.Shows ? Visibility.Collapsed : Visibility.Visible;
         ShowsLevelHost.Visibility = _level == Level.Shows ? Visibility.Visible : Visibility.Collapsed;
         SeasonsPanel.Visibility   = _level == Level.Show  ? Visibility.Visible : Visibility.Collapsed;
+        TvToolbar.Visibility      = _level == Level.Shows ? Visibility.Visible : Visibility.Collapsed;
+        TvFilterPills.Visibility  = _level == Level.Shows ? Visibility.Visible : Visibility.Collapsed;
 
         if (_level == Level.Shows) LoadShows();
-        else LoadShow();
+        else
+        {
+            // A filtered-empty list must not leave its empty state over a show page.
+            EmptyState.Visibility = Visibility.Collapsed;
+            LoadShow();
+        }
     }
 
     private void LoadShows()
     {
         TitleText.Text = "All TV shows";
         BackLabel.Text = "Back";
-        var shows = AppState.Instance.Db.GetTvShows(AppState.Instance.Connected);
+        var all = AppState.Instance.Db.GetTvShows(AppState.Instance.Connected);
+        var shown = SortShows(FilterShows(all)).ToList();
         _shows.Clear();
-        foreach (var s in shows) _shows.Add(s);
-        SubText.Text = shows.Count == 1 ? "1 show" : $"{shows.Count} shows";
-        EmptyState.Visibility = shows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        foreach (var s in shown) _shows.Add(s);
+        SubText.Text = shown.Count == all.Count
+            ? (all.Count == 1 ? "1 show" : $"{all.Count} shows")
+            : $"{shown.Count} of {all.Count} shows";
+        if (all.Count == 0)
+        {
+            EmptyTitle.Text = "No TV shows yet";
+            EmptyHint.Text = _noShowsHint;
+        }
+        else
+        {
+            EmptyTitle.Text = _tvFilter == "watched" ? "No fully watched shows yet" : "Nothing left to watch";
+            EmptyHint.Text = "Choose All to see every show.";
+        }
+        EmptyState.Visibility = shown.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         LoadContinueWatching();
+    }
+
+    // ── v3.7.0 All TV shows toolbar ──────────────────────────────────────────
+
+    private IEnumerable<TvShowListItem> FilterShows(IEnumerable<TvShowListItem> shows) => _tvFilter switch
+    {
+        "watched"   => shows.Where(s => s.FullyWatched),
+        "unwatched" => shows.Where(s => !s.FullyWatched),
+        _           => shows,
+    };
+
+    // Title ↑ keeps the database order (sort title, then title). The other
+    // sorts are stable on top of it, so ties stay alphabetical; unknown
+    // values (no year, no rating, never watched) go last.
+    private IEnumerable<TvShowListItem> SortShows(IEnumerable<TvShowListItem> shows)
+    {
+        var parts = _tvSort.Split(':');
+        bool desc = parts.Length > 1 && parts[1] == "desc";
+        return parts[0] switch
+        {
+            "year"        => desc ? shows.OrderByDescending(s => s.Year ?? 0)
+                                  : shows.OrderBy(s => s.Year ?? int.MaxValue),
+            "rating"      => desc ? shows.OrderByDescending(s => s.Rating ?? -1)
+                                  : shows.OrderBy(s => s.Rating ?? double.MaxValue),
+            "date_added"  => desc ? shows.OrderByDescending(s => s.DateAdded)
+                                  : shows.OrderBy(s => s.DateAdded),
+            "last_played" => desc ? shows.OrderByDescending(s => s.LastPlayed)
+                                  : shows.OrderBy(s => s.LastPlayed == 0 ? long.MaxValue : s.LastPlayed),
+            _             => desc ? shows.Reverse() : shows,
+        };
+    }
+
+    private void OnTvSortChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_tvUiReady || TvSortCombo.SelectedItem is not ComboBoxItem { Tag: string tag }) return;
+        _tvSort = tag;
+        AppState.Instance.SetPref("tvSort", tag);
+        LoadShows();
+    }
+
+    private void OnTvFilterClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string tag }) return;
+        _tvFilter = tag;
+        AppState.Instance.SetPref("tvFilter", tag);
+        SyncTvToolbar();
+        LoadShows();
+    }
+
+    private void OnTvDensityClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: string tag }) return;
+        ApplyTvDensity(tag);
+        AppState.Instance.SetPref("tvDensity", tag);
+        LoadShows();   // fresh items, so every card re-applies the new size
+    }
+
+    private void ApplyTvDensity(string tag)
+    {
+        var (w, h) = tag switch
+        {
+            "S"  => (130.0, 235.0),
+            "L"  => (210.0, 365.0),
+            "XL" => (250.0, 430.0),
+            _    => (170.0, 300.0),   // M: the size before v3.7
+        };
+        TvShowCard.SetSize(w, h);
+        ShowsGridLayout.MinItemWidth = w;
+        ShowsGridLayout.MinItemHeight = h;
+        TvDensityS.IsChecked  = tag == "S";
+        TvDensityM.IsChecked  = tag is not ("S" or "L" or "XL");
+        TvDensityL.IsChecked  = tag == "L";
+        TvDensityXL.IsChecked = tag == "XL";
+    }
+
+    private void SyncTvToolbar()
+    {
+        // Only touch the combo when it's wrong: setting it fires OnTvSortChanged,
+        // which would otherwise store a passing value as the user's choice.
+        var index = 0;
+        for (int i = 0; i < TvSortCombo.Items.Count; i++)
+            if (TvSortCombo.Items[i] is ComboBoxItem { Tag: string t } && t == _tvSort) { index = i; break; }
+        if (TvSortCombo.SelectedIndex != index) TvSortCombo.SelectedIndex = index;
+        var pill = (Style)Application.Current.Resources["PillButtonStyle"];
+        var active = (Style)Application.Current.Resources["PillButtonActiveStyle"];
+        TvFilterAll.Style       = _tvFilter == "all"       ? active : pill;
+        TvFilterUnwatched.Style = _tvFilter == "unwatched" ? active : pill;
+        TvFilterWatched.Style   = _tvFilter == "watched"   ? active : pill;
     }
 
     // ── v2.9 Continue Watching row ───────────────────────────────────────────
@@ -605,7 +728,9 @@ public sealed partial class TvShowsPage : Page
         ShowStatus.Text = _detail.Status ?? "";
         ShowStatus.Visibility = string.IsNullOrEmpty(_detail.Status) ? Visibility.Collapsed : Visibility.Visible;
         ShowProgress.Text = $"{_detail.WatchedCount}/{_detail.EpisodeCount} watched";
-        ShowPlot.Text = _detail.Plot ?? "";
+        // One flowing paragraph: a blank line between paragraphs would use up
+        // one of the five visible lines and hide the "…" that says there's more.
+        ShowPlot.Text = System.Text.RegularExpressions.Regex.Replace(_detail.Plot ?? "", @"\s*\n\s*", " ").Trim();
         ShowPlot.Visibility = string.IsNullOrWhiteSpace(_detail.Plot) ? Visibility.Collapsed : Visibility.Visible;
 
         // Genre chips

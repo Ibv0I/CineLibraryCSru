@@ -19,6 +19,12 @@ public sealed partial class TvShowCard : UserControl
         set => SetValue(ShowProperty, value);
     }
 
+    // v3.7.0: card size follows the All TV shows S / M / L / XL picker.
+    // TvShowsPage reloads the list after a change, so every card re-applies it.
+    public static double CardWidth { get; private set; } = 170;
+    public static double CardHeight { get; private set; } = 300;
+    public static void SetSize(double width, double height) { CardWidth = width; CardHeight = height; }
+
     public TvShowCard()
     {
         InitializeComponent();
@@ -42,8 +48,10 @@ public sealed partial class TvShowCard : UserControl
         else if (!s.IsOnline) { StatusText.Text = "OFFLINE"; StatusBadge.Visibility = Visibility.Visible; }
         else StatusBadge.Visibility = Visibility.Collapsed;
 
-        // Progress bar fill — set once we know the card width (170 - padding).
-        ProgressFill.Width = Math.Max(0, 150 * s.ProgressFraction);
+        CardRoot.Width = CardWidth;
+        CardRoot.Height = CardHeight;
+        // Progress bar fill: card width minus the info strip's padding.
+        ProgressFill.Width = Math.Max(0, (CardWidth - 20) * s.ProgressFraction);
 
         LoadPosterAsync(s.LocalPoster);
     }

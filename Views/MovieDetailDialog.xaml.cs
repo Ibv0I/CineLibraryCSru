@@ -869,6 +869,15 @@ public sealed partial class MovieDetailDialog : Window
             : $"{t.Minutes}m {t.Seconds:D2}s";
     }
 
+    // v3.7.1: the content column gets an explicit width. With MaxWidth alone,
+    // WinUI centred it by the width it asked for, so on a movie without fanart
+    // (nothing asks for the full width) it was pushed right and cut off.
+    private void OnContentScrollerSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        var inner = e.NewSize.Width - ContentScroller.Padding.Left - ContentScroller.Padding.Right;
+        ContentStack.Width = Math.Clamp(inner, 0, 1100);
+    }
+
     // ── Sticky action bar + external link buttons (v2.3) ─────────────────
 
     private void OnContentScrolled(object sender, ScrollViewerViewChangedEventArgs e)

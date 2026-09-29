@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="using:CineLibraryCS.Models"
+    xmlns:controls="using:CineLibraryCS.Controls"
     Title="Movie Details">
 
     <Grid x:Name="RootGrid" Background="{ThemeResource SidebarBrush}">
@@ -23,8 +24,8 @@
         <Grid Grid.Row="1">
             <ScrollViewer x:Name="ContentScroller" VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled" Padding="24"
-                          ViewChanged="OnContentScrolled">
-            <StackPanel MaxWidth="1100" HorizontalAlignment="Stretch">
+                          ViewChanged="OnContentScrolled" SizeChanged="OnContentScrollerSizeChanged">
+            <StackPanel x:Name="ContentStack" MaxWidth="1100" HorizontalAlignment="Stretch">
 
                 <!-- Hero fanart (v2.3 — taller, layered gradient, vignette, IMDb/TMDb pills) -->
                 <Border x:Name="HeroBorder" Height="340" CornerRadius="12"
@@ -148,8 +149,8 @@
                                TextWrapping="Wrap"/>
                 </StackPanel>
 
-                <!-- Actions -->
-                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,12,0,0">
+                <!-- Actions (wrap onto a second line in narrow windows) -->
+                <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8" Margin="0,12,0,0">
                     <Button x:Name="PlayBtn" Click="OnPlay"
                             Background="#A78BFA" Foreground="White"
                             BorderThickness="0" CornerRadius="8" Padding="16,8">
@@ -184,7 +185,7 @@
                             <MenuFlyout x:Name="ListsFlyout" Placement="Bottom" Opening="OnListsFlyoutOpening"/>
                         </Button.Flyout>
                     </Button>
-                </StackPanel>
+                </controls:WrapPanel>
 
                 <!-- v3.4 — TMDB enrichment: fill gaps in the app, then (for real
                      library movies on an online drive) sync the result home. -->
@@ -266,7 +267,7 @@
                         Background="{ThemeResource CardBrush}"
                         BorderBrush="{ThemeResource BorderBrush}"
                         BorderThickness="1" CornerRadius="8">
-                    <StackPanel Orientation="Horizontal" Spacing="24">
+                    <controls:WrapPanel HorizontalSpacing="24" VerticalSpacing="8">
                         <StackPanel x:Name="FiRuntimeBlock" Visibility="Collapsed">
                             <TextBlock Text="RUNTIME" FontSize="9" FontWeight="SemiBold"
                                        CharacterSpacing="150" Opacity="0.65"
@@ -330,7 +331,7 @@
                             <TextBlock x:Name="FiSubs" FontSize="13" FontWeight="SemiBold"
                                        Foreground="{ThemeResource TextBrush}"/>
                         </StackPanel>
-                    </StackPanel>
+                    </controls:WrapPanel>
                 </Border>
 
                 <!-- Plot — with section header + capped width for readability -->

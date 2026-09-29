@@ -6,6 +6,16 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > Per-release notes for the 2.x and early-3.x versions between the two
 > entries below live on the [Releases](https://github.com/aungkokomm/CineLibraryCS/releases) page.
 
+## [3.7.1] - 2026-09-29
+
+### Fixed
+- **Movie details window pushed off to the right** on movies without
+  fanart. The page was shifted right and cut off at the edge, hiding the
+  IMDb and TMDb buttons. It now sits centred like every other movie.
+- **Buttons ran off the edge of the movie details window** when it was
+  narrow, hiding "Add to list". The buttons, and the file info strip below
+  them, now wrap onto a second line instead.
+
 ## [3.7.0] - 2026-09-29
 
 ### Added

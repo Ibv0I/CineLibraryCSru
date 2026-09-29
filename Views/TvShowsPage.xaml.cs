@@ -205,7 +205,7 @@ public sealed partial class TvShowsPage : Page
         var dlg = new ContentDialog
         {
             Title = $"{d.ShowTitle} — {d.Title}",
-            Content = new ScrollViewer { Content = root, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = 460 },
+            Content = new ScrollViewer { Content = root, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = 460, Padding = new Thickness(0, 0, 16, 0) },
             PrimaryButtonText = "▶ Play",
             SecondaryButtonText = d.IsWatched ? "Mark unwatched" : "Mark watched",
             CloseButtonText = "Close",

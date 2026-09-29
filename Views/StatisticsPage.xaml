@@ -5,8 +5,9 @@
     xmlns:models="using:CineLibraryCS.Models"
     Background="{ThemeResource BgBrush}">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="28,8,28,40">
-        <StackPanel MaxWidth="1100" HorizontalAlignment="Stretch" Spacing="24">
+    <ScrollViewer x:Name="PageScroller" VerticalScrollBarVisibility="Auto" Padding="28,8,28,40"
+                  SizeChanged="OnPageScrollerSizeChanged">
+        <StackPanel x:Name="PageStack" MaxWidth="1100" HorizontalAlignment="Stretch" Spacing="24">
 
             <!-- Page header -->
             <StackPanel Spacing="4">

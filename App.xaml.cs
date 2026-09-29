@@ -78,6 +78,7 @@ public partial class App : Application
                         IsTextSelectionEnabled = true,
                     },
                     MaxHeight = 400,
+                    Padding = new Microsoft.UI.Xaml.Thickness(0, 0, 16, 0),
                 },
                 CloseButtonText = "OK",
                 XamlRoot = MainWindow?.Content?.XamlRoot,

@@ -137,6 +137,15 @@ public sealed partial class StatisticsPage : Page
         }
     }
 
+    // v3.7.2: the page column gets an explicit width. With MaxWidth alone,
+    // WinUI centred it by the width it asked for, so a small library pushed
+    // it right and cut off the right-hand tiles.
+    private void OnPageScrollerSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        var inner = e.NewSize.Width - PageScroller.Padding.Left - PageScroller.Padding.Right;
+        PageStack.Width = Math.Clamp(inner, 0, 1100);
+    }
+
     private static string FormatRuntime(long minutes)
     {
         if (minutes <= 0) return "—";

@@ -6,6 +6,14 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > Per-release notes for the 2.x and early-3.x versions between the two
 > entries below live on the [Releases](https://github.com/aungkokomm/CineLibraryCS/releases) page.
 
+## [3.7.2] - 2026-09-29
+
+### Fixed
+- **Statistics page pushed off to the right** and cut off at the edge,
+  most noticeably in smaller libraries. It now sits centred.
+- **Scrollbar covered text and buttons in Settings.** Settings and the
+  other scrolling dialogs now leave room for the scrollbar.
+
 ## [3.7.1] - 2026-09-29
 
 ### Fixed

@@ -519,6 +519,7 @@ public sealed partial class DrivesPage : Page
             {
                 Content = listPanel, MaxHeight = 380,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                Padding = new Thickness(0, 0, 16, 0),
             });
 
             var dialog = new ContentDialog

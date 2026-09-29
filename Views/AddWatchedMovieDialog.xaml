@@ -10,7 +10,7 @@
     IsPrimaryButtonEnabled="False"
     PrimaryButtonClick="OnAdd">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="560">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="560" Padding="0,0,16,0">
         <StackPanel Spacing="10" MinWidth="460">
 
             <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{ThemeResource MutedBrush}"

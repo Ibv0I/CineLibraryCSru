@@ -367,6 +367,8 @@ public sealed partial class MainWindow : Window
                 Content = panel,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 MaxHeight = 520,
+                // Keep text and buttons clear of the scrollbar (v3.7.2).
+                Padding = new Thickness(0, 0, 16, 0),
             },
             CloseButtonText = "Done",
             XamlRoot = Content.XamlRoot,
@@ -1905,6 +1907,7 @@ public sealed partial class MainWindow : Window
                 Content = new StackPanel { Children = { panel, note } },
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 MaxHeight = 520,
+                Padding = new Thickness(0, 0, 16, 0),
             },
             CloseButtonText = "Close",
             XamlRoot = Content.XamlRoot,

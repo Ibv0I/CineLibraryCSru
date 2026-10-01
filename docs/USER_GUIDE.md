@@ -163,6 +163,21 @@ The sidebar is grouped into four sections:
 
 Each collapsible section can be collapsed by clicking its header.
 
+### Collections
+
+**Collections** (under Browse) shows each franchise in your library as a
+poster card with its movie count. A green **✓** means you've watched
+every movie in it. The toolbar works like the one on All Movies, and
+CineLibrary remembers your choices:
+
+- **Sort**: Name, number of Movies, Year (the newest movie in the
+  collection) or Date Added, either way.
+- **All / Unwatched / Watched**: Unwatched shows the collections with
+  movies left to watch; Watched shows the ones you've finished.
+- **S / M / L / XL**: the size of the posters.
+
+Click a collection to see its movies.
+
 ---
 
 ## Search, filter, and sort
@@ -278,19 +293,26 @@ your choices:
   have episodes left; Watched shows the ones you've finished.
 - **S / M / L / XL**: the size of the show posters.
 
+A green **✓** on a show card means you've watched every episode.
+
 ### The show page
 
-Click a show to open its page — everything on one scroll, no
-drilling:
+Click a show to open its page:
 
-- **Header** — poster, plot, year · rating · status, a watched
-  roll-up ("12/62 watched"), genre chips, a **cast strip**, and
-  **☆ Favorite** / **📋 Watchlist** buttons.
+- **Header**: poster, plot, an info line (year, rating, certification
+  such as TV-14, status, a watched roll-up like "12/62 watched", and
+  the studio), genre chips, a **cast strip**, and **📂 Open Folder**,
+  **☆ Favorite** and **📋 Watchlist** buttons. Open Folder works while
+  the show's drive is connected.
 - **▶ Play next** — jumps straight to the first unwatched episode
   (by season, then episode). Reads "✓ All watched" once you're done.
-- **Season rows** — each season is a horizontal row of episode
-  cards (scroll sideways, like Netflix). Each card shows the
-  episode thumbnail, `SxxExx`, title, runtime/rating, an
+- **Season tabs**: one tab per season, with Specials last. The page
+  shows one season at a time, so season 10 is one click away. It opens
+  on the first season you haven't finished.
+- **Episode row**: the season's episodes sit in a horizontal row of
+  cards (scroll sideways, like Netflix), or use the **‹ ›** buttons
+  next to Mark all watched to move a page at a time. Each card shows
+  the episode thumbnail, `SxxExx`, title, runtime/rating, an
   **○ / ✓ Mark-watched** toggle, and **▶ Play** on hover.
 
 ### Watching episodes

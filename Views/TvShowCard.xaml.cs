@@ -43,6 +43,7 @@ public sealed partial class TvShowCard : UserControl
         MetaText.Text = s.YearText;
         ProgressText.Text = s.ProgressText;
         FavBadge.Visibility = s.IsFavorite ? Visibility.Visible : Visibility.Collapsed;
+        WatchedBadge.Visibility = s.FullyWatched ? Visibility.Visible : Visibility.Collapsed;
 
         if (s.IsMissing) { StatusText.Text = "MISSING"; StatusBadge.Visibility = Visibility.Visible; }
         else if (!s.IsOnline) { StatusText.Text = "OFFLINE"; StatusBadge.Visibility = Visibility.Visible; }

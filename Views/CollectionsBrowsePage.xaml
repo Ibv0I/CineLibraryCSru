@@ -11,61 +11,150 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Padding="24,8,24,12" Spacing="2">
-            <TextBlock Text="Collections" FontSize="24" FontWeight="SemiBold"
-                       Foreground="{ThemeResource TextBrush}"/>
-            <TextBlock x:Name="PageCountText" Text=""
-                       FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
-        </StackPanel>
+        <Grid Grid.Row="0" Padding="24,8,24,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="2" VerticalAlignment="Center">
+                <TextBlock Text="Collections" FontSize="24" FontWeight="SemiBold"
+                           Foreground="{ThemeResource TextBrush}"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock x:Name="PageCountText" Text=""
+                               FontSize="12" Foreground="{ThemeResource MutedBrush}"
+                               VerticalAlignment="Center"/>
+                    <!-- v3.8.0: watched filter, same pills as All movies. -->
+                    <StackPanel x:Name="CollFilterPills" Orientation="Horizontal" Spacing="8"
+                                Margin="12,6,0,0">
+                        <Button x:Name="CollFilterAll" Content="All" Tag="all"
+                                Style="{StaticResource PillButtonActiveStyle}" Click="OnFilterClick"/>
+                        <Button x:Name="CollFilterUnwatched" Content="Unwatched" Tag="unwatched"
+                                Style="{StaticResource PillButtonStyle}" Click="OnFilterClick"
+                                ToolTipService.ToolTip="Collections with movies you haven't watched yet"/>
+                        <Button x:Name="CollFilterWatched" Content="Watched" Tag="watched"
+                                Style="{StaticResource PillButtonStyle}" Click="OnFilterClick"
+                                ToolTipService.ToolTip="Collections you've watched every movie of"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- v3.8.0: sort + poster size, matching All movies. -->
+            <StackPanel x:Name="CollToolbar" Grid.Column="1" Orientation="Horizontal" Spacing="12"
+                        VerticalAlignment="Top" Margin="12,4,0,0">
+                <ComboBox x:Name="CollSortCombo"
+                          SelectionChanged="OnSortChanged"
+                          Background="{ThemeResource InputBgBrush}"
+                          Foreground="{ThemeResource TextBrush}"
+                          BorderBrush="{ThemeResource InputBorderBrush}"
+                          MinWidth="140" Height="36" CornerRadius="8"
+                          VerticalAlignment="Center"
+                          AutomationProperties.Name="Sort collections">
+                    <ComboBoxItem Tag="name:asc"        Content="Name ↑"/>
+                    <ComboBoxItem Tag="name:desc"       Content="Name ↓"/>
+                    <ComboBoxItem Tag="count:desc"      Content="Movies ↓"/>
+                    <ComboBoxItem Tag="count:asc"       Content="Movies ↑"/>
+                    <ComboBoxItem Tag="year:desc"       Content="Year ↓"/>
+                    <ComboBoxItem Tag="year:asc"        Content="Year ↑"/>
+                    <ComboBoxItem Tag="date_added:desc" Content="Date Added ↓"/>
+                    <ComboBoxItem Tag="date_added:asc"  Content="Date Added ↑"/>
+                </ComboBox>
+                <Border Background="{ThemeResource InputBgBrush}"
+                        BorderBrush="{ThemeResource InputBorderBrush}"
+                        BorderThickness="1" CornerRadius="8" Height="36"
+                        VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <ToggleButton x:Name="CollDensityS" Click="OnDensityClick" Tag="S"
+                                      AutomationProperties.Name="Small posters"
+                                      ToolTipService.ToolTip="Small posters"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="12,8" Height="36" Width="36" VerticalAlignment="Center">
+                            <TextBlock Text="S" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </ToggleButton>
+                        <ToggleButton x:Name="CollDensityM" Click="OnDensityClick" Tag="M" IsChecked="True"
+                                      AutomationProperties.Name="Medium posters"
+                                      ToolTipService.ToolTip="Medium posters"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="12,8" Height="36" Width="36" VerticalAlignment="Center">
+                            <TextBlock Text="M" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </ToggleButton>
+                        <ToggleButton x:Name="CollDensityL" Click="OnDensityClick" Tag="L"
+                                      AutomationProperties.Name="Large posters"
+                                      ToolTipService.ToolTip="Large posters"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="12,8" Height="36" Width="36" VerticalAlignment="Center">
+                            <TextBlock Text="L" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </ToggleButton>
+                        <ToggleButton x:Name="CollDensityXL" Click="OnDensityClick" Tag="XL"
+                                      AutomationProperties.Name="Extra large posters"
+                                      ToolTipService.ToolTip="Extra large posters"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="12,8" Height="36" Width="36" VerticalAlignment="Center">
+                            <TextBlock Text="XL" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </ToggleButton>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <Grid>
                 <ItemsRepeater x:Name="GridRepeater" Margin="24,0,24,24">
                     <ItemsRepeater.Layout>
-                        <!-- Match All Movies card size (M density = 150×280)
-                             so collections feel consistent across the app. -->
-                        <UniformGridLayout MinItemWidth="150" MinItemHeight="280"
-                                           MinColumnSpacing="12" MinRowSpacing="14"
+                        <!-- Card sizes follow the S / M / L / XL picker, the
+                             same sizes as All movies (M = 150×280). -->
+                        <UniformGridLayout x:Name="CollGridLayout" MinItemWidth="150" MinItemHeight="280"
+                                           MinColumnSpacing="12" MinRowSpacing="12"
                                            ItemsStretch="Fill"/>
                     </ItemsRepeater.Layout>
                     <ItemsRepeater.ItemTemplate>
+                        <!-- v3.8.0: built like a movie card. The poster fills the
+                             card, the name and count sit on a dark strip at the
+                             bottom, and a green tick marks a fully watched set. -->
                         <DataTemplate x:DataType="local:CollectionTileVm">
                             <Button Background="Transparent" BorderThickness="0"
                                     Padding="0" CornerRadius="10"
-                                    HorizontalAlignment="Stretch"
+                                    HorizontalAlignment="Center"
                                     VerticalAlignment="Top"
-                                    HorizontalContentAlignment="Stretch"
                                     Click="OnTileClick"
-                                    Tag="{x:Bind Id}">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-                                    <!-- Poster: 2:3 standard movie aspect, ~220 tall on a 150-wide tile -->
-                                    <Border Grid.Row="0"
-                                            CornerRadius="10"
-                                            Height="220"
-                                            Background="{ThemeResource PlaceholderBgBrush}"
-                                            HorizontalAlignment="Stretch">
+                                    Tag="{x:Bind Id}"
+                                    AutomationProperties.Name="{x:Bind Name}">
+                                <Border Width="{x:Bind CardWidth}" Height="{x:Bind CardHeight}"
+                                        CornerRadius="10"
+                                        Background="{ThemeResource PlaceholderBgBrush}"
+                                        BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1">
+                                    <Grid>
+                                        <TextBlock Text="🎬" FontSize="42" Opacity="0.6"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Image Stretch="UniformToFill"
                                                Source="{x:Bind CoverImage, Mode=OneWay}"/>
-                                    </Border>
-                                    <TextBlock Grid.Row="1"
-                                               Text="{x:Bind Name}"
-                                               FontSize="12" FontWeight="SemiBold"
-                                               Foreground="{ThemeResource TextBrush}"
-                                               TextTrimming="CharacterEllipsis"
-                                               TextWrapping="WrapWholeWords"
-                                               MaxLines="2"
-                                               Margin="2,6,2,2"/>
-                                    <TextBlock Grid.Row="2"
-                                               Text="{x:Bind CountText}"
-                                               FontSize="11"
-                                               Foreground="{ThemeResource MutedBrush}"
-                                               Margin="2,0,2,4"/>
-                                </Grid>
+                                        <Border VerticalAlignment="Bottom" CornerRadius="0,0,10,10" Padding="8,6">
+                                            <Border.Background>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                    <GradientStop Offset="0" Color="#00000000"/>
+                                                    <GradientStop Offset="0.3" Color="#B3000000"/>
+                                                    <GradientStop Offset="1" Color="#FF000000"/>
+                                                </LinearGradientBrush>
+                                            </Border.Background>
+                                            <StackPanel VerticalAlignment="Bottom" Spacing="2">
+                                                <Border Background="#CC22C55E" CornerRadius="10"
+                                                        Width="22" Height="22" Margin="0,0,0,4"
+                                                        HorizontalAlignment="Left"
+                                                        Visibility="{x:Bind WatchedVisibility}">
+                                                    <TextBlock Text="✓" FontSize="12" FontWeight="Bold" Foreground="White"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <TextBlock Text="{x:Bind Name}"
+                                                           FontSize="12" FontWeight="Bold"
+                                                           Foreground="White"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           TextWrapping="WrapWholeWords"
+                                                           MaxLines="2"/>
+                                                <TextBlock Text="{x:Bind CountText}"
+                                                           FontSize="11" Foreground="#D8D8D8"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Border>
                             </Button>
                         </DataTemplate>
                     </ItemsRepeater.ItemTemplate>
@@ -78,11 +167,11 @@
                               FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                               Foreground="{ThemeResource MutedBrush}"
                               HorizontalAlignment="Center"/>
-                    <TextBlock Text="No collections yet"
+                    <TextBlock x:Name="EmptyTitle" Text="No collections yet"
                                FontSize="15" FontWeight="SemiBold"
                                Foreground="{ThemeResource TextBrush}"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="MediaElch collections (franchises, sagas) appear here once at least two of their movies are in your library and tagged in their .nfo files."
+                    <TextBlock x:Name="EmptyHint" Text="MediaElch collections (franchises, sagas) appear here once at least two of their movies are in your library and tagged in their .nfo files."
                                FontSize="12" Foreground="{ThemeResource MutedBrush}"
                                HorizontalAlignment="Center" TextAlignment="Center"
                                TextWrapping="Wrap" MaxWidth="380"/>

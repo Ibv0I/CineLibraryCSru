@@ -569,11 +569,16 @@ public sealed partial class TvShowsPage : Page
         BackLabel.Text = "All TV Shows";
         EmptyState.Visibility = Visibility.Collapsed;
 
+        _selectedSeason = null;   // a newly opened show starts on its default season
         PopulateShowHeader();
         BuildSeasonSections();
     }
 
-    /// <summary>Build a section per season: header + a wrap of episode cards.</summary>
+    // v3.8.0: the show page shows one season at a time, picked from a row of
+    // season tabs, so a long show doesn't need a long scroll to reach season 10.
+    private int? _selectedSeason;
+
+    /// <summary>Season tabs, then the selected season's header + episode row.</summary>
     private void BuildSeasonSections()
     {
         SeasonSectionsHost.Children.Clear();
@@ -584,13 +589,30 @@ public sealed partial class TvShowsPage : Page
         var seasons = AppState.Instance.Db.GetSeasons(_currentShow.Id);
         SubText.Text = $"{seasons.Count} season{(seasons.Count == 1 ? "" : "s")}";
 
+        var episodes = new Dictionary<int, List<TvEpisodeItem>>();
         foreach (var season in seasons)
         {
             var eps = AppState.Instance.Db.GetEpisodes(_currentShow.Id, season.Season, connected);
+            episodes[season.Season] = eps;
             _showEpisodes.AddRange(eps);
+        }
 
-            // Section header — label + episode/watched counts + actions.
-            SeasonSectionsHost.Children.Add(BuildSeasonHeader(season, eps));
+        // Tabs list the regular seasons in order with Specials last.
+        var tabs = seasons.OrderBy(s => s.Season == 0 ? int.MaxValue : s.Season).ToList();
+        if (_selectedSeason is not int chosen || !episodes.ContainsKey(chosen))
+        {
+            // Default: the first regular season with something left to watch.
+            var regular = tabs.Where(s => s.Season != 0).ToList();
+            _selectedSeason = (regular.FirstOrDefault(s => episodes[s.Season].Any(e => !e.IsWatched))
+                               ?? regular.FirstOrDefault() ?? tabs.FirstOrDefault())?.Season;
+        }
+
+        if (tabs.Count > 0)
+            SeasonSectionsHost.Children.Add(BuildSeasonTabs(tabs));
+
+        foreach (var season in tabs.Where(s => s.Season == _selectedSeason))
+        {
+            var eps = episodes[season.Season];
 
             // Episode cards in a HORIZONTAL row (Netflix/Disney+ style).
             // Critical for performance: a vertical UniformGridLayout nested
@@ -619,6 +641,9 @@ public sealed partial class TvShowsPage : Page
                 ItemsSource = eps,
             };
             rowScroller.Content = repeater;
+
+            // Section header — label + episode/watched counts + actions.
+            SeasonSectionsHost.Children.Add(BuildSeasonHeader(season, eps, rowScroller));
             SeasonSectionsHost.Children.Add(rowScroller);
         }
 
@@ -626,11 +651,41 @@ public sealed partial class TvShowsPage : Page
         RefreshHeaderProgress();
     }
 
+    /// <summary>One pill per season ("Season 1" … "Specials"); the selected one is filled.</summary>
+    private FrameworkElement BuildSeasonTabs(List<TvSeason> seasons)
+    {
+        var tabs = new Controls.WrapPanel
+        {
+            HorizontalSpacing = 8,
+            VerticalSpacing = 8,
+            Margin = new Thickness(24, 0, 24, 0),
+        };
+        foreach (var season in seasons)
+        {
+            var number = season.Season;
+            var tab = new Button
+            {
+                Content = season.SeasonLabel,
+                Style = (Style)Application.Current.Resources[
+                    number == _selectedSeason ? "PillButtonActiveStyle" : "PillButtonStyle"],
+            };
+            tab.Click += (_, _) =>
+            {
+                if (_selectedSeason == number) return;
+                _selectedSeason = number;
+                BuildSeasonSections();
+            };
+            tabs.Children.Add(tab);
+        }
+        return tabs;
+    }
+
     /// <summary>
     /// Richer season bar: a "Season N" title, a "watched / total · runtime"
-    /// sub-line, and Play-season + Mark-all-watched actions on the right.
+    /// sub-line, and Play-season + Mark-all-watched actions on the right,
+    /// plus ‹ › buttons that page the episode row a screenful at a time.
     /// </summary>
-    private FrameworkElement BuildSeasonHeader(TvSeason season, List<TvEpisodeItem> eps)
+    private FrameworkElement BuildSeasonHeader(TvSeason season, List<TvEpisodeItem> eps, ScrollViewer row)
     {
         var muted = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush");
         var text = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush");
@@ -710,6 +765,46 @@ public sealed partial class TvShowsPage : Page
         };
         actions.Children.Add(markAll);
 
+        // Page the episode row: one step moves by the whole cards that fit.
+        Button PageButton(string glyph, string name, int direction)
+        {
+            var b = new Button
+            {
+                Content = new FontIcon { Glyph = glyph, FontSize = 12 },
+                Background = CineLibraryCS.Services.ThemeBrushes.Get("CardBrush"),
+                Foreground = text,
+                BorderBrush = CineLibraryCS.Services.ThemeBrushes.Get("BorderBrush"),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(10, 8, 10, 8),
+            };
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(b, name);
+            ToolTipService.SetToolTip(b, name);
+            b.Click += (_, _) =>
+            {
+                const double step = 270 + 14;   // TvEpisodeCard width + row spacing
+                var cards = Math.Max(1, Math.Floor((row.ViewportWidth + 14) / step));
+                var target = Math.Clamp(row.HorizontalOffset + direction * cards * step, 0, row.ScrollableWidth);
+                row.ChangeView(target, null, null);
+            };
+            return b;
+        }
+        var prev = PageButton(((char)0xE76B).ToString(), "Previous episodes", -1);
+        var next = PageButton(((char)0xE76C).ToString(), "Next episodes", 1);
+        void SyncPager()
+        {
+            var visible = row.ScrollableWidth > 0.5 ? Visibility.Visible : Visibility.Collapsed;
+            prev.Visibility = next.Visibility = visible;
+            prev.IsEnabled = row.HorizontalOffset > 0.5;
+            next.IsEnabled = row.HorizontalOffset < row.ScrollableWidth - 0.5;
+        }
+        row.ViewChanged += (_, _) => SyncPager();
+        row.SizeChanged += (_, _) => SyncPager();
+        if (row.Content is FrameworkElement episodesRow)
+            episodesRow.SizeChanged += (_, _) => SyncPager();   // the row grows as cards realize
+        actions.Children.Add(prev);
+        actions.Children.Add(next);
+
         grid.Children.Add(actions);
         return grid;
     }
@@ -725,9 +820,14 @@ public sealed partial class TvShowsPage : Page
         ShowYear.Visibility = _detail.Year.HasValue ? Visibility.Visible : Visibility.Collapsed;
         ShowRating.Text = _detail.Rating.HasValue ? $"★ {_detail.Rating:F1}" : "";
         ShowRating.Visibility = _detail.Rating.HasValue ? Visibility.Visible : Visibility.Collapsed;
+        ShowMpaa.Text = _detail.Mpaa ?? "";
+        ShowMpaa.Visibility = string.IsNullOrWhiteSpace(_detail.Mpaa) ? Visibility.Collapsed : Visibility.Visible;
         ShowStatus.Text = _detail.Status ?? "";
         ShowStatus.Visibility = string.IsNullOrEmpty(_detail.Status) ? Visibility.Collapsed : Visibility.Visible;
         ShowProgress.Text = $"{_detail.WatchedCount}/{_detail.EpisodeCount} watched";
+        ShowStudio.Text = _detail.Studio ?? "";
+        ShowStudio.Visibility = string.IsNullOrWhiteSpace(_detail.Studio) ? Visibility.Collapsed : Visibility.Visible;
+        ShowFolderBtn.IsEnabled = ResolveShowFolderAbs(_detail) != null;
         // One flowing paragraph: a blank line between paragraphs would use up
         // one of the five visible lines and hide the "…" that says there's more.
         ShowPlot.Text = System.Text.RegularExpressions.Regex.Replace(_detail.Plot ?? "", @"\s*\n\s*", " ").Trim();
@@ -848,6 +948,14 @@ public sealed partial class TvShowsPage : Page
         };
         var r = await dlg.ShowAsync();
         return r == ContentDialogResult.Primary ? box.Text : null;
+    }
+
+    private async void OnOpenShowFolder(object sender, RoutedEventArgs e)
+    {
+        if (_detail == null) return;
+        var folder = ResolveShowFolderAbs(_detail);
+        if (folder != null && Directory.Exists(folder))
+            await Windows.System.Launcher.LaunchFolderPathAsync(folder);
     }
 
     private static string? ResolveShowFolderAbs(TvShowDetail d)

@@ -257,6 +257,7 @@ public sealed partial class MovieDetailDialog : Window
             CastSection.Visibility = Visibility.Visible;
             CastDivider.Visibility = Visibility.Visible;
             CastRepeater.ItemsSource = m.Actors;
+            FitCastCardHeight(m.Actors);
             string? movieFolderAbs = null;
             if (m.IsOnline && m.CurrentLetter != null && m.FolderRelPath != null)
                 movieFolderAbs = Path.Combine($"{m.CurrentLetter}:\\",
@@ -437,6 +438,31 @@ public sealed partial class MovieDetailDialog : Window
     {
         // Phase B — writes fetched NFO + poster + .actors back to the movie's
         // folder when its drive is online. Wired up in the next build.
+    }
+
+    /// <summary>
+    /// v3.8.0: the cast grid gives every card the same height, so size it for
+    /// the longest-wrapping name and role, measured with the user's text size.
+    /// A fixed 280 cut off the role under a two-line name.
+    /// </summary>
+    private void FitCastCardHeight(IReadOnlyList<Models.Actor> actors)
+    {
+        var font = (FontFamily)Application.Current.Resources["ContentControlThemeFontFamily"];
+        double TextHeight(string? text, double size, Windows.UI.Text.FontWeight weight)
+        {
+            if (string.IsNullOrEmpty(text)) return 0;
+            var probe = new TextBlock
+            {
+                Text = text, FontFamily = font, FontSize = size, FontWeight = weight,
+                TextWrapping = TextWrapping.WrapWholeWords, MaxLines = 2,
+            };
+            probe.Measure(new Windows.Foundation.Size(140, double.PositiveInfinity));
+            return probe.DesiredSize.Height;
+        }
+        var name = actors.Max(a => TextHeight(a.Name, 13, Microsoft.UI.Text.FontWeights.SemiBold));
+        var role = actors.Max(a => TextHeight(a.Role, 11, Microsoft.UI.Text.FontWeights.Normal));
+        // 210 headshot + two 8 px gaps, plus a little slack for rounding.
+        CastGridLayout.MinItemHeight = Math.Max(280, Math.Ceiling(210 + 8 + name + 8 + role + 4));
     }
 
     private static readonly string[] ActorThumbExts = { ".jpg", ".jpeg", ".png", ".tbn", ".webp" };

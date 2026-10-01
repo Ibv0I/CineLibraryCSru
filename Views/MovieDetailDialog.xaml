@@ -444,8 +444,9 @@
                                Foreground="{ThemeResource TextBrush}" Margin="0,0,0,10"/>
                         <ItemsRepeater x:Name="CastRepeater">
                             <ItemsRepeater.Layout>
-                                <!-- Portrait 2:3 cards: 140 × 280 (image 140×210 + name/role) -->
-                                <UniformGridLayout MinItemWidth="150" MinItemHeight="280"
+                                <!-- Portrait 2:3 cards: image 140×210 + name/role. The height is
+                                     set in code to fit the longest name and role (v3.8.0). -->
+                                <UniformGridLayout x:Name="CastGridLayout" MinItemWidth="150" MinItemHeight="280"
                                                    MinColumnSpacing="14" MinRowSpacing="18"
                                                    ItemsStretch="None"
                                                    Orientation="Horizontal"/>
@@ -486,6 +487,7 @@
                                                        HorizontalAlignment="Center"
                                                        TextAlignment="Center"
                                                        TextWrapping="WrapWholeWords"
+                                                       TextTrimming="CharacterEllipsis"
                                                        MaxLines="2"/>
                                             <TextBlock Text="{x:Bind Role, TargetNullValue=''}"
                                                        FontSize="11"
@@ -493,6 +495,7 @@
                                                        HorizontalAlignment="Center"
                                                        TextAlignment="Center"
                                                        TextWrapping="WrapWholeWords"
+                                                       TextTrimming="CharacterEllipsis"
                                                        MaxLines="2"/>
                                         </StackPanel>
                                     </Button>

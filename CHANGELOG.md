@@ -6,6 +6,34 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > Per-release notes for the 2.x and early-3.x versions between the two
 > entries below live on the [Releases](https://github.com/aungkokomm/CineLibraryCS/releases) page.
 
+## [3.8.0] - 2026-10-02
+
+### Added
+- **Season tabs on the show page.** Pick a season from a row of tabs and the
+  page shows just that season, so reaching season 10 no longer means a long
+  scroll. It opens on the first season you haven't finished; Specials come last.
+- **‹ › buttons on each episode row** move a page of episodes at a time.
+  Scrolling sideways still works.
+- **Open Folder on the show page**, like the movie details window.
+- **Certification and studio on the show page**, so the info line reads
+  like "2022 ★ 7.0 TV-14 Ended 0/6 watched Syfy".
+- **Collections toolbar**: sort by name, number of movies, year or date added;
+  All / Unwatched / Watched; and S / M / L / XL poster sizes, remembered like
+  All Movies.
+- **Green watched tick** on a show card once every episode is watched, and on
+  a collection card once every movie is.
+
+### Changed
+- **Collection cards look like movie cards.** The poster fills the card, with
+  the name and movie count on it.
+
+### Fixed
+- **Poster size buttons on All TV Shows** turned blue when selected. They're
+  purple, like the rest of the app.
+- **Movie count cut off** under a two-line collection name.
+- **Cast role cut off** under a long actor name in the movie details window.
+  The cards now grow to fit, including with a larger Windows text size.
+
 ## [3.7.2] - 2026-09-29
 
 ### Fixed

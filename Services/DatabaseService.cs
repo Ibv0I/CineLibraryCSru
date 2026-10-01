@@ -3043,7 +3043,8 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
 
     /// <summary>Collection grid entries — uses each set's highest-rated
     /// member's poster as the cover.</summary>
-    public record CollectionEntry(int Id, string Name, int Count, string? CoverPoster);
+    public record CollectionEntry(int Id, string Name, int Count, string? CoverPoster,
+        int Watched, int? LatestYear, long LastAdded);
 
     [MethodImpl(MethodImplOptions.Synchronized)]
     public List<CollectionEntry> GetCollectionGrid()
@@ -3058,7 +3059,9 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                    (SELECT local_poster FROM movies m
                     JOIN movie_sets ms2 ON ms2.movie_id=m.id
                     WHERE ms2.set_id=s.id AND m.local_poster IS NOT NULL AND m.is_missing=0 AND m.archived_at IS NULL
-                    ORDER BY COALESCE(m.rating,0) DESC LIMIT 1) AS cover
+                    ORDER BY COALESCE(m.rating,0) DESC LIMIT 1) AS cover,
+                   COUNT(DISTINCT CASE WHEN m2.is_watched=1 THEN m2.id END) AS watched,
+                   MAX(m2.year), COALESCE(MAX(m2.date_added),0)
             FROM sets s
             JOIN movie_sets ms ON ms.set_id=s.id
             JOIN movies m2 ON m2.id=ms.movie_id AND m2.is_missing=0 AND m2.archived_at IS NULL
@@ -3072,7 +3075,10 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 Id: r.GetInt32(0),
                 Name: r.GetString(1),
                 Count: r.GetInt32(2),
-                CoverPoster: r.IsDBNull(3) ? null : r.GetString(3)));
+                CoverPoster: r.IsDBNull(3) ? null : r.GetString(3),
+                Watched: r.GetInt32(4),
+                LatestYear: r.IsDBNull(5) ? null : r.GetInt32(5),
+                LastAdded: r.GetInt64(6)));
         }
         return list;
     }

@@ -48,6 +48,13 @@
                         </LinearGradientBrush>
                     </Border.Background>
                     <StackPanel VerticalAlignment="Bottom" Spacing="5">
+                        <!-- v3.8.0: green tick once every episode is watched, as on movie cards -->
+                        <Border x:Name="WatchedBadge" Background="#CC22C55E" CornerRadius="10"
+                                Width="22" Height="22" HorizontalAlignment="Left"
+                                Visibility="Collapsed">
+                            <TextBlock Text="✓" FontSize="12" FontWeight="Bold" Foreground="White"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
                         <TextBlock x:Name="TitleText" FontSize="13" FontWeight="Bold"
                                    Foreground="White" TextTrimming="CharacterEllipsis"
                                    MaxLines="2" TextWrapping="WrapWholeWords"/>

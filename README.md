@@ -38,6 +38,10 @@ CineLibrary is a **reader, not a scraper**: it expects folders that already carr
 
 ## 📸 Screenshots
 
+Your whole collection at a glance: the sidebar, the search, and every filter and sort on one tidy row.
+
+<img width="960" alt="CineLibrary in dark theme: the All Movies poster grid, the sidebar and the title-bar search" src="docs/images/cinelibrary-library.png" />
+
 ✨ **Richer, deeper movie details than ever before** — discover the stories behind your collection in a whole new way.
 
 <img width="960" height="457" alt="CineLibrary — movie detail view" src="https://github.com/user-attachments/assets/bc89a995-5aea-4bc1-864e-6188b9df28ff" />

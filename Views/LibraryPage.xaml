@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:CineLibraryCS.Views"
     xmlns:models="using:CineLibraryCS.Models"
+    xmlns:controls="using:CineLibraryCS.Controls"
     Background="{ThemeResource BgBrush}">
 
     <Grid>
@@ -14,48 +15,160 @@
         </Grid.RowDefinitions>
 
         <!-- ═══ TOP BAR ═══ -->
-        <Grid Grid.Row="0" Padding="24,2,24,6">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- v2.7 — "back to Browse" button. Appears only when the
-                 library view was drilled into from a Browse banner (By
-                 Genre / Decade / Rating / Studio) or Collections; returns
-                 to that page. Hidden for All Movies / Favorites / etc. -->
-            <Button x:Name="BackToggleBtn"
-                    Grid.Column="0"
-                    Click="OnBrowseBackClick"
-                    Background="{ThemeResource InputBgBrush}"
-                    BorderBrush="{ThemeResource InputBorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="10,6"
-                    Height="36"
-                    VerticalAlignment="Center"
-                    Margin="0,0,12,0"
-                    Visibility="Collapsed">
-                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                    <TextBlock Text="‹" FontSize="18" FontWeight="Bold"
-                               VerticalAlignment="Center"
-                               Foreground="{ThemeResource TextBrush}"/>
-                    <TextBlock x:Name="BackLabel" Text="Back" FontSize="13" FontWeight="SemiBold"
-                               VerticalAlignment="Center"
-                               Foreground="{ThemeResource TextBrush}"/>
+        <!-- v3.9.0: one row, as in Aryan: title + count | watched pills | tools.
+             In a narrow window HeaderBar moves the pills, then the tools, onto
+             their own line. Clear filters lives on the chips line below, so a
+             pill click never changes this row's width. -->
+        <Grid Grid.Row="0">
+            <controls:HeaderBar Margin="24,8,24,10" HorizontalSpacing="16" VerticalSpacing="8">
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <!-- v2.7 — "back to Browse" button. Appears only when the
+                         library view was drilled into from a Browse banner (By
+                         Genre / Decade / Rating / Studio) or Collections; returns
+                         to that page. Hidden for All Movies / Favorites / etc. -->
+                    <Button x:Name="BackToggleBtn"
+                            Click="OnBrowseBackClick"
+                            Background="{ThemeResource InputBgBrush}"
+                            BorderBrush="{ThemeResource InputBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="10,6"
+                            Height="36"
+                            VerticalAlignment="Center"
+                            Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <TextBlock Text="‹" FontSize="18" FontWeight="Bold"
+                                       VerticalAlignment="Center"
+                                       Foreground="{ThemeResource TextBrush}"/>
+                            <TextBlock x:Name="BackLabel" Text="Back" FontSize="13" FontWeight="SemiBold"
+                                       VerticalAlignment="Center"
+                                       Foreground="{ThemeResource TextBrush}"/>
+                        </StackPanel>
+                    </Button>
+                    <TextBlock x:Name="PageTitleText" Text="All movies"
+                               FontSize="24" FontWeight="SemiBold" Foreground="{ThemeResource TextBrush}"
+                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                               VerticalAlignment="Center"/>
+                    <!-- MinWidth keeps the pills still while the count changes. -->
+                    <TextBlock x:Name="MovieCountText" Text="0 movies" MinWidth="88"
+                               Foreground="{ThemeResource MutedBrush}" FontSize="13"
+                               VerticalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
-            </Button>
 
-            <TextBlock x:Name="PageTitleText" Grid.Column="1" Text="All movies"
-                       FontSize="24" FontWeight="SemiBold" Foreground="{ThemeResource TextBrush}"
-                       VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button x:Name="FilterAll"      Content="All"       Tag="all"
+                            Style="{StaticResource PillButtonActiveStyle}" Click="OnWatchedFilter"/>
+                    <Button x:Name="FilterUnwatched" Content="Unwatched" Tag="unwatched"
+                            Style="{StaticResource PillButtonStyle}"       Click="OnWatchedFilter"/>
+                    <Button x:Name="FilterWatched"  Content="Watched"   Tag="watched"
+                            Style="{StaticResource PillButtonStyle}"       Click="OnWatchedFilter"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <ComboBox x:Name="SortCombo"
+                              SelectionChanged="OnSortChanged"
+                              Background="{ThemeResource InputBgBrush}"
+                              Foreground="{ThemeResource TextBrush}"
+                              BorderBrush="{ThemeResource InputBorderBrush}"
+                              Width="160"
+                              Height="36"
+                              CornerRadius="8"
+                              VerticalAlignment="Center">
+                        <ComboBoxItem Tag="title:asc"      Content="Title ↑"/>
+                        <ComboBoxItem Tag="title:desc"     Content="Title ↓"/>
+                        <ComboBoxItem Tag="year:desc"      Content="Year ↓"/>
+                        <ComboBoxItem Tag="year:asc"       Content="Year ↑"/>
+                        <ComboBoxItem Tag="rating:desc"    Content="Rating ↓"/>
+                        <ComboBoxItem Tag="rating:asc"     Content="Rating ↑"/>
+                        <ComboBoxItem Tag="runtime:desc"   Content="Runtime ↓"/>
+                        <ComboBoxItem Tag="runtime:asc"    Content="Runtime ↑"/>
+                        <ComboBoxItem Tag="date_added:desc" Content="Date Added ↓"/>
+                        <ComboBoxItem Tag="date_added:asc"  Content="Date Added ↑"/>
+                        <ComboBoxItem Tag="last_played:desc" Content="Last Watched ↓"/>
+                        <ComboBoxItem Tag="last_played:asc"  Content="Last Watched ↑"/>
+                    </ComboBox>
+
+                    <!-- v2.9 — Surprise Me 🎲: filter-aware random pick. Honours
+                         whatever is currently filtered/searched/listed, so you
+                         can "random pick from current view". The existing
+                         sidebar 'Surprise me' stays as the unfiltered version. -->
+                    <Button x:Name="SurpriseMeBtn" Click="OnSurpriseMeClick"
+                            Background="{ThemeResource InputBgBrush}"
+                            Foreground="{ThemeResource TextBrush}"
+                            BorderBrush="{ThemeResource InputBorderBrush}"
+                            CornerRadius="8"
+                            Padding="10,8"
+                            Height="36" Width="36"
+                            VerticalAlignment="Center"
+                            AutomationProperties.Name="Surprise me"
+                            ToolTipService.ToolTip="Surprise me — random pick from current view">
+                        <FontIcon Glyph="&#xE8B1;" FontSize="15"
+                                  FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                  VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+
+                    <!-- View mode — segmented (grid / list) -->
+                    <Border Background="{ThemeResource InputBgBrush}"
+                            BorderBrush="{ThemeResource InputBorderBrush}"
+                            BorderThickness="1" CornerRadius="8"
+                            Height="36" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <ToggleButton x:Name="GridViewToggle" IsChecked="True"
+                                          Click="OnViewGrid"
+                                          AutomationProperties.Name="Grid view"
+                                          Background="Transparent" BorderThickness="0"
+                                          Padding="0" Height="36" Width="36"
+                                          HorizontalContentAlignment="Center"
+                                          VerticalContentAlignment="Center"
+                                          ToolTipService.ToolTip="Grid view">
+                                <FontIcon Glyph="&#xE8A9;" FontSize="16"
+                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                            </ToggleButton>
+                            <ToggleButton x:Name="ListViewToggle"
+                                          Click="OnViewList"
+                                          AutomationProperties.Name="List view"
+                                          Background="Transparent" BorderThickness="0"
+                                          Padding="0" Height="36" Width="36"
+                                          HorizontalContentAlignment="Center"
+                                          VerticalContentAlignment="Center"
+                                          ToolTipService.ToolTip="List view">
+                                <FontIcon Glyph="&#xE8FD;" FontSize="16"
+                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                            </ToggleButton>
+                        </StackPanel>
+                    </Border>
+
+
+                    <!-- v3.9.0: poster size is a drop-down (was S / M / L / XL buttons). -->
+                    <DropDownButton x:Name="DensityDropDown"
+                                    Background="{ThemeResource InputBgBrush}"
+                                    Foreground="{ThemeResource TextBrush}"
+                                    BorderBrush="{ThemeResource InputBorderBrush}"
+                                    CornerRadius="8" Height="36" Padding="12,0,10,0"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.Name="Poster size"
+                                    ToolTipService.ToolTip="Poster size">
+                        <TextBlock x:Name="DensityLabel" Text="Size: M" FontSize="13"/>
+                        <DropDownButton.Flyout>
+                            <MenuFlyout Placement="Bottom">
+                                <RadioMenuFlyoutItem x:Name="DensityS" Text="Small" Tag="S" GroupName="density"
+                                                     KeyboardAcceleratorTextOverride="S" Click="OnDensityClick"/>
+                                <RadioMenuFlyoutItem x:Name="DensityM" Text="Medium" Tag="M" GroupName="density"
+                                                     KeyboardAcceleratorTextOverride="M" Click="OnDensityClick"/>
+                                <RadioMenuFlyoutItem x:Name="DensityL" Text="Large" Tag="L" GroupName="density"
+                                                     KeyboardAcceleratorTextOverride="L" Click="OnDensityClick"/>
+                                <RadioMenuFlyoutItem x:Name="DensityXL" Text="Extra large" Tag="XL" GroupName="density"
+                                                     KeyboardAcceleratorTextOverride="XL" Click="OnDensityClick"/>
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+                </StackPanel>
+            </controls:HeaderBar>
 
             <!-- v3.2 — in-page search moved to the global title-bar search.
                  This box is kept (collapsed) as the page's internal engine so
                  existing focus/clear wiring keeps working. -->
-            <Grid Grid.Column="2" Margin="20,0" ColumnSpacing="8" Visibility="Collapsed">
+            <Grid ColumnSpacing="8" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
@@ -99,168 +212,26 @@
                 </Border>
             </Grid>
 
-            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-
-                <ComboBox x:Name="SortCombo"
-                          SelectionChanged="OnSortChanged"
-                          Background="{ThemeResource InputBgBrush}"
-                          Foreground="{ThemeResource TextBrush}"
-                          BorderBrush="{ThemeResource InputBorderBrush}"
-                          MinWidth="140"
-                          Height="36"
-                          CornerRadius="8"
-                          VerticalAlignment="Center">
-                    <ComboBoxItem Tag="title:asc"      Content="Title ↑"/>
-                    <ComboBoxItem Tag="title:desc"     Content="Title ↓"/>
-                    <ComboBoxItem Tag="year:desc"      Content="Year ↓"/>
-                    <ComboBoxItem Tag="year:asc"       Content="Year ↑"/>
-                    <ComboBoxItem Tag="rating:desc"    Content="Rating ↓"/>
-                    <ComboBoxItem Tag="rating:asc"     Content="Rating ↑"/>
-                    <ComboBoxItem Tag="runtime:desc"   Content="Runtime ↓"/>
-                    <ComboBoxItem Tag="runtime:asc"    Content="Runtime ↑"/>
-                    <ComboBoxItem Tag="date_added:desc" Content="Date Added ↓"/>
-                    <ComboBoxItem Tag="date_added:asc"  Content="Date Added ↑"/>
-                    <ComboBoxItem Tag="last_played:desc" Content="Last Watched ↓"/>
-                    <ComboBoxItem Tag="last_played:asc"  Content="Last Watched ↑"/>
-                </ComboBox>
-
-                <!-- v2.9 — Surprise Me 🎲: filter-aware random pick. Honours
-                     whatever is currently filtered/searched/listed, so you
-                     can "random pick from current view". The existing
-                     sidebar 'Surprise me' stays as the unfiltered version. -->
-                <Button x:Name="SurpriseMeBtn" Click="OnSurpriseMeClick"
-                        Background="{ThemeResource InputBgBrush}"
-                        Foreground="{ThemeResource TextBrush}"
-                        BorderBrush="{ThemeResource InputBorderBrush}"
-                        CornerRadius="8"
-                        Padding="10,8"
-                        Height="36" Width="36"
-                        VerticalAlignment="Center"
-                        AutomationProperties.Name="Surprise me"
-                        ToolTipService.ToolTip="Surprise me — random pick from current view">
-                    <FontIcon Glyph="&#xE8B1;" FontSize="15"
-                              FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
-                              VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                </Button>
-
-                <SplitButton Content="Export" Click="OnExportCsvDefault"
-                             Background="{ThemeResource InputBgBrush}"
-                             Foreground="{ThemeResource TextBrush}"
-                             BorderBrush="{ThemeResource InputBorderBrush}"
-                             CornerRadius="8"
-                             Padding="16,8"
-                             Height="36"
-                             VerticalAlignment="Center">
-                    <SplitButton.Flyout>
-                        <MenuFlyout Placement="Bottom">
-                            <MenuFlyoutItem Text="Export as CSV"  Click="OnExportCsv"/>
-                            <MenuFlyoutItem Text="Export as HTML" Click="OnExportHtml"/>
-                        </MenuFlyout>
-                    </SplitButton.Flyout>
-                </SplitButton>
-
-                <!-- View mode — segmented (grid / list) -->
-                <Border Background="{ThemeResource InputBgBrush}"
-                        BorderBrush="{ThemeResource InputBorderBrush}"
-                        BorderThickness="1" CornerRadius="8"
-                        Height="36" VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal">
-                        <ToggleButton x:Name="GridViewToggle" IsChecked="True"
-                                      Click="OnViewGrid"
-                                      AutomationProperties.Name="Grid view"
-                                      Background="Transparent" BorderThickness="0"
-                                      Padding="0" Height="36" Width="36"
-                                      HorizontalContentAlignment="Center"
-                                      VerticalContentAlignment="Center"
-                                      ToolTipService.ToolTip="Grid view">
-                            <FontIcon Glyph="&#xE8A9;" FontSize="16"
-                                      FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
-                        </ToggleButton>
-                        <ToggleButton x:Name="ListViewToggle"
-                                      Click="OnViewList"
-                                      AutomationProperties.Name="List view"
-                                      Background="Transparent" BorderThickness="0"
-                                      Padding="0" Height="36" Width="36"
-                                      HorizontalContentAlignment="Center"
-                                      VerticalContentAlignment="Center"
-                                      ToolTipService.ToolTip="List view">
-                            <FontIcon Glyph="&#xE8FD;" FontSize="16"
-                                      FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
-                        </ToggleButton>
-                    </StackPanel>
-                </Border>
-
-                <!-- Density picker: S / M / L / XL (like Windows Explorer) -->
-                <Border Background="{ThemeResource InputBgBrush}"
-                        BorderBrush="{ThemeResource InputBorderBrush}"
-                        BorderThickness="1" CornerRadius="8"
-                        Height="36"
-                        VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal">
-                        <ToggleButton x:Name="DensityS" Click="OnDensityClick" Tag="S"
-                                      AutomationProperties.Name="Small posters"
-                                      ToolTipService.ToolTip="Small posters"
-                                      Background="Transparent" BorderThickness="0"
-                                      Padding="12,8" Height="36" Width="36"
-                                      VerticalAlignment="Center">
-                            <TextBlock Text="S" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </ToggleButton>
-                        <ToggleButton x:Name="DensityM" Click="OnDensityClick" Tag="M" IsChecked="True"
-                                      AutomationProperties.Name="Medium posters"
-                                      ToolTipService.ToolTip="Medium posters"
-                                      Background="Transparent" BorderThickness="0"
-                                      Padding="12,8" Height="36" Width="36"
-                                      VerticalAlignment="Center">
-                            <TextBlock Text="M" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </ToggleButton>
-                        <ToggleButton x:Name="DensityL" Click="OnDensityClick" Tag="L"
-                                      AutomationProperties.Name="Large posters"
-                                      ToolTipService.ToolTip="Large posters"
-                                      Background="Transparent" BorderThickness="0"
-                                      Padding="12,8" Height="36" Width="36"
-                                      VerticalAlignment="Center">
-                            <TextBlock Text="L" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </ToggleButton>
-                        <ToggleButton x:Name="DensityXL" Click="OnDensityClick" Tag="XL"
-                                      AutomationProperties.Name="Extra large posters"
-                                      ToolTipService.ToolTip="Extra large posters"
-                                      Background="Transparent" BorderThickness="0"
-                                      Padding="12,8" Height="36" Width="36"
-                                      VerticalAlignment="Center">
-                            <TextBlock Text="XL" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </ToggleButton>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
         </Grid>
 
-        <!-- ═══ FILTER BAR ═══ -->
-        <StackPanel Grid.Row="1" Padding="24,0,24,8" Spacing="6">
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock x:Name="MovieCountText" Text="0 movies"
-                           Foreground="{ThemeResource MutedBrush}" FontSize="13"
-                           VerticalAlignment="Center" Margin="0,0,12,0"/>
-                <Button x:Name="FilterAll"      Content="All"       Tag="all"
-                        Style="{StaticResource PillButtonActiveStyle}" Click="OnWatchedFilter"/>
-                <Button x:Name="FilterUnwatched" Content="Unwatched" Tag="unwatched"
-                        Style="{StaticResource PillButtonStyle}"       Click="OnWatchedFilter"/>
-                <Button x:Name="FilterWatched"  Content="Watched"   Tag="watched"
-                        Style="{StaticResource PillButtonStyle}"       Click="OnWatchedFilter"/>
-                <Button x:Name="ClearFiltersBtn" Content="✕ Clear filters"
-                        Click="OnClearFilters" Visibility="Collapsed"
-                        Style="{StaticResource PillButtonStyle}"
-                        Margin="12,0,0,0"/>
-            </StackPanel>
+        <!-- ═══ FILTER CHIPS ═══ -->
+        <!-- Active filters as removable chips, then Clear filters. Collapses
+             to nothing when no filter is on. -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Padding="24,0">
             <!-- v2.6 — Active filter chips. Each one removes itself when
                  clicked, so the user can drop a single filter without
                  hunting through menus. -->
-            <ItemsControl x:Name="ActiveFilterChips" Visibility="Collapsed">
+            <ItemsControl x:Name="ActiveFilterChips" Visibility="Collapsed" Margin="0,0,0,8">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal" Spacing="6"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
             </ItemsControl>
+            <Button x:Name="ClearFiltersBtn" Content="✕ Clear filters"
+                    Click="OnClearFilters" Visibility="Collapsed"
+                    Style="{StaticResource PillButtonStyle}"
+                    VerticalAlignment="Top" Margin="0,0,0,8"/>
         </StackPanel>
 
         <!-- ═══ MOVIE GRID / LIST ═══ -->

@@ -119,6 +119,11 @@ public partial class LibraryViewModel : ObservableObject
     /// </summary>
     public DatabaseService.ListOptions BuildOptsForPick() => BuildOpts(0);
 
+    /// <summary>v3.9.0 — every movie matching the current view, not just the
+    /// loaded pages (for Tools › Export).</summary>
+    public Task<List<MovieListItem>> GetAllMatchingAsync() =>
+        Task.Run(() => _state.Db.GetMovies(BuildOpts(0) with { Limit = int.MaxValue }, _state.Connected));
+
     private DatabaseService.ListOptions BuildOpts(int offset) => new(
         Search: string.IsNullOrWhiteSpace(SearchText) ? null : SearchText,
         SearchScope: SearchScope,

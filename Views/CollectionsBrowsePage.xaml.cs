@@ -171,6 +171,7 @@ public sealed partial class CollectionsBrowsePage : Page
         CollDensityM.IsChecked  = tag is not ("S" or "L" or "XL");
         CollDensityL.IsChecked  = tag == "L";
         CollDensityXL.IsChecked = tag == "XL";
+        CollDensityLabel.Text = $"Size: {(tag is "S" or "L" or "XL" ? tag : "M")}";
     }
 
     private void SyncToolbar()

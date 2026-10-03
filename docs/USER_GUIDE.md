@@ -95,7 +95,8 @@ You'll also need:
 
 ## Adding your movie folders
 
-Open the **Drives** page from the sidebar.
+Open **Drives** with the drive button at the bottom of the sidebar (the
+first of the small buttons there).
 
 Click **Add folder** and point CineLibrary at the **root** of one of your
 movie collections (e.g. `H:\Movies` or `E:\Films`). CineLibrary will
@@ -126,7 +127,8 @@ to slice the catalog; the main area shows the movies.
 ### Grid view (default)
 
 Posters laid out in a fluid grid that auto-fits the window. Use the
-**S / M / L / XL** density picker in the top-right to pick poster size.
+**Size** drop-down at the right of the top bar to pick the poster size
+(S, M, L or XL).
 The grid stretches to fill the available width — bigger window means
 more columns, automatically.
 
@@ -143,7 +145,7 @@ you which drive to plug in.
 
 ### List view
 
-Click the **☰** toggle next to the density picker for a compact list
+Click the **☰** toggle next to the **Size** drop-down for a compact list
 showing title, year, rating, runtime, and watched status — useful for
 scanning hundreds of titles at once.
 
@@ -151,17 +153,22 @@ scanning hundreds of titles at once.
 
 The sidebar is grouped into four sections:
 
-- **LIBRARY** — All Movies, Favorites, To Watch.
-- **DISCOVER** — Continue Watching, Recently Added, Surprise me.
-- **BROWSE** — banner-style pages: *By Genre*, *By Decade*, *By Rating*,
+- **LIBRARY**: All Movies, Favorites, To Watch.
+- **DISCOVER**: Continue Watching, Recently Added, Surprise me.
+- **BROWSE**: banner-style pages: *By Genre*, *By Decade*, *By Rating*,
   *Collections*. Each entry shows count and a representative cover; click
   to filter your library to that slice.
-- **TOOLS** — Statistics, Drives.
-- **MY LISTS** — your custom lists. Click **+** to add one.
-- **LIBRARIES** — one entry per drive root, with a live online/offline
+- **TOOLS**: Statistics, Dupes, Backup and Export.
+- **MY LISTS**: your custom lists. Click **+** to add one.
+- **LIBRARIES**: one entry per drive root, with a live online/offline
   dot and a count.
 
-Each collapsible section can be collapsed by clicking its header.
+Each collapsible section can be collapsed by clicking its header. Each
+section's icons have their own colour, so you can find your way at a
+glance.
+
+The small buttons at the bottom of the sidebar are **Drives**, the theme
+switch, **Settings**, keyboard shortcuts and collapse sidebar.
 
 ### Collections
 
@@ -174,7 +181,7 @@ CineLibrary remembers your choices:
   collection) or Date Added, either way.
 - **All / Unwatched / Watched**: Unwatched shows the collections with
   movies left to watch; Watched shows the ones you've finished.
-- **S / M / L / XL**: the size of the posters.
+- **Size**: S, M, L or XL posters.
 
 Click a collection to see its movies.
 
@@ -291,7 +298,7 @@ your choices:
 - **Sort**: Title, Year, Rating, Date Added or Last Watched, either way.
 - **All / Unwatched / Watched**: Unwatched shows the shows that still
   have episodes left; Watched shows the ones you've finished.
-- **S / M / L / XL**: the size of the show posters.
+- **Size**: S, M, L or XL show posters.
 
 A green **✓** on a show card means you've watched every episode.
 
@@ -997,8 +1004,14 @@ typing in the search field still works normally.
 
 ## Exporting your catalog
 
-Use the **Export** button in the top bar to dump the current view —
-including any active filter and sort — to one of two formats:
+Click **Export** under **Tools** in the sidebar and choose:
+
+- **All movies** as CSV or HTML: every movie in your library.
+- **This view** as CSV or HTML: shown when All Movies is filtered,
+  searched or showing a list. It writes every movie in that view, in its
+  sort order, not just the ones loaded on screen.
+
+The two formats:
 
 - **CSV** — spreadsheet-friendly, one row per movie, columns for
   title, year, runtime, rating, genre, drive, watched status, and
@@ -1007,8 +1020,8 @@ including any active filter and sort — to one of two formats:
   inline. Useful for sharing your catalog with someone who doesn't
   have CineLibrary installed.
 
-Exports respect your current filter — so to export only your watchlist,
-filter to *Watchlist* first, then Export.
+To export only your watchlist, open *To Watch* first, then choose
+**Export** › **This view**.
 
 ---
 

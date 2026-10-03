@@ -348,6 +348,7 @@ public sealed partial class TvShowsPage : Page
         TvDensityM.IsChecked  = tag is not ("S" or "L" or "XL");
         TvDensityL.IsChecked  = tag == "L";
         TvDensityXL.IsChecked = tag == "XL";
+        TvDensityLabel.Text = $"Size: {(tag is "S" or "L" or "XL" ? tag : "M")}";
     }
 
     private void SyncTvToolbar()

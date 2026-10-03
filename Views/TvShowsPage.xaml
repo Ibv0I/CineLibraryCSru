@@ -19,56 +19,53 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Header with back strip -->
-        <Grid Grid.Row="0" Padding="24,8,24,12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <Button x:Name="BackBtn" Grid.Column="0" Click="OnBackClick"
-                    Background="{ThemeResource InputBgBrush}"
-                    BorderBrush="{ThemeResource InputBorderBrush}" BorderThickness="1"
-                    CornerRadius="8" Padding="10,6" Height="36" Margin="0,0,12,0"
-                    VerticalAlignment="Center" Visibility="Collapsed">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <TextBlock Text="‹" FontSize="18" FontWeight="Bold"
-                               Foreground="{ThemeResource TextBrush}"/>
-                    <TextBlock x:Name="BackLabel" Text="Back" FontSize="13" FontWeight="SemiBold"
-                               Foreground="{ThemeResource TextBrush}"/>
-                </StackPanel>
-            </Button>
-            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                <TextBlock x:Name="TitleText" Text="All TV shows" FontSize="24" FontWeight="SemiBold"
-                           Foreground="{ThemeResource TextBrush}"/>
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock x:Name="SubText" Text="" FontSize="12"
-                               Foreground="{ThemeResource MutedBrush}"
-                               VerticalAlignment="Center"/>
-                    <!-- v3.7.0: watched filter, same pills as All movies. -->
-                    <StackPanel x:Name="TvFilterPills" Orientation="Horizontal" Spacing="8"
-                                Margin="12,6,0,0">
-                        <Button x:Name="TvFilterAll" Content="All" Tag="all"
-                                Style="{StaticResource PillButtonActiveStyle}" Click="OnTvFilterClick"/>
-                        <Button x:Name="TvFilterUnwatched" Content="Unwatched" Tag="unwatched"
-                                Style="{StaticResource PillButtonStyle}" Click="OnTvFilterClick"
-                                ToolTipService.ToolTip="Shows with episodes you haven't watched yet"/>
-                        <Button x:Name="TvFilterWatched" Content="Watched" Tag="watched"
-                                Style="{StaticResource PillButtonStyle}" Click="OnTvFilterClick"
-                                ToolTipService.ToolTip="Shows you've watched every episode of"/>
+        <!-- Header: one row (v3.9.0), like All movies: back + title + count |
+             watched pills | sort + poster size. HeaderBar wraps it when narrow. -->
+        <controls:HeaderBar Grid.Row="0" Margin="24,8,24,10" HorizontalSpacing="16" VerticalSpacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <Button x:Name="BackBtn" Click="OnBackClick"
+                        Background="{ThemeResource InputBgBrush}"
+                        BorderBrush="{ThemeResource InputBorderBrush}" BorderThickness="1"
+                        CornerRadius="8" Padding="10,6" Height="36"
+                        VerticalAlignment="Center" Visibility="Collapsed">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="‹" FontSize="18" FontWeight="Bold"
+                                   Foreground="{ThemeResource TextBrush}"/>
+                        <TextBlock x:Name="BackLabel" Text="Back" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextBrush}"/>
                     </StackPanel>
-                </StackPanel>
+                </Button>
+                <TextBlock x:Name="TitleText" Text="All TV shows" FontSize="24" FontWeight="SemiBold"
+                           Foreground="{ThemeResource TextBrush}"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                           VerticalAlignment="Center"/>
+                <TextBlock x:Name="SubText" Text="" FontSize="13"
+                           Foreground="{ThemeResource MutedBrush}"
+                           VerticalAlignment="Center" Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- v3.7.0: watched filter, same pills as All movies. -->
+            <StackPanel x:Name="TvFilterPills" Orientation="Horizontal" Spacing="8"
+                        VerticalAlignment="Center">
+                <Button x:Name="TvFilterAll" Content="All" Tag="all"
+                        Style="{StaticResource PillButtonActiveStyle}" Click="OnTvFilterClick"/>
+                <Button x:Name="TvFilterUnwatched" Content="Unwatched" Tag="unwatched"
+                        Style="{StaticResource PillButtonStyle}" Click="OnTvFilterClick"
+                        ToolTipService.ToolTip="Shows with episodes you haven't watched yet"/>
+                <Button x:Name="TvFilterWatched" Content="Watched" Tag="watched"
+                        Style="{StaticResource PillButtonStyle}" Click="OnTvFilterClick"
+                        ToolTipService.ToolTip="Shows you've watched every episode of"/>
             </StackPanel>
 
             <!-- v3.7.0: sort + poster size for All TV shows, matching All movies. -->
-            <StackPanel x:Name="TvToolbar" Grid.Column="2" Orientation="Horizontal" Spacing="12"
-                        VerticalAlignment="Top" Margin="12,4,0,0">
+            <StackPanel x:Name="TvToolbar" Orientation="Horizontal" Spacing="12"
+                        VerticalAlignment="Center">
                 <ComboBox x:Name="TvSortCombo"
                           SelectionChanged="OnTvSortChanged"
                           Background="{ThemeResource InputBgBrush}"
                           Foreground="{ThemeResource TextBrush}"
                           BorderBrush="{ThemeResource InputBorderBrush}"
-                          MinWidth="140" Height="36" CornerRadius="8"
+                          Width="160" Height="36" CornerRadius="8"
                           VerticalAlignment="Center"
                           AutomationProperties.Name="Sort shows">
                     <ComboBoxItem Tag="title:asc"        Content="Title ↑"/>
@@ -82,43 +79,29 @@
                     <ComboBoxItem Tag="last_played:desc" Content="Last Watched ↓"/>
                     <ComboBoxItem Tag="last_played:asc"  Content="Last Watched ↑"/>
                 </ComboBox>
-                <Border Background="{ThemeResource InputBgBrush}"
-                        BorderBrush="{ThemeResource InputBorderBrush}"
-                        BorderThickness="1" CornerRadius="8" Height="36"
-                        VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal">
-                        <ToggleButton x:Name="TvDensityS" Click="OnTvDensityClick" Tag="S"
-                                      AutomationProperties.Name="Small posters"
-                                      ToolTipService.ToolTip="Small posters"
-                                      Background="Transparent" BorderThickness="0"
-                                      Padding="12,8" Height="36" Width="36" VerticalAlignment="Center">
-                            <TextBlock Text="S" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </ToggleButton>
-                        <ToggleButton x:Name="TvDensityM" Click="OnTvDensityClick" Tag="M" IsChecked="True"
-                                      AutomationProperties.Name="Medium posters"
-                                      ToolTipService.ToolTip="Medium posters"
-                                      Background="Transparent" BorderThickness="0"
-                                      Padding="12,8" Height="36" Width="36" VerticalAlignment="Center">
-                            <TextBlock Text="M" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </ToggleButton>
-                        <ToggleButton x:Name="TvDensityL" Click="OnTvDensityClick" Tag="L"
-                                      AutomationProperties.Name="Large posters"
-                                      ToolTipService.ToolTip="Large posters"
-                                      Background="Transparent" BorderThickness="0"
-                                      Padding="12,8" Height="36" Width="36" VerticalAlignment="Center">
-                            <TextBlock Text="L" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </ToggleButton>
-                        <ToggleButton x:Name="TvDensityXL" Click="OnTvDensityClick" Tag="XL"
-                                      AutomationProperties.Name="Extra large posters"
-                                      ToolTipService.ToolTip="Extra large posters"
-                                      Background="Transparent" BorderThickness="0"
-                                      Padding="12,8" Height="36" Width="36" VerticalAlignment="Center">
-                            <TextBlock Text="XL" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </ToggleButton>
-                    </StackPanel>
-                </Border>
+                <DropDownButton Background="{ThemeResource InputBgBrush}"
+                                Foreground="{ThemeResource TextBrush}"
+                                BorderBrush="{ThemeResource InputBorderBrush}"
+                                CornerRadius="8" Height="36" Padding="12,0,10,0"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Poster size"
+                                ToolTipService.ToolTip="Poster size">
+                    <TextBlock x:Name="TvDensityLabel" Text="Size: M" FontSize="13"/>
+                    <DropDownButton.Flyout>
+                        <MenuFlyout Placement="Bottom">
+                            <RadioMenuFlyoutItem x:Name="TvDensityS" Text="Small" Tag="S" GroupName="tvdensity"
+                                                 KeyboardAcceleratorTextOverride="S" Click="OnTvDensityClick"/>
+                            <RadioMenuFlyoutItem x:Name="TvDensityM" Text="Medium" Tag="M" GroupName="tvdensity"
+                                                 KeyboardAcceleratorTextOverride="M" Click="OnTvDensityClick"/>
+                            <RadioMenuFlyoutItem x:Name="TvDensityL" Text="Large" Tag="L" GroupName="tvdensity"
+                                                 KeyboardAcceleratorTextOverride="L" Click="OnTvDensityClick"/>
+                            <RadioMenuFlyoutItem x:Name="TvDensityXL" Text="Extra large" Tag="XL" GroupName="tvdensity"
+                                                 KeyboardAcceleratorTextOverride="XL" Click="OnTvDensityClick"/>
+                        </MenuFlyout>
+                    </DropDownButton.Flyout>
+                </DropDownButton>
             </StackPanel>
-        </Grid>
+        </controls:HeaderBar>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0">
             <Grid>

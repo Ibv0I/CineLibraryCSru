@@ -88,7 +88,7 @@
         <!-- ═══ MAIN CONTENT ROW ═══ -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition x:Name="SidebarCol" Width="252"/>
+                <ColumnDefinition x:Name="SidebarCol" Width="248"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
@@ -100,7 +100,7 @@
                  changed — only this wrapper + the column width (bumped to
                  keep the inner content the same 240 px as before). -->
             <Border x:Name="SidebarCard" Grid.Column="0"
-                    Margin="12,8,4,12" CornerRadius="12"
+                    Margin="8,4,4,8" CornerRadius="12"
                     Background="{ThemeResource SidebarBrush}"
                     BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1"
                     Translation="0,0,24">
@@ -190,7 +190,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Glyph="&#xE786;" FontSize="15"
+                                    <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE786;" FontSize="15"
                                               FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
                                     <TextBlock Text="All Movies" VerticalAlignment="Center"/>
@@ -210,7 +210,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Glyph="&#xE7F4;" FontSize="15"
+                                    <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE7F4;" FontSize="15"
                                               FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
                                     <TextBlock Text="All TV Shows" VerticalAlignment="Center"/>
@@ -225,9 +225,8 @@
                         <!-- Favorites -->
                         <Button x:Name="BtnFavorites" Style="{StaticResource NavItemStyle}" Click="OnNavFavorites">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Glyph="&#xE734;" FontSize="15"
+                                <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE734;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
-                                          Foreground="#F5C518"
                                           VerticalAlignment="Center"/>
                                 <TextBlock Text="Favorites" VerticalAlignment="Center"/>
                             </StackPanel>
@@ -241,7 +240,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Glyph="&#xE74C;" FontSize="15"
+                                    <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE74C;" FontSize="15"
                                               FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
                                     <TextBlock Text="To Watch" VerticalAlignment="Center"/>
@@ -261,7 +260,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Glyph="&#xE70B;" FontSize="15"
+                                    <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE70B;" FontSize="15"
                                               FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
                                     <TextBlock Text="Notes" VerticalAlignment="Center"/>
@@ -283,7 +282,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Glyph="&#xE7B8;" FontSize="15"
+                                    <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE7B8;" FontSize="15"
                                               FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
                                     <TextBlock Text="Watched &amp; Gone" VerticalAlignment="Center"/>
@@ -307,7 +306,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Glyph="&#xE768;" FontSize="15"
+                                    <FontIcon Foreground="{ThemeResource NavDiscoverIconBrush}" Glyph="&#xE768;" FontSize="15"
                                               FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
                                     <TextBlock Text="Continue Watching" VerticalAlignment="Center"/>
@@ -322,7 +321,7 @@
                         <!-- Recently Added (v1.7) -->
                         <Button x:Name="BtnRecentlyAdded" Style="{StaticResource NavItemStyle}" Click="OnNavRecentlyAdded">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Glyph="&#xE823;" FontSize="15"
+                                <FontIcon Foreground="{ThemeResource NavDiscoverIconBrush}" Glyph="&#xE823;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
                                 <TextBlock Text="Recently Added" VerticalAlignment="Center"/>
@@ -338,7 +337,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Glyph="&#xE823;" FontSize="15"
+                                    <FontIcon Foreground="{ThemeResource NavDiscoverIconBrush}" Glyph="&#xE823;" FontSize="15"
                                               FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
                                     <TextBlock Text="Recently Watched" VerticalAlignment="Center"/>
@@ -353,7 +352,7 @@
                         <!-- Random Pick (v1.7) -->
                         <Button x:Name="BtnRandomPick" Style="{StaticResource NavItemStyle}" Click="OnNavRandomPick">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Glyph="&#xE8B1;" FontSize="15"
+                                <FontIcon Foreground="{ThemeResource NavDiscoverIconBrush}" Glyph="&#xE8B1;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
                                 <TextBlock Text="Surprise me" VerticalAlignment="Center"/>
@@ -367,7 +366,7 @@
                         <Button x:Name="BtnOnThisDay" Style="{StaticResource NavItemStyle}"
                                 Click="OnNavOnThisDay" Visibility="Collapsed">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Glyph="&#xE787;" FontSize="15"
+                                <FontIcon Foreground="{ThemeResource NavDiscoverIconBrush}" Glyph="&#xE787;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
                                 <TextBlock Text="On This Day" VerticalAlignment="Center"/>
@@ -380,7 +379,7 @@
                         <Button x:Name="BtnBrowseGenre" Style="{StaticResource NavItemStyle}"
                                 Click="OnNavBrowseGenre">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Glyph="&#xE8EC;" FontSize="15"
+                                <FontIcon Foreground="{ThemeResource NavBrowseIconBrush}" Glyph="&#xE8EC;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
                                 <TextBlock Text="By Genre" VerticalAlignment="Center"/>
@@ -389,7 +388,7 @@
                         <Button x:Name="BtnBrowseDecade" Style="{StaticResource NavItemStyle}"
                                 Click="OnNavBrowseDecade">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Glyph="&#xE787;" FontSize="15"
+                                <FontIcon Foreground="{ThemeResource NavBrowseIconBrush}" Glyph="&#xE787;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
                                 <TextBlock Text="By Decade" VerticalAlignment="Center"/>
@@ -398,7 +397,7 @@
                         <Button x:Name="BtnBrowseRating" Style="{StaticResource NavItemStyle}"
                                 Click="OnNavBrowseRating">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Glyph="&#xE735;" FontSize="15"
+                                <FontIcon Foreground="{ThemeResource NavBrowseIconBrush}" Glyph="&#xE735;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
                                 <TextBlock Text="By Rating" VerticalAlignment="Center"/>
@@ -407,7 +406,7 @@
                         <Button x:Name="BtnCollections" Style="{StaticResource NavItemStyle}"
                                 Click="OnNavCollections">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Glyph="&#xE8B7;" FontSize="15"
+                                <FontIcon Foreground="{ThemeResource NavBrowseIconBrush}" Glyph="&#xE8B7;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
                                 <TextBlock Text="Collections" VerticalAlignment="Center"/>
@@ -420,7 +419,7 @@
                         <!-- Statistics (v1.4.1) -->
                         <Button x:Name="BtnStatistics" Style="{StaticResource NavItemStyle}" Click="OnNavStatistics">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Glyph="&#xE9D9;" FontSize="15"
+                                <FontIcon Foreground="{ThemeResource NavToolsIconBrush}" Glyph="&#xE9D9;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
                                 <TextBlock Text="Statistics" VerticalAlignment="Center"/>
@@ -430,42 +429,35 @@
                         <!-- Dupes (v3.4.4) — find movies held more than once -->
                         <Button x:Name="BtnDupes" Style="{StaticResource NavItemStyle}" Click="OnNavDupes">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Glyph="&#xE8C8;" FontSize="15"
+                                <FontIcon Foreground="{ThemeResource NavToolsIconBrush}" Glyph="&#xE8C8;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
                                 <TextBlock Text="Dupes" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
-                        <!-- Drives -->
-                        <Button x:Name="BtnDrives" Style="{StaticResource NavItemStyle}" Click="OnNavDrives">
-                            <Grid HorizontalAlignment="Stretch">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Glyph="&#xEDA2;" FontSize="15"
-                                              FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
-                                              VerticalAlignment="Center"/>
-                                    <TextBlock Text="Drives" VerticalAlignment="Center"/>
-                                </StackPanel>
-                                <Border Grid.Column="1" Style="{StaticResource BadgeStyle}">
-                                    <TextBlock x:Name="DrivesBadge" Text="0" FontSize="11"
-                                               Foreground="{ThemeResource MutedBrush}" HorizontalAlignment="Center"/>
-                                </Border>
-                            </Grid>
-                        </Button>
 
                         <!-- v2.9 — Backup / restore personal state.
                              Opens a small dialog with Export / Import. -->
                         <Button x:Name="BtnBackup" Style="{StaticResource NavItemStyle}"
                                 Click="OnNavBackup">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Glyph="&#xE74E;" FontSize="15"
+                                <FontIcon Foreground="{ThemeResource NavToolsIconBrush}" Glyph="&#xE74E;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
                                 <TextBlock Text="Backup" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- v3.9.0 — Export (was a button on All movies): the whole
+                             library, or what All movies shows, as CSV or HTML. -->
+                        <Button x:Name="BtnExport" Style="{StaticResource NavItemStyle}"
+                                Click="OnNavExport">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Foreground="{ThemeResource NavToolsIconBrush}" Glyph="&#xEDE1;" FontSize="15"
+                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                          VerticalAlignment="Center"/>
+                                <TextBlock Text="Export" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
@@ -589,10 +581,10 @@
                         Background="Transparent"
                         BorderThickness="0">
                     <StackPanel Spacing="8">
-                        <!-- Tool row — theme / settings / help / collapse, all icon-only.
+                        <!-- Tool row — drives / theme / settings / help / collapse, all icon-only.
                              v3.0.0: theme button is now a monochrome FontIcon (matches
                              the others) instead of a colour emoji, and a Settings gear
-                             was added. -->
+                             was added. v3.9.0: Drives moved here from TOOLS. -->
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -600,17 +592,27 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <Button x:Name="ThemeBtn" Grid.Column="1" Click="OnToggleTheme"
+                            <Button x:Name="BtnDrives" Grid.Column="1" Click="OnNavDrives"
                                     Background="Transparent" BorderThickness="0"
                                     Foreground="{ThemeResource MutedBrush}"
                                     Padding="6" CornerRadius="6"
+                                    AutomationProperties.Name="Drives"
+                                    ToolTipService.ToolTip="Drives">
+                                <FontIcon Glyph="&#xEDA2;" FontSize="15"
+                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                            </Button>
+                            <Button x:Name="ThemeBtn" Grid.Column="2" Click="OnToggleTheme"
+                                    Background="Transparent" BorderThickness="0"
+                                    Foreground="{ThemeResource MutedBrush}"
+                                    Padding="6" Margin="2,0,0,0" CornerRadius="6"
                                     AutomationProperties.Name="Switch theme"
                                     ToolTipService.ToolTip="Switch theme">
                                 <FontIcon x:Name="ThemeIcon" Glyph="&#xE706;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
                             </Button>
-                            <Button x:Name="SettingsBtn" Grid.Column="2" Click="OnSettingsClick"
+                            <Button x:Name="SettingsBtn" Grid.Column="3" Click="OnSettingsClick"
                                     Background="Transparent" BorderThickness="0"
                                     Foreground="{ThemeResource MutedBrush}"
                                     Padding="6" Margin="2,0,0,0" CornerRadius="6"
@@ -619,7 +621,7 @@
                                 <FontIcon Glyph="&#xE713;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
                             </Button>
-                            <Button Grid.Column="3" Click="OnHelpClick"
+                            <Button Grid.Column="4" Click="OnHelpClick"
                                     Background="Transparent" BorderThickness="0"
                                     Foreground="{ThemeResource MutedBrush}"
                                     Padding="6" Margin="2,0,0,0" CornerRadius="6"
@@ -628,7 +630,7 @@
                                 <FontIcon Glyph="&#xE897;" FontSize="14"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
                             </Button>
-                            <Button x:Name="SidebarToggleBtn" Grid.Column="4" Click="OnToggleSidebar"
+                            <Button x:Name="SidebarToggleBtn" Grid.Column="5" Click="OnToggleSidebar"
                                     Background="Transparent" BorderThickness="0"
                                     Foreground="{ThemeResource MutedBrush}"
                                     Padding="6" Margin="2,0,0,0" CornerRadius="6"
@@ -647,8 +649,8 @@
             <!-- Floating OPAQUE content panel on the Mica window: Mica frames it
                  (and the sidebar) for the full Mica look, while the scrolling
                  grid stays opaque so it never composites over Mica → fast. -->
-            <Border Grid.Column="1" Background="{ThemeResource BgBrush}"
-                    Margin="4,8,12,12" CornerRadius="12"
+            <Border x:Name="ContentCard" Grid.Column="1" Background="{ThemeResource BgBrush}"
+                    Margin="4,4,8,8" CornerRadius="12"
                     BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1"
                     Translation="0,0,24">
                 <Border.Shadow>

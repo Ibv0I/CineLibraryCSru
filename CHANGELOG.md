@@ -6,6 +6,30 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > Per-release notes for the 2.x and early-3.x versions between the two
 > entries below live on the [Releases](https://github.com/aungkokomm/CineLibraryCS/releases) page.
 
+## [3.9.0] - 2026-10-03
+
+### Changed
+- **One-row header on All Movies, All TV Shows and Collections.** Title and
+  count, the All / Unwatched / Watched pills, sort, Surprise me, grid or list
+  and poster size now share one row. In a narrow window it wraps neatly.
+- **Poster size is a drop-down** ("Size: M") instead of four S / M / L / XL
+  buttons.
+- **Export moved to Tools** in the sidebar. It offers all movies, and when
+  All Movies is filtered, searched or showing a list, "This view" too.
+- **Drives moved to the bottom of the sidebar**, as the first small button,
+  next to Switch theme. Its tooltip shows how many drives you have.
+- **Colour-coded sidebar icons**: each section (Library, Discover, Browse,
+  Tools) has its own colour, in dark and light themes.
+- **Tighter frame.** The gaps around the sidebar and the main page are an
+  even 8 pixels, so the search box sits closer to the movies.
+- **The movie count beside the title** always shows how many movies the view
+  holds. It used to read "60 of 1,200" while pages were loading, which looked
+  like a filter.
+
+### Fixed
+- **Export wrote only the movies loaded so far.** In a big library that could
+  be the first few pages. It now writes every movie in the view.
+
 ## [3.8.0] - 2026-10-02
 
 ### Added

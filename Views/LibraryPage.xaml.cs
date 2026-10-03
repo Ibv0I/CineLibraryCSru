@@ -8,8 +8,6 @@ using CineLibraryCS.Models;
 using CineLibraryCS.Services;
 using CineLibraryCS.ViewModels;
 using CineLibraryCS.Views;
-using Windows.Storage.Pickers;
-using WinRT.Interop;
 
 namespace CineLibraryCS.Views;
 
@@ -791,7 +789,7 @@ public sealed partial class LibraryPage : Page
     private void OnDensityClick(object sender, RoutedEventArgs e)
     {
         if (!_ready) return;
-        if (sender is not Microsoft.UI.Xaml.Controls.Primitives.ToggleButton btn || btn.Tag is not string tag) return;
+        if (sender is not FrameworkElement { Tag: string tag }) return;
         ApplyDensity(tag);
         AppState.Instance.SetPref("gridDensity", tag);
     }
@@ -814,6 +812,7 @@ public sealed partial class LibraryPage : Page
         DensityM.IsChecked  = tag == "M";
         DensityL.IsChecked  = tag == "L";
         DensityXL.IsChecked = tag == "XL";
+        DensityLabel.Text = $"Size: {(tag is "S" or "L" or "XL" ? tag : "M")}";
     }
 
     private void SyncUiFromVm()
@@ -886,11 +885,10 @@ public sealed partial class LibraryPage : Page
                 e.PropertyName == nameof(LibraryViewModel.HasMore) ||
                 e.PropertyName == nameof(LibraryViewModel.FilterTotal))
             {
-                // "60 of 1,200 movies" while pages are still loading,
-                // "850 movies" once everything fits.
-                MovieCountText.Text = _vm.FilterTotal == _vm.TotalCount
-                    ? $"{_vm.FilterTotal:N0} movies"
-                    : $"{_vm.TotalCount:N0} of {_vm.FilterTotal:N0} movies";
+                // v3.9.0: how many movies the view holds. (It used to read
+                // "60 of 1,200" while pages were still loading, which looked
+                // like a filter.)
+                MovieCountText.Text = _vm.FilterTotal == 1 ? "1 movie" : $"{_vm.FilterTotal:N0} movies";
             }
             if (e.PropertyName == nameof(LibraryViewModel.IsLoading))
             {
@@ -1219,40 +1217,10 @@ public sealed partial class LibraryPage : Page
 
     // ── Export ────────────────────────────────────────────────────────────
 
-    private async void OnExportCsvDefault(SplitButton sender, SplitButtonClickEventArgs e)
-        => await ExportCsvCore();
-
-    private async void OnExportCsv(object sender, RoutedEventArgs e)
-        => await ExportCsvCore();
-
-    private async Task ExportCsvCore()
-    {
-        var path = await PickSaveFile("CSV file", ".csv", "movies_export");
-        if (path == null) return;
-        var mainVm = new MainViewModel();
-        await mainVm.ExportCsvAsync(_vm.Movies, path);
-        App.MainWindow?.ShowToast("Exported to CSV");
-    }
-
-    private async void OnExportHtml(object sender, RoutedEventArgs e)
-    {
-        var path = await PickSaveFile("HTML file", ".html", "movies_export");
-        if (path == null) return;
-        var mainVm = new MainViewModel();
-        await mainVm.ExportHtmlAsync(_vm.Movies, path);
-        App.MainWindow?.ShowToast("Exported to HTML");
-    }
-
-    private async Task<string?> PickSaveFile(string type, string ext, string suggestedName)
-    {
-        var picker = new FileSavePicker();
-        picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-        picker.FileTypeChoices.Add(type, new List<string> { ext });
-        picker.SuggestedFileName = suggestedName;
-        InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(App.MainWindow));
-        var file = await picker.PickSaveFileAsync();
-        return file?.Path;
-    }
+    // v3.9.0 — Export moved to Tools in the sidebar. These let it offer
+    // "this view" and write every matching movie, not just the loaded pages.
+    public int ViewCount => _vm.FilterTotal;
+    public Task<List<MovieListItem>> GetViewMoviesAsync() => _vm.GetAllMatchingAsync();
 
     // ── Back/Toggle sidebar button ────────────────────────────────────────
 

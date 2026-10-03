@@ -538,7 +538,8 @@ public sealed partial class MainWindow : Window
         {
             var stats = _vm.Stats;
             TotalBadge.Text = stats?.TotalMovies.ToString() ?? "0";
-            DrivesBadge.Text = _vm.Drives.Count.ToString();
+            // v3.9.0: Drives is an icon in the bottom bar now; the count lives in its tooltip.
+            ToolTipService.SetToolTip(BtnDrives, $"Drives ({_vm.Drives.Count})");
             try { TvShowsBadge.Text = AppState.Instance.Db.GetTvShowCount().ToString(); } catch { }
             try { NotesBadge.Text = AppState.Instance.Db.GetNotesCount().ToString(); } catch { }
             // v3.3 — Watched & Gone entry appears once the first record exists.
@@ -1435,10 +1436,57 @@ public sealed partial class MainWindow : Window
         _tvShowsPage?.OpenShow(showId);
     }
 
+    // ── v3.9.0 Export (Tools) ─────────────────────────────────────────────
+    // Was a button on All movies that wrote only the pages loaded so far. Now
+    // it offers the whole library, plus what All movies shows when that is a
+    // narrower view, and always writes every matching movie.
+
+    private void OnNavExport(object sender, RoutedEventArgs e)
+    {
+        var menu = new MenuFlyout { Placement = Microsoft.UI.Xaml.Controls.Primitives.FlyoutPlacementMode.RightEdgeAlignedTop };
+        void Add(string text, Func<Task<List<MovieListItem>>> load, bool html)
+        {
+            var item = new MenuFlyoutItem { Text = text };
+            item.Click += async (_, _) => await ExportMoviesAsync(load, html);
+            menu.Items.Add(item);
+        }
+        Func<Task<List<MovieListItem>>> all = () => Task.Run(() => AppState.Instance.Db.GetMovies(
+            new DatabaseService.ListOptions(Limit: int.MaxValue), AppState.Instance.Connected));
+        Add("All movies as CSV…", all, html: false);
+        Add("All movies as HTML…", all, html: true);
+        if (_libraryPage != null && ReferenceEquals(ContentFrame.Content, _libraryPage)
+            && _libraryPage.ViewCount < (_vm.Stats?.TotalMovies ?? 0))
+        {
+            var n = _libraryPage.ViewCount;
+            var label = n == 1 ? "1 movie" : $"{n:N0} movies";
+            menu.Items.Add(new MenuFlyoutSeparator());
+            Add($"This view ({label}) as CSV…", _libraryPage.GetViewMoviesAsync, html: false);
+            Add($"This view ({label}) as HTML…", _libraryPage.GetViewMoviesAsync, html: true);
+        }
+        menu.ShowAt((FrameworkElement)sender);
+    }
+
+    private async Task ExportMoviesAsync(Func<Task<List<MovieListItem>>> load, bool html)
+    {
+        var picker = new Windows.Storage.Pickers.FileSavePicker
+        {
+            SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary,
+            SuggestedFileName = "movies_export",
+        };
+        picker.FileTypeChoices.Add(html ? "HTML file" : "CSV file", new List<string> { html ? ".html" : ".csv" });
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(this));
+        var file = await picker.PickSaveFileAsync();
+        if (file == null) return;
+        var movies = await load();
+        if (html) await _vm.ExportHtmlAsync(movies, file.Path);
+        else await _vm.ExportCsvAsync(movies, file.Path);
+        ShowToast($"Exported {movies.Count:N0} movies to {(html ? "HTML" : "CSV")}");
+    }
+
     private void OnNavDrives(object sender, RoutedEventArgs e)
     {
         NavigateTo("drives");
-        SetActiveNav(sender as Button ?? BtnDrives);
+        SetActiveNav(null);   // the bottom-bar icon isn't a sidebar row to highlight
     }
 
     /// <summary>
@@ -2028,12 +2076,14 @@ public sealed partial class MainWindow : Window
             // Hide the whole floating card (not just the inner grid) so no
             // rounded sliver / margin is left behind when collapsed.
             SidebarCard.Visibility = Visibility.Collapsed;
+            ContentCard.Margin = new Thickness(8, 4, 8, 8);   // the same 8 at the left edge
             SidebarReopenBtn.Visibility = Visibility.Visible;
         }
         else
         {
-            SidebarCol.Width = new GridLength(252);   // keep in sync with SidebarCol default (240 inner + 12 margin)
+            SidebarCol.Width = new GridLength(248);   // keep in sync with SidebarCol default (236 inner + 12 margin)
             SidebarCard.Visibility = Visibility.Visible;
+            ContentCard.Margin = new Thickness(4, 4, 8, 8);
             SidebarReopenBtn.Visibility = Visibility.Collapsed;
         }
         AppState.Instance.SetPref("sidebarCollapsed", collapsed ? "true" : "false");

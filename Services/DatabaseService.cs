@@ -3422,19 +3422,66 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     [MethodImpl(MethodImplOptions.Synchronized)]
     public List<Models.TvShowListItem> GetTvShowsInList(int listId, IReadOnlyDictionary<string, string> connected)
     {
-        var list = new List<Models.TvShowListItem>();
         using var cmd = _conn.CreateCommand();
-        cmd.CommandText = @"
-            SELECT s.id, s.title, s.year, s.rating, s.local_poster, s.is_missing,
-                   s.volume_serial, d.label, s.is_favorite, s.is_watchlist,
-                   (SELECT COUNT(*) FROM tv_episodes e WHERE e.show_id=s.id),
-                   (SELECT COUNT(*) FROM tv_episodes e WHERE e.show_id=s.id AND e.is_watched=1)
+        cmd.CommandText = $@"
+            SELECT {ShowListItemColumns}
               FROM user_list_shows uls
               JOIN tv_shows s ON s.id = uls.show_id
               LEFT JOIN drives d ON d.volume_serial = s.volume_serial
              WHERE uls.list_id=@l
              ORDER BY s.sort_title, s.title";
         cmd.Parameters.AddWithValue("@l", listId);
+        return ReadShowListItems(cmd, connected);
+    }
+
+    /// <summary>
+    /// v4.0.0 — the shows behind the Favorites, To Watch and Continue Watching
+    /// pages, shown as a row above the movies. Shows could be marked favorite or
+    /// watchlist before, but no page listed them.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public List<Models.TvShowListItem> GetTvShowsForPage(TvShowPage page, IReadOnlyDictionary<string, string> connected)
+    {
+        using var cmd = _conn.CreateCommand();
+        cmd.CommandText = $@"
+            SELECT {ShowListItemColumns}
+              FROM tv_shows s
+              LEFT JOIN drives d ON d.volume_serial = s.volume_serial
+             WHERE s.is_missing = 0 AND {TvShowPageWhere(page)}
+             ORDER BY {(page == TvShowPage.ContinueWatching
+                 ? "(SELECT MAX(last_played_at) FROM tv_episodes e WHERE e.show_id=s.id) DESC, "
+                 : "")}s.sort_title, s.title";
+        return ReadShowListItems(cmd, connected);
+    }
+
+    /// <summary>v4.0.0 — how many shows <see cref="GetTvShowsForPage"/> returns, for the sidebar badges.</summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public int GetTvShowPageCount(TvShowPage page)
+    {
+        using var cmd = _conn.CreateCommand();
+        cmd.CommandText = $"SELECT COUNT(*) FROM tv_shows s WHERE s.is_missing = 0 AND {TvShowPageWhere(page)}";
+        return Convert.ToInt32(cmd.ExecuteScalar());
+    }
+
+    public enum TvShowPage { Favorites, Watchlist, ContinueWatching }
+
+    // In progress = some episodes watched and some not, as on All TV Shows.
+    private static string TvShowPageWhere(TvShowPage page) => page switch
+    {
+        TvShowPage.Favorites => "s.is_favorite = 1",
+        TvShowPage.Watchlist => "s.is_watchlist = 1",
+        _ => @"EXISTS (SELECT 1 FROM tv_episodes e WHERE e.show_id=s.id AND e.is_watched=1)
+               AND EXISTS (SELECT 1 FROM tv_episodes e WHERE e.show_id=s.id AND e.is_watched=0)",
+    };
+
+    private const string ShowListItemColumns = @"s.id, s.title, s.year, s.rating, s.local_poster, s.is_missing,
+                   s.volume_serial, d.label, s.is_favorite, s.is_watchlist,
+                   (SELECT COUNT(*) FROM tv_episodes e WHERE e.show_id=s.id),
+                   (SELECT COUNT(*) FROM tv_episodes e WHERE e.show_id=s.id AND e.is_watched=1)";
+
+    private static List<Models.TvShowListItem> ReadShowListItems(SqliteCommand cmd, IReadOnlyDictionary<string, string> connected)
+    {
+        var list = new List<Models.TvShowListItem>();
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {

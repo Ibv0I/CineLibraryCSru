@@ -334,14 +334,7 @@ public sealed partial class TvShowsPage : Page
 
     private void ApplyTvDensity(string tag)
     {
-        var (w, h) = tag switch
-        {
-            "S"  => (130.0, 235.0),
-            "L"  => (210.0, 365.0),
-            "XL" => (250.0, 430.0),
-            _    => (170.0, 300.0),   // M: the size before v3.7
-        };
-        TvShowCard.SetSize(w, h);
+        var (w, h) = TvShowCard.SetDensity(tag);
         ShowsGridLayout.MinItemWidth = w;
         ShowsGridLayout.MinItemHeight = h;
         TvDensityS.IsChecked  = tag == "S";

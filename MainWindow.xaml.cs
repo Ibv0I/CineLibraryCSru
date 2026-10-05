@@ -554,15 +554,18 @@ public sealed partial class MainWindow : Window
             // (they live on the Statistics page now). Stats object still
             // computed because other code paths use it.
 
-            // Update watchlist badge (v1.3)
+            // Update watchlist badge (v1.3). v4.0.0: To Watch, Continue
+            // Watching and their badges include TV shows too.
             if (_libraryPage?.ViewModel is LibraryViewModel vm)
             {
                 vm.RefreshWatchlistCount();
-                WatchlistBadge.Text = vm.WatchlistCount.ToString();
+                WatchlistBadge.Text = (vm.WatchlistCount
+                    + AppState.Instance.Db.GetTvShowPageCount(DatabaseService.TvShowPage.Watchlist)).ToString();
             }
 
             // Continue Watching badge (v1.8) — only show shortcut if there's anything to continue
-            var cwCount = AppState.Instance.Db.GetContinueWatchingCount();
+            var cwCount = AppState.Instance.Db.GetContinueWatchingCount()
+                        + AppState.Instance.Db.GetTvShowPageCount(DatabaseService.TvShowPage.ContinueWatching);
             ContinueWatchingBadge.Text = cwCount.ToString();
             BtnContinueWatching.Visibility = cwCount > 0 ? Visibility.Visible : Visibility.Collapsed;
 
@@ -1418,6 +1421,7 @@ public sealed partial class MainWindow : Window
     private void OnNavFavorites(object sender, RoutedEventArgs e)
     {
         NavigateTo("library", new LibraryNavParam(FavoritesOnly: true, Label: "Favorites"));
+        _libraryPage?.UpdatePageTitle("Favorites");   // v4.0.0: the page holds shows too, so not "All movies › …"
         SetActiveNav(sender as Button ?? BtnFavorites);
     }
 
@@ -1593,6 +1597,7 @@ public sealed partial class MainWindow : Window
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.ShowContinueWatching();
+        _libraryPage?.UpdatePageTitle("Continue watching");   // v4.0.0: it said "All movies"
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
         ClearLibraryBack();
         SetActiveNav(sender as Button ?? BtnContinueWatching);
@@ -1602,6 +1607,7 @@ public sealed partial class MainWindow : Window
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.ShowRecentlyAdded();
+        _libraryPage?.UpdatePageTitle("Recently added");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
         ClearLibraryBack();
         SetActiveNav(sender as Button ?? BtnRecentlyAdded);
@@ -1611,6 +1617,7 @@ public sealed partial class MainWindow : Window
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.ShowRecentlyWatched();
+        _libraryPage?.UpdatePageTitle("Recently watched");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
         ClearLibraryBack();
         SetActiveNav(sender as Button ?? BtnRecentlyWatched);
@@ -1822,6 +1829,7 @@ public sealed partial class MainWindow : Window
         {
             vm.ShowWatchlist();
             NavigateTo("library");
+            _libraryPage?.UpdatePageTitle("To watch");
         }
         SetActiveNav(sender as Button ?? BtnWatchlist);
     }
@@ -1830,6 +1838,7 @@ public sealed partial class MainWindow : Window
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.ShowNotes();
+        _libraryPage?.UpdatePageTitle("Notes");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
         ClearLibraryBack();
         SetActiveNav(sender as Button ?? BtnNotes);

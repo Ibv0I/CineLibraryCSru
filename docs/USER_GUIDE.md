@@ -360,6 +360,12 @@ Favorite and Watchlist are **show-level** (you favorite *the show*,
 not one episode), set from the buttons in the show header. Watched is
 **per-episode**.
 
+Favorite and watchlisted shows appear in a **TV shows** row at the top
+of **Favorites** and **To Watch**, above the movies; shows you're partway
+through appear the same way on **Continue Watching**. Click a show to
+open it. The **To Watch** and **Continue Watching** counts in the
+sidebar include these shows.
+
 ### Shows travel with the drive too
 
 Just like movies, a show's personal state (favorite / watchlist /

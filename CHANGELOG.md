@@ -6,6 +6,26 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > Per-release notes for the 2.x and early-3.x versions between the two
 > entries below live on the [Releases](https://github.com/aungkokomm/CineLibraryCS/releases) page.
 
+## [4.0.0] - 2026-10-05
+
+TV shows join Favorites, To Watch and Continue Watching.
+
+### Added
+- **A TV shows row on Favorites, To Watch and Continue Watching**, above the
+  movies, like the one in My Lists. Shows you mark as favorite or watchlist
+  could be saved before, but no page listed them. Continue Watching shows the
+  shows you're partway through, most recently watched first.
+- **The To Watch and Continue Watching counts** in the sidebar include shows,
+  and the count beside the title reads like "36 movies · 3 shows".
+
+### Changed
+- **Page titles say where you are**: Favorites, To watch, Continue watching,
+  Notes, Recently added and Recently watched, instead of "All movies".
+- **The TV shows row fits its cards.** Smaller cards used to float in a
+  fixed-height row with an empty band above them.
+- **Show cards outside All TV Shows use your TV poster size** from the start,
+  instead of the default size until All TV Shows had been opened.
+
 ## [3.10.0] - 2026-10-05
 
 ### Added

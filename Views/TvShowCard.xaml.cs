@@ -21,9 +21,28 @@ public sealed partial class TvShowCard : UserControl
 
     // v3.7.0: card size follows the All TV shows S / M / L / XL picker.
     // TvShowsPage reloads the list after a change, so every card re-applies it.
-    public static double CardWidth { get; private set; } = 170;
-    public static double CardHeight { get; private set; } = 300;
-    public static void SetSize(double width, double height) { CardWidth = width; CardHeight = height; }
+    // v4.0.0: starts from the saved choice, so show rows on other pages (lists,
+    // Favorites, To Watch) match it before All TV shows has been opened.
+    public static double CardWidth { get; private set; }
+    public static double CardHeight { get; private set; }
+    static TvShowCard()
+    {
+        // A throwing static constructor would break every show card for the session.
+        try { SetDensity(AppState.Instance.GetPref("tvDensity", "M")); }
+        catch { SetDensity("M"); }
+    }
+
+    public static (double Width, double Height) SetDensity(string tag)
+    {
+        (CardWidth, CardHeight) = tag switch
+        {
+            "S"  => (130.0, 235.0),
+            "L"  => (210.0, 365.0),
+            "XL" => (250.0, 430.0),
+            _    => (170.0, 300.0),   // M: the size before v3.7
+        };
+        return (CardWidth, CardHeight);
+    }
 
     public TvShowCard()
     {

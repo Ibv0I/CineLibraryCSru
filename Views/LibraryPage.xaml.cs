@@ -123,6 +123,11 @@ public sealed partial class LibraryPage : Page
         _vm.PropertyChanged += OnVmPropertyChanged;
         _vm.Movies.CollectionChanged += (_, _) => UpdateEmptyState();
 
+        // v4.0.0: the page is cached and put back on screen as it is, so
+        // re-query the shows row each time; a show may have been made a
+        // favorite (or finished) on its own page meanwhile.
+        Loaded += (_, _) => { _shownRowKey = ""; RefreshShowsInList(); };
+
         // v2.8.2 — tap a show card in the "TV shows in this list" row to
         // open that show on the TV page.
         ShowsInListRepeater.Tapped += (s, e) =>
@@ -716,7 +721,9 @@ public sealed partial class LibraryPage : Page
 
     private void UpdateEmptyState()
     {
-        var empty = _vm.Movies.Count == 0 && !_vm.IsLoading;
+        // v4.0.0: a page whose only items are TV shows (the row above) isn't empty.
+        var empty = _vm.Movies.Count == 0 && !_vm.IsLoading
+                    && ShowsInListSection.Visibility != Visibility.Visible;
         EmptyState.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
         GridBorder.Opacity = empty ? 0 : 1;
         ListBorder.Opacity = empty ? 0 : 1;
@@ -859,6 +866,7 @@ public sealed partial class LibraryPage : Page
     {
         SearchBox.Text = "";
         _vm.SearchText = "";
+        _shownRowKey = "";   // re-query the shows row: favorites may have changed elsewhere
 
         if (p.FavoritesOnly)
             _vm.SetFavorites();
@@ -888,7 +896,7 @@ public sealed partial class LibraryPage : Page
                 // v3.9.0: how many movies the view holds. (It used to read
                 // "60 of 1,200" while pages were still loading, which looked
                 // like a filter.)
-                MovieCountText.Text = _vm.FilterTotal == 1 ? "1 movie" : $"{_vm.FilterTotal:N0} movies";
+                UpdateCountText();
             }
             if (e.PropertyName == nameof(LibraryViewModel.IsLoading))
             {
@@ -973,27 +981,43 @@ public sealed partial class LibraryPage : Page
         dialog.Activate();
     }
 
-    private int? _lastShownListId = -1;  // sentinel so first call always runs
+    private string? _shownRowKey = "";   // "" = not run yet, so the first call always queries
+    private int _rowShowCount;
 
     /// <summary>
     /// v2.8.2 — when the current view is a user list, show that list's TV
-    /// shows in a row above the movie grid. Re-queried only when the list
-    /// changes, so it's cheap on routine VM updates.
+    /// shows in a row above the movie grid. v4.0.0: Favorites, To Watch and
+    /// Continue Watching get the same row. Re-queried only when the view
+    /// changes (or the page is opened again), so routine VM updates stay cheap.
     /// </summary>
     private void RefreshShowsInList()
     {
-        if (_vm.UserListId == _lastShownListId) return;
-        _lastShownListId = _vm.UserListId;
+        DatabaseService.TvShowPage? page =
+            _vm.FavoritesOnly      ? DatabaseService.TvShowPage.Favorites :
+            _vm.IsWatchlistOnly    ? DatabaseService.TvShowPage.Watchlist :
+            _vm.IsContinueWatching ? DatabaseService.TvShowPage.ContinueWatching : null;
+        var key = _vm.UserListId is int listId ? $"list:{listId}" : page?.ToString();
+        if (key == _shownRowKey) return;
+        _shownRowKey = key;
 
-        if (_vm.UserListId == null)
-        {
-            ShowsInListSection.Visibility = Visibility.Collapsed;
-            ShowsInListRepeater.ItemsSource = null;
-            return;
-        }
-        var shows = AppState.Instance.Db.GetTvShowsInList(_vm.UserListId.Value, AppState.Instance.Connected);
-        ShowsInListRepeater.ItemsSource = shows;
+        var db = AppState.Instance.Db;
+        var shows = _vm.UserListId is int id ? db.GetTvShowsInList(id, AppState.Instance.Connected)
+                  : page is { } p ? db.GetTvShowsForPage(p, AppState.Instance.Connected)
+                  : new List<TvShowListItem>();
+        ShowsInListHeader.Text = _vm.UserListId != null ? "TV SHOWS IN THIS LIST" : "TV SHOWS";
+        ShowsInListRepeater.ItemsSource = shows.Count > 0 ? shows : null;
         ShowsInListSection.Visibility = shows.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        _rowShowCount = shows.Count;
+        UpdateCountText();
+        UpdateEmptyState();
+    }
+
+    /// <summary>"128 movies", plus " · 3 shows" when the shows row is showing (v4.0.0).</summary>
+    private void UpdateCountText()
+    {
+        var movies = _vm.FilterTotal == 1 ? "1 movie" : $"{_vm.FilterTotal:N0} movies";
+        MovieCountText.Text = _rowShowCount == 0 ? movies
+            : $"{movies} · {(_rowShowCount == 1 ? "1 show" : $"{_rowShowCount} shows")}";
     }
 
     /// <summary>

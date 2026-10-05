@@ -203,6 +203,14 @@
                                                        TextTrimming="CharacterEllipsis" MaxWidth="760"
                                                        HorizontalAlignment="Left"/>
                                             <StackPanel x:Name="ShowGenres" Orientation="Horizontal" Spacing="6"/>
+                                            <!-- v4.0.1: drive location, as in the movie window -->
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="Located on:" FontSize="12" Foreground="#A0A0A0"
+                                                           VerticalAlignment="Center"/>
+                                                <Ellipse x:Name="ShowDriveDot" Width="8" Height="8" VerticalAlignment="Center"/>
+                                                <TextBlock x:Name="ShowDriveText" FontSize="12" Foreground="#D8D8D8"
+                                                           VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                            </StackPanel>
                                             <!-- Action buttons, then tags (v3.10.0: tags moved up
                                                  next to Add to list). Wraps in narrow windows. -->
                                             <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8" Margin="0,6,0,0">

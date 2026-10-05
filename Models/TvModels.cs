@@ -194,6 +194,7 @@ public class TvShowDetail
     public string? LocalPoster { get; set; }
     public string? LocalFanart { get; set; }
     public string VolumeSerial { get; set; } = "";
+    public string? DriveLabel { get; set; }
     public string? FolderRelPath { get; set; }
     public bool IsFavorite { get; set; }
     public bool IsWatchlist { get; set; }

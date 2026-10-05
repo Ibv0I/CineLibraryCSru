@@ -6,6 +6,22 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > Per-release notes for the 2.x and early-3.x versions between the two
 > entries below live on the [Releases](https://github.com/aungkokomm/CineLibraryCS/releases) page.
 
+## [4.0.1] - 2026-10-05
+
+### Added
+- **The TV show page says which drive the show is on**, as the movie
+  details window does: "Located on" with the drive's name, and a green dot
+  and its letter while it's connected.
+
+### Fixed
+- **Fetch missing info now fills in cast photos that only lived on the
+  drive.** A photo from the show's or movie's `.actors` folder showed only
+  while that drive was connected, and fetching never replaced it, so some
+  actors (in Breaking Bad: RJ Mitte, Betsy Brandt) kept their initials while
+  the rest of the cast had photos. Run Fetch missing info once more on one
+  of those titles; actors are shared, so every show and movie they're in
+  gets the photo. The photo on the drive is never changed.
+
 ## [4.0.0] - 2026-10-05
 
 TV shows join Favorites, To Watch and Continue Watching.

@@ -2494,19 +2494,37 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         // Upgrade the actor's thumb to our portable cache copy when the
         // existing one is weak — missing, an http URL (blank offline, what
         // MediaElch NFOs usually store), or a stale manual cache path. A
-        // genuine local .actors file path is left alone (it already works).
+        // local file that opens from here is left alone (it already works).
+        // v4.0.1: a path that doesn't open, like ".actors/RJ_Mitte.jpg" (only
+        // usable while that title's drive is connected), counts as weak too;
+        // with the drive connected its .actors folder is still looked in first.
         if (!string.IsNullOrEmpty(thumbRel))
         {
-            using var upd = _conn.CreateCommand();
-            upd.CommandText = @"UPDATE actors SET thumb=@t
-                                 WHERE id=@id AND (thumb IS NULL OR thumb=''
-                                                   OR thumb LIKE 'http%'
-                                                   OR thumb LIKE 'manual_actors/%')";
-            upd.Parameters.AddWithValue("@t", thumbRel);
-            upd.Parameters.AddWithValue("@id", actorId);
-            upd.ExecuteNonQuery();
+            string? current;
+            using (var get = _conn.CreateCommand())
+            {
+                get.CommandText = "SELECT thumb FROM actors WHERE id=@id";
+                get.Parameters.AddWithValue("@id", actorId);
+                current = get.ExecuteScalar() as string;
+            }
+            if (IsWeakActorThumb(current))
+            {
+                using var upd = _conn.CreateCommand();
+                upd.CommandText = "UPDATE actors SET thumb=@t WHERE id=@id";
+                upd.Parameters.AddWithValue("@t", thumbRel);
+                upd.Parameters.AddWithValue("@id", actorId);
+                upd.ExecuteNonQuery();
+            }
         }
         return actorId;
+    }
+
+    private bool IsWeakActorThumb(string? thumb)
+    {
+        if (string.IsNullOrWhiteSpace(thumb)) return true;
+        if (thumb.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return true;
+        if (thumb.StartsWith("manual_actors/", StringComparison.Ordinal)) return true;
+        return Path.IsPathRooted(thumb) ? !File.Exists(thumb) : GetCachedImagePath(thumb) == null;
     }
 
     /// <summary>
@@ -3684,10 +3702,11 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     {
         using var cmd = _conn.CreateCommand();
         cmd.CommandText = @"
-            SELECT id, title, year, rating, plot, mpaa, studio, status, premiered,
-                   imdb_id, tmdb_id, local_poster, local_fanart, volume_serial,
-                   folder_rel_path, is_favorite, is_watchlist, note
-              FROM tv_shows WHERE id=@id";
+            SELECT s.id, s.title, s.year, s.rating, s.plot, s.mpaa, s.studio, s.status, s.premiered,
+                   s.imdb_id, s.tmdb_id, s.local_poster, s.local_fanart, s.volume_serial,
+                   s.folder_rel_path, s.is_favorite, s.is_watchlist, s.note, d.label
+              FROM tv_shows s LEFT JOIN drives d ON d.volume_serial=s.volume_serial
+             WHERE s.id=@id";
         cmd.Parameters.AddWithValue("@id", showId);
         using var r = cmd.ExecuteReader();
         if (!r.Read()) return null;
@@ -3711,6 +3730,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             IsFavorite = r.GetInt32(15) == 1,
             IsWatchlist = r.GetInt32(16) == 1,
             Note = r.IsDBNull(17) ? null : r.GetString(17),
+            DriveLabel = r.IsDBNull(18) ? null : r.GetString(18),
         };
         r.Close();
         // genres

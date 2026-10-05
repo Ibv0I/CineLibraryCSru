@@ -847,6 +847,13 @@ public sealed partial class TvShowsPage : Page
             });
         }
 
+        // v4.0.1: drive location, as in the movie window
+        var driveLetter = AppState.Instance.Connected.TryGetValue(_detail.VolumeSerial, out var dl) ? dl : null;
+        ShowDriveDot.Fill = new Microsoft.UI.Xaml.Media.SolidColorBrush(driveLetter != null
+            ? Windows.UI.Color.FromArgb(0xFF, 0x22, 0xC5, 0x5E)
+            : Windows.UI.Color.FromArgb(0xFF, 0x6B, 0x72, 0x80));
+        ShowDriveText.Text = _detail.DriveLabel + (driveLetter != null ? $" ({driveLetter}:)" : "");
+
         UpdateShowButtons();
         RefreshShowTagChips();
 

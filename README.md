@@ -48,6 +48,10 @@ Your whole collection at a glance: the sidebar, the search, and every filter and
 
 <img width="960" height="457" alt="CineLibrary — movie detail view" src="https://github.com/user-attachments/assets/bc89a995-5aea-4bc1-864e-6188b9df28ff" />
 
+📺 **TV shows get a page of their own**: the fanart, the cast with photos, the drive the show is on, and Fetch missing info from TMDB.
+
+<img width="760" alt="A TV show page in CineLibrary: the Breaking Bad fanart banner with IMDb and TMDb buttons, the poster, details, the drive it is on, buttons and cast photo cards" src="docs/images/cinelibrary-tv-show.png" />
+
 ---
 
 ## ✨ Highlights

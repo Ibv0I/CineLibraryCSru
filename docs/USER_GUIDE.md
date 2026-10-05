@@ -310,7 +310,9 @@ Click a show to open its page:
   **IMDb** and **TMDb** buttons that open the show's pages. Below it sit
   the poster, the title, an info line (year, rating, certification such
   as TV-14, status, a watched roll-up like "12/62 watched", and the
-  studio), the plot and genre chips. Then the buttons: **📂 Open Folder**,
+  studio), the plot, genre chips and **Located on**: the show's drive,
+  with a green dot and its letter while it's connected, as in the movie
+  details window. Then the buttons: **📂 Open Folder**,
   **☆ Favorite**, **📋 Watchlist**, **Add to list** and your tags, and
   **Fetch missing info from TMDB** (see
   [Filling in missing details](#filling-in-missing-details-tmdb)). Open
@@ -595,6 +597,10 @@ Open any movie's **details** and click **Fetch missing info from TMDB**:
   MediaElch data and your own edits are safe.
 - Cast photos and artwork are cached with the app immediately, and the
   details window refreshes in place.
+- A cast photo that only lives on the drive (in the folder's `.actors`
+  folder) is replaced by the fetched one too, so the actor's face shows
+  while the drive is unplugged. The photo on the drive itself is never
+  changed.
 
 **TV shows too.** A show's page has the same button. It fills a show's
 blank poster, fanart, plot, year, rating, certification, status, network,

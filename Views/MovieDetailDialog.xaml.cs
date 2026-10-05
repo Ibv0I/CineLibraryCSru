@@ -414,7 +414,7 @@ public sealed partial class MovieDetailDialog : Window
 
     /// <summary>Downloads original-size art into a data-folder subfolder named by
     /// tmdb id; returns the data-relative path, or null on failure.</summary>
-    private static async Task<string?> DownloadArtAsync(
+    internal static async Task<string?> DownloadArtAsync(
         Services.Tmdb.TmdbClient client, string tmdbPath, string subfolder, int tmdbId)
     {
         var fileName = $"{tmdbId}-{Guid.NewGuid():N}.jpg";
@@ -425,7 +425,7 @@ public sealed partial class MovieDetailDialog : Window
 
     /// <summary>Downloads art keyed by its TMDb file name (used for actor photos);
     /// returns the data-relative path, or null on failure.</summary>
-    private static async Task<string?> DownloadArtRawAsync(
+    internal static async Task<string?> DownloadArtRawAsync(
         Services.Tmdb.TmdbClient client, string tmdbPath, string subfolder, string size)
     {
         var fileName = tmdbPath.TrimStart('/');

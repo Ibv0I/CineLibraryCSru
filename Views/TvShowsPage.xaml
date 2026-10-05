@@ -147,139 +147,199 @@
 
                 <!-- LEVEL 2: Show header + Seasons grid -->
                 <StackPanel x:Name="SeasonsPanel" Visibility="Collapsed" Spacing="0">
-                    <!-- Show-detail header (v2.8) -->
+                    <!-- Show-detail header. v3.10.0: the fanart is a full-brightness
+                         banner at a fixed height, with IMDb / TMDb on it; the poster
+                         overlaps its bottom edge and the info sits below, as in the
+                         movie details window. The card ends after the cast, so a wide
+                         window no longer stretches it (the old fanart filled the card
+                         and set its height from the picture's shape). -->
                     <Grid x:Name="ShowHeader" Margin="24,4,24,24">
-                        <Border CornerRadius="14" Background="{ThemeResource HeroBgBrush}">
+                        <Border CornerRadius="14" Background="#0E0E16">
                             <Grid>
-                                <Image x:Name="ShowFanart" Stretch="UniformToFill" Opacity="0.28"/>
-                                <Border>
-                                    <Border.Background>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                            <GradientStop Offset="0" Color="#CC000000"/>
-                                            <GradientStop Offset="1" Color="#F2000000"/>
-                                        </LinearGradientBrush>
-                                    </Border.Background>
-                                </Border>
-                                <Grid Padding="28,24" ColumnSpacing="28">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <!-- Poster -->
-                                    <Border Grid.Column="0" Width="150" Height="225" CornerRadius="10"
-                                            VerticalAlignment="Top"
-                                            Background="{ThemeResource PlaceholderBgBrush}">
-                                        <Grid>
-                                            <TextBlock Text="📺" FontSize="40" Opacity="0.6"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            <Image x:Name="ShowPoster" Stretch="UniformToFill"/>
-                                        </Grid>
-                                    </Border>
-                                    <!-- Meta -->
-                                    <StackPanel Grid.Column="1" Spacing="14" VerticalAlignment="Top">
-                                        <TextBlock x:Name="ShowTitle" FontSize="26" FontWeight="Bold"
-                                                   Foreground="White" TextWrapping="Wrap"/>
-                                        <controls:WrapPanel x:Name="ShowMetaRow" HorizontalSpacing="14" VerticalSpacing="4">
-                                            <TextBlock x:Name="ShowYear" FontSize="13" Foreground="#D8D8D8"/>
-                                            <TextBlock x:Name="ShowRating" FontSize="13" Foreground="#F59E0B"/>
-                                            <TextBlock x:Name="ShowMpaa" FontSize="13" Foreground="#D8D8D8"/>
-                                            <TextBlock x:Name="ShowStatus" FontSize="13" Foreground="#A78BFA"/>
-                                            <TextBlock x:Name="ShowProgress" FontSize="13" Foreground="#D8D8D8"/>
-                                            <TextBlock x:Name="ShowStudio" FontSize="13" Foreground="#D8D8D8"/>
-                                        </controls:WrapPanel>
-                                        <TextBlock x:Name="ShowPlot" FontSize="14" LineHeight="22" Foreground="#E0E0E0"
-                                                   TextWrapping="Wrap" MaxLines="5"
-                                                   TextTrimming="CharacterEllipsis" MaxWidth="760"
-                                                   HorizontalAlignment="Left"/>
-                                        <StackPanel x:Name="ShowGenres" Orientation="Horizontal" Spacing="6"/>
-                                        <!-- Action buttons (wrap in narrow windows) -->
-                                        <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8" Margin="0,6,0,0">
-                                            <Button x:Name="PlayNextBtn" Click="OnPlayNext"
-                                                    Background="{StaticResource BrandPurpleBrush}" Foreground="White"
-                                                    BorderThickness="0" CornerRadius="8" Padding="16,7"
-                                                    FontWeight="SemiBold"/>
-                                            <Button x:Name="ShowFolderBtn" Content="📂 Open Folder" Click="OnOpenShowFolder"
-                                                    Background="#22FFFFFF" Foreground="White"
-                                                    BorderThickness="0" CornerRadius="8" Padding="14,7"/>
-                                            <Button x:Name="ShowFavBtn" Click="OnToggleShowFavorite"
-                                                    Background="#22FFFFFF" Foreground="White"
-                                                    BorderThickness="0" CornerRadius="8" Padding="14,7"/>
-                                            <Button x:Name="ShowWatchlistBtn" Click="OnToggleShowWatchlist"
-                                                    Background="#22FFFFFF" Foreground="White"
-                                                    BorderThickness="0" CornerRadius="8" Padding="14,7"/>
-                                            <Button x:Name="ShowListsBtn" Content="📑 Add to list"
-                                                    Background="#22FFFFFF" Foreground="White"
-                                                    BorderThickness="0" CornerRadius="8" Padding="14,7">
-                                                <Button.Flyout>
-                                                    <MenuFlyout x:Name="ShowListsFlyout" Placement="Bottom"
-                                                                Opening="OnShowListsFlyoutOpening"/>
-                                                </Button.Flyout>
-                                            </Button>
-                                        </controls:WrapPanel>
+                                <StackPanel>
+                                    <Grid x:Name="ShowBanner" Height="300">
+                                        <Image x:Name="ShowFanart" Stretch="UniformToFill"/>
+                                        <Border>
+                                            <Border.Background>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                    <GradientStop Offset="0"    Color="#33000000"/>
+                                                    <GradientStop Offset="0.55" Color="#110E0E16"/>
+                                                    <GradientStop Offset="1"    Color="#FF0E0E16"/>
+                                                </LinearGradientBrush>
+                                            </Border.Background>
+                                        </Border>
+                                    </Grid>
+                                    <Grid x:Name="ShowInfoGrid" Padding="28,0,28,24" ColumnSpacing="28" Margin="0,-110,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <!-- Poster -->
+                                        <Border Grid.Column="0" Width="150" Height="225" CornerRadius="10"
+                                                VerticalAlignment="Top"
+                                                BorderBrush="#33FFFFFF" BorderThickness="1"
+                                                Background="{ThemeResource PlaceholderBgBrush}">
+                                            <Grid>
+                                                <TextBlock Text="📺" FontSize="40" Opacity="0.6"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <Image x:Name="ShowPoster" Stretch="UniformToFill"/>
+                                            </Grid>
+                                        </Border>
+                                        <!-- Meta -->
+                                        <StackPanel x:Name="ShowMeta" Grid.Column="1" Spacing="14" VerticalAlignment="Top"
+                                                    Margin="0,122,0,0">
+                                            <TextBlock x:Name="ShowTitle" FontSize="26" FontWeight="Bold"
+                                                       Foreground="White" TextWrapping="Wrap"/>
+                                            <controls:WrapPanel x:Name="ShowMetaRow" HorizontalSpacing="14" VerticalSpacing="4">
+                                                <TextBlock x:Name="ShowYear" FontSize="13" Foreground="#D8D8D8"/>
+                                                <TextBlock x:Name="ShowRating" FontSize="13" Foreground="#F59E0B"/>
+                                                <TextBlock x:Name="ShowMpaa" FontSize="13" Foreground="#D8D8D8"/>
+                                                <TextBlock x:Name="ShowStatus" FontSize="13" Foreground="#A78BFA"/>
+                                                <TextBlock x:Name="ShowProgress" FontSize="13" Foreground="#D8D8D8"/>
+                                                <TextBlock x:Name="ShowStudio" FontSize="13" Foreground="#D8D8D8"/>
+                                            </controls:WrapPanel>
+                                            <TextBlock x:Name="ShowPlot" FontSize="14" LineHeight="22" Foreground="#E0E0E0"
+                                                       TextWrapping="Wrap" MaxLines="5"
+                                                       TextTrimming="CharacterEllipsis" MaxWidth="760"
+                                                       HorizontalAlignment="Left"/>
+                                            <StackPanel x:Name="ShowGenres" Orientation="Horizontal" Spacing="6"/>
+                                            <!-- Action buttons, then tags (v3.10.0: tags moved up
+                                                 next to Add to list). Wraps in narrow windows. -->
+                                            <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8" Margin="0,6,0,0">
+                                                <Button x:Name="PlayNextBtn" Click="OnPlayNext"
+                                                        Background="{StaticResource BrandPurpleBrush}" Foreground="White"
+                                                        BorderThickness="0" CornerRadius="8" Padding="16,7"
+                                                        FontWeight="SemiBold"/>
+                                                <Button x:Name="ShowFolderBtn" Content="📂 Open Folder" Click="OnOpenShowFolder"
+                                                        Background="#22FFFFFF" Foreground="White"
+                                                        BorderThickness="0" CornerRadius="8" Padding="14,7"/>
+                                                <Button x:Name="ShowFavBtn" Click="OnToggleShowFavorite"
+                                                        Background="#22FFFFFF" Foreground="White"
+                                                        BorderThickness="0" CornerRadius="8" Padding="14,7"/>
+                                                <Button x:Name="ShowWatchlistBtn" Click="OnToggleShowWatchlist"
+                                                        Background="#22FFFFFF" Foreground="White"
+                                                        BorderThickness="0" CornerRadius="8" Padding="14,7"/>
+                                                <Button x:Name="ShowListsBtn" Content="📑 Add to list"
+                                                        Background="#22FFFFFF" Foreground="White"
+                                                        BorderThickness="0" CornerRadius="8" Padding="14,7">
+                                                    <Button.Flyout>
+                                                        <MenuFlyout x:Name="ShowListsFlyout" Placement="Bottom"
+                                                                    Opening="OnShowListsFlyoutOpening"/>
+                                                    </Button.Flyout>
+                                                </Button>
+                                                <!-- v2.9 — show tags. Chips with ✕ to remove,
+                                                     "+ Add tag" autocomplete suggests existing
+                                                     tags and accepts new names. -->
+                                                <StackPanel x:Name="ShowTagsRow" Orientation="Horizontal" Spacing="6"
+                                                            VerticalAlignment="Center" Margin="4,0,0,0">
+                                                    <TextBlock Text="🏷" FontSize="13"
+                                                               Foreground="#D8D8D8"
+                                                               VerticalAlignment="Center" Opacity="0.8"/>
+                                                    <ItemsControl x:Name="ShowTagChipsRepeater" VerticalAlignment="Center">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <StackPanel Orientation="Horizontal" Spacing="6"/>
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                    </ItemsControl>
+                                                    <Button x:Name="AddShowTagBtn" Click="OnAddShowTagClick"
+                                                            Background="#22FFFFFF"
+                                                            BorderBrush="#33FFFFFF"
+                                                            BorderThickness="1" CornerRadius="12"
+                                                            Padding="10,3"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Text="+ Add tag" FontSize="11"
+                                                                   Foreground="#D8D8D8"/>
+                                                    </Button>
+                                                    <AutoSuggestBox x:Name="AddShowTagBox" Visibility="Collapsed"
+                                                                    PlaceholderText="Tag name (Enter to add)"
+                                                                    Width="180"
+                                                                    QuerySubmitted="OnAddShowTagSubmitted"
+                                                                    TextChanged="OnAddShowTagTextChanged"
+                                                                    LostFocus="OnAddShowTagBlur"
+                                                                    VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </controls:WrapPanel>
 
-                                        <!-- v2.9 — show tags row. Chips
-                                             with ✕ to remove, "+ Add tag"
-                                             autocomplete suggests existing
-                                             tags and accepts new names.
-                                             Backend mirrors movie tags. -->
-                                        <StackPanel x:Name="ShowTagsRow" Orientation="Horizontal" Spacing="6"
-                                                    Margin="0,2,0,0">
-                                            <TextBlock Text="🏷" FontSize="13"
-                                                       Foreground="#D8D8D8"
-                                                       VerticalAlignment="Center" Opacity="0.8"/>
-                                            <ItemsControl x:Name="ShowTagChipsRepeater">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <StackPanel Orientation="Horizontal" Spacing="6"/>
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                            </ItemsControl>
-                                            <Button x:Name="AddShowTagBtn" Click="OnAddShowTagClick"
-                                                    Background="#22FFFFFF"
-                                                    BorderBrush="#33FFFFFF"
-                                                    BorderThickness="1" CornerRadius="12"
-                                                    Padding="10,3"
-                                                    VerticalAlignment="Center">
-                                                <TextBlock Text="+ Add tag" FontSize="11"
-                                                           Foreground="#D8D8D8"/>
-                                            </Button>
-                                            <AutoSuggestBox x:Name="AddShowTagBox" Visibility="Collapsed"
-                                                            PlaceholderText="Tag name (Enter to add)"
-                                                            Width="180"
-                                                            QuerySubmitted="OnAddShowTagSubmitted"
-                                                            TextChanged="OnAddShowTagTextChanged"
-                                                            LostFocus="OnAddShowTagBlur"
-                                                            VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                        <!-- Cast strip -->
-                                        <ItemsRepeater x:Name="CastRepeater" Margin="0,10,0,0">
-                                            <ItemsRepeater.Layout>
-                                                <StackLayout Orientation="Horizontal" Spacing="14"/>
-                                            </ItemsRepeater.Layout>
-                                            <ItemsRepeater.ItemTemplate>
-                                                <DataTemplate x:DataType="models:Actor">
-                                                    <StackPanel Width="70" Spacing="4">
-                                                        <Border Width="64" Height="64" CornerRadius="32"
-                                                                Background="#33FFFFFF">
-                                                            <Grid>
-                                                                <TextBlock Text="{x:Bind Initials}" FontSize="20"
-                                                                           FontWeight="SemiBold" Foreground="White"
-                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                <Border CornerRadius="32">
-                                                                    <Image Stretch="UniformToFill"
-                                                                           Source="{x:Bind ThumbBitmap, Mode=OneWay}"/>
-                                                                </Border>
-                                                            </Grid>
-                                                        </Border>
-                                                        <TextBlock Text="{x:Bind Name}" FontSize="10"
-                                                                   Foreground="#E0E0E0" TextAlignment="Center"
-                                                                   TextWrapping="WrapWholeWords" MaxLines="2"/>
+                                            <!-- v3.10.0: TMDB fill-in, as in the movie details window.
+                                                 Fills only what the show is missing. -->
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <Button x:Name="FetchShowTmdbBtn" Click="OnFetchShowMissing"
+                                                        Background="#22FFFFFF" Foreground="White"
+                                                        BorderThickness="0" CornerRadius="8" Padding="12,7"
+                                                        ToolTipService.ToolTip="Look this show up on TMDb and fill in only the details it's missing">
+                                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                                        <FontIcon Glyph="&#xE896;" FontSize="14"
+                                                                  FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                                                        <TextBlock Text="Fetch missing info from TMDB"/>
                                                     </StackPanel>
-                                                </DataTemplate>
-                                            </ItemsRepeater.ItemTemplate>
-                                        </ItemsRepeater>
-                                    </StackPanel>
-                                </Grid>
+                                                </Button>
+                                                <ProgressRing x:Name="ShowTmdbBusy" IsActive="False" Width="18" Height="18"
+                                                              VerticalAlignment="Center"/>
+                                                <TextBlock x:Name="ShowTmdbStatus" Visibility="Collapsed" FontSize="12"
+                                                           Foreground="#B8B8C4" VerticalAlignment="Center"/>
+                                            </StackPanel>
+
+                                            <!-- Cast: v3.10.0 portrait cards like the movie details
+                                                 window, smaller, on one line that scrolls sideways. -->
+                                            <StackPanel x:Name="ShowCastSection" Spacing="8" Margin="0,6,0,0">
+                                                <TextBlock Text="CAST" FontSize="11" FontWeight="SemiBold"
+                                                           CharacterSpacing="120" Foreground="#9CA3AF"/>
+                                                <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                                              VerticalScrollBarVisibility="Disabled"
+                                                              HorizontalScrollMode="Enabled"
+                                                              VerticalScrollMode="Disabled"
+                                                              Padding="0,0,0,12">
+                                                    <ItemsRepeater x:Name="CastRepeater">
+                                                        <ItemsRepeater.Layout>
+                                                            <StackLayout Orientation="Horizontal" Spacing="12"/>
+                                                        </ItemsRepeater.Layout>
+                                                        <ItemsRepeater.ItemTemplate>
+                                                            <DataTemplate x:DataType="models:Actor">
+                                                                <StackPanel Width="100" Spacing="4" VerticalAlignment="Top">
+                                                                    <Border Width="100" Height="150" CornerRadius="8"
+                                                                            Background="#22FFFFFF"
+                                                                            BorderBrush="#26FFFFFF" BorderThickness="1">
+                                                                        <Grid>
+                                                                            <TextBlock Text="{x:Bind Initials}" FontSize="24"
+                                                                                       FontWeight="SemiBold" Foreground="#9CA3AF"
+                                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                            <Image Stretch="UniformToFill"
+                                                                                   Source="{x:Bind ThumbBitmap, Mode=OneWay}"/>
+                                                                        </Grid>
+                                                                    </Border>
+                                                                    <TextBlock Text="{x:Bind Name}" FontSize="12" FontWeight="SemiBold"
+                                                                               Foreground="#E0E0E0" TextAlignment="Center"
+                                                                               TextWrapping="WrapWholeWords" MaxLines="2"
+                                                                               TextTrimming="CharacterEllipsis"/>
+                                                                    <TextBlock Text="{x:Bind Role, TargetNullValue=''}" FontSize="11"
+                                                                               Foreground="#9CA3AF" TextAlignment="Center"
+                                                                               TextWrapping="WrapWholeWords" MaxLines="2"
+                                                                               TextTrimming="CharacterEllipsis"/>
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </ItemsRepeater.ItemTemplate>
+                                                    </ItemsRepeater>
+                                                </ScrollViewer>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                                <!-- IMDb / TMDb, top right: on the banner, or in the corner
+                                     of the card when the show has no fanart. -->
+                                <StackPanel Orientation="Horizontal" Spacing="6" Margin="14"
+                                            HorizontalAlignment="Right" VerticalAlignment="Top">
+                                    <Button x:Name="ShowImdbBtn" Visibility="Collapsed" Click="OnOpenShowImdb"
+                                            Background="#F5C518" Foreground="#000000"
+                                            BorderThickness="0" CornerRadius="4"
+                                            Padding="8,3" FontSize="11" FontWeight="Bold"
+                                            Content="IMDb" AutomationProperties.Name="Open on IMDb"/>
+                                    <Button x:Name="ShowTmdbBtn" Visibility="Collapsed" Click="OnOpenShowTmdb"
+                                            Background="#01D277" Foreground="#000000"
+                                            BorderThickness="0" CornerRadius="4"
+                                            Padding="8,3" FontSize="11" FontWeight="Bold"
+                                            Content="TMDb" AutomationProperties.Name="Open on TMDb"/>
+                                </StackPanel>
                             </Grid>
                         </Border>
                     </Grid>

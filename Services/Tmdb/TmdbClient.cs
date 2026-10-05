@@ -5,10 +5,10 @@ using System.Text.Json;
 namespace CineLibraryCS.Services.Tmdb;
 
 /// <summary>
-/// Minimal, movie-only TMDb client — a trimmed port of CineLibrary Essentials'
-/// scraper. CineLibrary is otherwise fully offline; this client is reached ONLY
-/// when the user clicks "Add watched movie" in Watched &amp; Gone to record a
-/// film they watched but never kept on disk. Search → pick → details → poster.
+/// Minimal TMDb client — a trimmed port of CineLibrary Essentials' scraper.
+/// CineLibrary is otherwise fully offline; this client is reached only when the
+/// user asks for it: "Add watched movie" in Watched &amp; Gone, and "Fetch missing
+/// info" on a movie or (v3.10.0) a TV show. Search → pick → details → poster.
 /// </summary>
 public sealed class TmdbClient : IDisposable
 {
@@ -93,6 +93,86 @@ public sealed class TmdbClient : IDisposable
         }
 
         return movie;
+    }
+
+    /// <summary>v3.10.0: searches TMDb TV shows by name (and optional first-air year).</summary>
+    public async Task<List<TmdbTvShow>> SearchTvAsync(string title, int? year = null)
+    {
+        await RateLimitAsync();
+
+        var query = Uri.EscapeDataString(title ?? string.Empty);
+        var url = $"{BaseUrl}/search/tv?api_key={_apiKey}&query={query}&include_adult=false";
+        if (year.HasValue && year.Value > 0)
+            url += $"&first_air_date_year={year}";
+        url = WithLanguage(url);
+
+        var resp = await _http.GetAsync(url);
+        resp.EnsureSuccessStatusCode();
+        var json = await resp.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<TmdbTvSearchResult>(json);
+        return result?.Results ?? new List<TmdbTvShow>();
+    }
+
+    /// <summary>
+    /// v3.10.0: full details for one TV show, with the US content rating, the
+    /// IMDb id and the cast across all seasons from appended blocks.
+    /// </summary>
+    public async Task<TmdbTvShow?> GetTvDetailsAsync(int tmdbId)
+    {
+        await RateLimitAsync();
+
+        var url = WithLanguage(
+            $"{BaseUrl}/tv/{tmdbId}?api_key={_apiKey}&append_to_response=content_ratings,aggregate_credits,external_ids");
+
+        var resp = await _http.GetAsync(url);
+        resp.EnsureSuccessStatusCode();
+        var json = await resp.Content.ReadAsStringAsync();
+
+        var show = JsonSerializer.Deserialize<TmdbTvShow>(json);
+        if (show == null) return null;
+
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        if (root.TryGetProperty("external_ids", out var ext) &&
+            ext.TryGetProperty("imdb_id", out var imdb) && imdb.ValueKind == JsonValueKind.String)
+            show.ImdbId = imdb.GetString();
+        if (root.TryGetProperty("content_ratings", out var cr) &&
+            cr.TryGetProperty("results", out var ratings) && ratings.ValueKind == JsonValueKind.Array)
+        {
+            string? first = null;
+            foreach (var r in ratings.EnumerateArray())
+            {
+                var value = r.TryGetProperty("rating", out var v) ? v.GetString() : null;
+                if (string.IsNullOrWhiteSpace(value)) continue;
+                first ??= value;
+                if (r.TryGetProperty("iso_3166_1", out var iso) &&
+                    string.Equals(iso.GetString(), "US", StringComparison.OrdinalIgnoreCase))
+                { first = value; break; }
+            }
+            show.Certification = first ?? string.Empty;
+        }
+        if (root.TryGetProperty("aggregate_credits", out var credits) &&
+            credits.TryGetProperty("cast", out var cast) && cast.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var m in cast.EnumerateArray().Take(15))
+            {
+                var character = "";
+                if (m.TryGetProperty("roles", out var roles) && roles.ValueKind == JsonValueKind.Array)
+                    foreach (var role in roles.EnumerateArray())
+                    {
+                        character = role.TryGetProperty("character", out var c) ? c.GetString() ?? "" : "";
+                        if (character.Length > 0) break;
+                    }
+                show.Cast.Add(new TmdbCastMember
+                {
+                    Name = m.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "",
+                    Character = character,
+                    ProfilePath = m.TryGetProperty("profile_path", out var pp) ? pp.GetString() : null,
+                    Order = m.TryGetProperty("order", out var o) ? o.GetInt32() : 0,
+                });
+            }
+        }
+        return show;
     }
 
     /// <summary>Pulls Directors (job == Director) and Writers (department ==

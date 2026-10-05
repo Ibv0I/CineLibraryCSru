@@ -873,9 +873,14 @@ public class ScannerService
         if (existing != null && existing != DBNull.Value)
         {
             var id = Convert.ToInt32(existing);
+            // v3.10.0: the .nfo wins whenever it has a value, but a field it
+            // leaves out keeps what's there (e.g. filled in from TMDb), so a
+            // rescan doesn't undo "Fetch missing info".
             cmd.CommandText = @"UPDATE tv_shows SET title=@t, original_title=@ot, sort_title=@st,
-                year=@y, rating=@ra, votes=@vo, plot=@pl, mpaa=@mp, premiered=@pr, studio=@su,
-                status=@status, imdb_id=@im, tmdb_id=@tm, tvdb_id=@tv,
+                year=COALESCE(@y,year), rating=COALESCE(@ra,rating), votes=COALESCE(@vo,votes),
+                plot=COALESCE(@pl,plot), mpaa=COALESCE(@mp,mpaa), premiered=COALESCE(@pr,premiered),
+                studio=COALESCE(@su,studio), status=COALESCE(@status,status),
+                imdb_id=COALESCE(@im,imdb_id), tmdb_id=COALESCE(@tm,tmdb_id), tvdb_id=COALESCE(@tv,tvdb_id),
                 local_poster=COALESCE(@lp,local_poster), local_fanart=COALESCE(@lf,local_fanart),
                 local_nfo=@ln, is_missing=0, date_modified=strftime('%s','now') WHERE id=@id";
             BindShow(cmd, s, poster, fanart, nfo);
@@ -921,7 +926,9 @@ public class ScannerService
     private static void UpsertTvShowRelated(SqliteConnection conn, SqliteTransaction tx, int showId,
         ParsedTvShow s, LookupCache lookup)
     {
-        // Genres
+        // Genres. v3.10.0: an .nfo without genres (or, below, cast) keeps the
+        // show's current ones, e.g. fetched from TMDb, instead of clearing them.
+        if (s.Genres.Count > 0)
         using (var del = conn.CreateCommand())
         {
             del.Transaction = tx;
@@ -944,6 +951,7 @@ public class ScannerService
             link.ExecuteNonQuery();
         }
         // Actors
+        if (s.Actors.Count > 0)
         using (var del = conn.CreateCommand())
         {
             del.Transaction = tx;

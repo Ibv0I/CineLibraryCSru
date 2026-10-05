@@ -2456,35 +2456,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             var name = (a.Name ?? "").Trim();
             if (name.Length == 0) continue;
 
-            int actorId;
-            using (var ins = _conn.CreateCommand())
-            {
-                ins.CommandText = "INSERT OR IGNORE INTO actors(name, thumb) VALUES(@n, @t)";
-                ins.Parameters.AddWithValue("@n", name);
-                ins.Parameters.AddWithValue("@t", (object?)a.ThumbRel ?? DBNull.Value);
-                ins.ExecuteNonQuery();
-            }
-            using (var sel = _conn.CreateCommand())
-            {
-                sel.CommandText = "SELECT id FROM actors WHERE name=@n";
-                sel.Parameters.AddWithValue("@n", name);
-                actorId = Convert.ToInt32(sel.ExecuteScalar());
-            }
-            // Upgrade the actor's thumb to our portable cache copy when the
-            // existing one is weak — missing, an http URL (blank offline, what
-            // MediaElch NFOs usually store), or a stale manual cache path. A
-            // genuine local .actors file path is left alone (it already works).
-            if (!string.IsNullOrEmpty(a.ThumbRel))
-            {
-                using var upd = _conn.CreateCommand();
-                upd.CommandText = @"UPDATE actors SET thumb=@t
-                                     WHERE id=@id AND (thumb IS NULL OR thumb=''
-                                                       OR thumb LIKE 'http%'
-                                                       OR thumb LIKE 'manual_actors/%')";
-                upd.Parameters.AddWithValue("@t", a.ThumbRel);
-                upd.Parameters.AddWithValue("@id", actorId);
-                upd.ExecuteNonQuery();
-            }
+            var actorId = UpsertManualActor(name, a.ThumbRel);
             using (var link = _conn.CreateCommand())
             {
                 // OR IGNORE (not REPLACE): if this actor is already linked to the
@@ -2498,6 +2470,141 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 link.Parameters.AddWithValue("@o", a.Order);
                 link.ExecuteNonQuery();
             }
+        }
+    }
+
+    /// <summary>The actor row for <paramref name="name"/> (added if new), with its
+    /// thumb upgraded to <paramref name="thumbRel"/> when the existing one is weak.</summary>
+    private int UpsertManualActor(string name, string? thumbRel)
+    {
+        int actorId;
+        using (var ins = _conn.CreateCommand())
+        {
+            ins.CommandText = "INSERT OR IGNORE INTO actors(name, thumb) VALUES(@n, @t)";
+            ins.Parameters.AddWithValue("@n", name);
+            ins.Parameters.AddWithValue("@t", (object?)thumbRel ?? DBNull.Value);
+            ins.ExecuteNonQuery();
+        }
+        using (var sel = _conn.CreateCommand())
+        {
+            sel.CommandText = "SELECT id FROM actors WHERE name=@n";
+            sel.Parameters.AddWithValue("@n", name);
+            actorId = Convert.ToInt32(sel.ExecuteScalar());
+        }
+        // Upgrade the actor's thumb to our portable cache copy when the
+        // existing one is weak — missing, an http URL (blank offline, what
+        // MediaElch NFOs usually store), or a stale manual cache path. A
+        // genuine local .actors file path is left alone (it already works).
+        if (!string.IsNullOrEmpty(thumbRel))
+        {
+            using var upd = _conn.CreateCommand();
+            upd.CommandText = @"UPDATE actors SET thumb=@t
+                                 WHERE id=@id AND (thumb IS NULL OR thumb=''
+                                                   OR thumb LIKE 'http%'
+                                                   OR thumb LIKE 'manual_actors/%')";
+            upd.Parameters.AddWithValue("@t", thumbRel);
+            upd.Parameters.AddWithValue("@id", actorId);
+            upd.ExecuteNonQuery();
+        }
+        return actorId;
+    }
+
+    /// <summary>
+    /// v3.10.0 — fill ONLY the blank fields of a TV show from a TMDB fetch, the
+    /// same fill-only rule as <see cref="FillMovieGaps"/>. A rescan keeps these
+    /// while the show's .nfo leaves them out (see ScannerService.UpsertTvShow).
+    /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public bool FillTvShowGaps(
+        int id, int? year, double? rating, int? votes, string? plot, string? mpaa,
+        string? premiered, string? studio, string? status, string? imdbId, string? tmdbId,
+        string? posterRel, string? fanartRel)
+    {
+        using var cmd = _conn.CreateCommand();
+        cmd.CommandText = @"
+            UPDATE tv_shows SET
+                year         = COALESCE(year, @y),
+                rating       = COALESCE(rating, @ra),
+                votes        = COALESCE(votes, @vo),
+                plot         = CASE WHEN plot      IS NULL OR plot=''      THEN @pl ELSE plot      END,
+                mpaa         = CASE WHEN mpaa      IS NULL OR mpaa=''      THEN @mp ELSE mpaa      END,
+                premiered    = CASE WHEN premiered IS NULL OR premiered='' THEN @pr ELSE premiered END,
+                studio       = CASE WHEN studio    IS NULL OR studio=''    THEN @su ELSE studio    END,
+                status       = CASE WHEN status    IS NULL OR status=''    THEN @st ELSE status    END,
+                imdb_id      = CASE WHEN imdb_id   IS NULL OR imdb_id=''   THEN @im ELSE imdb_id   END,
+                tmdb_id      = CASE WHEN tmdb_id   IS NULL OR tmdb_id=''   THEN @tm ELSE tmdb_id   END,
+                local_poster = CASE WHEN local_poster IS NULL OR local_poster='' THEN @lp ELSE local_poster END,
+                local_fanart = CASE WHEN local_fanart IS NULL OR local_fanart='' THEN @lf ELSE local_fanart END,
+                date_modified = strftime('%s','now')
+            WHERE id=@id";
+        cmd.Parameters.AddWithValue("@id", id);
+        cmd.Parameters.AddWithValue("@y", (object?)year ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@ra", (object?)rating ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@vo", (object?)votes ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@pl", (object?)plot ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@mp", (object?)mpaa ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@pr", (object?)premiered ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@su", (object?)studio ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@st", (object?)status ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@im", (object?)imdbId ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@tm", (object?)tmdbId ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@lp", (object?)posterRel ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@lf", (object?)fanartRel ?? DBNull.Value);
+        return cmd.ExecuteNonQuery() > 0;
+    }
+
+    /// <summary>v3.10.0 — TMDB genres for a show that has none (fill-only).</summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public void FillTvShowGenres(int showId, IReadOnlyList<string> genres)
+    {
+        using (var ck = _conn.CreateCommand())
+        {
+            ck.CommandText = "SELECT EXISTS(SELECT 1 FROM tv_show_genres WHERE show_id=@s)";
+            ck.Parameters.AddWithValue("@s", showId);
+            if (Convert.ToInt32(ck.ExecuteScalar()) == 1) return;
+        }
+        foreach (var raw in genres)
+        {
+            var name = (raw ?? "").Trim();
+            if (name.Length == 0) continue;
+            using (var ins = _conn.CreateCommand())
+            {
+                ins.CommandText = "INSERT OR IGNORE INTO genres(name) VALUES(@n)";
+                ins.Parameters.AddWithValue("@n", name);
+                ins.ExecuteNonQuery();
+            }
+            using var link = _conn.CreateCommand();
+            link.CommandText = @"INSERT OR IGNORE INTO tv_show_genres(show_id, genre_id)
+                                 SELECT @s, id FROM genres WHERE name=@n";
+            link.Parameters.AddWithValue("@s", showId);
+            link.Parameters.AddWithValue("@n", name);
+            link.ExecuteNonQuery();
+        }
+    }
+
+    /// <summary>
+    /// v3.10.0 — TMDB cast for a show, like <see cref="AddManualActors"/>: new cast
+    /// is added and weak thumbs are upgraded; existing roles and order are kept.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public void AddManualShowActors(
+        int showId,
+        IEnumerable<(string Name, string? Role, int Order, string? ThumbRel)> actors)
+    {
+        foreach (var a in actors)
+        {
+            var name = (a.Name ?? "").Trim();
+            if (name.Length == 0) continue;
+
+            var actorId = UpsertManualActor(name, a.ThumbRel);
+            using var link = _conn.CreateCommand();
+            link.CommandText = @"INSERT OR IGNORE INTO tv_show_actors(show_id, actor_id, role, sort_order)
+                                 VALUES(@s, @a, @r, @o)";
+            link.Parameters.AddWithValue("@s", showId);
+            link.Parameters.AddWithValue("@a", actorId);
+            link.Parameters.AddWithValue("@r", (object?)a.Role ?? DBNull.Value);
+            link.Parameters.AddWithValue("@o", a.Order);
+            link.ExecuteNonQuery();
         }
     }
 

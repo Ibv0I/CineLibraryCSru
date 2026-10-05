@@ -428,12 +428,17 @@ public sealed partial class TvShowsPage : Page
         });
         inner.Children.Add(placeholder);
 
-        // Hide placeholder once the poster image loads.
+        // Hide the placeholder (it sits on top) once the poster is set.
+        // v3.10.0: it used to wait for ImageOpened, which the stream-loaded
+        // bitmap didn't raise, so the 📺 covered every poster (issue #12).
         if (!string.IsNullOrEmpty(it.LocalPoster))
         {
-            placeholder.Visibility = Visibility.Visible;
-            poster.ImageOpened += (_, _) => placeholder.Visibility = Visibility.Collapsed;
-            LoadShowImage(poster, it.LocalPoster, 260);
+            _ = ShowPosterAsync();
+            async Task ShowPosterAsync()
+            {
+                if (await LoadShowImage(poster, it.LocalPoster, 260))
+                    placeholder.Visibility = Visibility.Collapsed;
+            }
         }
 
         // ▶ overlay (large, centered) — signals "play next"
@@ -566,11 +571,12 @@ public sealed partial class TvShowsPage : Page
     private void LoadShow()
     {
         if (_currentShow == null) { _level = Level.Shows; ShowLevel(); return; }
-        TitleText.Text = _currentShow.Title.ToUpperInvariant();
+        TitleText.Text = _currentShow.Title;   // as written, not in capitals (v3.10.0, issue #12)
         BackLabel.Text = "All TV Shows";
         EmptyState.Visibility = Visibility.Collapsed;
 
         _selectedSeason = null;   // a newly opened show starts on its default season
+        ShowTmdbStatus.Visibility = Visibility.Collapsed;
         PopulateShowHeader();
         BuildSeasonSections();
     }
@@ -853,11 +859,137 @@ public sealed partial class TvShowsPage : Page
 
         // Cast
         CastRepeater.ItemsSource = _detail.Actors;
-        var folderAbs = ResolveShowFolderAbs(_detail);
-        if (folderAbs != null) _ = LoadCastThumbsAsync(_detail.Actors, folderAbs);
+        ShowCastSection.Visibility = _detail.Actors.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        _ = LoadCastThumbsAsync(_detail.Actors, ResolveShowFolderAbs(_detail));
 
-        LoadShowImage(ShowPoster, _detail.LocalPoster, 260);
-        LoadShowImage(ShowFanart, _detail.LocalFanart, 900);
+        ShowImdbBtn.Visibility = string.IsNullOrWhiteSpace(_detail.ImdbId) ? Visibility.Collapsed : Visibility.Visible;
+        ShowTmdbBtn.Visibility = string.IsNullOrWhiteSpace(_detail.TmdbId) ? Visibility.Collapsed : Visibility.Visible;
+
+        // v3.10.0: without fanart there's no banner; the title sits beside the
+        // poster at the top, kept clear of the IMDb / TMDb buttons in the corner.
+        var hasFanart = _detail.LocalFanart != null
+                        && AppState.Instance.Db.GetCachedImagePath(_detail.LocalFanart) != null;
+        ShowBanner.Visibility = hasFanart ? Visibility.Visible : Visibility.Collapsed;
+        ShowInfoGrid.Margin = new Thickness(0, hasFanart ? -110 : 24, 0, 0);
+        ShowMeta.Margin = hasFanart ? new Thickness(0, 122, 0, 0) : new Thickness(0, 0, 110, 0);
+
+        _ = LoadShowImage(ShowPoster, _detail.LocalPoster, 260);
+        _ = LoadShowImage(ShowFanart, _detail.LocalFanart, 1600);
+    }
+
+    // ── v3.10.0: Fetch missing info from TMDB (mirrors the movie window) ──
+
+    private void ShowTmdbBusyState(bool busy, string? status = null)
+    {
+        ShowTmdbBusy.IsActive = busy;
+        FetchShowTmdbBtn.IsEnabled = !busy;
+        if (status != null) { ShowTmdbStatus.Text = status; ShowTmdbStatus.Visibility = Visibility.Visible; }
+    }
+
+    private async void OnFetchShowMissing(object sender, RoutedEventArgs e)
+    {
+        if (_detail == null) return;
+        var show = _detail;
+        using var client = new Services.Tmdb.TmdbClient();
+
+        ShowTmdbBusyState(true, "Looking up TMDb…");
+        try
+        {
+            // Match: a stored tmdb_id is exact; otherwise let the user confirm.
+            Services.Tmdb.TmdbTvShow? t;
+            if (int.TryParse(show.TmdbId, out var tid) && tid > 0)
+            {
+                t = await client.GetTvDetailsAsync(tid);
+            }
+            else
+            {
+                var picker = new TmdbPickerDialog(client, show.Title, show.Year, tvShows: true) { XamlRoot = XamlRoot };
+                if (await picker.ShowAsync() != ContentDialogResult.Primary || picker.Picked == null)
+                {
+                    ShowTmdbBusy.IsActive = false;
+                    FetchShowTmdbBtn.IsEnabled = true;
+                    ShowTmdbStatus.Visibility = Visibility.Collapsed;
+                    return;
+                }
+                t = await client.GetTvDetailsAsync(picker.Picked.TmdbId);
+            }
+            if (t == null)
+            {
+                ShowTmdbBusyState(false, "Couldn't reach TMDb. Try again.");
+                return;
+            }
+
+            // Poster / fanart → portable cache, only if currently missing.
+            string? posterRel = null, fanartRel = null;
+            if (string.IsNullOrWhiteSpace(show.LocalPoster) && !string.IsNullOrEmpty(t.PosterPath))
+                posterRel = await MovieDetailDialog.DownloadArtAsync(client, t.PosterPath!, "manual_posters", t.TmdbId);
+            if (string.IsNullOrWhiteSpace(show.LocalFanart) && !string.IsNullOrEmpty(t.BackdropPath))
+                fanartRel = await MovieDetailDialog.DownloadArtAsync(client, t.BackdropPath!, "manual_fanart", t.TmdbId);
+
+            var studio = t.Networks.Count > 0 ? t.Networks[0].Name
+                       : t.ProductionCompanies.Count > 0 ? t.ProductionCompanies[0].Name : null;
+            var db = AppState.Instance.Db;
+            db.FillTvShowGaps(
+                show.Id,
+                year: t.Year > 0 ? t.Year : null,
+                rating: t.Rating > 0 ? t.Rating : null,
+                votes: t.VoteCount > 0 ? t.VoteCount : null,
+                plot: string.IsNullOrWhiteSpace(t.Overview) ? null : t.Overview,
+                mpaa: string.IsNullOrWhiteSpace(t.Certification) ? null : t.Certification,
+                premiered: string.IsNullOrWhiteSpace(t.FirstAirDate) ? null : t.FirstAirDate,
+                studio: string.IsNullOrWhiteSpace(studio) ? null : studio,
+                status: string.IsNullOrWhiteSpace(t.Status) ? null : t.Status,
+                imdbId: string.IsNullOrWhiteSpace(t.ImdbId) ? null : t.ImdbId,
+                tmdbId: t.TmdbId.ToString(),
+                posterRel: posterRel, fanartRel: fanartRel);
+            db.FillTvShowGenres(show.Id, t.Genres.Select(g => g.Name).ToList());
+
+            // Cast photos are fetched even when the show has cast: .nfo thumbs are
+            // often TMDb links (blank offline) or missing; these are kept locally.
+            if (t.Cast.Count > 0)
+            {
+                ShowTmdbBusyState(true, "Fetching cast photos…");
+                var actors = new List<(string, string?, int, string?)>();
+                foreach (var c in t.Cast)
+                {
+                    if (string.IsNullOrWhiteSpace(c.Name)) continue;
+                    string? thumbRel = null;
+                    if (!string.IsNullOrEmpty(c.ProfilePath))
+                        thumbRel = await MovieDetailDialog.DownloadArtRawAsync(client, c.ProfilePath!, "manual_actors", "w185");
+                    actors.Add((c.Name, string.IsNullOrWhiteSpace(c.Character) ? null : c.Character, c.Order, thumbRel));
+                }
+                db.AddManualShowActors(show.Id, actors);
+            }
+
+            ShowTmdbBusyState(false, "Updated.");
+            if (ReferenceEquals(_detail, show)) PopulateShowHeader();   // re-render in place
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Fetch missing show info failed: {ex.Message}");
+            ShowTmdbBusyState(false, "Something went wrong. Please try again.");
+        }
+    }
+
+    private async void OnOpenShowImdb(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_detail?.ImdbId)) return;
+        await OpenWebPageAsync($"https://www.imdb.com/title/{_detail.ImdbId.Trim()}/", "IMDb");
+    }
+
+    private async void OnOpenShowTmdb(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_detail?.TmdbId)) return;
+        await OpenWebPageAsync($"https://www.themoviedb.org/tv/{_detail.TmdbId.Trim()}", "TMDb");
+    }
+
+    private static async Task OpenWebPageAsync(string url, string site)
+    {
+        try { await Windows.System.Launcher.LaunchUriAsync(new Uri(url)); }
+        catch
+        {
+            if (App.MainWindow is MainWindow mw) mw.ShowToast($"Couldn't open {site}. Is a web browser installed?");
+        }
     }
 
     private void UpdateShowButtons()
@@ -967,20 +1099,21 @@ public sealed partial class TvShowsPage : Page
     }
 
     // Cast thumbnails — mirror MovieDetailDialog: look in the show's
-    // .actors folder first, then any inline thumb URL/path.
+    // .actors folder first, then any inline thumb URL/path. v3.10.0: like the
+    // movie window, the URL / cached thumb is used when the drive is offline too.
     private static readonly string[] ActorThumbExts = { ".jpg", ".jpeg", ".png", ".tbn", ".webp" };
 
-    private async Task LoadCastThumbsAsync(IReadOnlyList<Models.Actor> actors, string showFolderAbs)
+    private async Task LoadCastThumbsAsync(IReadOnlyList<Models.Actor> actors, string? showFolderAbs)
     {
         await Task.Run(() =>
         {
-            var actorsDir = Path.Combine(showFolderAbs, ".actors");
+            var actorsDir = showFolderAbs == null ? null : Path.Combine(showFolderAbs, ".actors");
             foreach (var a in actors)
             {
                 Uri? uri = null;
                 try
                 {
-                    if (Directory.Exists(actorsDir))
+                    if (actorsDir != null && Directory.Exists(actorsDir))
                     {
                         foreach (var stem in new[] { a.Name.Replace(' ', '_'), a.Name })
                         foreach (var ext in ActorThumbExts)
@@ -994,6 +1127,7 @@ public sealed partial class TvShowsPage : Page
                         var raw = a.Thumb!.Trim();
                         if (raw.StartsWith("http", StringComparison.OrdinalIgnoreCase)) uri = new Uri(raw);
                         else if (File.Exists(raw)) uri = new Uri(raw);
+                        else if (AppState.Instance.Db.GetCachedImagePath(raw) is string cached) uri = new Uri(cached);
                     }
                 }
                 catch { }
@@ -1003,7 +1137,8 @@ public sealed partial class TvShowsPage : Page
                 {
                     try
                     {
-                        var bmp = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage { DecodePixelWidth = 128 };
+                        // 100 × 150 portrait cards (v3.10.0), sharp up to 200 % scale.
+                        var bmp = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage { DecodePixelWidth = 200 };
                         bmp.UriSource = capturedUri;
                         a.ThumbBitmap = bmp;
                     }
@@ -1013,24 +1148,26 @@ public sealed partial class TvShowsPage : Page
         });
     }
 
-    private async void LoadShowImage(Image target, string? relPath, int decodeWidth)
+    /// <summary>Loads a cached image into <paramref name="target"/>; true once it's set.</summary>
+    private async Task<bool> LoadShowImage(Image target, string? relPath, int decodeWidth)
     {
         target.Source = null;
-        if (relPath == null) return;
+        if (relPath == null) return false;
         var full = AppState.Instance.Db.GetCachedImagePath(relPath);
-        if (full == null) return;
+        if (full == null) return false;
         try
         {
             var bytes = await Task.Run(() => ImageCache.GetOrLoad(relPath, full));
-            if (bytes == null) return;
+            if (bytes == null) return false;
             var bmp = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage { DecodePixelWidth = decodeWidth };
             using var ms = new Windows.Storage.Streams.InMemoryRandomAccessStream();
             await ms.WriteAsync(bytes.AsBuffer());
             ms.Seek(0);
             await bmp.SetSourceAsync(ms);
             target.Source = bmp;
+            return true;
         }
-        catch { }
+        catch { return false; }
     }
 
     private void OnShowsTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)

@@ -112,3 +112,70 @@ public class TmdbSearchResult
     [JsonPropertyName("total_results")]
     public int TotalResults { get; set; }
 }
+
+/// <summary>v3.10.0: a TV show, for "Fetch missing info" on the show page.</summary>
+public class TmdbTvShow
+{
+    [JsonPropertyName("id")]
+    public int TmdbId { get; set; }
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("first_air_date")]
+    public string FirstAirDate { get; set; } = string.Empty;
+
+    [JsonPropertyName("overview")]
+    public string Overview { get; set; } = string.Empty;
+
+    [JsonPropertyName("vote_average")]
+    public double Rating { get; set; }
+
+    [JsonPropertyName("vote_count")]
+    public int VoteCount { get; set; }
+
+    /// <summary>"Returning Series", "Ended", … as TMDb (and MediaElch) word it.</summary>
+    [JsonPropertyName("status")]
+    public string Status { get; set; } = string.Empty;
+
+    [JsonPropertyName("genres")]
+    public List<TmdbNamed> Genres { get; set; } = new();
+
+    [JsonPropertyName("networks")]
+    public List<TmdbNamed> Networks { get; set; } = new();
+
+    [JsonPropertyName("production_companies")]
+    public List<TmdbNamed> ProductionCompanies { get; set; } = new();
+
+    [JsonPropertyName("poster_path")]
+    public string? PosterPath { get; set; }
+
+    [JsonPropertyName("backdrop_path")]
+    public string? BackdropPath { get; set; }
+
+    /// <summary>From the appended external_ids block.</summary>
+    public string? ImdbId { get; set; }
+
+    /// <summary>US content rating (e.g. "TV-MA"), else the first one listed.</summary>
+    public string Certification { get; set; } = string.Empty;
+
+    /// <summary>Top-billed cast across all seasons (aggregate_credits).</summary>
+    public List<TmdbCastMember> Cast { get; set; } = new();
+
+    public int Year => !string.IsNullOrEmpty(FirstAirDate) && DateTime.TryParse(FirstAirDate, out var d)
+        ? d.Year
+        : 0;
+
+    /// <summary>The fields the TMDb match picker shows, as a movie-shaped hit.</summary>
+    public TmdbMovie AsSearchHit() => new()
+    {
+        TmdbId = TmdbId, Title = Name, ReleaseDate = FirstAirDate,
+        Overview = Overview, Rating = Rating, PosterPath = PosterPath,
+    };
+}
+
+public class TmdbTvSearchResult
+{
+    [JsonPropertyName("results")]
+    public List<TmdbTvShow> Results { get; set; } = new();
+}

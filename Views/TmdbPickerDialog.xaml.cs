@@ -13,14 +13,23 @@ namespace CineLibraryCS.Views;
 public sealed partial class TmdbPickerDialog : ContentDialog
 {
     private readonly TmdbClient _client;
+    private readonly bool _tvShows;
 
-    /// <summary>The film the user chose, or null if cancelled.</summary>
+    /// <summary>The film (or, with tvShows, the show) the user chose, or null if
+    /// cancelled. A show comes back movie-shaped; its TmdbId is the show's id.</summary>
     public TmdbMovie? Picked { get; private set; }
 
-    public TmdbPickerDialog(TmdbClient client, string? initialTitle, int? year)
+    public TmdbPickerDialog(TmdbClient client, string? initialTitle, int? year, bool tvShows = false)
     {
         InitializeComponent();
         _client = client;
+        _tvShows = tvShows;
+        if (tvShows)
+        {
+            Title = "Match this show on TMDb";
+            HintText.Text = "Pick the correct show so the missing details are filled from the right entry.";
+            TitleBox.PlaceholderText = "Show title…";
+        }
         TitleBox.Text = initialTitle ?? "";
         if (year is int y && y > 0) YearBox.Text = y.ToString();
         Loaded += async (_, _) => { if (!string.IsNullOrWhiteSpace(TitleBox.Text)) await DoSearchAsync(); };
@@ -45,7 +54,9 @@ public sealed partial class TmdbPickerDialog : ContentDialog
         IsPrimaryButtonEnabled = false;
         try
         {
-            var results = await _client.SearchMovieAsync(title, year);
+            var results = _tvShows
+                ? (await _client.SearchTvAsync(title, year)).Select(t => t.AsSearchHit()).ToList()
+                : await _client.SearchMovieAsync(title, year);
             if (results.Count == 0)
             {
                 StatusText.Text = $"No TMDb matches for “{title}”.";

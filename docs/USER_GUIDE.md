@@ -306,11 +306,17 @@ A green **✓** on a show card means you've watched every episode.
 
 Click a show to open its page:
 
-- **Header**: poster, plot, an info line (year, rating, certification
-  such as TV-14, status, a watched roll-up like "12/62 watched", and
-  the studio), genre chips, a **cast strip**, and **📂 Open Folder**,
-  **☆ Favorite** and **📋 Watchlist** buttons. Open Folder works while
-  the show's drive is connected.
+- **Header**: the show's fanart as a banner across the top, with
+  **IMDb** and **TMDb** buttons that open the show's pages. Below it sit
+  the poster, the title, an info line (year, rating, certification such
+  as TV-14, status, a watched roll-up like "12/62 watched", and the
+  studio), the plot and genre chips. Then the buttons: **📂 Open Folder**,
+  **☆ Favorite**, **📋 Watchlist**, **Add to list** and your tags, and
+  **Fetch missing info from TMDB** (see
+  [Filling in missing details](#filling-in-missing-details-tmdb)). Open
+  Folder works while the show's drive is connected.
+- **Cast**: photo cards with each actor's name and role, on one line
+  that scrolls sideways.
 - **▶ Play next** — jumps straight to the first unwatched episode
   (by season, then episode). Reads "✓ All watched" once you're done.
 - **Season tabs**: one tab per season, with Specials last. The page
@@ -583,6 +589,14 @@ Open any movie's **details** and click **Fetch missing info from TMDB**:
   MediaElch data and your own edits are safe.
 - Cast photos and artwork are cached with the app immediately, and the
   details window refreshes in place.
+
+**TV shows too.** A show's page has the same button. It fills a show's
+blank poster, fanart, plot, year, rating, certification, status, network,
+genres and cast (with photos), matched by the show's TMDb id or confirmed
+in the same picker. A rescan keeps what was fetched: your `.nfo` wins
+wherever it has a value, and a fetched value stays only where it's blank.
+Sync to drive doesn't cover shows yet, so a show's fetched details live in
+CineLibrary's own library data.
 
 **Making it permanent on the drive.** What you fetch lives in CineLibrary
 right away. To write it home — so a future rescan can never lose it — use

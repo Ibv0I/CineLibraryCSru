@@ -10,7 +10,7 @@
     IsPrimaryButtonEnabled="False">
 
     <StackPanel Spacing="10" MinWidth="460">
-        <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{ThemeResource MutedBrush}"
+        <TextBlock x:Name="HintText" TextWrapping="Wrap" FontSize="12" Foreground="{ThemeResource MutedBrush}"
                    Text="Pick the correct film so the missing details are filled from the right entry."/>
         <Grid ColumnSpacing="8">
             <Grid.ColumnDefinitions>

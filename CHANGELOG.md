@@ -6,6 +6,33 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > Per-release notes for the 2.x and early-3.x versions between the two
 > entries below live on the [Releases](https://github.com/aungkokomm/CineLibraryCS/releases) page.
 
+## [3.10.0] - 2026-10-05
+
+### Added
+- **Fetch missing info from TMDB on the TV show page**, as in the movie
+  details window. It fills only what a show is missing: poster, fanart,
+  plot, year, rating, certification, status, network, genres, and cast with
+  photos. A show without a TMDb id is confirmed in a quick picker first.
+- **IMDb and TMDb buttons on the show page.**
+
+### Changed
+- **A new look for the TV show page.** The fanart is a banner across the
+  top, the poster overlaps it and the info sits below, as in the movie
+  details window. The cast shows as photo cards with name and role on one
+  line, and your tags sit next to Add to list. The page now ends after the
+  cast, so a wide window no longer leaves a big empty area.
+- **TV cast photos show with the drive offline too**, from the photo links
+  in your library, as they already did for movies.
+- **A rescan keeps show details the .nfo leaves blank**, so Update Database
+  no longer wipes what you fetched from TMDb. Anything the .nfo has still
+  wins.
+
+### Fixed
+- **Show titles in capitals** at the top of the show page. They're shown as
+  written now.
+- **Continue Watching cards on All TV Shows had no poster.** The poster
+  loaded, but the 📺 placeholder stayed on top of it.
+
 ## [3.9.0] - 2026-10-03
 
 ### Changed

@@ -6,6 +6,21 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > Per-release notes for the 2.x and early-3.x versions between the two
 > entries below live on the [Releases](https://github.com/aungkokomm/CineLibraryCS/releases) page.
 
+## [4.3.0] - 2026-10-06
+
+Notes for TV shows.
+
+### Added
+- **Write a note about a show.** The show page has a **📝 Add note**
+  button next to Fetch missing info. The note appears under the plot as
+  "Your note", and **📝 Edit note** changes it (clear the text to remove
+  it). Movies and episodes had notes; shows didn't.
+- **Shows with a note are on the Notes page**, in a TV shows row above
+  your noted movies, and the sidebar's Notes count includes them.
+- Show notes are saved like the show's favorite and watchlist: in the
+  show folder's `cinelibrary-state.json` when its drive is connected, and
+  in Backup.
+
 ## [4.2.0] - 2026-10-06
 
 A movie window that uses the whole screen, CineLibrary's purple everywhere,

@@ -541,7 +541,13 @@ public sealed partial class MainWindow : Window
             // v3.9.0: Drives is an icon in the bottom bar now; the count lives in its tooltip.
             ToolTipService.SetToolTip(BtnDrives, $"Drives ({_vm.Drives.Count})");
             try { TvShowsBadge.Text = AppState.Instance.Db.GetTvShowCount().ToString(); } catch { }
-            try { NotesBadge.Text = AppState.Instance.Db.GetNotesCount().ToString(); } catch { }
+            // v4.3.0: shows with a note count too, like To Watch since 4.0.0
+            try
+            {
+                NotesBadge.Text = (AppState.Instance.Db.GetNotesCount()
+                    + AppState.Instance.Db.GetTvShowPageCount(DatabaseService.TvShowPage.Notes)).ToString();
+            }
+            catch { }
             // v3.3 — Watched & Gone entry appears once the first record exists.
             try
             {

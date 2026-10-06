@@ -3515,13 +3515,14 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 hasNext && !r.IsDBNull(4) ? r.GetString(4) : null);
     }
 
-    public enum TvShowPage { Favorites, Watchlist, ContinueWatching }
+    public enum TvShowPage { Favorites, Watchlist, ContinueWatching, Notes }
 
     // In progress = some episodes watched and some not, as on All TV Shows.
     private static string TvShowPageWhere(TvShowPage page) => page switch
     {
         TvShowPage.Favorites => "s.is_favorite = 1",
         TvShowPage.Watchlist => "s.is_watchlist = 1",
+        TvShowPage.Notes => "s.note IS NOT NULL AND TRIM(s.note) != ''",   // v4.3.0
         _ => @"EXISTS (SELECT 1 FROM tv_episodes e WHERE e.show_id=s.id AND e.is_watched=1)
                AND EXISTS (SELECT 1 FROM tv_episodes e WHERE e.show_id=s.id AND e.is_watched=0)",
     };
@@ -3853,6 +3854,20 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         using var cmd = _conn.CreateCommand();
         cmd.CommandText = "UPDATE tv_shows SET is_watchlist=@v WHERE id=@id";
         cmd.Parameters.AddWithValue("@v", wl ? 1 : 0);
+        cmd.Parameters.AddWithValue("@id", showId);
+        cmd.ExecuteNonQuery();
+        RaiseTvShowStateChanged(showId);
+    }
+
+    /// <summary>v4.3.0 (#17): the show's own note. The column, the show folder's
+    /// state file and Backup have carried it since 2.8; nothing wrote it until now.
+    /// Blank clears it.</summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public void SetTvShowNote(int showId, string? note)
+    {
+        using var cmd = _conn.CreateCommand();
+        cmd.CommandText = "UPDATE tv_shows SET note=@n WHERE id=@id";
+        cmd.Parameters.AddWithValue("@n", string.IsNullOrWhiteSpace(note) ? (object)DBNull.Value : note.Trim());
         cmd.Parameters.AddWithValue("@id", showId);
         cmd.ExecuteNonQuery();
         RaiseTvShowStateChanged(showId);

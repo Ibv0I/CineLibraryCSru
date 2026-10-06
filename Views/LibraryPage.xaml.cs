@@ -1000,15 +1000,17 @@ public sealed partial class LibraryPage : Page
     /// <summary>
     /// v2.8.2 — when the current view is a user list, show that list's TV
     /// shows in a row above the movie grid. v4.0.0: Favorites, To Watch and
-    /// Continue Watching get the same row. Re-queried only when the view
-    /// changes (or the page is opened again), so routine VM updates stay cheap.
+    /// Continue Watching get the same row; v4.3.0: Notes too. Re-queried only
+    /// when the view changes (or the page is opened again), so routine VM
+    /// updates stay cheap.
     /// </summary>
     private void RefreshShowsInList()
     {
         DatabaseService.TvShowPage? page =
             _vm.FavoritesOnly      ? DatabaseService.TvShowPage.Favorites :
             _vm.IsWatchlistOnly    ? DatabaseService.TvShowPage.Watchlist :
-            _vm.IsContinueWatching ? DatabaseService.TvShowPage.ContinueWatching : null;
+            _vm.IsContinueWatching ? DatabaseService.TvShowPage.ContinueWatching :
+            _vm.HasNoteOnly        ? DatabaseService.TvShowPage.Notes : null;
         var key = _vm.UserListId is int listId ? $"list:{listId}" : page?.ToString();
         if (key == _shownRowKey) return;
         _shownRowKey = key;

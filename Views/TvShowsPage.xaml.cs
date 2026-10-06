@@ -654,6 +654,7 @@ public sealed partial class TvShowsPage : Page
         ShowDriveText.Text = _detail.DriveLabel + (driveLetter != null ? $" ({driveLetter}:)" : "");
 
         UpdateShowButtons();
+        UpdateShowNote();
         RefreshShowTagChips();
 
         // Cast
@@ -796,6 +797,53 @@ public sealed partial class TvShowsPage : Page
         if (_detail == null) return;
         ShowFavBtn.Content = _detail.IsFavorite ? "★ Favorited" : "☆ Favorite";
         ShowWatchlistBtn.Content = _detail.IsWatchlist ? "📌 In Watchlist" : "📋 Watchlist";
+    }
+
+    // ── v4.3.0 (#17): the show's own note ──────────────────────────────────
+    // Written in a small box, shown under the plot, and listed on the Notes page.
+
+    private void UpdateShowNote()
+    {
+        var note = _detail?.Note;
+        var has = !string.IsNullOrWhiteSpace(note);
+        ShowNoteText.Text = has ? note : "";
+        ShowNoteWrap.Visibility = has ? Visibility.Visible : Visibility.Collapsed;
+        ShowNoteBtnText.Text = has ? "📝 Edit note" : "📝 Add note";
+    }
+
+    private async void OnEditShowNote(object sender, RoutedEventArgs e)
+    {
+        if (_detail == null) return;
+        var show = _detail;
+        var box = new TextBox
+        {
+            Text = show.Note ?? "",
+            AcceptsReturn = true,
+            TextWrapping = TextWrapping.Wrap,
+            MinHeight = 120,
+            MaxHeight = 300,
+            PlaceholderText = "Anything you want to remember about this show…",
+        };
+        ScrollViewer.SetVerticalScrollBarVisibility(box, ScrollBarVisibility.Auto);
+        var dlg = new ContentDialog
+        {
+            Title = $"📝 Note for {show.Title}",
+            Content = box,
+            PrimaryButtonText = "Save",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot,
+            RequestedTheme = MainWindow.CurrentTheme,
+        };
+        if (await dlg.ShowAsync() != ContentDialogResult.Primary) return;
+
+        var fresh = box.Text?.Trim();
+        if (string.IsNullOrEmpty(fresh)) fresh = null;
+        if (fresh == show.Note) return;
+        show.Note = fresh;
+        AppState.Instance.Db.SetTvShowNote(show.Id, fresh);   // also the show folder's state file
+        if (ReferenceEquals(show, _detail)) UpdateShowNote();
+        SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);   // the Notes count
     }
 
     private void OnToggleShowFavorite(object sender, RoutedEventArgs e)

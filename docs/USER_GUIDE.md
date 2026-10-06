@@ -336,6 +336,11 @@ Click a show to open its page:
   **Fetch missing info from TMDB** (see
   [Filling in missing details](#filling-in-missing-details-tmdb)). Open
   Folder works while the show's drive is connected.
+- **📝 Add note**: a note of your own about the show. It appears under
+  the plot as **Your note**, and the show is listed on the **Notes**
+  page above your noted movies. Click **📝 Edit note** to change it;
+  clear the text and save to remove it. Episodes have their own notes
+  in the episode window.
 - **Cast**: photo cards with each actor's name and role, on one line
   that scrolls sideways.
 - **▶ Play next** — jumps straight to the first unwatched episode

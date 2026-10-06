@@ -412,15 +412,10 @@ public sealed partial class DrivesPage : Page
 
     // ── Drive card hover lift ─────────────────────────────────────────────
 
-    // Themed surface overlays (must match CardBrush / CardHoverBrush in
-    // Styles/Colors.xaml). Resolved from the card's ActualTheme because a
-    // plain Application.Resources lookup of a ThemeDictionary key returns the
-    // wrong theme variant (which painted dark cards white on hover).
-    private static Microsoft.UI.Xaml.Media.SolidColorBrush CardRestBrush(FrameworkElement el) =>
-        new(el.ActualTheme == ElementTheme.Light
-            ? Windows.UI.Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF)   // #FFFFFF
-            : Windows.UI.Color.FromArgb(0xFF, 0x14, 0x14, 0x1F)); // #14141F
-
+    // Themed surface overlay (must match CardHoverBrush in Styles/Colors.xaml).
+    // Resolved from the card's ActualTheme because a plain Application.Resources
+    // lookup of a ThemeDictionary key returns the wrong theme variant (which
+    // painted dark cards white on hover).
     private static Microsoft.UI.Xaml.Media.SolidColorBrush CardHoverBrush(FrameworkElement el) =>
         new(el.ActualTheme == ElementTheme.Light
             ? Windows.UI.Color.FromArgb(0xFF, 0xED, 0xED, 0xFB)   // #EDEDFB
@@ -433,7 +428,8 @@ public sealed partial class DrivesPage : Page
 
     private void OnCardPointerExited(object sender, PointerRoutedEventArgs e)
     {
-        if (sender is Border b) b.Background = CardRestBrush(b);
+        // v4.2.0: back to CardSurfaceStyle's theme-following colour
+        if (sender is Border b) b.ClearValue(Border.BackgroundProperty);
     }
 
     // ── Clean up missing movies ───────────────────────────────────────────

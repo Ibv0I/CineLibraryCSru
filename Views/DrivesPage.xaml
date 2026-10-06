@@ -94,7 +94,7 @@
                     </ItemsRepeater.Layout>
                     <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="models:DriveInfo">
-                            <Border Background="{ThemeResource CardBrush}"
+                            <Border Style="{StaticResource CardSurfaceStyle}"
                                     BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1"
                                     CornerRadius="12" Padding="16,14"
                                     PointerEntered="OnCardPointerEntered"

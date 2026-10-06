@@ -266,8 +266,10 @@ public sealed partial class MovieDetailDialog : Window
         }
 
         // Images
-        LoadImageAsync(m.LocalPoster, PosterImage, PosterPlaceholder, 220);
-        LoadImageAsync(m.LocalFanart, HeroImage, null, 1200);
+        // v4.2.0: decoded for the bigger poster and the full-width banner (the
+        // window opens maximised, so its width is about the banner's in pixels)
+        LoadImageAsync(m.LocalPoster, PosterImage, PosterPlaceholder, 520);
+        LoadImageAsync(m.LocalFanart, HeroImage, null, Math.Clamp(AppWindow.Size.Width, 1920, 3840));
 
         // v3.4 — "Fetch missing info from TMDB" (and, later, Sync to drive).
         UpdateTmdbActions(m);
@@ -898,18 +900,93 @@ public sealed partial class MovieDetailDialog : Window
     // v3.7.1: the content column gets an explicit width. With MaxWidth alone,
     // WinUI centred it by the width it asked for, so on a movie without fanart
     // (nothing asks for the full width) it was pushed right and cut off.
+    // v4.2.0 (#14): no 1100 cap any more. The page fills the window and picks
+    // an arrangement from its width, so a portrait tablet and a 4K screen both
+    // use the space they have.
     private void OnContentScrollerSizeChanged(object sender, SizeChangedEventArgs e)
     {
         var inner = e.NewSize.Width - ContentScroller.Padding.Left - ContentScroller.Padding.Right;
-        ContentStack.Width = Math.Clamp(inner, 0, 1100);
+        ContentStack.Width = Math.Max(0, inner);
+        HeroBorder.Height = Math.Clamp(inner / 3.2, 220, 460);   // 1100 wide = the old 340
+        ApplyLayout(e.NewSize.Width < 900 ? DetailLayout.Narrow
+                  : e.NewSize.Width >= 1600 ? DetailLayout.Wide
+                  : DetailLayout.Standard);
+    }
+
+    private enum DetailLayout { Unset, Narrow, Standard, Wide }
+    private DetailLayout _layout;
+
+    private void ApplyLayout(DetailLayout layout)
+    {
+        if (layout == _layout) return;
+        _layout = layout;
+        bool narrow = layout == DetailLayout.Narrow, wide = layout == DetailLayout.Wide;
+
+        PosterFrame.Width  = narrow ? 150 : wide ? 260 : 200;
+        PosterFrame.Height = narrow ? 218 : wide ? 377 : 290;
+        DetailTitle.FontSize   = narrow ? 26 : 34;
+        DetailTitle.LineHeight = narrow ? 32 : 40;
+
+        // Wide: everything up to the cast sits beside the poster. Buttons and plot
+        // go under the title; genres, director, studio, file info and notes get a
+        // column of their own. Otherwise they stack under the poster as before.
+        foreach (var block in new FrameworkElement[] { ActionsBlock, FileInfoPanel, PlotBlock, NotesCard, FieldsBlock })
+            Detach(block);
+        if (wide)
+        {
+            MetaStack.Children.Add(ActionsBlock);
+            MetaStack.Children.Add(PlotBlock);
+            SideStack.Children.Add(FieldsBlock);
+            SideStack.Children.Add(FileInfoPanel);
+            SideStack.Children.Add(NotesCard);
+        }
+        else
+        {
+            ContentStack.Children.Insert(ContentStack.Children.IndexOf(TopGrid) + 1, ActionsBlock);
+            BodyStack.Children.Add(FileInfoPanel);
+            BodyStack.Children.Add(PlotBlock);
+            BodyStack.Children.Add(NotesCard);
+            BodyStack.Children.Add(FieldsBlock);
+        }
+        // The title column stops at a readable width; the details column takes the rest.
+        var main = TopGrid.ColumnDefinitions[1];
+        var side = TopGrid.ColumnDefinitions[2];
+        main.Width = new GridLength(wide ? 3 : 1, GridUnitType.Star);
+        main.MaxWidth = wide ? 900 : double.PositiveInfinity;
+        side.Width = wide ? new GridLength(2, GridUnitType.Star) : new GridLength(0);
+        side.MinWidth = wide ? 340 : 0;
+        // At the top of the details column the divider has nothing to divide
+        FieldsDivider.Visibility = wide ? Visibility.Collapsed : Visibility.Visible;
+        FieldsGrid.Margin = new Thickness(0, wide ? 0 : 20, 0, 0);
+    }
+
+    private static void Detach(FrameworkElement element)
+    {
+        if (element.Parent is Panel parent) parent.Children.Remove(element);
+    }
+
+    // v4.2.0: Genres, Director and Studio side by side, or one under another
+    // when the grid is narrow (a small window, or the wide layout's side column).
+    private void OnFieldsGridSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        bool stack = e.NewSize.Width < 600;
+        FieldsGrid.ColumnDefinitions[1].Width = stack ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
+        FieldsGrid.ColumnDefinitions[2].Width = stack ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
+        for (int i = 0; i < FieldsGrid.Children.Count; i++)
+        {
+            var field = (FrameworkElement)FieldsGrid.Children[i];
+            Grid.SetColumn(field, stack ? 0 : i);
+            Grid.SetRow(field, stack ? i : 0);
+            field.Margin = new Thickness(0, stack && i > 0 ? 14 : 0, 0, 0);
+        }
     }
 
     // ── Sticky action bar + external link buttons (v2.3) ─────────────────
 
     private void OnContentScrolled(object sender, ScrollViewerViewChangedEventArgs e)
     {
-        // Bar appears once the user is past the hero block (~340 px tall)
-        StickyBar.Visibility = ContentScroller.VerticalOffset > 280
+        // Bar appears once the user is past the hero block (its height follows the width)
+        StickyBar.Visibility = ContentScroller.VerticalOffset > HeroBorder.Height - 60
             ? Visibility.Visible
             : Visibility.Collapsed;
     }

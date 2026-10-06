@@ -6,6 +6,39 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > Per-release notes for the 2.x and early-3.x versions between the two
 > entries below live on the [Releases](https://github.com/aungkokomm/CineLibraryCS/releases) page.
 
+## [4.2.0] - 2026-10-06
+
+A movie window that uses the whole screen, CineLibrary's purple everywhere,
+and two fixes.
+
+### Changed
+- **The movie details window fits your screen.** It was a column at most
+  1100 pixels wide, so a 1440p or 4K screen left wide empty margins. It
+  now uses the whole width and arranges itself to fit:
+  - **Wide windows**: a bigger poster, with the buttons and plot beside it
+    and genres, director, studio, file details and your note in a column
+    of their own. Most movies fit on one screen without scrolling.
+  - **Narrow windows** (a tablet held upright, or the window snapped to
+    half the screen): a shorter banner, a smaller poster, and the details
+    stacked one under another.
+  - In between it looks as before, filling the window. The banner grows
+    with the window, and the poster and banner pictures are loaded sharp
+    enough for the bigger sizes.
+- **CineLibrary's purple is the accent everywhere.** Windows' own accent
+  colour (blue for most people) showed in the drop-down lists, the
+  Settings radio buttons and switches, check boxes, links, the line under
+  a text box you're typing in, and buttons such as the episode window's
+  ▶ Play. They're all purple now, in both themes.
+
+### Fixed
+- **List view keeps up with the theme.** Rows the mouse had passed over
+  kept the old theme's colour, so after switching to light the rows stayed
+  dark with unreadable titles, and switching back left them white. The
+  same went for the drive cards on the Drives page.
+- **Backup and Export light up in the sidebar** while their window or menu
+  is open, like the other entries, then the page you're on lights up
+  again.
+
 ## [4.1.0] - 2026-10-06
 
 A cleaner All TV Shows page, and show cards you can use without opening them.

@@ -271,6 +271,14 @@
         <Setter Property="Padding"      Value="4,2"/>
     </Style>
 
+    <!-- v4.2.0 (#15): a card surface that follows the theme, for cards that light
+         up on hover. The hover code sets a local Background and clears it on exit,
+         so this value comes back. (A fixed rest colour set on exit stayed in the
+         theme it was set in, which left list rows dark in the light theme.) -->
+    <Style x:Key="CardSurfaceStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource CardBrush}"/>
+    </Style>
+
     <!-- Statistics tile (small square card with a big number) -->
     <Style x:Key="StatTileStyle" TargetType="Border">
         <Setter Property="Background"      Value="{ThemeResource CardBrush}"/>

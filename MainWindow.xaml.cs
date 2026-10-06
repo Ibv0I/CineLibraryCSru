@@ -1412,6 +1412,15 @@ public sealed partial class MainWindow : Window
         _activeNavBtn = btn;
     }
 
+    // v4.2.0 (#15): Backup and Export open a dialog or a menu rather than a page,
+    // so they light up while it is open, then the page you are on lights up again.
+    private Action HighlightWhileOpen(Button btn)
+    {
+        var page = _activeNavBtn;
+        SetActiveNav(btn);
+        return () => { if (ReferenceEquals(_activeNavBtn, btn)) SetActiveNav(page); };
+    }
+
     private void OnNavAllMovies(object sender, RoutedEventArgs e)
     {
         NavigateTo("library", new LibraryNavParam());
@@ -1467,6 +1476,8 @@ public sealed partial class MainWindow : Window
             Add($"This view ({label}) as CSV…", _libraryPage.GetViewMoviesAsync, html: false);
             Add($"This view ({label}) as HTML…", _libraryPage.GetViewMoviesAsync, html: true);
         }
+        var restore = HighlightWhileOpen(sender as Button ?? BtnExport);
+        menu.Closed += (_, _) => restore();
         menu.ShowAt((FrameworkElement)sender);
     }
 
@@ -1754,7 +1765,9 @@ public sealed partial class MainWindow : Window
             XamlRoot = Content.XamlRoot,
             RequestedTheme = CurrentTheme,
         };
+        var restore = HighlightWhileOpen(sender as Button ?? BtnBackup);
         try { await dlg.ShowAsync(); } catch { }
+        restore();
     }
 
     /// <summary>Best-effort assembly version string for backup metadata.</summary>

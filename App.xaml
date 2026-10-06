@@ -7,6 +7,57 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+                <!--
+                  v4.2.0 (#16): the brand purple is the accent everywhere, whatever accent Windows has. Without
+                  this, the built-in controls took the Windows accent (blue for most people): the drop-down
+                  selection marks, radio buttons, switches, check boxes, the focused text box line, links and
+                  dialog buttons. Fluent fills with Light2 in the dark theme (#A78BFA, as the app's own Play
+                  and filter pills) and Dark1 in the light one, with white text on it like those buttons;
+                  accent text uses Light3 on dark and Dark2 on light. High Contrast keeps Windows' own colours.
+                  This must be a dictionary merged AFTER XamlControlsResources, so its keys win (as in Aryan).
+                -->
+                <ResourceDictionary>
+                    <ResourceDictionary.ThemeDictionaries>
+                        <ResourceDictionary x:Key="Dark">
+                            <Color x:Key="SystemAccentColorLight1">#9A7AF9</Color>
+                            <Color x:Key="SystemAccentColorLight2">#A78BFA</Color>
+                            <Color x:Key="SystemAccentColorLight3">#C4B5FD</Color>
+                            <Color x:Key="SystemAccentColorDark1">#7C3AED</Color>
+                            <Color x:Key="SystemAccentColorDark2">#6D28D9</Color>
+                            <Color x:Key="SystemAccentColorDark3">#5B21B6</Color>
+                            <SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="TextOnAccentFillColorSecondaryBrush" Color="#E6FFFFFF" />
+                            <!-- The controls' own copies of "text on accent", which would stay black -->
+                            <SolidColorBrush x:Key="AccentButtonForeground" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="AccentButtonForegroundPointerOver" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="AccentButtonForegroundPressed" Color="#E6FFFFFF" />
+                            <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" Color="#E6FFFFFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundIndeterminate" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundIndeterminatePointerOver" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundIndeterminatePressed" Color="#E6FFFFFF" />
+                            <SolidColorBrush x:Key="RadioButtonCheckGlyphFill" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="RadioButtonCheckGlyphFillPointerOver" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="RadioButtonCheckGlyphFillPressed" Color="#E6FFFFFF" />
+                            <SolidColorBrush x:Key="ToggleButtonForegroundChecked" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPointerOver" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPressed" Color="#E6FFFFFF" />
+                        </ResourceDictionary>
+                        <ResourceDictionary x:Key="Light">
+                            <Color x:Key="SystemAccentColorLight1">#9A7AF9</Color>
+                            <Color x:Key="SystemAccentColorLight2">#A78BFA</Color>
+                            <Color x:Key="SystemAccentColorLight3">#C4B5FD</Color>
+                            <Color x:Key="SystemAccentColorDark1">#8B5CF6</Color>
+                            <Color x:Key="SystemAccentColorDark2">#7C3AED</Color>
+                            <Color x:Key="SystemAccentColorDark3">#6D28D9</Color>
+                        </ResourceDictionary>
+                    </ResourceDictionary.ThemeDictionaries>
+                    <Color x:Key="SystemAccentColor">#8B5CF6</Color>
+                </ResourceDictionary>
                 <ResourceDictionary Source="Styles/Colors.xaml"/>
                 <ResourceDictionary Source="Styles/Controls.xaml"/>
             </ResourceDictionary.MergedDictionaries>

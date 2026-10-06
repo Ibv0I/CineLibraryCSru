@@ -358,10 +358,9 @@ public sealed partial class MovieRowControl : UserControl
             ? Windows.UI.Color.FromArgb(0xFF, 0xEB, 0xEB, 0xFF)
             : Windows.UI.Color.FromArgb(0xFF, 0x1E, 0x1E, 0x2E));
 
+    // v4.2.0 (#15): back to CardSurfaceStyle's theme-following colour
     private void OnPointerExited(object sender, PointerRoutedEventArgs e)
-        => RowBorder.Background = new SolidColorBrush(ActualTheme == ElementTheme.Light
-            ? Windows.UI.Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF)
-            : Windows.UI.Color.FromArgb(0xFF, 0x14, 0x14, 0x1F));
+        => RowBorder.ClearValue(Border.BackgroundProperty);
 
     private void OnToggleWatched(object sender, RoutedEventArgs e)
     {

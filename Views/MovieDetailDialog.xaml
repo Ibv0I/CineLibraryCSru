@@ -25,7 +25,9 @@
             <ScrollViewer x:Name="ContentScroller" VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled" Padding="24"
                           ViewChanged="OnContentScrolled" SizeChanged="OnContentScrollerSizeChanged">
-            <StackPanel x:Name="ContentStack" MaxWidth="1100" HorizontalAlignment="Stretch">
+            <!-- v4.2.0 (#14): fills the window. The code picks a narrow, standard
+                 or wide arrangement from the width (OnContentScrollerSizeChanged). -->
+            <StackPanel x:Name="ContentStack" HorizontalAlignment="Stretch">
 
                 <!-- Hero fanart (v2.3 — taller, layered gradient, vignette, IMDb/TMDb pills) -->
                 <Border x:Name="HeroBorder" Height="340" CornerRadius="12"
@@ -74,17 +76,18 @@
                 </Border>
 
                 <!-- Poster + Meta row -->
-                <Grid Margin="0,-120,0,0">
+                <Grid x:Name="TopGrid" Margin="0,-120,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="0"/>
                     </Grid.ColumnDefinitions>
 
                     <!-- Poster column: poster card + below-poster info card -->
                     <StackPanel Grid.Column="0" Margin="16,0,24,0" VerticalAlignment="Top"
                                 Spacing="12">
                         <!-- Poster — drop shadow + thin border for depth -->
-                        <Border Width="200" Height="290" CornerRadius="12"
+                        <Border x:Name="PosterFrame" Width="200" Height="290" CornerRadius="12"
                                 BorderBrush="#33FFFFFF" BorderThickness="1"
                                 Background="{ThemeResource PlaceholderBgBrush}">
                             <Border.Shadow>
@@ -101,7 +104,7 @@
                     </StackPanel>
 
                     <!-- Meta -->
-                    <StackPanel Grid.Column="1" Spacing="10" VerticalAlignment="Top"
+                    <StackPanel x:Name="MetaStack" Grid.Column="1" Spacing="10" VerticalAlignment="Top"
                                 Margin="0,140,0,0">
                         <TextBlock x:Name="DetailTitle" FontSize="34" FontWeight="Bold"
                                    Foreground="{ThemeResource TextBrush}"
@@ -137,302 +140,324 @@
                                         VerticalAlignment="Center" Visibility="Collapsed"/>
                         </StackPanel>
                     </StackPanel>
+
+                    <!-- v4.2.0 (#14): genres, director, studio and file info, beside the
+                         plot in a wide window -->
+                    <StackPanel x:Name="SideStack" Grid.Column="2" Margin="40,140,0,0"
+                                VerticalAlignment="Top"/>
                 </Grid>
 
-                <!-- Drive location -->
-                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,16,0,0">
-                    <TextBlock Text="Located on:" FontSize="12"
-                               Foreground="{ThemeResource MutedBrush}" VerticalAlignment="Center"/>
-                    <Ellipse x:Name="DriveStatusDot" Width="8" Height="8" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="DriveText" FontSize="12"
-                               Foreground="{ThemeResource TextBrush}" VerticalAlignment="Center"
-                               TextWrapping="Wrap"/>
-                </StackPanel>
+                <!-- Location, actions, lists and tags: under the poster, or beside it
+                     in a wide window (v4.2.0) -->
+                <StackPanel x:Name="ActionsBlock">
+                    <!-- Drive location -->
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,16,0,0">
+                        <TextBlock Text="Located on:" FontSize="12"
+                                   Foreground="{ThemeResource MutedBrush}" VerticalAlignment="Center"/>
+                        <Ellipse x:Name="DriveStatusDot" Width="8" Height="8" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="DriveText" FontSize="12"
+                                   Foreground="{ThemeResource TextBrush}" VerticalAlignment="Center"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
 
-                <!-- Actions (wrap onto a second line in narrow windows) -->
-                <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8" Margin="0,12,0,0">
-                    <Button x:Name="PlayBtn" Click="OnPlay"
-                            Background="#A78BFA" Foreground="White"
-                            BorderThickness="0" CornerRadius="8" Padding="16,8">
-                        <TextBlock Text="▶ Play"/>
-                    </Button>
-                    <Button x:Name="FolderBtn" Content="📂 Open Folder" Click="OnOpenFolder"
-                            Background="{ThemeResource CardBrush}"
-                            Foreground="{ThemeResource TextBrush}"
-                            BorderBrush="{ThemeResource BorderBrush}"
-                            CornerRadius="8" Padding="12,8"/>
-                    <Button x:Name="FavBtn" Click="OnToggleFav"
-                            Background="{ThemeResource CardBrush}"
-                            Foreground="{ThemeResource TextBrush}"
-                            BorderBrush="{ThemeResource BorderBrush}"
-                            CornerRadius="8" Padding="12,8"/>
-                    <Button x:Name="WatchedBtn" Click="OnToggleWatched"
-                            Background="{ThemeResource CardBrush}"
-                            Foreground="{ThemeResource TextBrush}"
-                            BorderBrush="{ThemeResource BorderBrush}"
-                            CornerRadius="8" Padding="12,8"/>
-                    <Button x:Name="WatchlistBtn" Click="OnToggleWatchlist"
-                            Background="{ThemeResource CardBrush}"
-                            Foreground="{ThemeResource TextBrush}"
-                            BorderBrush="{ThemeResource BorderBrush}"
-                            CornerRadius="8" Padding="12,8"/>
-                    <Button x:Name="ListsBtn" Content="📑 Add to list"
-                            Background="{ThemeResource CardBrush}"
-                            Foreground="{ThemeResource TextBrush}"
-                            BorderBrush="{ThemeResource BorderBrush}"
-                            CornerRadius="8" Padding="12,8">
-                        <Button.Flyout>
-                            <MenuFlyout x:Name="ListsFlyout" Placement="Bottom" Opening="OnListsFlyoutOpening"/>
-                        </Button.Flyout>
-                    </Button>
-                </controls:WrapPanel>
+                    <!-- Actions (wrap onto a second line in narrow windows) -->
+                    <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8" Margin="0,12,0,0">
+                        <Button x:Name="PlayBtn" Click="OnPlay"
+                                Background="#A78BFA" Foreground="White"
+                                BorderThickness="0" CornerRadius="8" Padding="16,8">
+                            <TextBlock Text="▶ Play"/>
+                        </Button>
+                        <Button x:Name="FolderBtn" Content="📂 Open Folder" Click="OnOpenFolder"
+                                Background="{ThemeResource CardBrush}"
+                                Foreground="{ThemeResource TextBrush}"
+                                BorderBrush="{ThemeResource BorderBrush}"
+                                CornerRadius="8" Padding="12,8"/>
+                        <Button x:Name="FavBtn" Click="OnToggleFav"
+                                Background="{ThemeResource CardBrush}"
+                                Foreground="{ThemeResource TextBrush}"
+                                BorderBrush="{ThemeResource BorderBrush}"
+                                CornerRadius="8" Padding="12,8"/>
+                        <Button x:Name="WatchedBtn" Click="OnToggleWatched"
+                                Background="{ThemeResource CardBrush}"
+                                Foreground="{ThemeResource TextBrush}"
+                                BorderBrush="{ThemeResource BorderBrush}"
+                                CornerRadius="8" Padding="12,8"/>
+                        <Button x:Name="WatchlistBtn" Click="OnToggleWatchlist"
+                                Background="{ThemeResource CardBrush}"
+                                Foreground="{ThemeResource TextBrush}"
+                                BorderBrush="{ThemeResource BorderBrush}"
+                                CornerRadius="8" Padding="12,8"/>
+                        <Button x:Name="ListsBtn" Content="📑 Add to list"
+                                Background="{ThemeResource CardBrush}"
+                                Foreground="{ThemeResource TextBrush}"
+                                BorderBrush="{ThemeResource BorderBrush}"
+                                CornerRadius="8" Padding="12,8">
+                            <Button.Flyout>
+                                <MenuFlyout x:Name="ListsFlyout" Placement="Bottom" Opening="OnListsFlyoutOpening"/>
+                            </Button.Flyout>
+                        </Button>
+                    </controls:WrapPanel>
 
-                <!-- v3.4 — TMDB enrichment: fill gaps in the app, then (for real
-                     library movies on an online drive) sync the result home. -->
-                <StackPanel x:Name="TmdbActionsRow" Orientation="Horizontal" Spacing="8"
-                            Margin="0,8,0,0" Visibility="Collapsed">
-                    <Button x:Name="FetchTmdbBtn" Click="OnFetchMissing"
-                            Style="{ThemeResource AccentButtonStyle}"
-                            CornerRadius="8" Padding="12,8"
-                            ToolTipService.ToolTip="Look this movie up on TMDb and fill in only the details it's missing">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE896;" FontSize="14"
-                                      FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
-                            <TextBlock Text="Fetch missing info from TMDB"/>
-                        </StackPanel>
-                    </Button>
-                    <Button x:Name="SyncDriveBtn" Click="OnSyncToDrive" Visibility="Collapsed"
-                            Background="{ThemeResource CardBrush}" Foreground="{ThemeResource TextBrush}"
-                            BorderBrush="{ThemeResource BorderBrush}" CornerRadius="8" Padding="12,8"
-                            ToolTipService.ToolTip="Write the fetched poster, cast and details into this movie's folder on the drive">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE895;" FontSize="14"
-                                      FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
-                            <TextBlock Text="Sync to drive"/>
-                        </StackPanel>
-                    </Button>
-                    <ProgressRing x:Name="TmdbBusy" IsActive="False" Width="18" Height="18"
-                                  VerticalAlignment="Center"/>
-                    <TextBlock x:Name="TmdbStatus" VerticalAlignment="Center" FontSize="12"
-                               Foreground="{ThemeResource MutedBrush}" Visibility="Collapsed"/>
-                </StackPanel>
+                    <!-- v3.4 — TMDB enrichment: fill gaps in the app, then (for real
+                         library movies on an online drive) sync the result home. -->
+                    <StackPanel x:Name="TmdbActionsRow" Orientation="Horizontal" Spacing="8"
+                                Margin="0,8,0,0" Visibility="Collapsed">
+                        <Button x:Name="FetchTmdbBtn" Click="OnFetchMissing"
+                                Style="{ThemeResource AccentButtonStyle}"
+                                CornerRadius="8" Padding="12,8"
+                                ToolTipService.ToolTip="Look this movie up on TMDb and fill in only the details it's missing">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE896;" FontSize="14"
+                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                                <TextBlock Text="Fetch missing info from TMDB"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="SyncDriveBtn" Click="OnSyncToDrive" Visibility="Collapsed"
+                                Background="{ThemeResource CardBrush}" Foreground="{ThemeResource TextBrush}"
+                                BorderBrush="{ThemeResource BorderBrush}" CornerRadius="8" Padding="12,8"
+                                ToolTipService.ToolTip="Write the fetched poster, cast and details into this movie's folder on the drive">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE895;" FontSize="14"
+                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                                <TextBlock Text="Sync to drive"/>
+                            </StackPanel>
+                        </Button>
+                        <ProgressRing x:Name="TmdbBusy" IsActive="False" Width="18" Height="18"
+                                      VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TmdbStatus" VerticalAlignment="Center" FontSize="12"
+                                   Foreground="{ThemeResource MutedBrush}" Visibility="Collapsed"/>
+                    </StackPanel>
 
-                <!-- v2.5 — Lists this movie is on. Each chip has a ✕ that
-                     removes the movie from that list immediately (with Undo
-                     in the toast). The whole row hides when there are none. -->
-                <ItemsControl x:Name="ListChipsRepeater" Margin="0,10,0,0" Visibility="Collapsed">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" Spacing="6"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
-
-                <!-- v2.9 — Free-form tags. Chips with ✕ to remove; an
-                     "+ Add tag" affordance opens an autocomplete that
-                     suggests existing tags and accepts new names. The
-                     whole row hides when there are no tags AND the input
-                     is collapsed. -->
-                <StackPanel x:Name="TagsRow" Orientation="Horizontal" Spacing="6"
-                            Margin="0,10,0,0">
-                    <TextBlock Text="🏷" FontSize="14" VerticalAlignment="Center" Opacity="0.7"/>
-                    <ItemsControl x:Name="TagChipsRepeater">
+                    <!-- v2.5 — Lists this movie is on. Each chip has a ✕ that
+                         removes the movie from that list immediately (with Undo
+                         in the toast). The whole row hides when there are none. -->
+                    <ItemsControl x:Name="ListChipsRepeater" Margin="0,10,0,0" Visibility="Collapsed">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <StackPanel Orientation="Horizontal" Spacing="6"/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
-                    <Button x:Name="AddTagBtn" Click="OnAddTagClick"
-                            Background="{ThemeResource ChipBrush}"
+
+                    <!-- v2.9 — Free-form tags. Chips with ✕ to remove; an
+                         "+ Add tag" affordance opens an autocomplete that
+                         suggests existing tags and accepts new names. The
+                         whole row hides when there are no tags AND the input
+                         is collapsed. -->
+                    <StackPanel x:Name="TagsRow" Orientation="Horizontal" Spacing="6"
+                                Margin="0,10,0,0">
+                        <TextBlock Text="🏷" FontSize="14" VerticalAlignment="Center" Opacity="0.7"/>
+                        <ItemsControl x:Name="TagChipsRepeater">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="6"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                        <Button x:Name="AddTagBtn" Click="OnAddTagClick"
+                                Background="{ThemeResource ChipBrush}"
+                                BorderBrush="{ThemeResource BorderBrush}"
+                                BorderThickness="1" CornerRadius="12"
+                                Padding="10,3"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="+ Add tag" FontSize="11"
+                                       Foreground="{ThemeResource MutedBrush}"/>
+                        </Button>
+                        <AutoSuggestBox x:Name="AddTagBox" Visibility="Collapsed"
+                                        PlaceholderText="Tag name (Enter to add)"
+                                        Width="180"
+                                        QuerySubmitted="OnAddTagSubmitted"
+                                        TextChanged="OnAddTagTextChanged"
+                                        LostFocus="OnAddTagBlur"
+                                        VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- v4.2.0 (#14): file info, plot, notes and details, one under another.
+                     In a wide window the code moves them beside the poster. -->
+                <StackPanel x:Name="BodyStack">
+                    <!-- File info panel (v2.2.2) — sits right under the action row -->
+                    <Border x:Name="FileInfoPanel" Visibility="Collapsed"
+                            Margin="0,12,0,0" Padding="12,8"
+                            Background="{ThemeResource CardBrush}"
                             BorderBrush="{ThemeResource BorderBrush}"
-                            BorderThickness="1" CornerRadius="12"
-                            Padding="10,3"
-                            VerticalAlignment="Center">
-                        <TextBlock Text="+ Add tag" FontSize="11"
-                                   Foreground="{ThemeResource MutedBrush}"/>
-                    </Button>
-                    <AutoSuggestBox x:Name="AddTagBox" Visibility="Collapsed"
-                                    PlaceholderText="Tag name (Enter to add)"
-                                    Width="180"
-                                    QuerySubmitted="OnAddTagSubmitted"
-                                    TextChanged="OnAddTagTextChanged"
-                                    LostFocus="OnAddTagBlur"
-                                    VerticalAlignment="Center"/>
-                </StackPanel>
+                            BorderThickness="1" CornerRadius="8">
+                        <controls:WrapPanel HorizontalSpacing="24" VerticalSpacing="8">
+                            <StackPanel x:Name="FiRuntimeBlock" Visibility="Collapsed">
+                                <TextBlock Text="RUNTIME" FontSize="9" FontWeight="SemiBold"
+                                           CharacterSpacing="150" Opacity="0.65"
+                                           Foreground="{ThemeResource MutedBrush}"/>
+                                <TextBlock x:Name="FiRuntime" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextBrush}"/>
+                            </StackPanel>
+                            <StackPanel x:Name="FiReleaseBlock" Visibility="Collapsed">
+                                <TextBlock Text="RELEASED" FontSize="9" FontWeight="SemiBold"
+                                           CharacterSpacing="150" Opacity="0.65"
+                                           Foreground="{ThemeResource MutedBrush}"/>
+                                <TextBlock x:Name="FiRelease" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextBrush}"/>
+                            </StackPanel>
+                            <StackPanel x:Name="FiMpaaBlock" Visibility="Collapsed">
+                                <TextBlock Text="RATED" FontSize="9" FontWeight="SemiBold"
+                                           CharacterSpacing="150" Opacity="0.65"
+                                           Foreground="{ThemeResource MutedBrush}"/>
+                                <TextBlock x:Name="FiMpaa" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextBrush}"/>
+                            </StackPanel>
+                            <StackPanel x:Name="FiCountryBlock" Visibility="Collapsed">
+                                <TextBlock Text="COUNTRY" FontSize="9" FontWeight="SemiBold"
+                                           CharacterSpacing="150" Opacity="0.65"
+                                           Foreground="{ThemeResource MutedBrush}"/>
+                                <TextBlock x:Name="FiCountry" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextBrush}"/>
+                            </StackPanel>
+                            <StackPanel x:Name="FiSizeBlock" Visibility="Collapsed">
+                                <TextBlock Text="FILE SIZE" FontSize="9" FontWeight="SemiBold"
+                                           CharacterSpacing="150" Opacity="0.65"
+                                           Foreground="{ThemeResource MutedBrush}"/>
+                                <TextBlock x:Name="FiSize" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextBrush}"/>
+                            </StackPanel>
+                            <StackPanel x:Name="FiDurBlock" Visibility="Collapsed">
+                                <TextBlock Text="DURATION" FontSize="9" FontWeight="SemiBold"
+                                           CharacterSpacing="150" Opacity="0.65"
+                                           Foreground="{ThemeResource MutedBrush}"/>
+                                <TextBlock x:Name="FiDur" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextBrush}"/>
+                            </StackPanel>
+                            <StackPanel x:Name="FiContainerBlock" Visibility="Collapsed">
+                                <TextBlock Text="CONTAINER" FontSize="9" FontWeight="SemiBold"
+                                           CharacterSpacing="150" Opacity="0.65"
+                                           Foreground="{ThemeResource MutedBrush}"/>
+                                <TextBlock x:Name="FiContainer" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextBrush}"/>
+                            </StackPanel>
+                            <StackPanel x:Name="FiLangBlock" Visibility="Collapsed">
+                                <TextBlock Text="AUDIO" FontSize="9" FontWeight="SemiBold"
+                                           CharacterSpacing="150" Opacity="0.65"
+                                           Foreground="{ThemeResource MutedBrush}"/>
+                                <TextBlock x:Name="FiLangs" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextBrush}"/>
+                            </StackPanel>
+                            <StackPanel x:Name="FiSubsBlock" Visibility="Collapsed">
+                                <TextBlock Text="SUBTITLES" FontSize="9" FontWeight="SemiBold"
+                                           CharacterSpacing="150" Opacity="0.65"
+                                           Foreground="{ThemeResource MutedBrush}"/>
+                                <TextBlock x:Name="FiSubs" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextBrush}"/>
+                            </StackPanel>
+                        </controls:WrapPanel>
+                    </Border>
 
-                <!-- File info panel (v2.2.2) — sits right under the action row -->
-                <Border x:Name="FileInfoPanel" Visibility="Collapsed"
-                        Margin="0,12,0,0" Padding="12,8"
-                        Background="{ThemeResource CardBrush}"
-                        BorderBrush="{ThemeResource BorderBrush}"
-                        BorderThickness="1" CornerRadius="8">
-                    <controls:WrapPanel HorizontalSpacing="24" VerticalSpacing="8">
-                        <StackPanel x:Name="FiRuntimeBlock" Visibility="Collapsed">
-                            <TextBlock Text="RUNTIME" FontSize="9" FontWeight="SemiBold"
+                    <!-- Plot — with section header + capped width for readability -->
+                    <StackPanel x:Name="PlotBlock">
+                        <Border x:Name="PlotDivider" Visibility="Collapsed"
+                                Height="1" Background="{ThemeResource BorderBrush}"
+                                Margin="0,24,0,0" Opacity="0.5"/>
+                        <StackPanel x:Name="PlotSection" Visibility="Collapsed" Margin="0,20,0,0" Spacing="8">
+                            <TextBlock Text="PLOT" FontSize="10" FontWeight="SemiBold"
                                        CharacterSpacing="150" Opacity="0.65"
                                        Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock x:Name="FiRuntime" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{ThemeResource TextBrush}"/>
+                            <TextBlock x:Name="PlotText" FontSize="14" Foreground="{ThemeResource TextBrush}"
+                                       TextWrapping="Wrap" LineHeight="22" MaxWidth="780"
+                                       HorizontalAlignment="Left"/>
                         </StackPanel>
-                        <StackPanel x:Name="FiReleaseBlock" Visibility="Collapsed">
-                            <TextBlock Text="RELEASED" FontSize="9" FontWeight="SemiBold"
-                                       CharacterSpacing="150" Opacity="0.65"
-                                       Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock x:Name="FiRelease" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{ThemeResource TextBrush}"/>
-                        </StackPanel>
-                        <StackPanel x:Name="FiMpaaBlock" Visibility="Collapsed">
-                            <TextBlock Text="RATED" FontSize="9" FontWeight="SemiBold"
-                                       CharacterSpacing="150" Opacity="0.65"
-                                       Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock x:Name="FiMpaa" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{ThemeResource TextBrush}"/>
-                        </StackPanel>
-                        <StackPanel x:Name="FiCountryBlock" Visibility="Collapsed">
-                            <TextBlock Text="COUNTRY" FontSize="9" FontWeight="SemiBold"
-                                       CharacterSpacing="150" Opacity="0.65"
-                                       Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock x:Name="FiCountry" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{ThemeResource TextBrush}"/>
-                        </StackPanel>
-                        <StackPanel x:Name="FiSizeBlock" Visibility="Collapsed">
-                            <TextBlock Text="FILE SIZE" FontSize="9" FontWeight="SemiBold"
-                                       CharacterSpacing="150" Opacity="0.65"
-                                       Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock x:Name="FiSize" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{ThemeResource TextBrush}"/>
-                        </StackPanel>
-                        <StackPanel x:Name="FiDurBlock" Visibility="Collapsed">
-                            <TextBlock Text="DURATION" FontSize="9" FontWeight="SemiBold"
-                                       CharacterSpacing="150" Opacity="0.65"
-                                       Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock x:Name="FiDur" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{ThemeResource TextBrush}"/>
-                        </StackPanel>
-                        <StackPanel x:Name="FiContainerBlock" Visibility="Collapsed">
-                            <TextBlock Text="CONTAINER" FontSize="9" FontWeight="SemiBold"
-                                       CharacterSpacing="150" Opacity="0.65"
-                                       Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock x:Name="FiContainer" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{ThemeResource TextBrush}"/>
-                        </StackPanel>
-                        <StackPanel x:Name="FiLangBlock" Visibility="Collapsed">
-                            <TextBlock Text="AUDIO" FontSize="9" FontWeight="SemiBold"
-                                       CharacterSpacing="150" Opacity="0.65"
-                                       Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock x:Name="FiLangs" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{ThemeResource TextBrush}"/>
-                        </StackPanel>
-                        <StackPanel x:Name="FiSubsBlock" Visibility="Collapsed">
-                            <TextBlock Text="SUBTITLES" FontSize="9" FontWeight="SemiBold"
-                                       CharacterSpacing="150" Opacity="0.65"
-                                       Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock x:Name="FiSubs" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{ThemeResource TextBrush}"/>
-                        </StackPanel>
-                    </controls:WrapPanel>
-                </Border>
+                    </StackPanel>
 
-                <!-- Plot — with section header + capped width for readability -->
-                <Border x:Name="PlotDivider" Visibility="Collapsed"
-                        Height="1" Background="{ThemeResource BorderBrush}"
-                        Margin="0,24,0,0" Opacity="0.5"/>
-                <StackPanel x:Name="PlotSection" Visibility="Collapsed" Margin="0,20,0,0" Spacing="8">
-                    <TextBlock Text="PLOT" FontSize="10" FontWeight="SemiBold"
-                               CharacterSpacing="150" Opacity="0.65"
-                               Foreground="{ThemeResource MutedBrush}"/>
-                    <TextBlock x:Name="PlotText" FontSize="14" Foreground="{ThemeResource TextBrush}"
-                               TextWrapping="Wrap" LineHeight="22" MaxWidth="780"
-                               HorizontalAlignment="Left"/>
-                </StackPanel>
+                    <!-- Notes (v1.9) -->
+                    <Border x:Name="NotesCard" Margin="0,20,0,0" Padding="14,12"
+                            Background="{ThemeResource CardBrush}"
+                            BorderBrush="{ThemeResource BorderBrush}"
+                            BorderThickness="1" CornerRadius="8">
+                        <StackPanel Spacing="8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="📝 Notes"
+                                           FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextBrush}"
+                                           VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                    <Button x:Name="NoteAddBtn" Click="OnNoteEditStart"
+                                            Content="+ Add note" Visibility="Collapsed"
+                                            Background="Transparent"
+                                            Foreground="{ThemeResource MutedBrush}"
+                                            BorderBrush="{ThemeResource BorderBrush}"
+                                            CornerRadius="6" Padding="10,4" FontSize="12"/>
+                                    <Button x:Name="NoteEditBtn" Click="OnNoteEditStart"
+                                            Content="Edit" Visibility="Collapsed"
+                                            Background="Transparent"
+                                            Foreground="{ThemeResource MutedBrush}"
+                                            BorderBrush="{ThemeResource BorderBrush}"
+                                            CornerRadius="6" Padding="10,4" FontSize="12"/>
+                                    <Button x:Name="NoteSaveBtn" Click="OnNoteSave"
+                                            Content="Save" Visibility="Collapsed"
+                                            Background="{StaticResource BrandPurpleBrush}"
+                                            Foreground="#FFFFFF"
+                                            BorderThickness="0"
+                                            CornerRadius="6" Padding="10,4" FontSize="12"/>
+                                    <Button x:Name="NoteCancelBtn" Click="OnNoteCancel"
+                                            Content="Cancel" Visibility="Collapsed"
+                                            Background="Transparent"
+                                            Foreground="{ThemeResource MutedBrush}"
+                                            BorderBrush="{ThemeResource BorderBrush}"
+                                            CornerRadius="6" Padding="10,4" FontSize="12"/>
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock x:Name="NoteText" Visibility="Collapsed"
+                                       FontSize="13" Foreground="{ThemeResource TextBrush}"
+                                       TextWrapping="Wrap" LineHeight="20"/>
+                            <TextBox x:Name="NoteEditor" Visibility="Collapsed"
+                                     AcceptsReturn="True" TextWrapping="Wrap"
+                                     MinHeight="100" MaxHeight="240"
+                                     PlaceholderText="What did you think of this film?"
+                                     FontSize="13"/>
+                            <TextBlock x:Name="NoteOfflineHint" Visibility="Collapsed"
+                                       Text="Drive offline — note saved locally; will sync to the movie folder when reconnected."
+                                       FontSize="11" Foreground="{ThemeResource MutedBrush}"
+                                       FontStyle="Italic" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
 
-                <!-- Notes (v1.9) -->
-                <Border Margin="0,20,0,0" Padding="14,12"
-                        Background="{ThemeResource CardBrush}"
-                        BorderBrush="{ThemeResource BorderBrush}"
-                        BorderThickness="1" CornerRadius="8">
-                    <StackPanel Spacing="8">
-                        <Grid>
+                    <StackPanel x:Name="FieldsBlock">
+                        <!-- Subtle section divider before fields grid -->
+                        <Border x:Name="FieldsDivider" Height="1" Background="{ThemeResource BorderBrush}"
+                                Margin="0,24,0,0" Opacity="0.5"/>
+
+                        <!-- Fields grid -->
+                        <Grid x:Name="FieldsGrid" Margin="0,20,0,0" SizeChanged="OnFieldsGridSizeChanged">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="📝 Notes"
-                                       FontSize="14" FontWeight="SemiBold"
-                                       Foreground="{ThemeResource TextBrush}"
-                                       VerticalAlignment="Center"/>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
-                                <Button x:Name="NoteAddBtn" Click="OnNoteEditStart"
-                                        Content="+ Add note" Visibility="Collapsed"
-                                        Background="Transparent"
-                                        Foreground="{ThemeResource MutedBrush}"
-                                        BorderBrush="{ThemeResource BorderBrush}"
-                                        CornerRadius="6" Padding="10,4" FontSize="12"/>
-                                <Button x:Name="NoteEditBtn" Click="OnNoteEditStart"
-                                        Content="Edit" Visibility="Collapsed"
-                                        Background="Transparent"
-                                        Foreground="{ThemeResource MutedBrush}"
-                                        BorderBrush="{ThemeResource BorderBrush}"
-                                        CornerRadius="6" Padding="10,4" FontSize="12"/>
-                                <Button x:Name="NoteSaveBtn" Click="OnNoteSave"
-                                        Content="Save" Visibility="Collapsed"
-                                        Background="{StaticResource BrandPurpleBrush}"
-                                        Foreground="#FFFFFF"
-                                        BorderThickness="0"
-                                        CornerRadius="6" Padding="10,4" FontSize="12"/>
-                                <Button x:Name="NoteCancelBtn" Click="OnNoteCancel"
-                                        Content="Cancel" Visibility="Collapsed"
-                                        Background="Transparent"
-                                        Foreground="{ThemeResource MutedBrush}"
-                                        BorderBrush="{ThemeResource BorderBrush}"
-                                        CornerRadius="6" Padding="10,4" FontSize="12"/>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Column="0" x:Name="GenresField" Visibility="Collapsed" Spacing="4">
+                                <TextBlock Text="Genres" FontSize="11" Foreground="{ThemeResource MutedBrush}"/>
+                                <controls:WrapPanel x:Name="GenreLinks" HorizontalSpacing="4" VerticalSpacing="2"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" x:Name="DirectorField" Visibility="Collapsed" Spacing="4">
+                                <TextBlock Text="Director" FontSize="11" Foreground="{ThemeResource MutedBrush}"/>
+                                <controls:WrapPanel x:Name="DirectorLinks" HorizontalSpacing="4" VerticalSpacing="2"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="4">
+                                <TextBlock x:Name="StudioLabel" Visibility="Collapsed"
+                                           Text="Studio" FontSize="11" Foreground="{ThemeResource MutedBrush}"/>
+                                <TextBlock x:Name="StudioText" Visibility="Collapsed"
+                                           FontSize="13" Foreground="{ThemeResource TextBrush}"
+                                           TextWrapping="Wrap"/>
+                                <HyperlinkButton x:Name="StudioLink" Visibility="Collapsed"
+                                                 Padding="0" FontSize="13"/>
                             </StackPanel>
                         </Grid>
-                        <TextBlock x:Name="NoteText" Visibility="Collapsed"
-                                   FontSize="13" Foreground="{ThemeResource TextBrush}"
-                                   TextWrapping="Wrap" LineHeight="20"/>
-                        <TextBox x:Name="NoteEditor" Visibility="Collapsed"
-                                 AcceptsReturn="True" TextWrapping="Wrap"
-                                 MinHeight="100" MaxHeight="240"
-                                 PlaceholderText="What did you think of this film?"
-                                 FontSize="13"/>
-                        <TextBlock x:Name="NoteOfflineHint" Visibility="Collapsed"
-                                   Text="Drive offline — note saved locally; will sync to the movie folder when reconnected."
-                                   FontSize="11" Foreground="{ThemeResource MutedBrush}"
-                                   FontStyle="Italic" TextWrapping="Wrap"/>
                     </StackPanel>
-                </Border>
-
-                <!-- Subtle section divider before fields grid -->
-                <Border Height="1" Background="{ThemeResource BorderBrush}"
-                        Margin="0,24,0,0" Opacity="0.5"/>
-
-                <!-- Fields grid -->
-                <Grid Margin="0,20,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0" x:Name="GenresField" Visibility="Collapsed" Spacing="4">
-                        <TextBlock Text="Genres" FontSize="11" Foreground="{ThemeResource MutedBrush}"/>
-                        <StackPanel x:Name="GenreLinks" Orientation="Horizontal" Spacing="4"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" x:Name="DirectorField" Visibility="Collapsed" Spacing="4">
-                        <TextBlock Text="Director" FontSize="11" Foreground="{ThemeResource MutedBrush}"/>
-                        <StackPanel x:Name="DirectorLinks" Orientation="Horizontal" Spacing="4"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="2" Spacing="4">
-                        <TextBlock x:Name="StudioLabel" Visibility="Collapsed"
-                                   Text="Studio" FontSize="11" Foreground="{ThemeResource MutedBrush}"/>
-                        <TextBlock x:Name="StudioText" Visibility="Collapsed"
-                                   FontSize="13" Foreground="{ThemeResource TextBrush}"
-                                   TextWrapping="Wrap"/>
-                        <HyperlinkButton x:Name="StudioLink" Visibility="Collapsed"
-                                         Padding="0" FontSize="13"/>
-                    </StackPanel>
-                </Grid>
+                </StackPanel>
 
                 <!-- Divider above Cast -->
                 <Border x:Name="CastDivider" Visibility="Collapsed"

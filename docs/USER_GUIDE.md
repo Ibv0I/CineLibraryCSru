@@ -139,6 +139,13 @@ audio), file size and duration, and quick toggles for watched /
 favorite / watchlist. Press **Esc** to close, or use the close button
 in the sticky bar that appears as you scroll.
 
+The window uses its whole width and arranges itself to fit. In a wide
+window (a 1440p or 4K screen) the buttons and plot sit beside a larger
+poster, with genres, director, studio, file details and your note in a
+column of their own, so most movies fit on one screen without scrolling.
+In a narrow window (a tablet held upright, or the window snapped to half
+the screen) everything stacks in one column.
+
 **Double-click** a poster to play the movie immediately via your default
 video player. If the movie's drive isn't connected, CineLibrary tells
 you which drive to plug in.

@@ -3461,8 +3461,13 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     public List<Models.TvShowListItem> GetTvShowsForPage(TvShowPage page, IReadOnlyDictionary<string, string> connected)
     {
         using var cmd = _conn.CreateCommand();
+        // v4.1.0: Continue Watching also gets the next episode, the first unwatched
+        // by season then episode, as ▶ Play next on the show page picks it.
         cmd.CommandText = $@"
-            SELECT {ShowListItemColumns}
+            SELECT {ShowListItemColumns}{(page == TvShowPage.ContinueWatching
+                ? @", (SELECT printf('S%02dE%02d', e.season, e.episode) FROM tv_episodes e
+                      WHERE e.show_id=s.id AND e.is_watched=0 ORDER BY e.season, e.episode LIMIT 1)"
+                : "")}
               FROM tv_shows s
               LEFT JOIN drives d ON d.volume_serial = s.volume_serial
              WHERE s.is_missing = 0 AND {TvShowPageWhere(page)}
@@ -3479,6 +3484,35 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         using var cmd = _conn.CreateCommand();
         cmd.CommandText = $"SELECT COUNT(*) FROM tv_shows s WHERE s.is_missing = 0 AND {TvShowPageWhere(page)}";
         return Convert.ToInt32(cmd.ExecuteScalar());
+    }
+
+    /// <summary>
+    /// v4.1.0 — what a show card's hover panel shows: up to three genres, the
+    /// number of seasons (Specials not counted) and the next episode, the first
+    /// unwatched by season then episode, as ▶ Play next on the show page picks it.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public (string Genres, int Seasons, int? NextId, string? NextCode, string? NextFile) GetShowHoverInfo(int showId)
+    {
+        using var cmd = _conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT (SELECT group_concat(name, ' · ') FROM (
+                        SELECT g.name FROM tv_show_genres sg JOIN genres g ON g.id=sg.genre_id
+                         WHERE sg.show_id=@id ORDER BY g.name LIMIT 3)),
+                   (SELECT COUNT(DISTINCT season) FROM tv_episodes WHERE show_id=@id AND season > 0),
+                   n.id, printf('S%02dE%02d', n.season, n.episode), n.video_file_rel_path
+              FROM (SELECT 1)
+              LEFT JOIN (SELECT id, season, episode, video_file_rel_path FROM tv_episodes
+                          WHERE show_id=@id AND is_watched=0
+                          ORDER BY season, episode LIMIT 1) n";
+        cmd.Parameters.AddWithValue("@id", showId);
+        using var r = cmd.ExecuteReader();
+        r.Read();
+        var hasNext = !r.IsDBNull(2);
+        return (r.IsDBNull(0) ? "" : r.GetString(0), r.GetInt32(1),
+                hasNext ? r.GetInt32(2) : null,
+                hasNext ? r.GetString(3) : null,
+                hasNext && !r.IsDBNull(4) ? r.GetString(4) : null);
     }
 
     public enum TvShowPage { Favorites, Watchlist, ContinueWatching }
@@ -3518,6 +3552,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 EpisodeCount = r.GetInt32(10),
                 WatchedCount = r.GetInt32(11),
                 IsOnline = connected.ContainsKey(serial),
+                NextEpisode = r.FieldCount > 12 && !r.IsDBNull(12) ? r.GetString(12) : null,
             });
         }
         return list;
@@ -4342,70 +4377,6 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     }
 
     // ── Discovery (v2.9) ─────────────────────────────────────────────────────
-
-    /// <summary>
-    /// v2.9 — "Continue Watching" for TV. One entry per show that's been
-    /// started but not finished (≥1 watched AND ≥1 unwatched episode); the
-    /// "next" episode is the lowest (season, episode) among unwatched. Sorted
-    /// by the show's most recently played episode so the show you touched
-    /// last week floats above the show you touched a year ago. Online-aware:
-    /// online shows come first, offline shows tail (so the user always sees
-    /// a row even if the relevant drive is unplugged, but actionable items
-    /// are on top).
-    /// </summary>
-    [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<Models.TvContinueWatchingItem> GetTvContinueWatching(
-        IReadOnlyDictionary<string, string> connected, int limit = 12)
-    {
-        var list = new List<Models.TvContinueWatchingItem>();
-        using var cmd = _conn.CreateCommand();
-        // We pick the next-unwatched episode in a subquery (ordered by season
-        // then episode), then join its row in. The two EXISTS clauses gate
-        // "show is in progress" — neither fully unwatched nor fully watched.
-        cmd.CommandText = @"
-            SELECT s.id, s.title, s.local_poster, s.volume_serial,
-                   e.id, e.season, e.episode, COALESCE(e.title, '') AS ep_title,
-                   e.video_file_rel_path,
-                   (SELECT COUNT(*) FROM tv_episodes ee WHERE ee.show_id=s.id) AS total_eps,
-                   (SELECT COUNT(*) FROM tv_episodes ee WHERE ee.show_id=s.id AND ee.is_watched=1) AS watched_eps,
-                   (SELECT MAX(last_played_at) FROM tv_episodes ee WHERE ee.show_id=s.id) AS last_played
-              FROM tv_shows s
-              JOIN tv_episodes e ON e.id = (
-                  SELECT ee.id FROM tv_episodes ee
-                   WHERE ee.show_id = s.id AND ee.is_watched = 0
-                   ORDER BY ee.season, ee.episode LIMIT 1
-              )
-             WHERE s.is_missing = 0
-               AND EXISTS (SELECT 1 FROM tv_episodes ee WHERE ee.show_id=s.id AND ee.is_watched=1)
-               AND EXISTS (SELECT 1 FROM tv_episodes ee WHERE ee.show_id=s.id AND ee.is_watched=0)
-             ORDER BY last_played DESC, s.sort_title
-             LIMIT @lim";
-        cmd.Parameters.AddWithValue("@lim", limit);
-        using var r = cmd.ExecuteReader();
-        while (r.Read())
-        {
-            var serial = r.GetString(3);
-            list.Add(new Models.TvContinueWatchingItem
-            {
-                ShowId = r.GetInt32(0),
-                ShowTitle = r.GetString(1),
-                LocalPoster = r.IsDBNull(2) ? null : r.GetString(2),
-                VolumeSerial = serial,
-                IsOnline = connected.ContainsKey(serial),
-                EpisodeId = r.GetInt32(4),
-                Season = r.GetInt32(5),
-                Episode = r.GetInt32(6),
-                EpisodeTitle = r.GetString(7),
-                VideoFileRelPath = r.IsDBNull(8) ? null : r.GetString(8),
-                TotalEpisodes = r.GetInt32(9),
-                WatchedEpisodes = r.GetInt32(10),
-            });
-        }
-        // Online shows first, but keep last-played ordering inside each bucket.
-        return list
-            .OrderByDescending(i => i.IsOnline)
-            .ToList();
-    }
 
     /// <summary>
     /// v2.9 — Top N most recently added movies for the "Recently Added" row

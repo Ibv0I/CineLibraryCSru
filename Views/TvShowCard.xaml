@@ -4,7 +4,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- No ToolTip: recycled cards orphan tooltips on scroll (see MovieCardControl). -->
-    <Grid x:Name="CardRoot" Width="170" Height="300" RenderTransformOrigin="0.5,0.5">
+    <!-- v4.1.0: no fixed width; the card asks for its size in MeasureOverride and
+         fills the width it is given, so the All TV shows grid lines up with the title. -->
+    <Grid x:Name="CardRoot" Height="300" RenderTransformOrigin="0.5,0.5">
         <Grid.RenderTransform>
             <TranslateTransform x:Name="CardLift" Y="0"/>
         </Grid.RenderTransform>
@@ -38,8 +40,8 @@
                     <TextBlock x:Name="StatusText" FontSize="9" FontWeight="Bold" Foreground="White"/>
                 </Border>
 
-                <!-- Info strip -->
-                <Border VerticalAlignment="Bottom" CornerRadius="0,0,12,12" Padding="10,8">
+                <!-- Info strip (hidden under the hover panel, v4.1.0) -->
+                <Border x:Name="InfoStrip" VerticalAlignment="Bottom" CornerRadius="0,0,12,12" Padding="10,8">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                             <GradientStop Offset="0" Color="#00000000"/>
@@ -67,12 +69,39 @@
                             <TextBlock x:Name="ProgressText" Grid.Column="1" FontSize="11"
                                        FontWeight="SemiBold" Foreground="#A78BFA"/>
                         </Grid>
-                        <!-- Watched progress bar -->
-                        <Border Height="4" CornerRadius="2" Background="#40FFFFFF">
-                            <Border x:Name="ProgressFill" Height="4" CornerRadius="2"
-                                    HorizontalAlignment="Left"
+                        <!-- Watched progress bar (v4.1.0: star columns follow the card's width) -->
+                        <Grid Height="4" CornerRadius="2" Background="#40FFFFFF">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition x:Name="ProgressDoneColumn" Width="0*"/>
+                                <ColumnDefinition x:Name="ProgressLeftColumn" Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="ProgressFill" CornerRadius="2"
                                     Background="{StaticResource BrandPurpleBrush}"/>
-                        </Border>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- v4.1.0: hover panel, like the movie cards': what the show is,
+                     ▶ the next episode, and Favorite / Watchlist without opening
+                     the show. Filled in when the pointer comes in. -->
+                <Border x:Name="HoverOverlay" CornerRadius="12" Background="#CC000000"
+                        Visibility="Collapsed">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                Spacing="6" Margin="8">
+                        <TextBlock x:Name="HoverGenres" FontSize="11" Foreground="#E0E0E0"
+                                   TextAlignment="Center" TextWrapping="Wrap" MaxLines="2"
+                                   TextTrimming="CharacterEllipsis"/>
+                        <TextBlock x:Name="HoverSeasons" FontSize="11" Foreground="#E0E0E0"
+                                   TextAlignment="Center" TextWrapping="Wrap"/>
+                        <Button x:Name="HoverPlayBtn" Click="OnHoverPlay" Tapped="OnHoverButtonTapped"
+                                Style="{StaticResource PillButtonActiveStyle}"
+                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                        <TextBlock x:Name="HoverNote" FontSize="11" TextAlignment="Center"
+                                   TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        <Button x:Name="HoverFavBtn" Click="OnHoverFavorite" Tapped="OnHoverButtonTapped"
+                                Style="{StaticResource PillButtonStyle}" HorizontalAlignment="Center"/>
+                        <Button x:Name="HoverWatchlistBtn" Click="OnHoverWatchlist" Tapped="OnHoverButtonTapped"
+                                Style="{StaticResource PillButtonStyle}" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Border>
             </Grid>

@@ -302,6 +302,18 @@ your choices:
 
 A green **✓** on a show card means you've watched every episode.
 
+**Point at a show card** to see more without opening it: its genres, how
+many seasons, how much you've watched, and three buttons:
+
+- **▶ Play S01E04** plays the next episode straight away (the one ▶ Play
+  next on the show page would start) and marks it watched. If the drive
+  isn't connected, the card says where the next episode is instead.
+- **☆ Favorite** and **📋 Watchlist** switch those on and off.
+
+Clicking anywhere else on the card opens the show. This works on every
+page with show cards: All TV Shows, Favorites, To Watch, Continue
+Watching, your lists and search.
+
 ### The show page
 
 Click a show to open its page:
@@ -364,8 +376,9 @@ not one episode), set from the buttons in the show header. Watched is
 
 Favorite and watchlisted shows appear in a **TV shows** row at the top
 of **Favorites** and **To Watch**, above the movies; shows you're partway
-through appear the same way on **Continue Watching**. Click a show to
-open it. The **To Watch** and **Continue Watching** counts in the
+through appear the same way on **Continue Watching**, where each card
+says which episode is next ("Next: S01E04", the one ▶ Play next starts).
+Click a show to open it. The **To Watch** and **Continue Watching** counts in the
 sidebar include these shows.
 
 ### Shows travel with the drive too

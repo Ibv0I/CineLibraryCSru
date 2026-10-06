@@ -195,16 +195,41 @@ public partial class LibraryViewModel : ObservableObject
 
     // ── Sort / View ──────────────────────────────────────────────────────────
 
+    // v4.1.0: Recently Added, Continue Watching and Recently Watched sort by
+    // their own date. That order used to be saved as your sort, so All Movies
+    // came back sorted by last watched. Now a sort on those pages is never
+    // saved, and leaving them brings your own sort back.
+    private bool HasOwnSort => IsRecentlyAdded || IsContinueWatching || IsRecentlyWatched;
+    private bool _restoringSort;
+
     partial void OnSortKeyChanged(SortKey value)
     {
-        _state.SetPref("sortKey", value.ToString());
+        if (_restoringSort) return;   // whoever left the page reloads next
+        if (!HasOwnSort) _state.SetPref("sortKey", value.ToString());
         _ = LoadAsync();
     }
 
     partial void OnSortDirChanged(SortDir value)
     {
-        _state.SetPref("sortDir", value.ToString());
+        if (_restoringSort) return;
+        if (!HasOwnSort) _state.SetPref("sortDir", value.ToString());
         _ = LoadAsync();
+    }
+
+    partial void OnIsRecentlyAddedChanged(bool value) { if (!value) RestoreSavedSort(); }
+    partial void OnIsContinueWatchingChanged(bool value) { if (!value) RestoreSavedSort(); }
+    partial void OnIsRecentlyWatchedChanged(bool value) { if (!value) RestoreSavedSort(); }
+
+    private void RestoreSavedSort()
+    {
+        if (HasOwnSort) return;
+        _restoringSort = true;
+        try
+        {
+            SortKey = Enum.TryParse<SortKey>(_state.GetPref("sortKey", "Title"), out var k) ? k : SortKey.Title;
+            SortDir = Enum.TryParse<SortDir>(_state.GetPref("sortDir", "Asc"), out var d) ? d : SortDir.Asc;
+        }
+        finally { _restoringSort = false; }
     }
 
     partial void OnViewModeChanged(ViewMode value)

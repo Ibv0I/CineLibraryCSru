@@ -257,8 +257,27 @@ public sealed partial class MovieCardControl : UserControl
 
     private void ApplySize()
     {
-        CardRoot.Width = GlobalCardWidth;
         CardRoot.Height = GlobalCardHeight;
+        InvalidateMeasure();
+    }
+
+    // v4.1.0: ask for the S / M / L / XL size but fill the grid cell, which the
+    // layout stretches to fill the row. A fixed-width card sat in the middle of
+    // its cell, so the grid started a few pixels right of the page title.
+    protected override Windows.Foundation.Size MeasureOverride(Windows.Foundation.Size availableSize)
+    {
+        var size = new Windows.Foundation.Size(GlobalCardWidth, GlobalCardHeight);
+        base.MeasureOverride(size);
+        return size;
+    }
+
+    // No wider than a 2:3 poster at the card's height (no top/bottom cropping when
+    // only a column or two fit); past that the card keeps to the left of its cell.
+    protected override Windows.Foundation.Size ArrangeOverride(Windows.Foundation.Size finalSize)
+    {
+        var width = Math.Min(finalSize.Width, Math.Max(GlobalCardWidth, GlobalCardHeight * 2 / 3));
+        base.ArrangeOverride(new Windows.Foundation.Size(width, finalSize.Height));
+        return finalSize;
     }
 
     private static void OnMovieChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

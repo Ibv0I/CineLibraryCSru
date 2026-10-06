@@ -105,32 +105,9 @@
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0">
             <Grid>
-                <!-- LEVEL 1: Continue Watching row (v2.9) + Shows grid -->
+                <!-- LEVEL 1: Shows grid. v4.1.0: the Continue Watching row that sat
+                     above it is gone; the Continue Watching page lists those shows. -->
                 <StackPanel x:Name="ShowsLevelHost" Spacing="0">
-                    <!-- v2.9 — "Continue Watching" row: shows the user has
-                         started but not finished, with the next-unwatched
-                         episode label. Built in code-behind; hidden when
-                         empty. -->
-                    <StackPanel x:Name="ContinueWatchingHost" Visibility="Collapsed"
-                                Spacing="6" Margin="0,0,0,18">
-                        <TextBlock Text="▶ CONTINUE WATCHING"
-                                   Margin="24,4,24,0"
-                                   FontSize="12" FontWeight="SemiBold" CharacterSpacing="150"
-                                   Opacity="0.75"
-                                   Foreground="{ThemeResource MutedBrush}"/>
-                        <ScrollViewer HorizontalScrollBarVisibility="Auto"
-                                      VerticalScrollBarVisibility="Disabled"
-                                      HorizontalScrollMode="Enabled"
-                                      VerticalScrollMode="Disabled"
-                                      Height="312" Padding="24,0,24,0">
-                            <ItemsRepeater x:Name="ContinueWatchingRepeater">
-                                <ItemsRepeater.Layout>
-                                    <StackLayout Orientation="Horizontal" Spacing="14"/>
-                                </ItemsRepeater.Layout>
-                            </ItemsRepeater>
-                        </ScrollViewer>
-                    </StackPanel>
-
                     <ItemsRepeater x:Name="ShowsRepeater" Margin="24,0,24,24">
                         <ItemsRepeater.Layout>
                             <UniformGridLayout x:Name="ShowsGridLayout" MinItemWidth="170" MinItemHeight="300"

@@ -23,6 +23,9 @@ public partial class TvShowListItem : ObservableObject
     // v3.7.0: for the All TV shows sort options (unix seconds, 0 = never).
     public long DateAdded { get; set; }
     public long LastPlayed { get; set; }
+    // v4.1.0: "S01E04", the episode ▶ Play next would start. Filled for the
+    // Continue Watching page only; the card shows "Next: S01E04" in place of the year.
+    public string? NextEpisode { get; set; }
 
     [ObservableProperty] private bool _isFavorite;
     [ObservableProperty] private bool _isWatchlist;
@@ -147,34 +150,6 @@ public class TvEpisodeDetail
             return t.TotalHours >= 1 ? $"{(int)t.TotalHours}h {t.Minutes:D2}m" : $"{t.Minutes}m {t.Seconds:D2}s";
         }
     }
-}
-
-/// <summary>
-/// v2.9 — "Continue Watching" card on the TV Shows page. One entry per show
-/// the user has started (≥1 watched + ≥1 unwatched). Carries enough to
-/// display a show poster + "Next: SxxExx · Title" label and to launch the
-/// next episode straight from the row.
-/// </summary>
-public class TvContinueWatchingItem
-{
-    public int ShowId { get; set; }
-    public string ShowTitle { get; set; } = "";
-    public string? LocalPoster { get; set; }
-    public string VolumeSerial { get; set; } = "";
-    public bool IsOnline { get; set; }
-    public int EpisodeId { get; set; }
-    public int Season { get; set; }
-    public int Episode { get; set; }
-    public string EpisodeTitle { get; set; } = "";
-    public string? VideoFileRelPath { get; set; }
-    public int TotalEpisodes { get; set; }
-    public int WatchedEpisodes { get; set; }
-
-    public string Code => $"S{Season:D2}E{Episode:D2}";
-    public string NextLabel => $"Next: {Code} · {EpisodeTitle}";
-    public string ProgressText => $"{WatchedEpisodes}/{TotalEpisodes}";
-    public double ProgressFraction =>
-        TotalEpisodes > 0 ? (double)WatchedEpisodes / TotalEpisodes : 0;
 }
 
 /// <summary>Full show detail for the show header (poster, plot, cast).</summary>

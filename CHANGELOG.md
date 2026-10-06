@@ -6,6 +6,38 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > Per-release notes for the 2.x and early-3.x versions between the two
 > entries below live on the [Releases](https://github.com/aungkokomm/CineLibraryCS/releases) page.
 
+## [4.1.0] - 2026-10-06
+
+A cleaner All TV Shows page, and show cards you can use without opening them.
+
+### Added
+- **Point at a show card for a quick panel**: its genres, seasons and how
+  much you've watched, with **▶ Play** for the next episode (it plays
+  straight away and is marked watched, as on the show page), **Favorite**
+  and **Watchlist**. When the drive isn't connected, the panel says where
+  the next episode is. On every page with show cards.
+
+### Changed
+- **All TV Shows is just your shows**, like All Movies. The big Continue
+  Watching row at the top is gone: since 4.0.0 the Continue Watching page
+  lists the shows you're partway through, so the row only repeated it and
+  pushed your shows down.
+- **Show cards on Continue Watching say what's next**: "Next: S01E04", the
+  episode ▶ Play next on the show page starts.
+- **The All TV Shows and All Movies grids line up with the page title.**
+  Cards sat in the middle of grid cells that stretch to fill the row, so
+  the grid started a few pixels to the right of the title, and on Continue
+  Watching the movies didn't line up with the shows above them. Cards now
+  fill their cells, up to the full width of the poster.
+
+### Fixed
+- **Visiting Continue Watching, Recently Added or Recently Watched no longer
+  changes your movie sort.** Their own order was saved as your sort, so All
+  Movies came back sorted by last watched or date added. Your sort now
+  comes back when you leave those pages.
+- **The sort box shows the real order on those pages.** It wasn't updated
+  for them, and "Last Watched" read as "Title".
+
 ## [4.0.1] - 2026-10-05
 
 ### Added

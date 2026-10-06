@@ -127,6 +127,9 @@ public sealed partial class LibraryPage : Page
         // re-query the shows row each time; a show may have been made a
         // favorite (or finished) on its own page meanwhile.
         Loaded += (_, _) => { _shownRowKey = ""; RefreshShowsInList(); };
+        // v4.1.0: a show card's hover panel changed a show (un-favorited it on
+        // Favorites, finished it on Continue Watching): re-list the row.
+        TvShowCard.ShowChanged += _ => { _shownRowKey = ""; RefreshShowsInList(); };
 
         // v2.8.2 — tap a show card in the "TV shows in this list" row to
         // open that show on the TV page.
@@ -824,26 +827,7 @@ public sealed partial class LibraryPage : Page
 
     private void SyncUiFromVm()
     {
-        // Sort combo — match the item whose Tag corresponds to current SortKey+SortDir
-        var keyStr = _vm.SortKey switch
-        {
-            SortKey.Year      => "year",
-            SortKey.Rating    => "rating",
-            SortKey.Runtime   => "runtime",
-            SortKey.DateAdded => "date_added",
-            _                 => "title"
-        };
-        var dirStr = _vm.SortDir == SortDir.Asc ? "asc" : "desc";
-        var wantTag = $"{keyStr}:{dirStr}";
-        for (int i = 0; i < SortCombo.Items.Count; i++)
-        {
-            if (SortCombo.Items[i] is ComboBoxItem ci && (ci.Tag as string) == wantTag)
-            {
-                SortCombo.SelectedIndex = i;
-                break;
-            }
-        }
-        if (SortCombo.SelectedIndex < 0) SortCombo.SelectedIndex = 0;
+        SyncSortCombo();
 
         // View mode toggle
         if (_vm.ViewMode == ViewMode.List)
@@ -860,6 +844,33 @@ public sealed partial class LibraryPage : Page
             GridBorder.Visibility = Visibility.Visible;
             ListBorder.Visibility = Visibility.Collapsed;
         }
+    }
+
+    // Sort combo — match the item whose Tag corresponds to current SortKey+SortDir.
+    // v4.1.0: runs whenever the sort changes (it ran only at start, so Continue
+    // Watching's own order never showed), and knows Last Watched (it read "Title").
+    private void SyncSortCombo()
+    {
+        var keyStr = _vm.SortKey switch
+        {
+            SortKey.Year       => "year",
+            SortKey.Rating     => "rating",
+            SortKey.Runtime    => "runtime",
+            SortKey.DateAdded  => "date_added",
+            SortKey.LastPlayed => "last_played",
+            _                  => "title"
+        };
+        var dirStr = _vm.SortDir == SortDir.Asc ? "asc" : "desc";
+        var wantTag = $"{keyStr}:{dirStr}";
+        for (int i = 0; i < SortCombo.Items.Count; i++)
+        {
+            if (SortCombo.Items[i] is ComboBoxItem ci && (ci.Tag as string) == wantTag)
+            {
+                SortCombo.SelectedIndex = i;
+                break;
+            }
+        }
+        if (SortCombo.SelectedIndex < 0) SortCombo.SelectedIndex = 0;
     }
 
     public void ApplyNavParam(LibraryNavParam p)
@@ -906,6 +917,8 @@ public sealed partial class LibraryPage : Page
             }
             if (e.PropertyName == nameof(LibraryViewModel.SearchText))
                 SearchTextChanged?.Invoke(this, _vm.SearchText ?? "");
+            if (e.PropertyName is nameof(LibraryViewModel.SortKey) or nameof(LibraryViewModel.SortDir))
+                SyncSortCombo();
             // Any filter-related VM change should reflect in the Clear button
             UpdateClearFiltersButton();
             UpdateFilterChips();

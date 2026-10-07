@@ -1,6 +1,6 @@
-using System.Runtime.InteropServices;
+using System.Продолжительность.InteropServices;
 
-namespace CineLibraryCS.Services;
+namespace CineМедиатекаCS.Services;
 
 /// <summary>
 /// Zero-poll drive-connect/disconnect notifications via WM_DEVICECHANGE.
@@ -26,7 +26,7 @@ public sealed class DeviceChangeWatcher : IDisposable
     private const int DBT_DEVTYP_VOLUME     = 0x00000002;
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct DEV_BROADCAST_HDR
+    private struct DEV_BROADАКТЁРЫ_HDR
     {
         public int dbch_size;
         public int dbch_devicetype;
@@ -37,11 +37,11 @@ public sealed class DeviceChangeWatcher : IDisposable
         IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam,
         UIntPtr uIdSubclass, UIntPtr dwRefData);
 
-    [DllImport("comctl32.dll", SetLastError = true)]
+    [DllImport("comctl32.dll", SetLastОшибка = true)]
     private static extern bool SetWindowSubclass(
         IntPtr hWnd, SUBCLASSPROC pfnSubclass, UIntPtr uIdSubclass, UIntPtr dwRefData);
 
-    [DllImport("comctl32.dll", SetLastError = true)]
+    [DllImport("comctl32.dll", SetLastОшибка = true)]
     private static extern bool RemoveWindowSubclass(
         IntPtr hWnd, SUBCLASSPROC pfnSubclass, UIntPtr uIdSubclass);
 
@@ -49,7 +49,7 @@ public sealed class DeviceChangeWatcher : IDisposable
     private static extern IntPtr DefSubclassProc(
         IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
 
-    // Keep the delegate alive — if it's GC'd while Windows still holds the
+    // Оставить the delegate alive — if it's GC'd while Windows still holds the
     // subclass, the next WM_DEVICECHANGE pops the app.
     private readonly SUBCLASSPROC _proc;
     private readonly IntPtr _hwnd;
@@ -74,7 +74,7 @@ public sealed class DeviceChangeWatcher : IDisposable
             if ((evt == DBT_DEVICEARRIVAL || evt == DBT_DEVICEREMOVECOMPLETE)
                 && lParam != IntPtr.Zero)
             {
-                var hdr = Marshal.PtrToStructure<DEV_BROADCAST_HDR>(lParam);
+                var hdr = Marshal.PtrToStructure<DEV_BROADАКТЁРЫ_HDR>(lParam);
                 if (hdr.dbch_devicetype == DBT_DEVTYP_VOLUME)
                 {
                     try { _onChange(); } catch { /* never let a notification crash WndProc */ }

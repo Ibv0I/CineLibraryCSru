@@ -1,14 +1,14 @@
 using System.Text.Json.Serialization;
 
-namespace CineLibraryCS.Services.Tmdb;
+namespace CineМедиатекаCS.Services.Tmdb;
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Movie-only TMDb models, ported (trimmed) from CineLibrary Essentials.
-//  CineLibrary stays an offline browser; the ONLY place these are used is the
-//  "Add watched movie" dialog, which lets the user record a film they watched
-//  but never had on disk straight into Watched & Gone. TV / cast / crew fields
+//  Movie-only TMDb models, ported (trimmed) from CineМедиатека Essentials.
+//  CineМедиатека stays an offline browser; the ONLY place these are used is the
+//  "Добавить просмотренный фильм" dialog, which lets the user record a film they watched
+//  but never had on disk straight into Просмотрено и удалено. TV / cast / crew fields
 //  from the original Essentials model are intentionally dropped — we only need
-//  enough to build a Watched & Gone record card.
+//  enough to build a Просмотрено и удалено record card.
 // ─────────────────────────────────────────────────────────────────────────────
 
 public class TmdbMovie
@@ -20,10 +20,10 @@ public class TmdbMovie
     public string? ImdbId { get; set; }
 
     [JsonPropertyName("title")]
-    public string Title { get; set; } = string.Empty;
+    public string Название { get; set; } = string.Empty;
 
     [JsonPropertyName("original_title")]
-    public string OriginalTitle { get; set; } = string.Empty;
+    public string OriginalНазвание { get; set; } = string.Empty;
 
     [JsonPropertyName("tagline")]
     public string Tagline { get; set; } = string.Empty;
@@ -35,19 +35,19 @@ public class TmdbMovie
     public string Overview { get; set; } = string.Empty;
 
     [JsonPropertyName("vote_average")]
-    public double Rating { get; set; }
+    public double Рейтинг { get; set; }
 
     [JsonPropertyName("vote_count")]
     public int VoteCount { get; set; }
 
     [JsonPropertyName("runtime")]
-    public int Runtime { get; set; }
+    public int Продолжительность { get; set; }
 
     [JsonPropertyName("genres")]
-    public List<TmdbNamed> Genres { get; set; } = new();
+    public List<TmdbNamed> Жанры { get; set; } = new();
 
     [JsonPropertyName("production_countries")]
-    public List<TmdbCountry> ProductionCountries { get; set; } = new();
+    public List<TmdbСтрана> ProductionCountries { get; set; } = new();
 
     [JsonPropertyName("production_companies")]
     public List<TmdbNamed> ProductionCompanies { get; set; } = new();
@@ -56,7 +56,7 @@ public class TmdbMovie
     public string? PosterPath { get; set; }
 
     [JsonPropertyName("backdrop_path")]
-    public string? BackdropPath { get; set; }
+    public string? НазадdropPath { get; set; }
 
     /// <summary>MPAA certification (e.g. "PG-13") for the US region — parsed
     /// client-side from the appended release_dates block. Empty if none.</summary>
@@ -64,21 +64,21 @@ public class TmdbMovie
 
     /// <summary>Top-billed cast, parsed client-side from the appended credits
     /// block (sorted by billing order). Empty until details are fetched.</summary>
-    public List<TmdbCastMember> Cast { get; set; } = new();
+    public List<TmdbАктёрыMember> Актёры { get; set; } = new();
 
-    /// <summary>Director names, parsed client-side from credits.crew.</summary>
-    public List<string> Directors { get; set; } = new();
+    /// <summary>Режиссёр names, parsed client-side from credits.crew.</summary>
+    public List<string> Режиссёрs { get; set; } = new();
 
     /// <summary>Writer names, parsed client-side from credits.crew.</summary>
     public List<string> Writers { get; set; } = new();
 
     /// <summary>Release year derived from <see cref="ReleaseDate"/>, or 0.</summary>
-    public int Year => !string.IsNullOrEmpty(ReleaseDate) && DateTime.TryParse(ReleaseDate, out var d)
-        ? d.Year
+    public int Год => !string.IsNullOrEmpty(ReleaseDate) && DateTime.TryParse(ReleaseDate, out var d)
+        ? d.Год
         : 0;
 }
 
-public class TmdbCastMember
+public class TmdbАктёрыMember
 {
     public string Name { get; set; } = string.Empty;
     public string Character { get; set; } = string.Empty;
@@ -95,7 +95,7 @@ public class TmdbNamed
     public string Name { get; set; } = string.Empty;
 }
 
-public class TmdbCountry
+public class TmdbСтрана
 {
     [JsonPropertyName("iso_3166_1")]
     public string IsoCode { get; set; } = string.Empty;
@@ -104,7 +104,7 @@ public class TmdbCountry
     public string Name { get; set; } = string.Empty;
 }
 
-public class TmdbSearchResult
+public class TmdbПоискResult
 {
     [JsonPropertyName("results")]
     public List<TmdbMovie> Results { get; set; } = new();
@@ -129,7 +129,7 @@ public class TmdbTvShow
     public string Overview { get; set; } = string.Empty;
 
     [JsonPropertyName("vote_average")]
-    public double Rating { get; set; }
+    public double Рейтинг { get; set; }
 
     [JsonPropertyName("vote_count")]
     public int VoteCount { get; set; }
@@ -139,7 +139,7 @@ public class TmdbTvShow
     public string Status { get; set; } = string.Empty;
 
     [JsonPropertyName("genres")]
-    public List<TmdbNamed> Genres { get; set; } = new();
+    public List<TmdbNamed> Жанры { get; set; } = new();
 
     [JsonPropertyName("networks")]
     public List<TmdbNamed> Networks { get; set; } = new();
@@ -151,7 +151,7 @@ public class TmdbTvShow
     public string? PosterPath { get; set; }
 
     [JsonPropertyName("backdrop_path")]
-    public string? BackdropPath { get; set; }
+    public string? НазадdropPath { get; set; }
 
     /// <summary>From the appended external_ids block.</summary>
     public string? ImdbId { get; set; }
@@ -160,21 +160,21 @@ public class TmdbTvShow
     public string Certification { get; set; } = string.Empty;
 
     /// <summary>Top-billed cast across all seasons (aggregate_credits).</summary>
-    public List<TmdbCastMember> Cast { get; set; } = new();
+    public List<TmdbАктёрыMember> Актёры { get; set; } = new();
 
-    public int Year => !string.IsNullOrEmpty(FirstAirDate) && DateTime.TryParse(FirstAirDate, out var d)
-        ? d.Year
+    public int Год => !string.IsNullOrEmpty(FirstAirDate) && DateTime.TryParse(FirstAirDate, out var d)
+        ? d.Год
         : 0;
 
     /// <summary>The fields the TMDb match picker shows, as a movie-shaped hit.</summary>
-    public TmdbMovie AsSearchHit() => new()
+    public TmdbMovie AsПоискHit() => new()
     {
-        TmdbId = TmdbId, Title = Name, ReleaseDate = FirstAirDate,
-        Overview = Overview, Rating = Rating, PosterPath = PosterPath,
+        TmdbId = TmdbId, Название = Name, ReleaseDate = FirstAirDate,
+        Overview = Overview, Рейтинг = Рейтинг, PosterPath = PosterPath,
     };
 }
 
-public class TmdbTvSearchResult
+public class TmdbTvПоискResult
 {
     [JsonPropertyName("results")]
     public List<TmdbTvShow> Results { get; set; } = new();

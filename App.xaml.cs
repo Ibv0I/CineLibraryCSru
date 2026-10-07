@@ -1,7 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace CineLibraryCS;
+namespace CineМедиатекаCS;
 
 public partial class App : Application
 {
@@ -10,7 +10,7 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
-        UnhandledException += OnUnhandledException;
+        UnhandledException += Вкл.UnhandledException;
 
         // Catch any first-chance / non-WinUI exception during startup so we
         // can leave a breadcrumb file when the app fails to render.
@@ -24,7 +24,7 @@ public partial class App : Application
         };
     }
 
-    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    protected override void Вкл.Launched(LaunchActivatedEventArgs args)
     {
         try
         {
@@ -33,7 +33,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            LogStartupCrash(ex, "OnLaunched");
+            LogStartupCrash(ex, "Вкл.Launched");
             throw;
         }
     }
@@ -45,18 +45,18 @@ public partial class App : Application
         if (ex == null) return;
         try
         {
-            var dir = Path.Combine(AppContext.BaseDirectory, "CineLibrary-Data");
-            Directory.CreateDirectory(dir);
+            var dir = Path.Combine(AppContext.BaseРежиссёрy, "CineМедиатека-Data");
+            Режиссёрy.СоздатьРежиссёрy(dir);
             var path = Path.Combine(dir, "startup-crash.log");
             // ex.ToString() includes inner exceptions and their stack traces;
             // an unobserved task's AggregateException has none of its own.
-            File.AppendAllText(path,
+            File.AppendВсеText(path,
                 $"--- {DateTime.Now:o} [{source}] ---\n{ex}\n\n");
         }
         catch { }
     }
 
-    private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    private void Вкл.UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
     {
         e.Handled = true; // prevent crash
         LogStartupCrash(e.Exception, "WinUI");
@@ -66,7 +66,7 @@ public partial class App : Application
         {
             var dialog = new ContentDialog
             {
-                Title = "Unexpected Error",
+                Название = "Непредвиденная ошибка",
                 Content = new ScrollViewer
                 {
                     Content = new TextBlock
@@ -74,15 +74,15 @@ public partial class App : Application
                         Text = msg,
                         TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap,
                         FontSize = 11,
-                        FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas"),
+                        FontСемья = new Microsoft.UI.Xaml.Media.FontСемья("Consolas"),
                         IsTextSelectionEnabled = true,
                     },
                     MaxHeight = 400,
                     Padding = new Microsoft.UI.Xaml.Thickness(0, 0, 16, 0),
                 },
-                CloseButtonText = "OK",
+                ЗакрытьButtonText = "OK",
                 XamlRoot = MainWindow?.Content?.XamlRoot,
-                RequestedTheme = ElementTheme.Dark,
+                RequestedTheme = ElementTheme.Тёмная,
             };
             _ = dialog.ShowAsync();
         }

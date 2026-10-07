@@ -1,16 +1,16 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using System.Collections.ObjectModel;
-using System.Runtime.InteropServices.WindowsRuntime;
-using CineLibraryCS.Models;
-using CineLibraryCS.Services;
+using System.Коллекции.ObjectModel;
+using System.Продолжительность.InteropServices.WindowsПродолжительность;
+using CineМедиатекаCS.Models;
+using CineМедиатекаCS.Services;
 
-namespace CineLibraryCS.Views;
+namespace CineМедиатекаCS.Views;
 
 /// <summary>
 /// v2.8 — TV Shows browser. Two levels: a grid of shows, and a single
 /// show page (header + inline season sections of episode cards — no
-/// per-season drill-down). Double-click / Play launches an episode.
+/// per-season drill-down). Double-click / Воспроизвести launches an episode.
 /// </summary>
 public sealed partial class TvShowsPage : Page
 {
@@ -20,15 +20,15 @@ public sealed partial class TvShowsPage : Page
     private readonly ObservableCollection<TvShowListItem> _shows = new();
     private TvShowListItem? _currentShow;
 
-    // v3.7.0: All TV shows sort / watched filter / poster size, remembered
-    // in prefs like the All movies toolbar.
+    // v3.7.0: Все сериалы sort / watched filter / poster size, remembered
+    // in prefs like the Все фильмы toolbar.
     private string _tvSort = "title:asc";
     private string _tvFilter = "all";
     private bool _tvUiReady;
     private readonly string _noShowsHint;
 
-    // All episodes currently on the show page, for Play-next + event routing.
-    private readonly List<TvEpisodeItem> _showEpisodes = new();
+    // Все episodes currently on the show page, for Воспроизвести-next + event routing.
+    private readonly List<TvЭпизодItem> _showЭпизоды = new();
 
     public event EventHandler? SidebarRefreshRequested;
 
@@ -36,35 +36,35 @@ public sealed partial class TvShowsPage : Page
     {
         InitializeComponent();
         ShowsRepeater.ItemsSource = _shows;
-        ShowsRepeater.Tapped += OnShowsTapped;
+        ShowsRepeater.Tapped += Вкл.ShowsTapped;
 
         _noShowsHint = EmptyHint.Text;
         _tvSort = AppState.Instance.GetPref("tvSort", "title:asc");
         _tvFilter = AppState.Instance.GetPref("tvFilter", "all");
         if (_tvFilter is not ("all" or "unwatched" or "watched")) _tvFilter = "all";
-        ApplyTvDensity(AppState.Instance.GetPref("tvDensity", "M"));
+        ПрименитьTvDensity(AppState.Instance.GetPref("tvDensity", "M"));
         SyncTvToolbar();
         _tvUiReady = true;
 
-        // Episode cards raise these statics. Wire on Loaded / unwire on
+        // Эпизод cards raise these statics. Wire on Loaded / unwire on
         // Unloaded — the page is cached and reused by MainWindow, so doing
         // this in the constructor would leave the events unsubscribed after
         // the first time the user navigates away (Unloaded fires once),
-        // which is why Play stopped working after switching pages.
+        // which is why Воспроизвести stopped working after switching pages.
         Loaded += (_, _) =>
         {
-            TvEpisodeCard.AnyPlay -= OnEpisodePlay;
-            TvEpisodeCard.AnyPlay += OnEpisodePlay;
-            TvEpisodeCard.AnyWatchedToggle -= OnEpisodeWatchedToggle;
-            TvEpisodeCard.AnyWatchedToggle += OnEpisodeWatchedToggle;
-            TvEpisodeCard.AnyDetails -= OnEpisodeDetails;
-            TvEpisodeCard.AnyDetails += OnEpisodeDetails;
+            TvЭпизодCard.AnyВоспроизвести -= Вкл.ЭпизодВоспроизвести;
+            TvЭпизодCard.AnyВоспроизвести += Вкл.ЭпизодВоспроизвести;
+            TvЭпизодCard.AnyПросмотреноToggle -= Вкл.ЭпизодПросмотреноToggle;
+            TvЭпизодCard.AnyПросмотреноToggle += Вкл.ЭпизодПросмотреноToggle;
+            TvЭпизодCard.AnyDetails -= Вкл.ЭпизодDetails;
+            TvЭпизодCard.AnyDetails += Вкл.ЭпизодDetails;
         };
         Unloaded += (_, _) =>
         {
-            TvEpisodeCard.AnyPlay -= OnEpisodePlay;
-            TvEpisodeCard.AnyWatchedToggle -= OnEpisodeWatchedToggle;
-            TvEpisodeCard.AnyDetails -= OnEpisodeDetails;
+            TvЭпизодCard.AnyВоспроизвести -= Вкл.ЭпизодВоспроизвести;
+            TvЭпизодCard.AnyПросмотреноToggle -= Вкл.ЭпизодПросмотреноToggle;
+            TvЭпизодCard.AnyDetails -= Вкл.ЭпизодDetails;
         };
     }
 
@@ -74,33 +74,33 @@ public sealed partial class TvShowsPage : Page
     /// runtime, resolution / codec / HDR / audio / subtitles, container,
     /// and file size. Previously parsed and stored but never shown.
     /// </summary>
-    private async void OnEpisodeDetails(TvEpisodeItem ep)
+    private async void Вкл.ЭпизодDetails(TvЭпизодItem ep)
     {
-        var d = AppState.Instance.Db.GetEpisodeDetail(ep.Id);
+        var d = AppState.Instance.Db.GetЭпизодDetail(ep.Id);
         if (d == null) return;
 
         var root = new StackPanel { Spacing = 12 };
 
         // Header line: code · aired · runtime · rating + ★ favorite toggle
         var headerRow = new Grid();
-        headerRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        headerRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        headerRow.ColumnDefinitions.Добавить(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        headerRow.ColumnDefinitions.Добавить(new ColumnDefinition { Width = GridLength.Auto });
         var meta = new List<string>();
-        if (!string.IsNullOrEmpty(d.AiredText)) meta.Add(d.AiredText);
-        if (!string.IsNullOrEmpty(d.RuntimeText)) meta.Add(d.RuntimeText);
-        if (!string.IsNullOrEmpty(d.RatingText)) meta.Add(d.RatingText);
-        headerRow.Children.Add(new TextBlock
+        if (!string.IsNullOrEmpty(d.AiredText)) meta.Добавить(d.AiredText);
+        if (!string.IsNullOrEmpty(d.ПродолжительностьText)) meta.Добавить(d.ПродолжительностьText);
+        if (!string.IsNullOrEmpty(d.РейтингText)) meta.Добавить(d.РейтингText);
+        headerRow.Children.Добавить(new TextBlock
         {
             Text = $"{d.Code}   ·   {string.Join("   ·   ", meta)}",
             FontSize = 12,
-            Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
+            Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush"),
             VerticalAlignment = VerticalAlignment.Center,
         });
         var favBtn = new Button
         {
-            Content = d.IsFavorite ? "★ Favorited" : "☆ Favorite",
-            Background = CineLibraryCS.Services.ThemeBrushes.Get("CardBrush"),
-            BorderBrush = CineLibraryCS.Services.ThemeBrushes.Get("BorderBrush"),
+            Content = d.IsИзбранное ? "★ В избранноеd" : "☆ Избранное",
+            Назадground = CineМедиатекаCS.Services.ThemeBrushes.Get("CardBrush"),
+            BorderBrush = CineМедиатекаCS.Services.ThemeBrushes.Get("BorderBrush"),
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(8),
             Padding = new Thickness(10, 4, 10, 4),
@@ -108,80 +108,80 @@ public sealed partial class TvShowsPage : Page
         };
         favBtn.Click += (_, _) =>
         {
-            d.IsFavorite = !d.IsFavorite;
-            // SetEpisodeFavorite raises TvShowStateChanged → AppState
+            d.IsИзбранное = !d.IsИзбранное;
+            // SetЭпизодИзбранное raises TvShowStateChanged → AppState
             // auto-syncs the show's sidecar, no explicit write needed.
-            AppState.Instance.Db.SetEpisodeFavorite(d.Id, d.IsFavorite);
-            ep.IsFavorite = d.IsFavorite;  // pushes the badge update to the card
-            favBtn.Content = d.IsFavorite ? "★ Favorited" : "☆ Favorite";
+            AppState.Instance.Db.SetЭпизодИзбранное(d.Id, d.IsИзбранное);
+            ep.IsИзбранное = d.IsИзбранное;  // pushes the badge update to the card
+            favBtn.Content = d.IsИзбранное ? "★ В избранноеd" : "☆ Избранное";
             SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         };
         Grid.SetColumn(favBtn, 1);
-        headerRow.Children.Add(favBtn);
-        root.Children.Add(headerRow);
+        headerRow.Children.Добавить(favBtn);
+        root.Children.Добавить(headerRow);
 
         // Plot
         if (!string.IsNullOrWhiteSpace(d.Plot))
-            root.Children.Add(new TextBlock
+            root.Children.Добавить(new TextBlock
             {
                 Text = d.Plot,
                 TextWrapping = TextWrapping.Wrap,
-                Foreground = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush"),
+                Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("TextBrush"),
                 LineHeight = 21,
             });
 
         // Tech badges
         var badges = new List<string>();
-        if (d.Resolution != null) badges.Add(d.Resolution);
-        if (!string.IsNullOrEmpty(d.HdrType)) badges.Add(d.HdrType!.ToUpperInvariant());
-        if (!string.IsNullOrEmpty(d.VideoCodec)) badges.Add(d.VideoCodec!.ToUpperInvariant());
-        if (!string.IsNullOrEmpty(d.AudioCodec))
-            badges.Add(d.AudioCodec!.ToUpperInvariant() + (string.IsNullOrEmpty(d.AudioChannels) ? "" : $" {d.AudioChannels}"));
-        if (!string.IsNullOrEmpty(d.ContainerExt)) badges.Add(d.ContainerExt!.ToUpperInvariant());
+        if (d.Resolution != null) badges.Добавить(d.Resolution);
+        if (!string.IsNullOrEmpty(d.HdrType)) badges.Добавить(d.HdrType!.ToUpperInvariant());
+        if (!string.IsNullOrEmpty(d.VideoCodec)) badges.Добавить(d.VideoCodec!.ToUpperInvariant());
+        if (!string.IsNullOrEmpty(d.АудиоCodec))
+            badges.Добавить(d.АудиоCodec!.ToUpperInvariant() + (string.IsNullOrEmpty(d.АудиоChannels) ? "" : $" {d.АудиоChannels}"));
+        if (!string.IsNullOrEmpty(d.ContainerExt)) badges.Добавить(d.ContainerExt!.ToUpperInvariant());
         if (badges.Count > 0)
         {
             var wrap = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
             foreach (var b in badges)
-                wrap.Children.Add(new Border
+                wrap.Children.Добавить(new Border
                 {
-                    Background = CineLibraryCS.Services.ThemeBrushes.Get("ChipBrush"),
+                    Назадground = CineМедиатекаCS.Services.ThemeBrushes.Get("ChipBrush"),
                     CornerRadius = new CornerRadius(6),
                     Padding = new Thickness(8, 3, 8, 3),
                     Child = new TextBlock { Text = b, FontSize = 11, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                        Foreground = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush") },
+                        Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("TextBrush") },
                 });
-            root.Children.Add(wrap);
+            root.Children.Добавить(wrap);
         }
 
         // Detail rows (audio langs, subs, duration, file size)
-        void AddRow(string label, string? value)
+        void ДобавитьRow(string label, string? value)
         {
             if (string.IsNullOrWhiteSpace(value)) return;
             var g = new Grid();
-            g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
-            g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            g.ColumnDefinitions.Добавить(new ColumnDefinition { Width = new GridLength(110) });
+            g.ColumnDefinitions.Добавить(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             var l = new TextBlock { Text = label, FontSize = 12,
-                Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush") };
+                Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush") };
             var v = new TextBlock { Text = value, FontSize = 12, TextWrapping = TextWrapping.Wrap,
-                Foreground = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush") };
+                Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("TextBrush") };
             Grid.SetColumn(v, 1);
-            g.Children.Add(l); g.Children.Add(v);
-            root.Children.Add(g);
+            g.Children.Добавить(l); g.Children.Добавить(v);
+            root.Children.Добавить(g);
         }
-        AddRow("Audio", d.AudioLanguages?.Replace(",", " · "));
-        AddRow("Subtitles", d.SubtitleLanguages?.Replace(",", " · "));
-        AddRow("Duration", d.DurationText);
-        AddRow("File size", d.FileSizeText);
+        ДобавитьRow("Аудио", d.АудиоLanguages?.Replace(",", " · "));
+        ДобавитьRow("Субтитры", d.SubtitleLanguages?.Replace(",", " · "));
+        ДобавитьRow("Duration", d.DurationText);
+        ДобавитьRow("Размер файла", d.FileSizeText);
 
-        // v2.9 — Personal note for this episode. Saves on blur; empty
+        // v2.9 — Personal note for this episode. Сохранитьs on blur; empty
         // string clears the note row. Sidecar is best-effort.
-        root.Children.Add(new TextBlock
+        root.Children.Добавить(new TextBlock
         {
             Text = "Your note",
             FontSize = 11,
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             CharacterSpacing = 100,
-            Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
+            Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush"),
             Margin = new Thickness(0, 6, 0, 0),
         });
         var noteBox = new TextBox
@@ -197,25 +197,25 @@ public sealed partial class TvShowsPage : Page
             var fresh = noteBox.Text?.Trim();
             if ((fresh ?? "") == (d.Note ?? "")) return;
             d.Note = fresh;
-            AppState.Instance.Db.SetEpisodeNote(d.Id, fresh);  // auto-syncs sidecar
+            AppState.Instance.Db.SetЭпизодNote(d.Id, fresh);  // auto-syncs sidecar
             ep.Note = fresh;
         };
-        root.Children.Add(noteBox);
+        root.Children.Добавить(noteBox);
 
         var dlg = new ContentDialog
         {
-            Title = $"{d.ShowTitle} — {d.Title}",
+            Название = $"{d.ShowНазвание} — {d.Название}",
             Content = new ScrollViewer { Content = root, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = 460, Padding = new Thickness(0, 0, 16, 0) },
-            PrimaryButtonText = "▶ Play",
-            SecondaryButtonText = d.IsWatched ? "Mark unwatched" : "Mark watched",
-            CloseButtonText = "Close",
-            DefaultButton = ContentDialogButton.Primary,
+            PrimaryButtonText = "▶ Воспроизвести",
+            SecondaryButtonText = d.IsПросмотрено ? "Mark unwatched" : "Mark watched",
+            ЗакрытьButtonText = "Закрыть",
+            По умолчаниюButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
             RequestedTheme = MainWindow.CurrentTheme,
         };
         var result = await dlg.ShowAsync();
-        if (result == ContentDialogResult.Primary) OnEpisodePlay(ep);
-        else if (result == ContentDialogResult.Secondary) OnEpisodeWatchedToggle(ep);
+        if (result == ContentDialogResult.Primary) Вкл.ЭпизодВоспроизвести(ep);
+        else if (result == ContentDialogResult.Secondary) Вкл.ЭпизодПросмотреноToggle(ep);
     }
 
     public void Load()
@@ -228,7 +228,7 @@ public sealed partial class TvShowsPage : Page
     public void OpenShow(int showId)
     {
         var show = AppState.Instance.Db.GetTvShows(AppState.Instance.Connected)
-            .FirstOrDefault(s => s.Id == showId);
+            .FirstOrПо умолчанию(s => s.Id == showId);
         if (show == null) { Load(); return; }
         _currentShow = show;
         _level = Level.Show;
@@ -237,7 +237,7 @@ public sealed partial class TvShowsPage : Page
 
     private void ShowLevel()
     {
-        BackBtn.Visibility       = _level == Level.Shows ? Visibility.Collapsed : Visibility.Visible;
+        НазадBtn.Visibility       = _level == Level.Shows ? Visibility.Collapsed : Visibility.Visible;
         ShowsLevelHost.Visibility = _level == Level.Shows ? Visibility.Visible : Visibility.Collapsed;
         SeasonsPanel.Visibility   = _level == Level.Show  ? Visibility.Visible : Visibility.Collapsed;
         TvToolbar.Visibility      = _level == Level.Shows ? Visibility.Visible : Visibility.Collapsed;
@@ -254,38 +254,38 @@ public sealed partial class TvShowsPage : Page
 
     private void LoadShows()
     {
-        TitleText.Text = "All TV shows";
-        BackLabel.Text = "Back";
+        НазваниеText.Text = "Все сериалы";
+        НазадLabel.Text = "Назад";
         var all = AppState.Instance.Db.GetTvShows(AppState.Instance.Connected);
         var shown = SortShows(FilterShows(all)).ToList();
         _shows.Clear();
-        foreach (var s in shown) _shows.Add(s);
+        foreach (var s in shown) _shows.Добавить(s);
         SubText.Text = shown.Count == all.Count
             ? (all.Count == 1 ? "1 show" : $"{all.Count} shows")
             : $"{shown.Count} of {all.Count} shows";
         if (all.Count == 0)
         {
-            EmptyTitle.Text = "No TV shows yet";
+            EmptyНазвание.Text = "Сериалов пока нет";
             EmptyHint.Text = _noShowsHint;
         }
         else
         {
-            EmptyTitle.Text = _tvFilter == "watched" ? "No fully watched shows yet" : "Nothing left to watch";
-            EmptyHint.Text = "Choose All to see every show.";
+            EmptyНазвание.Text = _tvFilter == "watched" ? "Полностью просмотренных сериалов пока нет" : "Nothing left to watch";
+            EmptyHint.Text = "Выберите «Все», чтобы увидеть все сериалы.";
         }
         EmptyState.Visibility = shown.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    // ── v3.7.0 All TV shows toolbar ──────────────────────────────────────────
+    // ── v3.7.0 Все сериалы toolbar ──────────────────────────────────────────
 
     private IEnumerable<TvShowListItem> FilterShows(IEnumerable<TvShowListItem> shows) => _tvFilter switch
     {
-        "watched"   => shows.Where(s => s.FullyWatched),
-        "unwatched" => shows.Where(s => !s.FullyWatched),
+        "watched"   => shows.Where(s => s.FullyПросмотрено),
+        "unwatched" => shows.Where(s => !s.FullyПросмотрено),
         _           => shows,
     };
 
-    // Title ↑ keeps the database order (sort title, then title). The other
+    // Название ↑ keeps the database order (sort title, then title). The other
     // sorts are stable on top of it, so ties stay alphabetical; unknown
     // values (no year, no rating, never watched) go last.
     private IEnumerable<TvShowListItem> SortShows(IEnumerable<TvShowListItem> shows)
@@ -294,19 +294,19 @@ public sealed partial class TvShowsPage : Page
         bool desc = parts.Length > 1 && parts[1] == "desc";
         return parts[0] switch
         {
-            "year"        => desc ? shows.OrderByDescending(s => s.Year ?? 0)
-                                  : shows.OrderBy(s => s.Year ?? int.MaxValue),
-            "rating"      => desc ? shows.OrderByDescending(s => s.Rating ?? -1)
-                                  : shows.OrderBy(s => s.Rating ?? double.MaxValue),
-            "date_added"  => desc ? shows.OrderByDescending(s => s.DateAdded)
-                                  : shows.OrderBy(s => s.DateAdded),
-            "last_played" => desc ? shows.OrderByDescending(s => s.LastPlayed)
-                                  : shows.OrderBy(s => s.LastPlayed == 0 ? long.MaxValue : s.LastPlayed),
+            "year"        => desc ? shows.OrderByDescending(s => s.Год ?? 0)
+                                  : shows.OrderBy(s => s.Год ?? int.MaxValue),
+            "rating"      => desc ? shows.OrderByDescending(s => s.Рейтинг ?? -1)
+                                  : shows.OrderBy(s => s.Рейтинг ?? double.MaxValue),
+            "date_added"  => desc ? shows.OrderByDescending(s => s.DateДобавитьed)
+                                  : shows.OrderBy(s => s.DateДобавитьed),
+            "last_played" => desc ? shows.OrderByDescending(s => s.LastВоспроизвестиed)
+                                  : shows.OrderBy(s => s.LastВоспроизвестиed == 0 ? long.MaxValue : s.LastВоспроизвестиed),
             _             => desc ? shows.Reverse() : shows,
         };
     }
 
-    private void OnTvSortChanged(object sender, SelectionChangedEventArgs e)
+    private void Вкл.TvSortChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_tvUiReady || TvSortCombo.SelectedItem is not ComboBoxItem { Tag: string tag }) return;
         _tvSort = tag;
@@ -314,7 +314,7 @@ public sealed partial class TvShowsPage : Page
         LoadShows();
     }
 
-    private void OnTvFilterClick(object sender, RoutedEventArgs e)
+    private void Вкл.TvFilterClick(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: string tag }) return;
         _tvFilter = tag;
@@ -323,15 +323,15 @@ public sealed partial class TvShowsPage : Page
         LoadShows();
     }
 
-    private void OnTvDensityClick(object sender, RoutedEventArgs e)
+    private void Вкл.TvDensityClick(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement { Tag: string tag }) return;
-        ApplyTvDensity(tag);
+        ПрименитьTvDensity(tag);
         AppState.Instance.SetPref("tvDensity", tag);
         LoadShows();   // fresh items, so every card re-applies the new size
     }
 
-    private void ApplyTvDensity(string tag)
+    private void ПрименитьTvDensity(string tag)
     {
         var (w, h) = TvShowCard.SetDensity(tag);
         ShowsGridLayout.MinItemWidth = w;
@@ -345,7 +345,7 @@ public sealed partial class TvShowsPage : Page
 
     private void SyncTvToolbar()
     {
-        // Only touch the combo when it's wrong: setting it fires OnTvSortChanged,
+        // Вкл.ly touch the combo when it's wrong: setting it fires Вкл.TvSortChanged,
         // which would otherwise store a passing value as the user's choice.
         var index = 0;
         for (int i = 0; i < TvSortCombo.Items.Count; i++)
@@ -353,9 +353,9 @@ public sealed partial class TvShowsPage : Page
         if (TvSortCombo.SelectedIndex != index) TvSortCombo.SelectedIndex = index;
         var pill = (Style)Application.Current.Resources["PillButtonStyle"];
         var active = (Style)Application.Current.Resources["PillButtonActiveStyle"];
-        TvFilterAll.Style       = _tvFilter == "all"       ? active : pill;
-        TvFilterUnwatched.Style = _tvFilter == "unwatched" ? active : pill;
-        TvFilterWatched.Style   = _tvFilter == "watched"   ? active : pill;
+        TvFilterВсе.Style       = _tvFilter == "all"       ? active : pill;
+        TvFilterНе просмотрено.Style = _tvFilter == "unwatched" ? active : pill;
+        TvFilterПросмотрено.Style   = _tvFilter == "watched"   ? active : pill;
     }
 
     private TvShowDetail? _detail;
@@ -363,8 +363,8 @@ public sealed partial class TvShowsPage : Page
     private void LoadShow()
     {
         if (_currentShow == null) { _level = Level.Shows; ShowLevel(); return; }
-        TitleText.Text = _currentShow.Title;   // as written, not in capitals (v3.10.0, issue #12)
-        BackLabel.Text = "All TV Shows";
+        НазваниеText.Text = _currentShow.Название;   // as written, not in capitals (v3.10.0, issue #12)
+        НазадLabel.Text = "Все сериалы";
         EmptyState.Visibility = Visibility.Collapsed;
 
         _selectedSeason = null;   // a newly opened show starts on its default season
@@ -381,39 +381,39 @@ public sealed partial class TvShowsPage : Page
     private void BuildSeasonSections()
     {
         SeasonSectionsHost.Children.Clear();
-        _showEpisodes.Clear();
+        _showЭпизоды.Clear();
         if (_currentShow == null) return;
 
         var connected = AppState.Instance.Connected;
         var seasons = AppState.Instance.Db.GetSeasons(_currentShow.Id);
         SubText.Text = $"{seasons.Count} season{(seasons.Count == 1 ? "" : "s")}";
 
-        var episodes = new Dictionary<int, List<TvEpisodeItem>>();
+        var episodes = new Dictionary<int, List<TvЭпизодItem>>();
         foreach (var season in seasons)
         {
-            var eps = AppState.Instance.Db.GetEpisodes(_currentShow.Id, season.Season, connected);
+            var eps = AppState.Instance.Db.GetЭпизоды(_currentShow.Id, season.Season, connected);
             episodes[season.Season] = eps;
-            _showEpisodes.AddRange(eps);
+            _showЭпизоды.ДобавитьRange(eps);
         }
 
         // Tabs list the regular seasons in order with Specials last.
         var tabs = seasons.OrderBy(s => s.Season == 0 ? int.MaxValue : s.Season).ToList();
         if (_selectedSeason is not int chosen || !episodes.ContainsKey(chosen))
         {
-            // Default: the first regular season with something left to watch.
+            // По умолчанию: the first regular season with something left to watch.
             var regular = tabs.Where(s => s.Season != 0).ToList();
-            _selectedSeason = (regular.FirstOrDefault(s => episodes[s.Season].Any(e => !e.IsWatched))
-                               ?? regular.FirstOrDefault() ?? tabs.FirstOrDefault())?.Season;
+            _selectedSeason = (regular.FirstOrПо умолчанию(s => episodes[s.Season].Any(e => !e.IsПросмотрено))
+                               ?? regular.FirstOrПо умолчанию() ?? tabs.FirstOrПо умолчанию())?.Season;
         }
 
         if (tabs.Count > 0)
-            SeasonSectionsHost.Children.Add(BuildSeasonTabs(tabs));
+            SeasonSectionsHost.Children.Добавить(BuildSeasonTabs(tabs));
 
         foreach (var season in tabs.Where(s => s.Season == _selectedSeason))
         {
             var eps = episodes[season.Season];
 
-            // Episode cards in a HORIZONTAL row (Netflix/Disney+ style).
+            // Эпизод cards in a HORIZONTAL row (Netflix/Disney+ style).
             // Critical for performance: a vertical UniformGridLayout nested
             // in a vertical StackPanel inside a ScrollViewer can't virtualize
             // (it's measured with infinite height), so every card realizes
@@ -436,21 +436,21 @@ public sealed partial class TvShowsPage : Page
                     Orientation = Orientation.Horizontal,
                     Spacing = 14,
                 },
-                ItemTemplate = (DataTemplate)Resources["EpisodeCardTemplate"],
+                ItemTemplate = (DataTemplate)Resources["ЭпизодCardTemplate"],
                 ItemsSource = eps,
             };
             rowScroller.Content = repeater;
 
             // Section header — label + episode/watched counts + actions.
-            SeasonSectionsHost.Children.Add(BuildSeasonHeader(season, eps, rowScroller));
-            SeasonSectionsHost.Children.Add(rowScroller);
+            SeasonSectionsHost.Children.Добавить(BuildSeasonHeader(season, eps, rowScroller));
+            SeasonSectionsHost.Children.Добавить(rowScroller);
         }
 
-        // Header progress + Play-next label depend on the full episode set.
+        // Header progress + Воспроизвести-next label depend on the full episode set.
         RefreshHeaderProgress();
     }
 
-    /// <summary>One pill per season ("Season 1" … "Specials"); the selected one is filled.</summary>
+    /// <summary>Вкл.e pill per season ("Season 1" … "Specials"); the selected one is filled.</summary>
     private FrameworkElement BuildSeasonTabs(List<TvSeason> seasons)
     {
         var tabs = new Controls.WrapPanel
@@ -474,55 +474,55 @@ public sealed partial class TvShowsPage : Page
                 _selectedSeason = number;
                 BuildSeasonSections();
             };
-            tabs.Children.Add(tab);
+            tabs.Children.Добавить(tab);
         }
         return tabs;
     }
 
     /// <summary>
     /// Richer season bar: a "Season N" title, a "watched / total · runtime"
-    /// sub-line, and Play-season + Mark-all-watched actions on the right,
+    /// sub-line, and Воспроизвести-season + Mark-all-watched actions on the right,
     /// plus ‹ › buttons that page the episode row a screenful at a time.
     /// </summary>
-    private FrameworkElement BuildSeasonHeader(TvSeason season, List<TvEpisodeItem> eps, ScrollViewer row)
+    private FrameworkElement BuildSeasonHeader(TvSeason season, List<TvЭпизодItem> eps, ScrollViewer row)
     {
-        var muted = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush");
-        var text = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush");
+        var muted = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush");
+        var text = CineМедиатекаCS.Services.ThemeBrushes.Get("TextBrush");
 
         var grid = new Grid { Margin = new Thickness(24, 4, 24, 8) };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Добавить(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Добавить(new ColumnDefinition { Width = GridLength.Auto });
 
         // Left: title + sub-line
         var left = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center };
-        left.Children.Add(new TextBlock
+        left.Children.Добавить(new TextBlock
         {
             Text = season.Season == 0 ? "Specials" : $"Season {season.Season}",
             FontSize = 16,
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             Foreground = text,
         });
-        var totalMins = eps.Where(e => e.Runtime.HasValue).Sum(e => e.Runtime!.Value);
-        var subBits = new List<string> { $"{season.EpisodeCount} episodes", $"{season.WatchedCount} watched" };
-        if (totalMins > 0) subBits.Add(totalMins >= 60 ? $"{totalMins / 60}h {totalMins % 60}m" : $"{totalMins}m");
-        left.Children.Add(new TextBlock
+        var totalMins = eps.Where(e => e.Продолжительность.HasValue).Sum(e => e.Продолжительность!.Value);
+        var subBits = new List<string> { $"{season.ЭпизодCount} episodes", $"{season.ПросмотреноCount} watched" };
+        if (totalMins > 0) subBits.Добавить(totalMins >= 60 ? $"{totalMins / 60}h {totalMins % 60}m" : $"{totalMins}m");
+        left.Children.Добавить(new TextBlock
         {
             Text = string.Join("  ·  ", subBits),
             FontSize = 12,
             Foreground = muted,
         });
-        grid.Children.Add(left);
+        grid.Children.Добавить(left);
 
         // Right: actions
         var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
         Grid.SetColumn(actions, 1);
-        bool anyUnwatched = eps.Any(e => !e.IsWatched);
+        bool anyНе просмотрено = eps.Any(e => !e.IsПросмотрено);
 
         var playSeason = new Button
         {
-            Content = anyUnwatched ? "▶ Play season" : "✓ Season watched",
-            IsEnabled = anyUnwatched,
-            Background = CineLibraryCS.Services.ThemeBrushes.Get("BrandPurpleBrush"),
+            Content = anyНе просмотрено ? "▶ Воспроизвести season" : "✓ Season watched",
+            IsEnabled = anyНе просмотрено,
+            Назадground = CineМедиатекаCS.Services.ThemeBrushes.Get("BrandPurpleBrush"),
             Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White),
             BorderThickness = new Thickness(0),
             CornerRadius = new CornerRadius(8),
@@ -531,38 +531,38 @@ public sealed partial class TvShowsPage : Page
         };
         playSeason.Click += (_, _) =>
         {
-            var next = eps.Where(e => !e.IsWatched).OrderBy(e => e.Episode).FirstOrDefault();
-            if (next != null) OnEpisodePlay(next);
+            var next = eps.Where(e => !e.IsПросмотрено).OrderBy(e => e.Эпизод).FirstOrПо умолчанию();
+            if (next != null) Вкл.ЭпизодВоспроизвести(next);
         };
-        actions.Children.Add(playSeason);
+        actions.Children.Добавить(playSeason);
 
-        var markAll = new Button
+        var markВсе = new Button
         {
-            Content = anyUnwatched ? "Mark all watched" : "Mark all unwatched",
-            Background = CineLibraryCS.Services.ThemeBrushes.Get("CardBrush"),
+            Content = anyНе просмотрено ? "Отметить всё просмотренным" : "Mark all unwatched",
+            Назадground = CineМедиатекаCS.Services.ThemeBrushes.Get("CardBrush"),
             Foreground = text,
-            BorderBrush = CineLibraryCS.Services.ThemeBrushes.Get("BorderBrush"),
+            BorderBrush = CineМедиатекаCS.Services.ThemeBrushes.Get("BorderBrush"),
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(8),
             Padding = new Thickness(12, 6, 12, 6),
             FontSize = 12,
         };
-        markAll.Click += (_, _) =>
+        markВсе.Click += (_, _) =>
         {
-            bool target = anyUnwatched;  // mark all watched if any unwatched, else unmark all
+            bool target = anyНе просмотрено;  // mark all watched if any unwatched, else unmark all
             foreach (var e in eps)
             {
-                if (e.IsWatched != target)
+                if (e.IsПросмотрено != target)
                 {
-                    AppState.Instance.Db.SetEpisodeWatched(e.Id, target);
-                    e.IsWatched = target;
+                    AppState.Instance.Db.SetЭпизодПросмотрено(e.Id, target);
+                    e.IsПросмотрено = target;
                 }
             }
             SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
             // Rebuild so the header counts + button labels refresh.
             BuildSeasonSections();
         };
-        actions.Children.Add(markAll);
+        actions.Children.Добавить(markВсе);
 
         // Page the episode row: one step moves by the whole cards that fit.
         Button PageButton(string glyph, string name, int direction)
@@ -570,9 +570,9 @@ public sealed partial class TvShowsPage : Page
             var b = new Button
             {
                 Content = new FontIcon { Glyph = glyph, FontSize = 12 },
-                Background = CineLibraryCS.Services.ThemeBrushes.Get("CardBrush"),
+                Назадground = CineМедиатекаCS.Services.ThemeBrushes.Get("CardBrush"),
                 Foreground = text,
-                BorderBrush = CineLibraryCS.Services.ThemeBrushes.Get("BorderBrush"),
+                BorderBrush = CineМедиатекаCS.Services.ThemeBrushes.Get("BorderBrush"),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(8),
                 Padding = new Thickness(10, 8, 10, 8),
@@ -581,30 +581,30 @@ public sealed partial class TvShowsPage : Page
             ToolTipService.SetToolTip(b, name);
             b.Click += (_, _) =>
             {
-                const double step = 270 + 14;   // TvEpisodeCard width + row spacing
+                const double step = 270 + 14;   // TvЭпизодCard width + row spacing
                 var cards = Math.Max(1, Math.Floor((row.ViewportWidth + 14) / step));
-                var target = Math.Clamp(row.HorizontalOffset + direction * cards * step, 0, row.ScrollableWidth);
+                var target = Math.Clamp(row.HorizontalВыкл.set + direction * cards * step, 0, row.ScrollableWidth);
                 row.ChangeView(target, null, null);
             };
             return b;
         }
         var prev = PageButton(((char)0xE76B).ToString(), "Previous episodes", -1);
-        var next = PageButton(((char)0xE76C).ToString(), "Next episodes", 1);
+        var next = PageButton(((char)0xE76C).ToString(), "Следующие эпизоды", 1);
         void SyncPager()
         {
             var visible = row.ScrollableWidth > 0.5 ? Visibility.Visible : Visibility.Collapsed;
             prev.Visibility = next.Visibility = visible;
-            prev.IsEnabled = row.HorizontalOffset > 0.5;
-            next.IsEnabled = row.HorizontalOffset < row.ScrollableWidth - 0.5;
+            prev.IsEnabled = row.HorizontalВыкл.set > 0.5;
+            next.IsEnabled = row.HorizontalВыкл.set < row.ScrollableWidth - 0.5;
         }
         row.ViewChanged += (_, _) => SyncPager();
         row.SizeChanged += (_, _) => SyncPager();
         if (row.Content is FrameworkElement episodesRow)
             episodesRow.SizeChanged += (_, _) => SyncPager();   // the row grows as cards realize
-        actions.Children.Add(prev);
-        actions.Children.Add(next);
+        actions.Children.Добавить(prev);
+        actions.Children.Добавить(next);
 
-        grid.Children.Add(actions);
+        grid.Children.Добавить(actions);
         return grid;
     }
 
@@ -614,31 +614,31 @@ public sealed partial class TvShowsPage : Page
         _detail = AppState.Instance.Db.GetTvShowDetail(_currentShow.Id);
         if (_detail == null) return;
 
-        ShowTitle.Text = _detail.Title;
-        ShowYear.Text = _detail.Year?.ToString() ?? "";
-        ShowYear.Visibility = _detail.Year.HasValue ? Visibility.Visible : Visibility.Collapsed;
-        ShowRating.Text = _detail.Rating.HasValue ? $"★ {_detail.Rating:F1}" : "";
-        ShowRating.Visibility = _detail.Rating.HasValue ? Visibility.Visible : Visibility.Collapsed;
+        ShowНазвание.Text = _detail.Название;
+        ShowГод.Text = _detail.Год?.ToString() ?? "";
+        ShowГод.Visibility = _detail.Год.HasValue ? Visibility.Visible : Visibility.Collapsed;
+        ShowРейтинг.Text = _detail.Рейтинг.HasValue ? $"★ {_detail.Рейтинг:F1}" : "";
+        ShowРейтинг.Visibility = _detail.Рейтинг.HasValue ? Visibility.Visible : Visibility.Collapsed;
         ShowMpaa.Text = _detail.Mpaa ?? "";
         ShowMpaa.Visibility = string.IsNullOrWhiteSpace(_detail.Mpaa) ? Visibility.Collapsed : Visibility.Visible;
         ShowStatus.Text = _detail.Status ?? "";
         ShowStatus.Visibility = string.IsNullOrEmpty(_detail.Status) ? Visibility.Collapsed : Visibility.Visible;
-        ShowProgress.Text = $"{_detail.WatchedCount}/{_detail.EpisodeCount} watched";
-        ShowStudio.Text = _detail.Studio ?? "";
-        ShowStudio.Visibility = string.IsNullOrWhiteSpace(_detail.Studio) ? Visibility.Collapsed : Visibility.Visible;
-        ShowFolderBtn.IsEnabled = ResolveShowFolderAbs(_detail) != null;
-        // One flowing paragraph: a blank line between paragraphs would use up
+        ShowProgress.Text = $"{_detail.ПросмотреноCount}/{_detail.ЭпизодCount} watched";
+        ShowСтудия.Text = _detail.Студия ?? "";
+        ShowСтудия.Visibility = string.IsNullOrWhiteSpace(_detail.Студия) ? Visibility.Collapsed : Visibility.Visible;
+        ShowПапкаBtn.IsEnabled = ResolveShowПапкаAbs(_detail) != null;
+        // Вкл.e flowing paragraph: a blank line between paragraphs would use up
         // one of the five visible lines and hide the "…" that says there's more.
         ShowPlot.Text = System.Text.RegularExpressions.Regex.Replace(_detail.Plot ?? "", @"\s*\n\s*", " ").Trim();
         ShowPlot.Visibility = string.IsNullOrWhiteSpace(_detail.Plot) ? Visibility.Collapsed : Visibility.Visible;
 
         // Genre chips
-        ShowGenres.Children.Clear();
-        foreach (var g in _detail.Genres.Take(5))
+        ShowЖанры.Children.Clear();
+        foreach (var g in _detail.Жанры.Take(5))
         {
-            ShowGenres.Children.Add(new Border
+            ShowЖанры.Children.Добавить(new Border
             {
-                Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF)),
+                Назадground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF)),
                 CornerRadius = new CornerRadius(10),
                 Padding = new Thickness(8, 2, 8, 2),
                 Child = new TextBlock { Text = g, FontSize = 11, Foreground =
@@ -653,14 +653,14 @@ public sealed partial class TvShowsPage : Page
             : Windows.UI.Color.FromArgb(0xFF, 0x6B, 0x72, 0x80));
         ShowDriveText.Text = _detail.DriveLabel + (driveLetter != null ? $" ({driveLetter}:)" : "");
 
-        UpdateShowButtons();
-        UpdateShowNote();
+        ОбновитьShowButtons();
+        ОбновитьShowNote();
         RefreshShowTagChips();
 
-        // Cast
-        CastRepeater.ItemsSource = _detail.Actors;
-        ShowCastSection.Visibility = _detail.Actors.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        _ = LoadCastThumbsAsync(_detail.Actors, ResolveShowFolderAbs(_detail));
+        // Актёры
+        АктёрыRepeater.ItemsSource = _detail.Actors;
+        ShowАктёрыSection.Visibility = _detail.Actors.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        _ = LoadАктёрыThumbsAsync(_detail.Actors, ResolveShowПапкаAbs(_detail));
 
         ShowImdbBtn.Visibility = string.IsNullOrWhiteSpace(_detail.ImdbId) ? Visibility.Collapsed : Visibility.Visible;
         ShowTmdbBtn.Visibility = string.IsNullOrWhiteSpace(_detail.TmdbId) ? Visibility.Collapsed : Visibility.Visible;
@@ -677,7 +677,7 @@ public sealed partial class TvShowsPage : Page
         _ = LoadShowImage(ShowFanart, _detail.LocalFanart, 1600);
     }
 
-    // ── v3.10.0: Fetch missing info from TMDB (mirrors the movie window) ──
+    // ── v3.10.0: Получить недостающую информацию из TMDB (mirrors the movie window) ──
 
     private void ShowTmdbBusyState(bool busy, string? status = null)
     {
@@ -686,7 +686,7 @@ public sealed partial class TvShowsPage : Page
         if (status != null) { ShowTmdbStatus.Text = status; ShowTmdbStatus.Visibility = Visibility.Visible; }
     }
 
-    private async void OnFetchShowMissing(object sender, RoutedEventArgs e)
+    private async void Вкл.FetchShowMissing(object sender, RoutedEventArgs e)
     {
         if (_detail == null) return;
         var show = _detail;
@@ -703,7 +703,7 @@ public sealed partial class TvShowsPage : Page
             }
             else
             {
-                var picker = new TmdbPickerDialog(client, show.Title, show.Year, tvShows: true) { XamlRoot = XamlRoot };
+                var picker = new TmdbPickerDialog(client, show.Название, show.Год, tvShows: true) { XamlRoot = XamlRoot };
                 if (await picker.ShowAsync() != ContentDialogResult.Primary || picker.Picked == null)
                 {
                     ShowTmdbBusy.IsActive = false;
@@ -723,16 +723,16 @@ public sealed partial class TvShowsPage : Page
             string? posterRel = null, fanartRel = null;
             if (string.IsNullOrWhiteSpace(show.LocalPoster) && !string.IsNullOrEmpty(t.PosterPath))
                 posterRel = await MovieDetailDialog.DownloadArtAsync(client, t.PosterPath!, "manual_posters", t.TmdbId);
-            if (string.IsNullOrWhiteSpace(show.LocalFanart) && !string.IsNullOrEmpty(t.BackdropPath))
-                fanartRel = await MovieDetailDialog.DownloadArtAsync(client, t.BackdropPath!, "manual_fanart", t.TmdbId);
+            if (string.IsNullOrWhiteSpace(show.LocalFanart) && !string.IsNullOrEmpty(t.НазадdropPath))
+                fanartRel = await MovieDetailDialog.DownloadArtAsync(client, t.НазадdropPath!, "manual_fanart", t.TmdbId);
 
             var studio = t.Networks.Count > 0 ? t.Networks[0].Name
                        : t.ProductionCompanies.Count > 0 ? t.ProductionCompanies[0].Name : null;
             var db = AppState.Instance.Db;
             db.FillTvShowGaps(
                 show.Id,
-                year: t.Year > 0 ? t.Year : null,
-                rating: t.Rating > 0 ? t.Rating : null,
+                year: t.Год > 0 ? t.Год : null,
+                rating: t.Рейтинг > 0 ? t.Рейтинг : null,
                 votes: t.VoteCount > 0 ? t.VoteCount : null,
                 plot: string.IsNullOrWhiteSpace(t.Overview) ? null : t.Overview,
                 mpaa: string.IsNullOrWhiteSpace(t.Certification) ? null : t.Certification,
@@ -742,26 +742,26 @@ public sealed partial class TvShowsPage : Page
                 imdbId: string.IsNullOrWhiteSpace(t.ImdbId) ? null : t.ImdbId,
                 tmdbId: t.TmdbId.ToString(),
                 posterRel: posterRel, fanartRel: fanartRel);
-            db.FillTvShowGenres(show.Id, t.Genres.Select(g => g.Name).ToList());
+            db.FillTvShowЖанры(show.Id, t.Жанры.Select(g => g.Name).ToList());
 
-            // Cast photos are fetched even when the show has cast: .nfo thumbs are
+            // Актёры photos are fetched even when the show has cast: .nfo thumbs are
             // often TMDb links (blank offline) or missing; these are kept locally.
-            if (t.Cast.Count > 0)
+            if (t.Актёры.Count > 0)
             {
                 ShowTmdbBusyState(true, "Fetching cast photos…");
                 var actors = new List<(string, string?, int, string?)>();
-                foreach (var c in t.Cast)
+                foreach (var c in t.Актёры)
                 {
                     if (string.IsNullOrWhiteSpace(c.Name)) continue;
                     string? thumbRel = null;
                     if (!string.IsNullOrEmpty(c.ProfilePath))
                         thumbRel = await MovieDetailDialog.DownloadArtRawAsync(client, c.ProfilePath!, "manual_actors", "w185");
-                    actors.Add((c.Name, string.IsNullOrWhiteSpace(c.Character) ? null : c.Character, c.Order, thumbRel));
+                    actors.Добавить((c.Name, string.IsNullOrWhiteSpace(c.Character) ? null : c.Character, c.Order, thumbRel));
                 }
-                db.AddManualShowActors(show.Id, actors);
+                db.ДобавитьManualShowActors(show.Id, actors);
             }
 
-            ShowTmdbBusyState(false, "Updated.");
+            ShowTmdbBusyState(false, "Обновитьd.");
             if (ReferenceEquals(_detail, show)) PopulateShowHeader();   // re-render in place
         }
         catch (Exception ex)
@@ -771,13 +771,13 @@ public sealed partial class TvShowsPage : Page
         }
     }
 
-    private async void OnOpenShowImdb(object sender, RoutedEventArgs e)
+    private async void Вкл.OpenShowImdb(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_detail?.ImdbId)) return;
         await OpenWebPageAsync($"https://www.imdb.com/title/{_detail.ImdbId.Trim()}/", "IMDb");
     }
 
-    private async void OnOpenShowTmdb(object sender, RoutedEventArgs e)
+    private async void Вкл.OpenShowTmdb(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_detail?.TmdbId)) return;
         await OpenWebPageAsync($"https://www.themoviedb.org/tv/{_detail.TmdbId.Trim()}", "TMDb");
@@ -792,26 +792,26 @@ public sealed partial class TvShowsPage : Page
         }
     }
 
-    private void UpdateShowButtons()
+    private void ОбновитьShowButtons()
     {
         if (_detail == null) return;
-        ShowFavBtn.Content = _detail.IsFavorite ? "★ Favorited" : "☆ Favorite";
-        ShowWatchlistBtn.Content = _detail.IsWatchlist ? "📌 In Watchlist" : "📋 Watchlist";
+        ShowFavBtn.Content = _detail.IsИзбранное ? "★ В избранноеd" : "☆ Избранное";
+        ShowСписок просмотраBtn.Content = _detail.IsСписок просмотра ? "📌 In Список просмотра" : "📋 Список просмотра";
     }
 
     // ── v4.3.0 (#17): the show's own note ──────────────────────────────────
-    // Written in a small box, shown under the plot, and listed on the Notes page.
+    // Written in a small box, shown under the plot, and listed on the Заметки page.
 
-    private void UpdateShowNote()
+    private void ОбновитьShowNote()
     {
         var note = _detail?.Note;
         var has = !string.IsNullOrWhiteSpace(note);
         ShowNoteText.Text = has ? note : "";
         ShowNoteWrap.Visibility = has ? Visibility.Visible : Visibility.Collapsed;
-        ShowNoteBtnText.Text = has ? "📝 Edit note" : "📝 Add note";
+        ShowNoteBtnText.Text = has ? "📝 Изменить note" : "📝 Добавить заметку";
     }
 
-    private async void OnEditShowNote(object sender, RoutedEventArgs e)
+    private async void Вкл.ИзменитьShowNote(object sender, RoutedEventArgs e)
     {
         if (_detail == null) return;
         var show = _detail;
@@ -827,11 +827,11 @@ public sealed partial class TvShowsPage : Page
         ScrollViewer.SetVerticalScrollBarVisibility(box, ScrollBarVisibility.Auto);
         var dlg = new ContentDialog
         {
-            Title = $"📝 Note for {show.Title}",
+            Название = $"📝 Note for {show.Название}",
             Content = box,
-            PrimaryButtonText = "Save",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Primary,
+            PrimaryButtonText = "Сохранить",
+            ЗакрытьButtonText = "Отмена",
+            По умолчаниюButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
             RequestedTheme = MainWindow.CurrentTheme,
         };
@@ -842,34 +842,34 @@ public sealed partial class TvShowsPage : Page
         if (fresh == show.Note) return;
         show.Note = fresh;
         AppState.Instance.Db.SetTvShowNote(show.Id, fresh);   // also the show folder's state file
-        if (ReferenceEquals(show, _detail)) UpdateShowNote();
-        SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);   // the Notes count
+        if (ReferenceEquals(show, _detail)) ОбновитьShowNote();
+        SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);   // the Заметки count
     }
 
-    private void OnToggleShowFavorite(object sender, RoutedEventArgs e)
+    private void Вкл.ToggleShowИзбранное(object sender, RoutedEventArgs e)
     {
         if (_detail == null) return;
-        _detail.IsFavorite = !_detail.IsFavorite;
-        AppState.Instance.Db.SetTvShowFavorite(_detail.Id, _detail.IsFavorite);
-        if (_currentShow != null) _currentShow.IsFavorite = _detail.IsFavorite;
-        UpdateShowButtons();
+        _detail.IsИзбранное = !_detail.IsИзбранное;
+        AppState.Instance.Db.SetTvShowИзбранное(_detail.Id, _detail.IsИзбранное);
+        if (_currentShow != null) _currentShow.IsИзбранное = _detail.IsИзбранное;
+        ОбновитьShowButtons();
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    private void OnToggleShowWatchlist(object sender, RoutedEventArgs e)
+    private void Вкл.ToggleShowСписок просмотра(object sender, RoutedEventArgs e)
     {
         if (_detail == null) return;
-        _detail.IsWatchlist = !_detail.IsWatchlist;
-        AppState.Instance.Db.SetTvShowWatchlist(_detail.Id, _detail.IsWatchlist);
-        if (_currentShow != null) _currentShow.IsWatchlist = _detail.IsWatchlist;
-        UpdateShowButtons();
+        _detail.IsСписок просмотра = !_detail.IsСписок просмотра;
+        AppState.Instance.Db.SetTvShowСписок просмотра(_detail.Id, _detail.IsСписок просмотра);
+        if (_currentShow != null) _currentShow.IsСписок просмотра = _detail.IsСписок просмотра;
+        ОбновитьShowButtons();
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    // "📑 Add to list" — mirrors the movie flyout: toggle membership of any
-    // list, plus "+ New list…". Lists are independent buckets, so a show
+    // "📑 Добавить в список" — mirrors the movie flyout: toggle membership of any
+    // list, plus "+ Новый список…". Lists are independent buckets, so a show
     // and a movie can share a list.
-    private void OnShowListsFlyoutOpening(object sender, object e)
+    private void Вкл.ShowListsFlyoutOpening(object sender, object e)
     {
         ShowListsFlyout.Items.Clear();
         if (_detail == null) return;
@@ -878,7 +878,7 @@ public sealed partial class TvShowsPage : Page
         var membership = db.GetUserListsForShow(_detail.Id);
 
         if (lists.Count == 0)
-            ShowListsFlyout.Items.Add(new MenuFlyoutItem { Text = "(no lists yet)", IsEnabled = false });
+            ShowListsFlyout.Items.Добавить(new MenuFlyoutItem { Text = "(no lists yet)", IsEnabled = false });
         else
             foreach (var ul in lists)
             {
@@ -886,23 +886,23 @@ public sealed partial class TvShowsPage : Page
                 var captured = ul;
                 item.Click += (_, _) =>
                 {
-                    if (item.IsChecked) db.AddShowToUserList(captured.Id, _detail!.Id);
+                    if (item.IsChecked) db.ДобавитьShowToUserList(captured.Id, _detail!.Id);
                     else db.RemoveShowFromUserList(captured.Id, _detail!.Id);
                     SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
                 };
-                ShowListsFlyout.Items.Add(item);
+                ShowListsFlyout.Items.Добавить(item);
             }
 
-        ShowListsFlyout.Items.Add(new MenuFlyoutSeparator());
-        var newItem = new MenuFlyoutItem { Text = "+ New list…" };
+        ShowListsFlyout.Items.Добавить(new MenuFlyoutSeparator());
+        var newItem = new MenuFlyoutItem { Text = "+ Новый список…" };
         newItem.Click += async (_, _) =>
         {
-            var name = await PromptNewListName();
+            var name = await PromptНовыйListName();
             if (string.IsNullOrWhiteSpace(name) || _detail == null) return;
             try
             {
-                var listId = db.CreateUserList(name.Trim());
-                db.AddShowToUserList(listId, _detail.Id);
+                var listId = db.СоздатьUserList(name.Trim());
+                db.ДобавитьShowToUserList(listId, _detail.Id);
                 SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
             }
             catch (Microsoft.Data.Sqlite.SqliteException)
@@ -910,19 +910,19 @@ public sealed partial class TvShowsPage : Page
                 if (App.MainWindow is MainWindow mw) mw.ShowToast($"A list named “{name.Trim()}” already exists");
             }
         };
-        ShowListsFlyout.Items.Add(newItem);
+        ShowListsFlyout.Items.Добавить(newItem);
     }
 
-    private async Task<string?> PromptNewListName()
+    private async Task<string?> PromptНовыйListName()
     {
         var box = new TextBox { PlaceholderText = "List name" };
         var dlg = new ContentDialog
         {
-            Title = "New list",
+            Название = "Новый список",
             Content = box,
-            PrimaryButtonText = "Create",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Primary,
+            PrimaryButtonText = "Создать",
+            ЗакрытьButtonText = "Отмена",
+            По умолчаниюButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
             RequestedTheme = MainWindow.CurrentTheme,
         };
@@ -930,37 +930,37 @@ public sealed partial class TvShowsPage : Page
         return r == ContentDialogResult.Primary ? box.Text : null;
     }
 
-    private async void OnOpenShowFolder(object sender, RoutedEventArgs e)
+    private async void Вкл.OpenShowПапка(object sender, RoutedEventArgs e)
     {
         if (_detail == null) return;
-        var folder = ResolveShowFolderAbs(_detail);
-        if (folder != null && Directory.Exists(folder))
-            await Windows.System.Launcher.LaunchFolderPathAsync(folder);
+        var folder = ResolveShowПапкаAbs(_detail);
+        if (folder != null && Режиссёрy.Exists(folder))
+            await Windows.System.Launcher.LaunchПапкаPathAsync(folder);
     }
 
-    private static string? ResolveShowFolderAbs(TvShowDetail d)
+    private static string? ResolveShowПапкаAbs(TvShowDetail d)
     {
-        if (string.IsNullOrEmpty(d.FolderRelPath)) return null;
+        if (string.IsNullOrEmpty(d.ПапкаRelPath)) return null;
         if (!AppState.Instance.Connected.TryGetValue(d.VolumeSerial, out var letter)) return null;
-        return Path.Combine($"{letter}:\\", d.FolderRelPath.Replace('/', '\\'));
+        return Path.Combine($"{letter}:\\", d.ПапкаRelPath.Replace('/', '\\'));
     }
 
-    // Cast thumbnails — mirror MovieDetailDialog: look in the show's
+    // Актёры thumbnails — mirror MovieDetailDialog: look in the show's
     // .actors folder first, then any inline thumb URL/path. v3.10.0: like the
     // movie window, the URL / cached thumb is used when the drive is offline too.
     private static readonly string[] ActorThumbExts = { ".jpg", ".jpeg", ".png", ".tbn", ".webp" };
 
-    private async Task LoadCastThumbsAsync(IReadOnlyList<Models.Actor> actors, string? showFolderAbs)
+    private async Task LoadАктёрыThumbsAsync(IReadВкл.lyList<Models.Actor> actors, string? showПапкаAbs)
     {
         await Task.Run(() =>
         {
-            var actorsDir = showFolderAbs == null ? null : Path.Combine(showFolderAbs, ".actors");
+            var actorsDir = showПапкаAbs == null ? null : Path.Combine(showПапкаAbs, ".actors");
             foreach (var a in actors)
             {
                 Uri? uri = null;
                 try
                 {
-                    if (actorsDir != null && Directory.Exists(actorsDir))
+                    if (actorsDir != null && Режиссёрy.Exists(actorsDir))
                     {
                         foreach (var stem in new[] { a.Name.Replace(' ', '_'), a.Name })
                         foreach (var ext in ActorThumbExts)
@@ -1017,7 +1017,7 @@ public sealed partial class TvShowsPage : Page
         catch { return false; }
     }
 
-    private void OnShowsTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    private void Вкл.ShowsTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
     {
         // Walk up from the tapped element to find the TvShowCard.
         var d = e.OriginalSource as DependencyObject;
@@ -1031,32 +1031,32 @@ public sealed partial class TvShowsPage : Page
         }
     }
 
-    private void OnBackClick(object sender, RoutedEventArgs e)
+    private void Вкл.НазадClick(object sender, RoutedEventArgs e)
     {
         _level = Level.Shows;
         ShowLevel();
     }
 
-    private void OnEpisodeWatchedToggle(TvEpisodeItem ep)
+    private void Вкл.ЭпизодПросмотреноToggle(TvЭпизодItem ep)
     {
-        var newState = !ep.IsWatched;
-        AppState.Instance.Db.SetEpisodeWatched(ep.Id, newState);
-        ep.IsWatched = newState;            // card updates via PropertyChanged
+        var newState = !ep.IsПросмотрено;
+        AppState.Instance.Db.SetЭпизодПросмотрено(ep.Id, newState);
+        ep.IsПросмотрено = newState;            // card updates via PropertyChanged
         RefreshHeaderProgress();
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    private async void OnEpisodePlay(TvEpisodeItem ep)
+    private async void Вкл.ЭпизодВоспроизвести(TvЭпизодItem ep)
     {
         if (ep.VideoFileRelPath == null) return;
         var connected = AppState.Instance.Connected;
-        if (!connected.TryGetValue(ep.VolumeSerial, out var letter)) { await ShowOfflineDialog(ep.Title); return; }
+        if (!connected.TryGetValue(ep.VolumeSerial, out var letter)) { await ShowНе в сетиDialog(ep.Название); return; }
         var path = Path.Combine($"{letter}:\\", ep.VideoFileRelPath.Replace('/', '\\'));
-        if (!File.Exists(path)) { await ShowOfflineDialog(ep.Title); return; }
+        if (!File.Exists(path)) { await ShowНе в сетиDialog(ep.Название); return; }
 
         // Launch FIRST so a DB hiccup can never stop playback.
         bool launched = false;
-        try { launched = await VideoPlayer.PlayAsync(path); }
+        try { launched = await VideoВоспроизвестиer.ВоспроизвестиAsync(path); }
         catch { launched = false; }
         if (!launched)
         {
@@ -1067,11 +1067,11 @@ public sealed partial class TvShowsPage : Page
         // Bookkeeping — best effort, never blocks the user.
         try
         {
-            AppState.Instance.Db.MarkEpisodePlayed(ep.Id);
-            if (!ep.IsWatched)
+            AppState.Instance.Db.MarkЭпизодВоспроизвестиed(ep.Id);
+            if (!ep.IsПросмотрено)
             {
-                AppState.Instance.Db.SetEpisodeWatched(ep.Id, true);
-                ep.IsWatched = true;
+                AppState.Instance.Db.SetЭпизодПросмотрено(ep.Id, true);
+                ep.IsПросмотрено = true;
             }
             RefreshHeaderProgress();
             SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
@@ -1079,30 +1079,30 @@ public sealed partial class TvShowsPage : Page
         catch { }
     }
 
-    /// <summary>"▶ Play next unwatched" — first unwatched by season then episode.</summary>
-    private void OnPlayNext(object sender, RoutedEventArgs e)
+    /// <summary>"▶ Воспроизвести next unwatched" — first unwatched by season then episode.</summary>
+    private void Вкл.ВоспроизвестиNext(object sender, RoutedEventArgs e)
     {
-        var next = _showEpisodes
-            .Where(ep => !ep.IsWatched)
-            .OrderBy(ep => ep.Season).ThenBy(ep => ep.Episode)
-            .FirstOrDefault();
-        if (next != null) OnEpisodePlay(next);
-        else if (App.MainWindow is MainWindow mw) mw.ShowToast("All episodes watched 🎉");
+        var next = _showЭпизоды
+            .Where(ep => !ep.IsПросмотрено)
+            .OrderBy(ep => ep.Season).ThenBy(ep => ep.Эпизод)
+            .FirstOrПо умолчанию();
+        if (next != null) Вкл.ЭпизодВоспроизвести(next);
+        else if (App.MainWindow is MainWindow mw) mw.ShowToast("Все эпизоды просмотрены 🎉");
     }
 
     private void RefreshHeaderProgress()
     {
-        var total = _showEpisodes.Count;
-        var watched = _showEpisodes.Count(x => x.IsWatched);
+        var total = _showЭпизоды.Count;
+        var watched = _showЭпизоды.Count(x => x.IsПросмотрено);
         ShowProgress.Text = $"{watched}/{total} watched";
-        UpdatePlayNextLabel(watched, total);
+        ОбновитьВоспроизвестиNextLabel(watched, total);
     }
 
-    private void UpdatePlayNextLabel(int watched, int total)
+    private void ОбновитьВоспроизвестиNextLabel(int watched, int total)
     {
         bool any = watched < total;
-        PlayNextBtn.Content = watched == 0 ? "▶ Play S01E01" : (any ? "▶ Play next" : "✓ All watched");
-        PlayNextBtn.IsEnabled = any;
+        ВоспроизвестиNextBtn.Content = watched == 0 ? "▶ Воспроизвести S01E01" : (any ? "▶ Воспроизвести next" : "✓ Все watched");
+        ВоспроизвестиNextBtn.IsEnabled = any;
     }
 
     // ── v2.9 Show tags ───────────────────────────────────────────────────────
@@ -1114,14 +1114,14 @@ public sealed partial class TvShowsPage : Page
         if (_detail == null) return;
         _detail.Tags = AppState.Instance.Db.GetTagNamesForShow(_detail.Id);
         foreach (var name in _detail.Tags)
-            ShowTagChipsRepeater.Items.Add(BuildShowTagChip(name));
+            ShowTagChipsRepeater.Items.Добавить(BuildShowTagChip(name));
     }
 
     private FrameworkElement BuildShowTagChip(string tagName)
     {
         var border = new Border
         {
-            Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+            Назадground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                 Windows.UI.Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF)),
             BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                 Windows.UI.Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF)),
@@ -1141,14 +1141,14 @@ public sealed partial class TvShowsPage : Page
         var captured = tagName;
         label.Click += (_, _) =>
         {
-            if (App.MainWindow is MainWindow mw) mw.NavigateLibraryByTag(captured);
+            if (App.MainWindow is MainWindow mw) mw.NavigateМедиатекаByTag(captured);
         };
-        sp.Children.Add(label);
+        sp.Children.Добавить(label);
         var x = new Button
         {
             Content = "✕",
             FontSize = 10,
-            Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent),
+            Назадground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent),
             BorderThickness = new Thickness(0),
             Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                 Windows.UI.Color.FromArgb(0xCC, 0xFF, 0xFF, 0xFF)),
@@ -1166,37 +1166,37 @@ public sealed partial class TvShowsPage : Page
             RefreshShowTagChips();
             SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         };
-        sp.Children.Add(x);
+        sp.Children.Добавить(x);
         border.Child = sp;
         return border;
     }
 
-    private void OnAddShowTagClick(object sender, RoutedEventArgs e)
+    private void Вкл.ДобавитьShowTagClick(object sender, RoutedEventArgs e)
     {
-        AddShowTagBtn.Visibility = Visibility.Collapsed;
-        AddShowTagBox.Text = "";
-        AddShowTagBox.Visibility = Visibility.Visible;
-        AddShowTagBox.Focus(FocusState.Programmatic);
+        ДобавитьShowTagBtn.Visibility = Visibility.Collapsed;
+        ДобавитьShowTagBox.Text = "";
+        ДобавитьShowTagBox.Visibility = Visibility.Visible;
+        ДобавитьShowTagBox.Focus(FocusState.Programmatic);
     }
 
-    private void OnAddShowTagBlur(object sender, RoutedEventArgs e)
+    private void Вкл.ДобавитьShowTagBlur(object sender, RoutedEventArgs e)
     {
         DispatcherQueue.TryEnqueue(() =>
         {
-            if (AddShowTagBox.FocusState != FocusState.Programmatic)
+            if (ДобавитьShowTagBox.FocusState != FocusState.Programmatic)
             {
-                AddShowTagBox.Visibility = Visibility.Collapsed;
-                AddShowTagBtn.Visibility = Visibility.Visible;
+                ДобавитьShowTagBox.Visibility = Visibility.Collapsed;
+                ДобавитьShowTagBtn.Visibility = Visibility.Visible;
             }
         });
     }
 
-    private void OnAddShowTagTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    private void Вкл.ДобавитьShowTagTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput) return;
         var q = (sender.Text ?? "").Trim();
         if (q.Length == 0) { sender.ItemsSource = null; return; }
-        var existing = AppState.Instance.Db.GetAllTags()
+        var existing = AppState.Instance.Db.GetВсеTags()
             .Where(t => t.Name.Contains(q, StringComparison.OrdinalIgnoreCase))
             .Select(t => t.Name)
             .Take(8)
@@ -1204,7 +1204,7 @@ public sealed partial class TvShowsPage : Page
         sender.ItemsSource = existing;
     }
 
-    private void OnAddShowTagSubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    private void Вкл.ДобавитьShowTagSubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
         if (_detail == null) return;
         var raw = args.ChosenSuggestion as string ?? sender.Text;
@@ -1213,26 +1213,26 @@ public sealed partial class TvShowsPage : Page
         try
         {
             var tagId = AppState.Instance.Db.EnsureTag(name);
-            AppState.Instance.Db.AddShowTag(_detail.Id, tagId);
+            AppState.Instance.Db.ДобавитьShowTag(_detail.Id, tagId);
             RefreshShowTagChips();
             SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Add show tag failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Не удалось добавить тег сериала: {ex.Message}");
         }
         sender.Text = "";
-        AddShowTagBox.Visibility = Visibility.Collapsed;
-        AddShowTagBtn.Visibility = Visibility.Visible;
+        ДобавитьShowTagBox.Visibility = Visibility.Collapsed;
+        ДобавитьShowTagBtn.Visibility = Visibility.Visible;
     }
 
-    private async Task ShowOfflineDialog(string title)
+    private async Task ShowНе в сетиDialog(string title)
     {
         var dlg = new ContentDialog
         {
-            Title = "Can't play yet",
+            Название = "Can't play yet",
             Content = $"\"{title}\" is on a drive that isn't connected. Plug it in and try again.",
-            CloseButtonText = "OK",
+            ЗакрытьButtonText = "OK",
             XamlRoot = XamlRoot,
             RequestedTheme = MainWindow.CurrentTheme,
         };

@@ -3,13 +3,13 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-using CineLibraryCS.Models;
-using CineLibraryCS.Services;
+using CineМедиатекаCS.Models;
+using CineМедиатекаCS.Services;
 using Windows.Graphics;
 using Windows.System;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Продолжительность.InteropServices.WindowsПродолжительность;
 
-namespace CineLibraryCS.Views;
+namespace CineМедиатекаCS.Views;
 
 // A resizable Window-based detail view (replaces the old fixed ContentDialog).
 public sealed partial class MovieDetailDialog : Window
@@ -18,7 +18,7 @@ public sealed partial class MovieDetailDialog : Window
     private MovieDetail? _movie;
     private bool _closed;
 
-    public event EventHandler? WatchlistChanged;
+    public event EventHandler? Список просмотраChanged;
 
     public MovieDetailDialog(int movieId)
     {
@@ -26,12 +26,12 @@ public sealed partial class MovieDetailDialog : Window
         InitializeComponent();
 
         // Custom titlebar drag region + Mica
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
-        SystemBackdrop = new MicaBackdrop();
+        ExtendsContentIntoНазваниеBar = true;
+        SetНазваниеBar(AppНазваниеBar);
+        SystemНазадdrop = new MicaНазадdrop();
 
         // Window size — restore the last user-resized size if we have one,
-        // otherwise fall back to a comfortable default (1100×800). Saved on
+        // otherwise fall back to a comfortable default (1100×800). Сохранитьd on
         // SizeChanged into prefs so resize sticks across sessions.
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
         var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
@@ -43,7 +43,7 @@ public sealed partial class MovieDetailDialog : Window
         if (int.TryParse(savedW, out var w) && w >= 700) width = w;
         if (int.TryParse(savedH, out var h) && h >= 500) height = h;
         appWindow.Resize(new SizeInt32(width, height));
-        appWindow.Title = "Movie Details";
+        appWindow.Название = "Информация о фильме";
 
         // Ensure window is resizable and maximizable, then open maximized
         if (appWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
@@ -58,8 +58,8 @@ public sealed partial class MovieDetailDialog : Window
         {
             Key = Windows.System.VirtualKey.Escape
         };
-        escAcc.Invoked += (_, a) => { a.Handled = true; Close(); };
-        RootGrid.KeyboardAccelerators.Add(escAcc);
+        escAcc.Invoked += (_, a) => { a.Handled = true; Закрыть(); };
+        RootGrid.KeyboardAccelerators.Добавить(escAcc);
         // No floating "Esc" key tip following the pointer (same as MainWindow).
         RootGrid.KeyboardAcceleratorPlacementMode = Microsoft.UI.Xaml.Input.KeyboardAcceleratorPlacementMode.Hidden;
 
@@ -83,7 +83,7 @@ public sealed partial class MovieDetailDialog : Window
         // Track close so async load that finishes after Esc doesn't try to
         // touch the destroyed window (COMException "operation identifier is
         // not valid").
-        Closed += (_, _) => _closed = true;
+        Закрытьd += (_, _) => _closed = true;
 
         // Start DB load IMMEDIATELY (don't wait for Activated). Overlapping
         // with the window animation eliminates the visible "empty window"
@@ -98,7 +98,7 @@ public sealed partial class MovieDetailDialog : Window
 
         if (_movie == null || _closed) return;
         try { PopulateUi(_movie); }
-        catch (System.Runtime.InteropServices.COMException)
+        catch (System.Продолжительность.InteropServices.COMException)
         {
             // Window was closed mid-populate — silently bail.
         }
@@ -106,14 +106,14 @@ public sealed partial class MovieDetailDialog : Window
 
     private void PopulateUi(MovieDetail m)
     {
-        Title = m.Title;
-        TitleBarText.Text = m.Title;
-        DetailTitle.Text = m.Title;
+        Название = m.Название;
+        НазваниеBarText.Text = m.Название;
+        DetailНазвание.Text = m.Название;
 
-        if (m.OriginalTitle != null && m.OriginalTitle != m.Title)
+        if (m.OriginalНазвание != null && m.OriginalНазвание != m.Название)
         {
-            OriginalTitle.Text = m.OriginalTitle;
-            OriginalTitle.Visibility = Visibility.Visible;
+            OriginalНазвание.Text = m.OriginalНазвание;
+            OriginalНазвание.Visibility = Visibility.Visible;
         }
         if (m.Tagline != null)
         {
@@ -122,7 +122,7 @@ public sealed partial class MovieDetailDialog : Window
         }
 
         // Sticky bar title (v2.3) — shown when scrolled past hero
-        StickyTitle.Text = m.Title;
+        StickyНазвание.Text = m.Название;
 
         // IMDb / TMDb top-right pill buttons (v2.3)
         ImdbLinkBtn.Visibility = !string.IsNullOrWhiteSpace(m.ImdbId) ? Visibility.Visible : Visibility.Collapsed;
@@ -130,11 +130,11 @@ public sealed partial class MovieDetailDialog : Window
 
         // Chips
         ChipsPanel.Children.Clear();
-        void AddChip(string text, string? bg = null)
+        void ДобавитьChip(string text, string? bg = null)
         {
             var border = new Border
             {
-                Background = new SolidColorBrush(bg != null
+                Назадground = new SolidColorBrush(bg != null
                     ? Windows.UI.Color.FromArgb(0xFF,
                         Convert.ToByte(bg[1..3], 16), Convert.ToByte(bg[3..5], 16), Convert.ToByte(bg[5..7], 16))
                     : Windows.UI.Color.FromArgb(0xCC, 0x1E, 0x1E, 0x2E)),
@@ -147,48 +147,48 @@ public sealed partial class MovieDetailDialog : Window
                 FontSize = 12,
                 Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xE0, 0xE0, 0xE0))
             };
-            ChipsPanel.Children.Add(border);
+            ChipsPanel.Children.Добавить(border);
         }
 
-        if (m.Rating.HasValue)
+        if (m.Рейтинг.HasValue)
         {
             // Prominent bright-yellow IMDB rating chip (first, before year/runtime)
             var ratingBorder = new Border
             {
-                Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xFA, 0xCC, 0x15)),
+                Назадground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xFA, 0xCC, 0x15)),
                 CornerRadius = new CornerRadius(6),
                 Padding = new Thickness(10, 3, 10, 3),
             };
             ratingBorder.Child = new TextBlock
             {
-                Text = $"★ {m.Rating:F1}",
+                Text = $"★ {m.Рейтинг:F1}",
                 FontSize = 13,
                 FontWeight = Microsoft.UI.Text.FontWeights.Bold,
                 Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x1F, 0x14, 0x00))
             };
-            ChipsPanel.Children.Add(ratingBorder);
+            ChipsPanel.Children.Добавить(ratingBorder);
         }
-        if (m.Year.HasValue) AddChip(m.Year.ToString()!);
-        if (m.Runtime.HasValue) AddChip($"{m.Runtime} min");
-        if (m.Mpaa != null) AddChip(m.Mpaa);
-        if (m.IsMissing) AddChip("MISSING", "#3A1010");
+        if (m.Год.HasValue) ДобавитьChip(m.Год.ToString()!);
+        if (m.Продолжительность.HasValue) ДобавитьChip($"{m.Продолжительность} min");
+        if (m.Mpaa != null) ДобавитьChip(m.Mpaa);
+        if (m.IsMissing) ДобавитьChip("ОТСУТСТВУЕТ", "#3A1010");
 
         // Drive
-        DriveStatusDot.Fill = new SolidColorBrush(m.IsOnline
+        DriveStatusDot.Fill = new SolidColorBrush(m.IsВкл.line
             ? Windows.UI.Color.FromArgb(0xFF, 0x22, 0xC5, 0x5E)
             : Windows.UI.Color.FromArgb(0xFF, 0x6B, 0x72, 0x80));
         DriveText.Text = m.DriveLabel + (m.CurrentLetter != null ? $" ({m.CurrentLetter}:)" : "");
 
         // Actions
-        PlayBtn.IsEnabled = m.Playable;
-        FolderBtn.IsEnabled = m.IsOnline;
-        FavBtn.Content = m.IsFavorite ? "★ Favorited" : "☆ Favorite";
-        WatchedBtn.Content = m.IsWatched ? "✓ Watched" : "○ Mark Watched";
-        WatchlistBtn.Content = m.IsWatchlist ? "📌 In Watchlist" : "☐ Add to Watchlist";
+        ВоспроизвестиBtn.IsEnabled = m.Воспроизвестиable;
+        ПапкаBtn.IsEnabled = m.IsВкл.line;
+        FavBtn.Content = m.IsИзбранное ? "★ В избранноеd" : "☆ Избранное";
+        ПросмотреноBtn.Content = m.IsПросмотрено ? "✓ Просмотрено" : "○ Отметить просмотренным";
+        Список просмотраBtn.Content = m.IsСписок просмотра ? "📌 In Список просмотра" : "☐ Добавить to Список просмотра";
 
 
-        // Notes
-        UpdateNoteUi(viewing: true);
+        // Заметки
+        ОбновитьNoteUi(viewing: true);
 
         // Plot (fall back to outline — many MediaElch NFOs use <outline> only)
         var plotText = m.Plot ?? m.Outline;
@@ -199,70 +199,70 @@ public sealed partial class MovieDetailDialog : Window
             PlotDivider.Visibility = Visibility.Visible;
         }
 
-        // Genres — clickable, filters library on click
-        if (m.Genres.Count > 0)
+        // Жанры — clickable, filters library on click
+        if (m.Жанры.Count > 0)
         {
-            GenresField.Visibility = Visibility.Visible;
+            ЖанрыField.Visibility = Visibility.Visible;
             GenreLinks.Children.Clear();
-            foreach (var g in m.Genres)
+            foreach (var g in m.Жанры)
             {
                 var captured = g;
                 var btn = new HyperlinkButton { Content = g, Padding = new Thickness(0), FontSize = 13 };
-                btn.Click += (_, _) => NavigateAndClose(mw => mw.NavigateLibraryByGenre(captured));
-                GenreLinks.Children.Add(btn);
+                btn.Click += (_, _) => NavigateAndЗакрыть(mw => mw.NavigateМедиатекаByGenre(captured));
+                GenreLinks.Children.Добавить(btn);
             }
         }
 
-        // Directors — clickable
-        if (m.Directors.Count > 0)
+        // Режиссёрs — clickable
+        if (m.Режиссёрs.Count > 0)
         {
-            DirectorField.Visibility = Visibility.Visible;
-            DirectorLinks.Children.Clear();
-            foreach (var d in m.Directors)
+            РежиссёрField.Visibility = Visibility.Visible;
+            РежиссёрLinks.Children.Clear();
+            foreach (var d in m.Режиссёрs)
             {
                 var captured = d;
                 var btn = new HyperlinkButton { Content = d, Padding = new Thickness(0), FontSize = 13 };
-                btn.Click += (_, _) => NavigateAndClose(mw => mw.NavigateLibraryByDirector(captured));
-                DirectorLinks.Children.Add(btn);
+                btn.Click += (_, _) => NavigateAndЗакрыть(mw => mw.NavigateМедиатекаByРежиссёр(captured));
+                РежиссёрLinks.Children.Добавить(btn);
             }
         }
 
         // Tech badges + ratings + file info (v2.2)
         PopulateTechBadges(m);
-        PopulateRatingsPanel(m);
+        PopulateРейтингsPanel(m);
         PopulateFileInfo(m);
         // Lists this movie is on (v2.5) — chip row with per-list ✕.
         RefreshListChips();
         // v2.9 — Free-form tags chip row + autocomplete.
         RefreshTagChips();
 
-        // Studio — clickable HyperlinkButton (was a plain TextBlock)
-        if (m.Studio != null)
+        // Студия — clickable HyperlinkButton (was a plain TextBlock)
+        if (m.Студия != null)
         {
-            StudioLabel.Visibility = Visibility.Visible;
-            StudioText.Visibility = Visibility.Collapsed;
-            StudioLink.Visibility = Visibility.Visible;
-            StudioLink.Content = m.Studio;
+            СтудияLabel.Visibility = Visibility.Visible;
+            СтудияText.Visibility = Visibility.Collapsed;
+            СтудияLink.Visibility = Visibility.Visible;
+            СтудияLink.Content = m.Студия;
             // Detach prior handler in case dialog is reused
-            StudioLink.Click -= OnStudioClick;
-            StudioLink.Click += OnStudioClick;
+            СтудияLink.Click -= Вкл.СтудияClick;
+            СтудияLink.Click += Вкл.СтудияClick;
         }
 
-        // Cast — show the list right away; trickle thumbnail loads in
+        // Актёры — show the list right away; trickle thumbnail loads in
         // batches so the first paint isn't blocked by many parallel image
         // resolves. Pass the absolute movie folder so .actors/ thumbs are
         // discovered for online drives.
         if (m.Actors.Count > 0)
         {
-            CastSection.Visibility = Visibility.Visible;
-            CastDivider.Visibility = Visibility.Visible;
-            CastRepeater.ItemsSource = m.Actors;
-            FitCastCardHeight(m.Actors);
-            string? movieFolderAbs = null;
-            if (m.IsOnline && m.CurrentLetter != null && m.FolderRelPath != null)
-                movieFolderAbs = Path.Combine($"{m.CurrentLetter}:\\",
-                    m.FolderRelPath.Replace('/', '\\'));
-            _ = LoadCastThumbsAsync(m.Actors, movieFolderAbs);
+            АктёрыSection.Visibility = Visibility.Visible;
+            АктёрыDivider.Visibility = Visibility.Visible;
+            АктёрыRepeater.ItemsSource = m.Actors;
+            FitАктёрыCardHeight(m.Actors);
+            string? movieПапкаAbs = null;
+            if (m.IsВкл.line && m.CurrentLetter != null && m.ПапкаRelPath != null)
+                movieПапкаAbs = Path.Combine($"{m.CurrentLetter}:\\",
+                    m.ПапкаRelPath.Replace('/', '\\'));
+            _ = LoadАктёрыThumbsAsync(m.Actors, movieПапкаAbs);
         }
 
         // Images
@@ -271,8 +271,8 @@ public sealed partial class MovieDetailDialog : Window
         LoadImageAsync(m.LocalPoster, PosterImage, PosterPlaceholder, 520);
         LoadImageAsync(m.LocalFanart, HeroImage, null, Math.Clamp(AppWindow.Size.Width, 1920, 3840));
 
-        // v3.4 — "Fetch missing info from TMDB" (and, later, Sync to drive).
-        UpdateTmdbActions(m);
+        // v3.4 — "Получить недостающую информацию из TMDB" (and, later, Синхронизировать с диском).
+        ОбновитьTmdbActions(m);
     }
 
     // ── v3.4 TMDB enrichment ──────────────────────────────────────────────────
@@ -283,20 +283,20 @@ public sealed partial class MovieDetailDialog : Window
         string.IsNullOrWhiteSpace(m.LocalFanart) ||
         (string.IsNullOrWhiteSpace(m.Plot) && string.IsNullOrWhiteSpace(m.Outline)) ||
         m.Actors.Count == 0 ||
-        !m.Year.HasValue || !m.Runtime.HasValue || !m.Rating.HasValue ||
-        string.IsNullOrWhiteSpace(m.Studio);
+        !m.Год.HasValue || !m.Продолжительность.HasValue || !m.Рейтинг.HasValue ||
+        string.IsNullOrWhiteSpace(m.Студия);
 
     private bool IsArchiveRecord(MovieDetail m) => m.VolumeSerial == "__archive__";
 
     /// <summary>
     /// The Fetch button is shown on EVERY movie — partial scrapes are common and
-    /// a heuristic kept hiding it on movies that really did have gaps. On a fully
+    /// a heuristic kept hiding it on movies that really did have gaps. Вкл. a fully
     /// complete movie a fetch is simply a harmless no-op (everything is fill-only).
     /// </summary>
-    private void UpdateTmdbActions(MovieDetail m)
+    private void ОбновитьTmdbActions(MovieDetail m)
     {
         FetchTmdbBtn.Visibility = Visibility.Visible;
-        // Persisting fetched data to the drive is handled by the Drives page's
+        // Persisting fetched data to the drive is handled by the Диски page's
         // existing "Sync state to drive" action, so there's no per-movie Sync
         // button here (avoids a third button for the same kind of action).
         SyncDriveBtn.Visibility = Visibility.Collapsed;
@@ -312,7 +312,7 @@ public sealed partial class MovieDetailDialog : Window
         if (status != null) { TmdbStatus.Text = status; TmdbStatus.Visibility = Visibility.Visible; }
     }
 
-    private async void OnFetchMissing(object sender, RoutedEventArgs e)
+    private async void Вкл.FetchMissing(object sender, RoutedEventArgs e)
     {
         if (_movie == null) return;
         var m = _movie;
@@ -329,7 +329,7 @@ public sealed partial class MovieDetailDialog : Window
             }
             else
             {
-                var picker = new TmdbPickerDialog(client, m.Title, m.Year)
+                var picker = new TmdbPickerDialog(client, m.Название, m.Год)
                 {
                     XamlRoot = (Content as FrameworkElement)?.XamlRoot
                 };
@@ -337,7 +337,7 @@ public sealed partial class MovieDetailDialog : Window
                 if (pick != ContentDialogResult.Primary || picker.Picked == null)
                 {
                     TmdbBusyState(false);
-                    UpdateTmdbActions(m);
+                    ОбновитьTmdbActions(m);
                     return;
                 }
                 d = await client.GetMovieDetailsAsync(picker.Picked.TmdbId);
@@ -353,18 +353,18 @@ public sealed partial class MovieDetailDialog : Window
             string? posterRel = null, fanartRel = null;
             if (string.IsNullOrWhiteSpace(m.LocalPoster) && !string.IsNullOrEmpty(d.PosterPath))
                 posterRel = await DownloadArtAsync(client, d.PosterPath!, "manual_posters", d.TmdbId);
-            if (string.IsNullOrWhiteSpace(m.LocalFanart) && !string.IsNullOrEmpty(d.BackdropPath))
-                fanartRel = await DownloadArtAsync(client, d.BackdropPath!, "manual_fanart", d.TmdbId);
+            if (string.IsNullOrWhiteSpace(m.LocalFanart) && !string.IsNullOrEmpty(d.НазадdropPath))
+                fanartRel = await DownloadArtAsync(client, d.НазадdropPath!, "manual_fanart", d.TmdbId);
 
             var studio = d.ProductionCompanies.Count > 0 ? d.ProductionCompanies[0].Name : null;
             var country = d.ProductionCountries.Count > 0 ? d.ProductionCountries[0].Name : null;
 
             AppState.Instance.Db.FillMovieGaps(
                 m.Id,
-                year: d.Year > 0 ? d.Year : null,
-                rating: d.Rating > 0 ? d.Rating : null,
+                year: d.Год > 0 ? d.Год : null,
+                rating: d.Рейтинг > 0 ? d.Рейтинг : null,
                 votes: d.VoteCount > 0 ? d.VoteCount : null,
-                runtime: d.Runtime > 0 ? d.Runtime : null,
+                runtime: d.Продолжительность > 0 ? d.Продолжительность : null,
                 plot: string.IsNullOrWhiteSpace(d.Overview) ? null : d.Overview,
                 tagline: string.IsNullOrWhiteSpace(d.Tagline) ? null : d.Tagline,
                 mpaa: string.IsNullOrWhiteSpace(d.Certification) ? null : d.Certification,
@@ -374,37 +374,37 @@ public sealed partial class MovieDetailDialog : Window
                 studio: studio, country: country,
                 posterRel: posterRel, fanartRel: fanartRel);
 
-            // Genres / directors / writers — fill-only, so the detail window's
-            // Genres and Director rows aren't left blank on a partial scrape.
+            // Жанры / directors / writers — fill-only, so the detail window's
+            // Жанры and Режиссёр rows aren't left blank on a partial scrape.
             var genreNames = new List<string>();
-            foreach (var g in d.Genres)
-                if (!string.IsNullOrWhiteSpace(g.Name)) genreNames.Add(g.Name);
-            AppState.Instance.Db.FillMovieGenreDirectorWriter(
-                m.Id, genreNames, d.Directors, d.Writers);
+            foreach (var g in d.Жанры)
+                if (!string.IsNullOrWhiteSpace(g.Name)) genreNames.Добавить(g.Name);
+            AppState.Instance.Db.FillMovieGenreРежиссёрWriter(
+                m.Id, genreNames, d.Режиссёрs, d.Writers);
 
-            // Cast — fetch photos for the top-billed cast and link them. Runs
+            // Актёры — fetch photos for the top-billed cast and link them. Runs
             // even when the movie already has cast, because MediaElch NFOs often
             // store actor <thumb>s as TMDb http URLs (blank offline) or none at
-            // all; we download portable copies and AddManualActors upgrades those
+            // all; we download portable copies and ДобавитьManualActors upgrades those
             // weak thumbs to the local cache.
-            if (d.Cast.Count > 0)
+            if (d.Актёры.Count > 0)
             {
                 TmdbBusyState(true, "Fetching cast photos…");
                 var actors = new List<(string, string?, int, string?)>();
-                foreach (var c in d.Cast)
+                foreach (var c in d.Актёры)
                 {
                     if (string.IsNullOrWhiteSpace(c.Name)) continue;
                     string? thumbRel = null;
                     if (!string.IsNullOrEmpty(c.ProfilePath))
                         thumbRel = await DownloadArtRawAsync(client, c.ProfilePath!, "manual_actors", "w185");
-                    actors.Add((c.Name, string.IsNullOrWhiteSpace(c.Character) ? null : c.Character,
+                    actors.Добавить((c.Name, string.IsNullOrWhiteSpace(c.Character) ? null : c.Character,
                                 c.Order, thumbRel));
                 }
-                AppState.Instance.Db.AddManualActors(m.Id, actors);
+                AppState.Instance.Db.ДобавитьManualActors(m.Id, actors);
             }
 
             // Reload from the DB and re-render in place.
-            TmdbBusyState(false, "Updated.");
+            TmdbBusyState(false, "Обновитьd.");
             await LoadAsync();
         }
         catch (Exception ex)
@@ -419,7 +419,7 @@ public sealed partial class MovieDetailDialog : Window
     internal static async Task<string?> DownloadArtAsync(
         Services.Tmdb.TmdbClient client, string tmdbPath, string subfolder, int tmdbId)
     {
-        var fileName = $"{tmdbId}-{Guid.NewGuid():N}.jpg";
+        var fileName = $"{tmdbId}-{Guid.НовыйGuid():N}.jpg";
         var full = Path.Combine(AppState.Instance.DataDir, subfolder, fileName);
         return await client.DownloadImageAsync(client.GetImageUrl(tmdbPath, "original"), full)
             ? $"{subfolder}/{fileName}" : null;
@@ -436,7 +436,7 @@ public sealed partial class MovieDetailDialog : Window
             ? $"{subfolder}/{fileName}" : null;
     }
 
-    private void OnSyncToDrive(object sender, RoutedEventArgs e)
+    private void Вкл.SyncToDrive(object sender, RoutedEventArgs e)
     {
         // Phase B — writes fetched NFO + poster + .actors back to the movie's
         // folder when its drive is online. Wired up in the next build.
@@ -447,15 +447,15 @@ public sealed partial class MovieDetailDialog : Window
     /// the longest-wrapping name and role, measured with the user's text size.
     /// A fixed 280 cut off the role under a two-line name.
     /// </summary>
-    private void FitCastCardHeight(IReadOnlyList<Models.Actor> actors)
+    private void FitАктёрыCardHeight(IReadВкл.lyList<Models.Actor> actors)
     {
-        var font = (FontFamily)Application.Current.Resources["ContentControlThemeFontFamily"];
+        var font = (FontСемья)Application.Current.Resources["ContentControlThemeFontСемья"];
         double TextHeight(string? text, double size, Windows.UI.Text.FontWeight weight)
         {
             if (string.IsNullOrEmpty(text)) return 0;
             var probe = new TextBlock
             {
-                Text = text, FontFamily = font, FontSize = size, FontWeight = weight,
+                Text = text, FontСемья = font, FontSize = size, FontWeight = weight,
                 TextWrapping = TextWrapping.WrapWholeWords, MaxLines = 2,
             };
             probe.Measure(new Windows.Foundation.Size(140, double.PositiveInfinity));
@@ -464,7 +464,7 @@ public sealed partial class MovieDetailDialog : Window
         var name = actors.Max(a => TextHeight(a.Name, 13, Microsoft.UI.Text.FontWeights.SemiBold));
         var role = actors.Max(a => TextHeight(a.Role, 11, Microsoft.UI.Text.FontWeights.Normal));
         // 210 headshot + two 8 px gaps, plus a little slack for rounding.
-        CastGridLayout.MinItemHeight = Math.Max(280, Math.Ceiling(210 + 8 + name + 8 + role + 4));
+        АктёрыGridLayout.MinItemHeight = Math.Max(280, Math.Ceiling(210 + 8 + name + 8 + role + 4));
     }
 
     private static readonly string[] ActorThumbExts = { ".jpg", ".jpeg", ".png", ".tbn", ".webp" };
@@ -476,15 +476,15 @@ public sealed partial class MovieDetailDialog : Window
     ///   2. Inline `<thumb>` URL from the nfo (TMDb http URL or local path).
     /// Falls back to the initials TextBlock behind the Image when both miss.
     /// </summary>
-    private static void LoadActorThumb(Models.Actor a, string? movieFolderAbs)
+    private static void LoadActorThumb(Models.Actor a, string? movieПапкаAbs)
     {
         try
         {
             // 1) Local .actors folder
-            if (!string.IsNullOrEmpty(movieFolderAbs))
+            if (!string.IsNullOrEmpty(movieПапкаAbs))
             {
-                var actorsDir = Path.Combine(movieFolderAbs, ".actors");
-                if (Directory.Exists(actorsDir))
+                var actorsDir = Path.Combine(movieПапкаAbs, ".actors");
+                if (Режиссёрy.Exists(actorsDir))
                 {
                     var candidates = new[]
                     {
@@ -496,14 +496,14 @@ public sealed partial class MovieDetailDialog : Window
                         foreach (var ext in ActorThumbExts)
                         {
                             var p = Path.Combine(actorsDir, stem + ext);
-                            if (File.Exists(p)) { ApplyBitmap(a, SafeFileUri(p)); return; }
+                            if (File.Exists(p)) { ПрименитьBitmap(a, SafeFileUri(p)); return; }
                         }
                     }
                 }
             }
 
             // 2) Inline thumb — an http URL, an absolute file path, or (for
-            //    manual Watched & Gone records) a path relative to the portable
+            //    manual Просмотрено и удалено records) a path relative to the portable
             //    data folder, resolved the same way posters are.
             if (!string.IsNullOrWhiteSpace(a.Thumb))
             {
@@ -519,7 +519,7 @@ public sealed partial class MovieDetailDialog : Window
                     var cached = Services.AppState.Instance.Db.GetCachedImagePath(raw);
                     if (cached != null) uri = SafeFileUri(cached);
                 }
-                if (uri != null) ApplyBitmap(a, uri);
+                if (uri != null) ПрименитьBitmap(a, uri);
             }
         }
         catch { }
@@ -535,12 +535,12 @@ public sealed partial class MovieDetailDialog : Window
     {
         // new Uri() already percent-encodes '#', '?' and spaces correctly for a
         // Windows path. Pre-escaping them ourselves double-encoded the '%' (a
-        // "#Bollywood Movies" folder became %2523Bollywood…), which broke every
+        // "#Bollywood Фильмы" folder became %2523Bollywood…), which broke every
         // actor photo whose path contained '#' or '?'. Let .NET do the encoding.
         return new Uri(absolutePath);
     }
 
-    private static void ApplyBitmap(Models.Actor a, Uri uri)
+    private static void ПрименитьBitmap(Models.Actor a, Uri uri)
     {
         // 280 px decode = ~2× the 140-wide rendered slot for HiDPI crispness
         var bmp = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage { DecodePixelWidth = 280 };
@@ -553,13 +553,13 @@ public sealed partial class MovieDetailDialog : Window
     /// each batch. Prevents many parallel image loads from blocking the
     /// first paint of the dialog.
     /// </summary>
-    private async Task LoadCastThumbsAsync(IReadOnlyList<Models.Actor> actors, string? movieFolderAbs)
+    private async Task LoadАктёрыThumbsAsync(IReadВкл.lyList<Models.Actor> actors, string? movieПапкаAbs)
     {
         const int batchSize = 6;
         for (int i = 0; i < actors.Count; i++)
         {
             if (_closed) return;
-            LoadActorThumb(actors[i], movieFolderAbs);
+            LoadActorThumb(actors[i], movieПапкаAbs);
             if ((i + 1) % batchSize == 0)
                 await Task.Delay(30);
         }
@@ -587,26 +587,26 @@ public sealed partial class MovieDetailDialog : Window
 
     // ── Actions ───────────────────────────────────────────────────────────
 
-    private void OnStudioClick(object sender, RoutedEventArgs e)
+    private void Вкл.СтудияClick(object sender, RoutedEventArgs e)
     {
-        if (_movie?.Studio == null) return;
-        var s = _movie.Studio;
-        NavigateAndClose(mw => mw.NavigateLibraryByStudio(s));
+        if (_movie?.Студия == null) return;
+        var s = _movie.Студия;
+        NavigateAndЗакрыть(mw => mw.NavigateМедиатекаByСтудия(s));
     }
 
-    private void OnActorClick(object sender, RoutedEventArgs e)
+    private void Вкл.ActorClick(object sender, RoutedEventArgs e)
     {
         if (sender is Button b && b.Tag is string actor)
-            NavigateAndClose(mw => mw.NavigateLibraryByActor(actor));
+            NavigateAndЗакрыть(mw => mw.NavigateМедиатекаByActor(actor));
     }
 
     /// <summary>
-    /// Apply a library filter via MainWindow then close this detail window.
+    /// Применить a library filter via MainWindow then close this detail window.
     /// </summary>
-    private void NavigateAndClose(Action<MainWindow> nav)
+    private void NavigateAndЗакрыть(Action<MainWindow> nav)
     {
         if (App.MainWindow is MainWindow mw) nav(mw);
-        Close();
+        Закрыть();
     }
 
     // ── Tech badges, ratings, trailer, file info (v2.2) ──────────────────────
@@ -616,38 +616,38 @@ public sealed partial class MovieDetailDialog : Window
         TechBadges.Items.Clear();
         // Resolution
         var resLabel = ResolutionLabel(m.VideoWidth, m.VideoHeight);
-        if (resLabel != null) AddTechBadge(resLabel, "#3B82F6"); // blue
+        if (resLabel != null) ДобавитьTechBadge(resLabel, "#3B82F6"); // blue
         // Aspect ratio
         var aspLabel = NormalizeAspect(m.VideoAspect);
-        if (aspLabel != null) AddTechBadge(aspLabel, "#475569"); // slate
+        if (aspLabel != null) ДобавитьTechBadge(aspLabel, "#475569"); // slate
         // Video codec
         if (!string.IsNullOrWhiteSpace(m.VideoCodec))
-            AddTechBadge(m.VideoCodec.ToUpperInvariant(), "#7C3AED"); // violet
+            ДобавитьTechBadge(m.VideoCodec.ToUpperInvariant(), "#7C3AED"); // violet
         // HDR
         if (!string.IsNullOrWhiteSpace(m.HdrType))
-            AddTechBadge(m.HdrType.ToUpperInvariant(), "#EAB308"); // amber
-        // Audio codec + channels
-        var aud = AudioLabel(m.AudioCodec, m.AudioChannels);
-        if (aud != null) AddTechBadge(aud, "#10B981"); // emerald
+            ДобавитьTechBadge(m.HdrType.ToUpperInvariant(), "#EAB308"); // amber
+        // Аудио codec + channels
+        var aud = АудиоLabel(m.АудиоCodec, m.АудиоChannels);
+        if (aud != null) ДобавитьTechBadge(aud, "#10B981"); // emerald
     }
 
-    private void AddTechBadge(string text, string hex)
+    private void ДобавитьTechBadge(string text, string hex)
     {
         // Gradient + thin top-highlight border for a polished embossed look
         var topColor = HexColor(hex);
-        var bottomColor = DarkenColor(topColor, 0.85);
+        var bottomColor = ТёмнаяenColor(topColor, 0.85);
         var bg = new Microsoft.UI.Xaml.Media.LinearGradientBrush
         {
             StartPoint = new Windows.Foundation.Point(0, 0),
             EndPoint = new Windows.Foundation.Point(0, 1),
         };
-        bg.GradientStops.Add(new Microsoft.UI.Xaml.Media.GradientStop { Color = topColor, Offset = 0 });
-        bg.GradientStops.Add(new Microsoft.UI.Xaml.Media.GradientStop { Color = bottomColor, Offset = 1 });
+        bg.GradientStops.Добавить(new Microsoft.UI.Xaml.Media.GradientStop { Color = topColor, Выкл.set = 0 });
+        bg.GradientStops.Добавить(new Microsoft.UI.Xaml.Media.GradientStop { Color = bottomColor, Выкл.set = 1 });
 
         var border = new Border
         {
             CornerRadius = new CornerRadius(4),
-            Background = bg,
+            Назадground = bg,
             BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)),
             BorderThickness = new Thickness(1),
             Padding = new Thickness(8, 3, 8, 3),
@@ -659,7 +659,7 @@ public sealed partial class MovieDetailDialog : Window
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             Foreground = new SolidColorBrush(Microsoft.UI.Colors.White),
         };
-        TechBadges.Items.Add(border);
+        TechBadges.Items.Добавить(border);
     }
 
     private static Windows.UI.Color HexColor(string hex)
@@ -673,7 +673,7 @@ public sealed partial class MovieDetailDialog : Window
         return Windows.UI.Color.FromArgb(a, r, g, b);
     }
 
-    private static Windows.UI.Color DarkenColor(Windows.UI.Color c, double factor)
+    private static Windows.UI.Color ТёмнаяenColor(Windows.UI.Color c, double factor)
     {
         return Windows.UI.Color.FromArgb(c.A,
             (byte)(c.R * factor), (byte)(c.G * factor), (byte)(c.B * factor));
@@ -726,10 +726,10 @@ public sealed partial class MovieDetailDialog : Window
         };
     }
 
-    private static string? AudioLabel(string? codec, string? channels)
+    private static string? АудиоLabel(string? codec, string? channels)
     {
         var parts = new List<string>();
-        if (!string.IsNullOrWhiteSpace(codec)) parts.Add(codec.ToUpperInvariant());
+        if (!string.IsNullOrWhiteSpace(codec)) parts.Добавить(codec.ToUpperInvariant());
         if (!string.IsNullOrWhiteSpace(channels))
         {
             var lbl = channels switch
@@ -741,48 +741,48 @@ public sealed partial class MovieDetailDialog : Window
                 "1" => "Mono",
                 _ => $"{channels} ch",
             };
-            parts.Add(lbl);
+            parts.Добавить(lbl);
         }
         return parts.Count == 0 ? null : string.Join(" ", parts);
     }
 
-    private void PopulateRatingsPanel(MovieDetail m)
+    private void PopulateРейтингsPanel(MovieDetail m)
     {
-        RatingsPanel.Children.Clear();
-        if (m.AllRatings.Count == 0)
+        РейтингsPanel.Children.Clear();
+        if (m.ВсеРейтингs.Count == 0)
         {
-            RatingsPanel.Visibility = Visibility.Collapsed;
+            РейтингsPanel.Visibility = Visibility.Collapsed;
             return;
         }
-        RatingsPanel.Visibility = Visibility.Visible;
-        foreach (var rt in m.AllRatings)
+        РейтингsPanel.Visibility = Visibility.Visible;
+        foreach (var rt in m.ВсеРейтингs)
         {
             var sourceLabel = PrettySource(rt.Source);
             var stack = new StackPanel { Spacing = 2 };
-            stack.Children.Add(new TextBlock
+            stack.Children.Добавить(new TextBlock
             {
                 Text = sourceLabel.ToUpperInvariant(),
                 FontSize = 9, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
                 CharacterSpacing = 150, Opacity = 0.65,
-                Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
+                Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush"),
             });
-            stack.Children.Add(new TextBlock
+            stack.Children.Добавить(new TextBlock
             {
                 Text = rt.Value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)
                        + (rt.Source.Equals("rottentomatoes", StringComparison.OrdinalIgnoreCase) ? "%" : ""),
                 FontSize = 16, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                Foreground = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush"),
+                Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("TextBrush"),
             });
             if (rt.Votes.HasValue && rt.Votes.Value > 0)
             {
-                stack.Children.Add(new TextBlock
+                stack.Children.Добавить(new TextBlock
                 {
                     Text = FormatVotes(rt.Votes.Value),
                     FontSize = 10,
-                    Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
+                    Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush"),
                 });
             }
-            RatingsPanel.Children.Add(stack);
+            РейтингsPanel.Children.Добавить(stack);
         }
     }
 
@@ -792,7 +792,7 @@ public sealed partial class MovieDetailDialog : Window
         "themoviedb" or "tmdb" => "TMDb",
         "rottentomatoes" => "Rotten Tomatoes",
         "metacritic" => "Metacritic",
-        "default" => "Rating",
+        "default" => "Рейтинг",
         _ => char.ToUpper(src[0]) + src.Substring(1),
     };
 
@@ -806,12 +806,12 @@ public sealed partial class MovieDetailDialog : Window
     private void PopulateFileInfo(MovieDetail m)
     {
         bool any = false;
-        // Runtime / Released / Rated / Country — folded in from the old
+        // Продолжительность / Дата выхода / Rated / Страна — folded in from the old
         // below-poster column so the row stays compact (v2.3.x).
-        if (m.Runtime.HasValue && m.Runtime.Value > 0)
+        if (m.Продолжительность.HasValue && m.Продолжительность.Value > 0)
         {
-            FiRuntime.Text = $"{m.Runtime.Value} min";
-            FiRuntimeBlock.Visibility = Visibility.Visible;
+            FiПродолжительность.Text = $"{m.Продолжительность.Value} min";
+            FiПродолжительностьBlock.Visibility = Visibility.Visible;
             any = true;
         }
         if (!string.IsNullOrWhiteSpace(m.Premiered))
@@ -822,9 +822,9 @@ public sealed partial class MovieDetailDialog : Window
             FiReleaseBlock.Visibility = Visibility.Visible;
             any = true;
         }
-        else if (m.Year.HasValue)
+        else if (m.Год.HasValue)
         {
-            FiRelease.Text = m.Year.Value.ToString();
+            FiRelease.Text = m.Год.Value.ToString();
             FiReleaseBlock.Visibility = Visibility.Visible;
             any = true;
         }
@@ -834,10 +834,10 @@ public sealed partial class MovieDetailDialog : Window
             FiMpaaBlock.Visibility = Visibility.Visible;
             any = true;
         }
-        if (!string.IsNullOrWhiteSpace(m.Country))
+        if (!string.IsNullOrWhiteSpace(m.Страна))
         {
-            FiCountry.Text = m.Country!;
-            FiCountryBlock.Visibility = Visibility.Visible;
+            FiСтрана.Text = m.Страна!;
+            FiСтранаBlock.Visibility = Visibility.Visible;
             any = true;
         }
         if (m.FileSizeBytes.HasValue && m.FileSizeBytes.Value > 0)
@@ -858,9 +858,9 @@ public sealed partial class MovieDetailDialog : Window
             FiContainerBlock.Visibility = Visibility.Visible;
             any = true;
         }
-        if (!string.IsNullOrWhiteSpace(m.AudioLanguages))
+        if (!string.IsNullOrWhiteSpace(m.АудиоLanguages))
         {
-            FiLangs.Text = m.AudioLanguages.Replace(",", " · ");
+            FiLangs.Text = m.АудиоLanguages.Replace(",", " · ");
             FiLangBlock.Visibility = Visibility.Visible;
             any = true;
         }
@@ -903,20 +903,20 @@ public sealed partial class MovieDetailDialog : Window
     // v4.2.0 (#14): no 1100 cap any more. The page fills the window and picks
     // an arrangement from its width, so a portrait tablet and a 4K screen both
     // use the space they have.
-    private void OnContentScrollerSizeChanged(object sender, SizeChangedEventArgs e)
+    private void Вкл.ContentScrollerSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        var inner = e.NewSize.Width - ContentScroller.Padding.Left - ContentScroller.Padding.Right;
+        var inner = e.НовыйSize.Width - ContentScroller.Padding.Left - ContentScroller.Padding.Right;
         ContentStack.Width = Math.Max(0, inner);
         HeroBorder.Height = Math.Clamp(inner / 3.2, 220, 460);   // 1100 wide = the old 340
-        ApplyLayout(e.NewSize.Width < 900 ? DetailLayout.Narrow
-                  : e.NewSize.Width >= 1600 ? DetailLayout.Wide
+        ПрименитьLayout(e.НовыйSize.Width < 900 ? DetailLayout.Narrow
+                  : e.НовыйSize.Width >= 1600 ? DetailLayout.Wide
                   : DetailLayout.Standard);
     }
 
     private enum DetailLayout { Unset, Narrow, Standard, Wide }
     private DetailLayout _layout;
 
-    private void ApplyLayout(DetailLayout layout)
+    private void ПрименитьLayout(DetailLayout layout)
     {
         if (layout == _layout) return;
         _layout = layout;
@@ -924,29 +924,29 @@ public sealed partial class MovieDetailDialog : Window
 
         PosterFrame.Width  = narrow ? 150 : wide ? 260 : 200;
         PosterFrame.Height = narrow ? 218 : wide ? 377 : 290;
-        DetailTitle.FontSize   = narrow ? 26 : 34;
-        DetailTitle.LineHeight = narrow ? 32 : 40;
+        DetailНазвание.FontSize   = narrow ? 26 : 34;
+        DetailНазвание.LineHeight = narrow ? 32 : 40;
 
         // Wide: everything up to the cast sits beside the poster. Buttons and plot
         // go under the title; genres, director, studio, file info and notes get a
         // column of their own. Otherwise they stack under the poster as before.
-        foreach (var block in new FrameworkElement[] { ActionsBlock, FileInfoPanel, PlotBlock, NotesCard, FieldsBlock })
+        foreach (var block in new FrameworkElement[] { ActionsBlock, FileInfoPanel, PlotBlock, ЗаметкиCard, FieldsBlock })
             Detach(block);
         if (wide)
         {
-            MetaStack.Children.Add(ActionsBlock);
-            MetaStack.Children.Add(PlotBlock);
-            SideStack.Children.Add(FieldsBlock);
-            SideStack.Children.Add(FileInfoPanel);
-            SideStack.Children.Add(NotesCard);
+            MetaStack.Children.Добавить(ActionsBlock);
+            MetaStack.Children.Добавить(PlotBlock);
+            SideStack.Children.Добавить(FieldsBlock);
+            SideStack.Children.Добавить(FileInfoPanel);
+            SideStack.Children.Добавить(ЗаметкиCard);
         }
         else
         {
             ContentStack.Children.Insert(ContentStack.Children.IndexOf(TopGrid) + 1, ActionsBlock);
-            BodyStack.Children.Add(FileInfoPanel);
-            BodyStack.Children.Add(PlotBlock);
-            BodyStack.Children.Add(NotesCard);
-            BodyStack.Children.Add(FieldsBlock);
+            BodyStack.Children.Добавить(FileInfoPanel);
+            BodyStack.Children.Добавить(PlotBlock);
+            BodyStack.Children.Добавить(ЗаметкиCard);
+            BodyStack.Children.Добавить(FieldsBlock);
         }
         // The title column stops at a readable width; the details column takes the rest.
         var main = TopGrid.ColumnDefinitions[1];
@@ -965,11 +965,11 @@ public sealed partial class MovieDetailDialog : Window
         if (element.Parent is Panel parent) parent.Children.Remove(element);
     }
 
-    // v4.2.0: Genres, Director and Studio side by side, or one under another
+    // v4.2.0: Жанры, Режиссёр and Студия side by side, or one under another
     // when the grid is narrow (a small window, or the wide layout's side column).
-    private void OnFieldsGridSizeChanged(object sender, SizeChangedEventArgs e)
+    private void Вкл.FieldsGridSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        bool stack = e.NewSize.Width < 600;
+        bool stack = e.НовыйSize.Width < 600;
         FieldsGrid.ColumnDefinitions[1].Width = stack ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
         FieldsGrid.ColumnDefinitions[2].Width = stack ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
         for (int i = 0; i < FieldsGrid.Children.Count; i++)
@@ -983,17 +983,17 @@ public sealed partial class MovieDetailDialog : Window
 
     // ── Sticky action bar + external link buttons (v2.3) ─────────────────
 
-    private void OnContentScrolled(object sender, ScrollViewerViewChangedEventArgs e)
+    private void Вкл.ContentScrolled(object sender, ScrollViewerViewChangedEventArgs e)
     {
         // Bar appears once the user is past the hero block (its height follows the width)
-        StickyBar.Visibility = ContentScroller.VerticalOffset > HeroBorder.Height - 60
+        StickyBar.Visibility = ContentScroller.VerticalВыкл.set > HeroBorder.Height - 60
             ? Visibility.Visible
             : Visibility.Collapsed;
     }
 
-    private void OnStickyClose(object sender, RoutedEventArgs e) => Close();
+    private void Вкл.StickyЗакрыть(object sender, RoutedEventArgs e) => Закрыть();
 
-    private async void OnOpenImdb(object sender, RoutedEventArgs e)
+    private async void Вкл.OpenImdb(object sender, RoutedEventArgs e)
     {
         if (_movie?.ImdbId == null) return;
         try { await Launcher.LaunchUriAsync(new Uri($"https://www.imdb.com/title/{_movie.ImdbId}/")); }
@@ -1004,7 +1004,7 @@ public sealed partial class MovieDetailDialog : Window
         }
     }
 
-    private async void OnOpenTmdb(object sender, RoutedEventArgs e)
+    private async void Вкл.OpenTmdb(object sender, RoutedEventArgs e)
     {
         if (_movie?.TmdbId == null) return;
         try { await Launcher.LaunchUriAsync(new Uri($"https://www.themoviedb.org/movie/{_movie.TmdbId}")); }
@@ -1015,54 +1015,54 @@ public sealed partial class MovieDetailDialog : Window
         }
     }
 
-    private async void OnPlay(object sender, RoutedEventArgs e)
+    private async void Вкл.Воспроизвести(object sender, RoutedEventArgs e)
     {
         if (_movie?.CurrentLetter == null || _movie.VideoFileRelPath == null) return;
         var letter = _movie.CurrentLetter;
         var videoPath = Path.Combine($"{letter}:\\", _movie.VideoFileRelPath.Replace('/', '\\'));
         if (File.Exists(videoPath))
         {
-            // Stamp Continue Watching: we can't see real playback position once
+            // Stamp Продолжить просмотр: we can't see real playback position once
             // the OS player takes over, so the row simply moves to the top of
-            // the Continue Watching list and stays until the user marks it Watched.
-            AppState.Instance.Db.MarkPlayed(_movie.Id);
+            // the Продолжить просмотр list and stays until the user marks it Просмотрено.
+            AppState.Instance.Db.MarkВоспроизвестиed(_movie.Id);
             // Tell the host so its sidebar badge updates
-            WatchlistChanged?.Invoke(this, EventArgs.Empty);
-            await VideoPlayer.PlayAsync(videoPath);
+            Список просмотраChanged?.Invoke(this, EventArgs.Empty);
+            await VideoВоспроизвестиer.ВоспроизвестиAsync(videoPath);
         }
     }
 
-    private async void OnOpenFolder(object sender, RoutedEventArgs e)
+    private async void Вкл.OpenПапка(object sender, RoutedEventArgs e)
     {
-        if (_movie?.CurrentLetter == null || _movie.FolderRelPath == null) return;
-        var folderPath = Path.Combine($"{_movie.CurrentLetter}:\\", _movie.FolderRelPath.Replace('/', '\\'));
-        if (Directory.Exists(folderPath))
-            await Launcher.LaunchFolderPathAsync(folderPath);
+        if (_movie?.CurrentLetter == null || _movie.ПапкаRelPath == null) return;
+        var folderPath = Path.Combine($"{_movie.CurrentLetter}:\\", _movie.ПапкаRelPath.Replace('/', '\\'));
+        if (Режиссёрy.Exists(folderPath))
+            await Launcher.LaunchПапкаPathAsync(folderPath);
     }
 
-    private void OnToggleFav(object sender, RoutedEventArgs e)
+    private void Вкл.ToggleFav(object sender, RoutedEventArgs e)
     {
         if (_movie == null) return;
-        AppState.Instance.Db.ToggleFavorite(_movie.Id);
-        _movie.IsFavorite = !_movie.IsFavorite;
-        FavBtn.Content = _movie.IsFavorite ? "★ Favorited" : "☆ Favorite";
+        AppState.Instance.Db.ToggleИзбранное(_movie.Id);
+        _movie.IsИзбранное = !_movie.IsИзбранное;
+        FavBtn.Content = _movie.IsИзбранное ? "★ В избранноеd" : "☆ Избранное";
     }
 
-         private void OnToggleWatched(object sender, RoutedEventArgs e)
+         private void Вкл.ToggleПросмотрено(object sender, RoutedEventArgs e)
          {
              if (_movie == null) return;
-             AppState.Instance.Db.ToggleWatched(_movie.Id);
-             _movie.IsWatched = !_movie.IsWatched;
-             WatchedBtn.Content = _movie.IsWatched ? "✓ Watched" : "○ Mark Watched";
+             AppState.Instance.Db.ToggleПросмотрено(_movie.Id);
+             _movie.IsПросмотрено = !_movie.IsПросмотрено;
+             ПросмотреноBtn.Content = _movie.IsПросмотрено ? "✓ Просмотрено" : "○ Отметить просмотренным";
          }
 
-         private void OnToggleWatchlist(object sender, RoutedEventArgs e)
+         private void Вкл.ToggleСписок просмотра(object sender, RoutedEventArgs e)
          {
              if (_movie == null) return;
-             AppState.Instance.Db.SetWatchlist(_movie.Id, !_movie.IsWatchlist);
-             _movie.IsWatchlist = !_movie.IsWatchlist;
-             WatchlistBtn.Content = _movie.IsWatchlist ? "📌 In Watchlist" : "☐ Add to Watchlist";
-             WatchlistChanged?.Invoke(this, EventArgs.Empty);
+             AppState.Instance.Db.SetСписок просмотра(_movie.Id, !_movie.IsСписок просмотра);
+             _movie.IsСписок просмотра = !_movie.IsСписок просмотра;
+             Список просмотраBtn.Content = _movie.IsСписок просмотра ? "📌 In Список просмотра" : "☐ Добавить to Список просмотра";
+             Список просмотраChanged?.Invoke(this, EventArgs.Empty);
          }
 
         // ── Lists chips (v2.5) — chip-per-list with ✕ to remove. Rebuilt
@@ -1087,7 +1087,7 @@ public sealed partial class MovieDetailDialog : Window
             foreach (var listId in membership)
             {
                 if (!all.TryGetValue(listId, out var listName)) continue;
-                ListChipsRepeater.Items.Add(BuildListChip(listId, listName));
+                ListChipsRepeater.Items.Добавить(BuildListChip(listId, listName));
             }
         }
 
@@ -1095,27 +1095,27 @@ public sealed partial class MovieDetailDialog : Window
         {
             var border = new Border
             {
-                Background = CineLibraryCS.Services.ThemeBrushes.Get("CardBrush"),
-                BorderBrush = CineLibraryCS.Services.ThemeBrushes.Get("BorderBrush"),
+                Назадground = CineМедиатекаCS.Services.ThemeBrushes.Get("CardBrush"),
+                BorderBrush = CineМедиатекаCS.Services.ThemeBrushes.Get("BorderBrush"),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(12),
                 Padding = new Thickness(10, 4, 6, 4),
             };
             var sp = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-            sp.Children.Add(new TextBlock
+            sp.Children.Добавить(new TextBlock
             {
                 Text = $"📑 {listName}",
                 FontSize = 12,
-                Foreground = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush"),
+                Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("TextBrush"),
                 VerticalAlignment = VerticalAlignment.Center,
             });
             var x = new Button
             {
                 Content = "✕",
                 FontSize = 10,
-                Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent),
+                Назадground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent),
                 BorderThickness = new Thickness(0),
-                Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
+                Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush"),
                 Padding = new Thickness(4, 0, 4, 0),
                 MinWidth = 18,
                 MinHeight = 18,
@@ -1126,9 +1126,9 @@ public sealed partial class MovieDetailDialog : Window
                 if (_movie == null) return;
                 AppState.Instance.Db.RemoveMovieFromUserList(listId, _movie.Id);
                 RefreshListChips();
-                WatchlistChanged?.Invoke(this, EventArgs.Empty);
+                Список просмотраChanged?.Invoke(this, EventArgs.Empty);
             };
-            sp.Children.Add(x);
+            sp.Children.Добавить(x);
             border.Child = sp;
             return border;
         }
@@ -1142,15 +1142,15 @@ public sealed partial class MovieDetailDialog : Window
             if (_movie == null) return;
             _movie.Tags = AppState.Instance.Db.GetTagNamesForMovie(_movie.Id);
             foreach (var name in _movie.Tags)
-                TagChipsRepeater.Items.Add(BuildTagChip(name));
+                TagChipsRepeater.Items.Добавить(BuildTagChip(name));
         }
 
         private UIElement BuildTagChip(string tagName)
         {
             var border = new Border
             {
-                Background = CineLibraryCS.Services.ThemeBrushes.Get("ChipBrush"),
-                BorderBrush = CineLibraryCS.Services.ThemeBrushes.Get("BorderBrush"),
+                Назадground = CineМедиатекаCS.Services.ThemeBrushes.Get("ChipBrush"),
+                BorderBrush = CineМедиатекаCS.Services.ThemeBrushes.Get("BorderBrush"),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(12),
                 Padding = new Thickness(10, 3, 4, 3),
@@ -1166,16 +1166,16 @@ public sealed partial class MovieDetailDialog : Window
             label.Click += (_, _) =>
             {
                 if (_movie == null) return;
-                NavigateAndClose(mw => mw.NavigateLibraryByTag(tagName));
+                NavigateAndЗакрыть(mw => mw.NavigateМедиатекаByTag(tagName));
             };
-            sp.Children.Add(label);
+            sp.Children.Добавить(label);
             var x = new Button
             {
                 Content = "✕",
                 FontSize = 10,
-                Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent),
+                Назадground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent),
                 BorderThickness = new Thickness(0),
-                Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
+                Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush"),
                 Padding = new Thickness(4, 0, 4, 0),
                 MinWidth = 18,
                 MinHeight = 18,
@@ -1189,41 +1189,41 @@ public sealed partial class MovieDetailDialog : Window
                 // auto-writes the movie sidecar with current tags.
                 AppState.Instance.Db.RemoveMovieTag(_movie.Id, tagId);
                 RefreshTagChips();
-                WatchlistChanged?.Invoke(this, EventArgs.Empty);
+                Список просмотраChanged?.Invoke(this, EventArgs.Empty);
             };
-            sp.Children.Add(x);
+            sp.Children.Добавить(x);
             border.Child = sp;
             return border;
         }
 
-        private void OnAddTagClick(object sender, RoutedEventArgs e)
+        private void Вкл.ДобавитьTagClick(object sender, RoutedEventArgs e)
         {
-            AddTagBtn.Visibility = Visibility.Collapsed;
-            AddTagBox.Text = "";
-            AddTagBox.Visibility = Visibility.Visible;
-            AddTagBox.Focus(FocusState.Programmatic);
+            ДобавитьTagBtn.Visibility = Visibility.Collapsed;
+            ДобавитьTagBox.Text = "";
+            ДобавитьTagBox.Visibility = Visibility.Visible;
+            ДобавитьTagBox.Focus(FocusState.Programmatic);
         }
 
-        private void OnAddTagBlur(object sender, RoutedEventArgs e)
+        private void Вкл.ДобавитьTagBlur(object sender, RoutedEventArgs e)
         {
             // Collapse the input when it loses focus without a submission.
             // Brief delay so a click on a suggestion has time to fire.
             DispatcherQueue.TryEnqueue(() =>
             {
-                if (!AddTagBox.FocusState.Equals(FocusState.Programmatic))
+                if (!ДобавитьTagBox.FocusState.Equals(FocusState.Programmatic))
                 {
-                    AddTagBox.Visibility = Visibility.Collapsed;
-                    AddTagBtn.Visibility = Visibility.Visible;
+                    ДобавитьTagBox.Visibility = Visibility.Collapsed;
+                    ДобавитьTagBtn.Visibility = Visibility.Visible;
                 }
             });
         }
 
-        private void OnAddTagTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        private void Вкл.ДобавитьTagTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
             if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput) return;
             var q = (sender.Text ?? "").Trim();
             if (q.Length == 0) { sender.ItemsSource = null; return; }
-            var existing = AppState.Instance.Db.GetAllTags()
+            var existing = AppState.Instance.Db.GetВсеTags()
                 .Where(t => t.Name.Contains(q, StringComparison.OrdinalIgnoreCase))
                 .Select(t => t.Name)
                 .Take(8)
@@ -1231,7 +1231,7 @@ public sealed partial class MovieDetailDialog : Window
             sender.ItemsSource = existing;
         }
 
-        private void OnAddTagSubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+        private void Вкл.ДобавитьTagSubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
         {
             if (_movie == null) return;
             var raw = args.ChosenSuggestion as string ?? sender.Text;
@@ -1240,24 +1240,24 @@ public sealed partial class MovieDetailDialog : Window
             try
             {
                 var tagId = AppState.Instance.Db.EnsureTag(name);
-                // AddMovieTag raises PersonalStateChanged → AppState auto-
+                // ДобавитьMovieTag raises PersonalStateChanged → AppState auto-
                 // writes the movie sidecar with the new tag set.
-                AppState.Instance.Db.AddMovieTag(_movie.Id, tagId);
+                AppState.Instance.Db.ДобавитьMovieTag(_movie.Id, tagId);
                 RefreshTagChips();
-                WatchlistChanged?.Invoke(this, EventArgs.Empty);
+                Список просмотраChanged?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Add tag failed: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Не удалось добавить тег: {ex.Message}");
             }
             sender.Text = "";
-            AddTagBox.Visibility = Visibility.Collapsed;
-            AddTagBtn.Visibility = Visibility.Visible;
+            ДобавитьTagBox.Visibility = Visibility.Collapsed;
+            ДобавитьTagBtn.Visibility = Visibility.Visible;
         }
 
         // ── Lists (v1.9.2) — add/remove this movie to/from any user list ─────
 
-        private void OnListsFlyoutOpening(object sender, object e)
+        private void Вкл.ListsFlyoutOpening(object sender, object e)
         {
             ListsFlyout.Items.Clear();
             if (_movie == null) return;
@@ -1268,7 +1268,7 @@ public sealed partial class MovieDetailDialog : Window
             if (lists.Count == 0)
             {
                 var none = new MenuFlyoutItem { Text = "(no lists yet)", IsEnabled = false };
-                ListsFlyout.Items.Add(none);
+                ListsFlyout.Items.Добавить(none);
             }
             else
             {
@@ -1284,28 +1284,28 @@ public sealed partial class MovieDetailDialog : Window
                     item.Click += (_, _) =>
                     {
                         if (item.IsChecked)
-                            AppState.Instance.Db.AddMovieToUserList(capturedUl.Id, _movie.Id);
+                            AppState.Instance.Db.ДобавитьMovieToUserList(capturedUl.Id, _movie.Id);
                         else
                             AppState.Instance.Db.RemoveMovieFromUserList(capturedUl.Id, _movie.Id);
-                        // Tell host so MY LISTS counts refresh
-                        WatchlistChanged?.Invoke(this, EventArgs.Empty);
+                        // Tell host so МОИ СПИСКИ counts refresh
+                        Список просмотраChanged?.Invoke(this, EventArgs.Empty);
                         RefreshListChips();
                     };
-                    ListsFlyout.Items.Add(item);
+                    ListsFlyout.Items.Добавить(item);
                 }
             }
 
-            ListsFlyout.Items.Add(new MenuFlyoutSeparator());
-            var newItem = new MenuFlyoutItem { Text = "+ New list…" };
+            ListsFlyout.Items.Добавить(new MenuFlyoutSeparator());
+            var newItem = new MenuFlyoutItem { Text = "+ Новый список…" };
             newItem.Click += async (_, _) =>
             {
-                var name = await PromptNewListName();
+                var name = await PromptНовыйListName();
                 if (string.IsNullOrWhiteSpace(name) || _movie == null) return;
                 try
                 {
-                    var listId = AppState.Instance.Db.CreateUserList(name.Trim());
-                    AppState.Instance.Db.AddMovieToUserList(listId, _movie.Id);
-                    WatchlistChanged?.Invoke(this, EventArgs.Empty);
+                    var listId = AppState.Instance.Db.СоздатьUserList(name.Trim());
+                    AppState.Instance.Db.ДобавитьMovieToUserList(listId, _movie.Id);
+                    Список просмотраChanged?.Invoke(this, EventArgs.Empty);
                     RefreshListChips();
                 }
                 catch (Microsoft.Data.Sqlite.SqliteException)
@@ -1314,19 +1314,19 @@ public sealed partial class MovieDetailDialog : Window
                         mw.ShowToast($"A list named “{name.Trim()}” already exists");
                 }
             };
-            ListsFlyout.Items.Add(newItem);
+            ListsFlyout.Items.Добавить(newItem);
         }
 
-        private async Task<string?> PromptNewListName()
+        private async Task<string?> PromptНовыйListName()
         {
             var box = new TextBox { PlaceholderText = "List name" };
             var dlg = new ContentDialog
             {
-                Title = "New list",
+                Название = "Новый список",
                 Content = box,
-                PrimaryButtonText = "Create",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Primary,
+                PrimaryButtonText = "Создать",
+                ЗакрытьButtonText = "Отмена",
+                По умолчаниюButton = ContentDialogButton.Primary,
                 XamlRoot = RootGrid.XamlRoot,
                 RequestedTheme = MainWindow.CurrentTheme,
             };
@@ -1335,13 +1335,13 @@ public sealed partial class MovieDetailDialog : Window
             return result == ContentDialogResult.Primary ? box.Text : null;
         }
 
-        // ── Notes (v1.9, hybrid DB + sidecar) ────────────────────────────────
+        // ── Заметки (v1.9, hybrid DB + sidecar) ────────────────────────────────
 
         /// <summary>
-        /// Renders the Notes panel in either viewing or editing mode based on
+        /// Renders the Заметки panel in either viewing or editing mode based on
         /// _movie.Note. Called after load and after save/cancel.
         /// </summary>
-        private void UpdateNoteUi(bool viewing)
+        private void ОбновитьNoteUi(bool viewing)
         {
             if (_movie == null) return;
             var hasNote = !string.IsNullOrWhiteSpace(_movie.Note);
@@ -1350,36 +1350,36 @@ public sealed partial class MovieDetailDialog : Window
             {
                 NoteText.Text = _movie.Note ?? "";
                 NoteText.Visibility = hasNote ? Visibility.Visible : Visibility.Collapsed;
-                NoteEditor.Visibility = Visibility.Collapsed;
-                NoteAddBtn.Visibility = hasNote ? Visibility.Collapsed : Visibility.Visible;
-                NoteEditBtn.Visibility = hasNote ? Visibility.Visible : Visibility.Collapsed;
-                NoteSaveBtn.Visibility = Visibility.Collapsed;
-                NoteCancelBtn.Visibility = Visibility.Collapsed;
-                NoteOfflineHint.Visibility = Visibility.Collapsed;
+                NoteИзменитьor.Visibility = Visibility.Collapsed;
+                NoteДобавитьBtn.Visibility = hasNote ? Visibility.Collapsed : Visibility.Visible;
+                NoteИзменитьBtn.Visibility = hasNote ? Visibility.Visible : Visibility.Collapsed;
+                NoteСохранитьBtn.Visibility = Visibility.Collapsed;
+                NoteОтменаBtn.Visibility = Visibility.Collapsed;
+                NoteНе в сетиHint.Visibility = Visibility.Collapsed;
             }
             else
             {
-                // Editing mode
-                NoteEditor.Text = _movie.Note ?? "";
+                // Изменитьing mode
+                NoteИзменитьor.Text = _movie.Note ?? "";
                 NoteText.Visibility = Visibility.Collapsed;
-                NoteEditor.Visibility = Visibility.Visible;
-                NoteAddBtn.Visibility = Visibility.Collapsed;
-                NoteEditBtn.Visibility = Visibility.Collapsed;
-                NoteSaveBtn.Visibility = Visibility.Visible;
-                NoteCancelBtn.Visibility = Visibility.Visible;
-                NoteOfflineHint.Visibility = _movie.IsOnline ? Visibility.Collapsed : Visibility.Visible;
-                NoteEditor.Focus(FocusState.Programmatic);
+                NoteИзменитьor.Visibility = Visibility.Visible;
+                NoteДобавитьBtn.Visibility = Visibility.Collapsed;
+                NoteИзменитьBtn.Visibility = Visibility.Collapsed;
+                NoteСохранитьBtn.Visibility = Visibility.Visible;
+                NoteОтменаBtn.Visibility = Visibility.Visible;
+                NoteНе в сетиHint.Visibility = _movie.IsВкл.line ? Visibility.Collapsed : Visibility.Visible;
+                NoteИзменитьor.Focus(FocusState.Programmatic);
             }
         }
 
-        private void OnNoteEditStart(object sender, RoutedEventArgs e) => UpdateNoteUi(viewing: false);
+        private void Вкл.NoteИзменитьStart(object sender, RoutedEventArgs e) => ОбновитьNoteUi(viewing: false);
 
-        private void OnNoteCancel(object sender, RoutedEventArgs e) => UpdateNoteUi(viewing: true);
+        private void Вкл.NoteОтмена(object sender, RoutedEventArgs e) => ОбновитьNoteUi(viewing: true);
 
-        private void OnNoteSave(object sender, RoutedEventArgs e)
+        private void Вкл.NoteСохранить(object sender, RoutedEventArgs e)
         {
             if (_movie == null) return;
-            var newNote = (NoteEditor.Text ?? "").Trim();
+            var newNote = (NoteИзменитьor.Text ?? "").Trim();
 
             // 1) DB always succeeds (even when drive is offline)
             AppState.Instance.Db.SetNote(_movie.Id, newNote);
@@ -1389,24 +1389,24 @@ public sealed partial class MovieDetailDialog : Window
             //    when drive offline / read-only / network glitch.
             TryWriteSidecar(_movie, newNote);
 
-            UpdateNoteUi(viewing: true);
+            ОбновитьNoteUi(viewing: true);
         }
 
         private static void TryWriteSidecar(MovieDetail m, string note)
         {
-            if (!m.IsOnline || m.CurrentLetter == null || m.FolderRelPath == null) return;
+            if (!m.IsВкл.line || m.CurrentLetter == null || m.ПапкаRelPath == null) return;
             try
             {
-                var folder = Path.Combine($"{m.CurrentLetter}:\\", m.FolderRelPath.Replace('/', '\\'));
-                if (!Directory.Exists(folder)) return;
+                var folder = Path.Combine($"{m.CurrentLetter}:\\", m.ПапкаRelPath.Replace('/', '\\'));
+                if (!Режиссёрy.Exists(folder)) return;
                 var sidecar = Path.Combine(folder, ScannerService.NoteSidecarFileName);
                 if (string.IsNullOrEmpty(note))
                 {
-                    if (File.Exists(sidecar)) File.Delete(sidecar);
+                    if (File.Exists(sidecar)) File.Удалить(sidecar);
                 }
                 else
                 {
-                    File.WriteAllText(sidecar, note, System.Text.Encoding.UTF8);
+                    File.WriteВсеText(sidecar, note, System.Text.Encoding.UTF8);
                 }
             }
             catch { /* sidecar is best-effort; DB is the source of truth */ }

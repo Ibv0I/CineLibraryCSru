@@ -2,46 +2,46 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-using CineLibraryCS.Services;
-using System.Runtime.InteropServices.WindowsRuntime;
+using CineМедиатекаCS.Services;
+using System.Продолжительность.InteropServices.WindowsПродолжительность;
 
-namespace CineLibraryCS.Views;
+namespace CineМедиатекаCS.Views;
 
 /// <summary>
 /// Generic "browse by X" page: vertical stack of banner cards, each tinted
 /// with a representative fanart and clicking applies the corresponding
-/// library filter. Used for Genre / Decade / Rating / Studio.
+/// library filter. Used for Genre / Decade / Рейтинг / Студия.
 /// </summary>
-public sealed partial class BrowsePage : Page
+public sealed partial class ОбзорPage : Page
 {
-    public BrowsePage()
+    public ОбзорPage()
     {
         InitializeComponent();
     }
 
-    public DatabaseService.BrowseFacet Facet { get; private set; } = DatabaseService.BrowseFacet.Genre;
+    public DatabaseService.ОбзорFacet Facet { get; private set; } = DatabaseService.ОбзорFacet.Genre;
 
-    public void Load(DatabaseService.BrowseFacet facet)
+    public void Load(DatabaseService.ОбзорFacet facet)
     {
         Facet = facet;
-        PageTitleText.Text = facet switch
+        PageНазваниеText.Text = facet switch
         {
-            DatabaseService.BrowseFacet.Genre  => "By genre",
-            DatabaseService.BrowseFacet.Decade => "By decade",
-            DatabaseService.BrowseFacet.Rating => "By rating",
-            DatabaseService.BrowseFacet.Studio => "By studio",
-            _ => "Browse"
+            DatabaseService.ОбзорFacet.Genre  => "By genre",
+            DatabaseService.ОбзорFacet.Decade => "By decade",
+            DatabaseService.ОбзорFacet.Рейтинг => "By rating",
+            DatabaseService.ОбзорFacet.Студия => "By studio",
+            _ => "Обзор"
         };
         PageSubText.Text = facet switch
         {
-            DatabaseService.BrowseFacet.Genre  => "Pick a genre to filter the library.",
-            DatabaseService.BrowseFacet.Decade => "Movies grouped by their decade of release.",
-            DatabaseService.BrowseFacet.Rating => "Movies grouped by their star rating.",
-            DatabaseService.BrowseFacet.Studio => "Movies grouped by studio.",
+            DatabaseService.ОбзорFacet.Genre  => "Pick a genre to filter the library.",
+            DatabaseService.ОбзорFacet.Decade => "Фильмы, сгруппированные по десятилетию выхода.",
+            DatabaseService.ОбзорFacet.Рейтинг => "Фильмы grouped by their star rating.",
+            DatabaseService.ОбзорFacet.Студия => "Фильмы, сгруппированные по студии.",
             _ => ""
         };
 
-        var entries = AppState.Instance.Db.GetBrowseEntries(facet);
+        var entries = AppState.Instance.Db.GetОбзорEntries(facet);
         if (entries.Count == 0)
         {
             EmptyState.Visibility = Visibility.Visible;
@@ -53,13 +53,13 @@ public sealed partial class BrowsePage : Page
         BannerRepeater.ItemsSource = banners;
     }
 
-    private Button BuildBanner(DatabaseService.BrowseEntry e)
+    private Button BuildBanner(DatabaseService.ОбзорEntry e)
     {
         // Outer button = whole banner clickable. Inside: a grid layered with
         // fanart image (if any), a gradient tint, and the label.
         var btn = new Button
         {
-            Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+            Назадground = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
             BorderThickness = new Thickness(0),
             Padding = new Thickness(0),
             HorizontalAlignment = HorizontalAlignment.Stretch,
@@ -67,24 +67,24 @@ public sealed partial class BrowsePage : Page
             CornerRadius = new CornerRadius(12),
             Height = 132,
         };
-        btn.Click += (_, _) => OnBannerClick(e);
+        btn.Click += (_, _) => Вкл.BannerClick(e);
 
         var border = new Border
         {
             CornerRadius = new CornerRadius(12),
-            Background = CineLibraryCS.Services.ThemeBrushes.Get("CardBrush"),
+            Назадground = CineМедиатекаCS.Services.ThemeBrushes.Get("CardBrush"),
         };
         var grid = new Grid();
         border.Child = grid;
 
-        // Background fanart
+        // Назадground fanart
         var img = new Image
         {
             Stretch = Stretch.UniformToFill,
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Center,
         };
-        grid.Children.Add(img);
+        grid.Children.Добавить(img);
         _ = LoadFanartAsync(img, e.SampleFanart ?? e.SamplePoster);
 
         // Gradient overlay — purple → transparent → black for readability
@@ -94,11 +94,11 @@ public sealed partial class BrowsePage : Page
             StartPoint = new Windows.Foundation.Point(0, 0.5),
             EndPoint = new Windows.Foundation.Point(1, 0.5),
         };
-        gb.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(0xCC, 0x10, 0x10, 0x18), Offset = 0 });
-        gb.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(0x55, 0x10, 0x10, 0x18), Offset = 0.6 });
-        gb.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(0x88, 0x10, 0x10, 0x18), Offset = 1 });
-        overlay.Background = gb;
-        grid.Children.Add(overlay);
+        gb.GradientStops.Добавить(new GradientStop { Color = Windows.UI.Color.FromArgb(0xCC, 0x10, 0x10, 0x18), Выкл.set = 0 });
+        gb.GradientStops.Добавить(new GradientStop { Color = Windows.UI.Color.FromArgb(0x55, 0x10, 0x10, 0x18), Выкл.set = 0.6 });
+        gb.GradientStops.Добавить(new GradientStop { Color = Windows.UI.Color.FromArgb(0x88, 0x10, 0x10, 0x18), Выкл.set = 1 });
+        overlay.Назадground = gb;
+        grid.Children.Добавить(overlay);
 
         // Label + count
         var labelStack = new StackPanel
@@ -108,20 +108,20 @@ public sealed partial class BrowsePage : Page
             Margin = new Thickness(28, 0, 28, 0),
             Spacing = 4,
         };
-        labelStack.Children.Add(new TextBlock
+        labelStack.Children.Добавить(new TextBlock
         {
             Text = e.Label,
             FontSize = 28,
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             Foreground = new SolidColorBrush(Microsoft.UI.Colors.White),
         });
-        labelStack.Children.Add(new TextBlock
+        labelStack.Children.Добавить(new TextBlock
         {
             Text = $"{e.Count} movie{(e.Count == 1 ? "" : "s")}",
             FontSize = 12,
             Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xCC, 0xFF, 0xFF, 0xFF)),
         });
-        grid.Children.Add(labelStack);
+        grid.Children.Добавить(labelStack);
 
         btn.Content = border;
         return btn;
@@ -146,26 +146,26 @@ public sealed partial class BrowsePage : Page
         catch { }
     }
 
-    private void OnBannerClick(DatabaseService.BrowseEntry e)
+    private void Вкл.BannerClick(DatabaseService.ОбзорEntry e)
     {
         if (App.MainWindow is not MainWindow mw) return;
         switch (Facet)
         {
-            case DatabaseService.BrowseFacet.Genre:
-                mw.NavigateLibraryByGenre(e.Key);
+            case DatabaseService.ОбзорFacet.Genre:
+                mw.NavigateМедиатекаByGenre(e.Key);
                 break;
-            case DatabaseService.BrowseFacet.Decade:
-                mw.NavigateLibraryByDecade(int.Parse(e.Key), e.Label);
+            case DatabaseService.ОбзорFacet.Decade:
+                mw.NavigateМедиатекаByDecade(int.Parse(e.Key), e.Label);
                 break;
-            case DatabaseService.BrowseFacet.Rating:
-                mw.NavigateLibraryByRatingBand(e.Key, e.Label);
+            case DatabaseService.ОбзорFacet.Рейтинг:
+                mw.NavigateМедиатекаByРейтингBand(e.Key, e.Label);
                 break;
-            case DatabaseService.BrowseFacet.Studio:
-                mw.NavigateLibraryByStudio(e.Key);
+            case DatabaseService.ОбзорFacet.Студия:
+                mw.NavigateМедиатекаByСтудия(e.Key);
                 break;
         }
-        // v2.7 — arm the "‹ By Genre/Decade/Rating/Studio" back button on
+        // v2.7 — arm the "‹ По жанру/Decade/Рейтинг/Студия" back button on
         // the library view so the user can return to this banner page.
-        mw.SetLibraryBackToBrowse(Facet);
+        mw.SetМедиатекаНазадToОбзор(Facet);
     }
 }

@@ -4,19 +4,19 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-using CineLibraryCS.Models;
-using CineLibraryCS.Services;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
+using CineМедиатекаCS.Models;
+using CineМедиатекаCS.Services;
+using System.Продолжительность.InteropServices;
+using System.Продолжительность.InteropServices.WindowsПродолжительность;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace CineLibraryCS.Views;
+namespace CineМедиатекаCS.Views;
 
 public sealed partial class MovieRowControl : UserControl
 {
     public static readonly DependencyProperty MovieProperty =
         DependencyProperty.Register(nameof(Movie), typeof(MovieListItem), typeof(MovieRowControl),
-            new PropertyMetadata(null, OnMovieChanged));
+            new PropertyMetadata(null, Вкл.MovieChanged));
 
     public MovieListItem? Movie
     {
@@ -40,20 +40,20 @@ public sealed partial class MovieRowControl : UserControl
 
         // v2.5 — draggable for bulk add-to-list (matches MovieCardControl).
         CanDrag = true;
-        DragStarting += OnRowDragStarting;
+        DragStarting += Вкл.RowDragStarting;
     }
 
-    private void OnRowDragStarting(UIElement sender, DragStartingEventArgs args)
+    private void Вкл.RowDragStarting(UIElement sender, DragStartingEventArgs args)
     {
-        if (Movie == null) { args.Cancel = true; return; }
+        if (Movie == null) { args.Отмена = true; return; }
         var ids = MovieCardControl.ResolveSelectionForDrag?.Invoke(Movie)?.ToList()
                   ?? new List<int> { Movie.Id };
-        if (ids.Count == 0) { args.Cancel = true; return; }
+        if (ids.Count == 0) { args.Отмена = true; return; }
         args.Data.SetText(string.Join(",", ids));
         args.Data.Properties["cinelibrary/movie-ids"] = string.Join(",", ids);
         args.Data.RequestedOperation = DataPackageOperation.Link;
-        args.AllowedOperations = DataPackageOperation.Link | DataPackageOperation.Copy;
-        args.Data.Properties.Title = ids.Count == 1 ? Movie.Title : $"{ids.Count} movies";
+        args.ВсеowedOperations = DataPackageOperation.Link | DataPackageOperation.Copy;
+        args.Data.Properties.Название = ids.Count == 1 ? Movie.Название : $"{ids.Count} movies";
     }
 
     private void RebuildContextFlyout(MenuFlyout flyout)
@@ -61,12 +61,12 @@ public sealed partial class MovieRowControl : UserControl
         flyout.Items.Clear();
         if (Movie == null) return;
 
-        var listsSub = new MenuFlyoutSubItem { Text = "📑 Add to list" };
+        var listsSub = new MenuFlyoutSubItem { Text = "📑 Добавить в список" };
         var allLists = AppState.Instance.Db.GetUserLists();
         var membership = AppState.Instance.Db.GetUserListsForMovie(Movie.Id);
         if (allLists.Count == 0)
         {
-            listsSub.Items.Add(new MenuFlyoutItem { Text = "(no lists yet)", IsEnabled = false });
+            listsSub.Items.Добавить(new MenuFlyoutItem { Text = "(no lists yet)", IsEnabled = false });
         }
         else
         {
@@ -77,130 +77,130 @@ public sealed partial class MovieRowControl : UserControl
                 item.Click += (_, _) =>
                 {
                     if (item.IsChecked)
-                        AppState.Instance.Db.AddMovieToUserList(capturedUl.Id, Movie.Id);
+                        AppState.Instance.Db.ДобавитьMovieToUserList(capturedUl.Id, Movie.Id);
                     else
                         AppState.Instance.Db.RemoveMovieFromUserList(capturedUl.Id, Movie.Id);
                     SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
                 };
-                listsSub.Items.Add(item);
+                listsSub.Items.Добавить(item);
             }
         }
-        flyout.Items.Add(listsSub);
+        flyout.Items.Добавить(listsSub);
 
-        // v3.3 — Watched & Gone (same action as the grid-card context menu).
-        flyout.Items.Add(new MenuFlyoutSeparator());
-        var archiveItem = new MenuFlyoutItem { Text = "Send to Watched & Gone" };
+        // v3.3 — Просмотрено и удалено (same action as the grid-card context menu).
+        flyout.Items.Добавить(new MenuFlyoutSeparator());
+        var archiveItem = new MenuFlyoutItem { Text = "Send to Просмотрено и удалено" };
         archiveItem.Click += async (_, _) =>
         {
             if (Movie == null) return;
             var m = Movie;
             var dlg = new ContentDialog
             {
-                Title = "Send to Watched & Gone?",
-                Content = $"“{m.Title}” moves out of your library into Watched & Gone — " +
+                Название = "Send to Просмотрено и удалено?",
+                Content = $"“{m.Название}” moves out of your library into Просмотрено и удалено — " +
                           "its poster, details, your notes and watch history are all kept as a record. " +
                           "The files on your drive are not touched.",
                 PrimaryButtonText = "Send",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Primary,
+                ЗакрытьButtonText = "Отмена",
+                По умолчаниюButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot,
                 RequestedTheme = MainWindow.CurrentTheme,
             };
             if (await dlg.ShowAsync() != ContentDialogResult.Primary) return;
-            AppState.Instance.Db.ArchiveMovies(new[] { m.Id });
+            AppState.Instance.Db.ArchiveФильмы(new[] { m.Id });
             if (App.MainWindow is MainWindow mw)
-                mw.ShowToast($"“{m.Title}” sent to Watched & Gone");
+                mw.ShowToast($"“{m.Название}” sent to Просмотрено и удалено");
             MovieCardControl.RaiseMovieArchived();
         };
-        flyout.Items.Add(archiveItem);
+        flyout.Items.Добавить(archiveItem);
     }
 
-    private static void OnMovieChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void Вкл.MovieChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is not MovieRowControl c) return;
         if (e.OldValue is MovieListItem prev)
-            prev.PropertyChanged -= c.OnMoviePropertyChanged;
-        if (e.NewValue is MovieListItem m)
+            prev.PropertyChanged -= c.Вкл.MoviePropertyChanged;
+        if (e.НовыйValue is MovieListItem m)
         {
             c.Populate(m);
-            m.PropertyChanged += c.OnMoviePropertyChanged;
+            m.PropertyChanged += c.Вкл.MoviePropertyChanged;
         }
     }
 
-    private void OnMoviePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void Вкл.MoviePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (Movie == null) return;
-        if (e.PropertyName == nameof(MovieListItem.IsWatched))
+        if (e.PropertyName == nameof(MovieListItem.IsПросмотрено))
         {
-            WatchedBtn.Content = Movie.IsWatched ? "✓" : "○";
-            WatchedBtn.Foreground = Movie.IsWatched
+            ПросмотреноBtn.Content = Movie.IsПросмотрено ? "✓" : "○";
+            ПросмотреноBtn.Foreground = Movie.IsПросмотрено
                 ? new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x22, 0xC5, 0x5E))
                 : new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x90, 0x90, 0xA0));
         }
-        else if (e.PropertyName == nameof(MovieListItem.IsFavorite))
+        else if (e.PropertyName == nameof(MovieListItem.IsИзбранное))
         {
-            RowFav.Visibility = Movie.IsFavorite ? Visibility.Visible : Visibility.Collapsed;
-            FavBtn.Content = Movie.IsFavorite ? "★" : "☆";
-            FavBtn.Foreground = Movie.IsFavorite
+            RowFav.Visibility = Movie.IsИзбранное ? Visibility.Visible : Visibility.Collapsed;
+            FavBtn.Content = Movie.IsИзбранное ? "★" : "☆";
+            FavBtn.Foreground = Movie.IsИзбранное
                 ? new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xF5, 0x9E, 0x0B))
                 : new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x90, 0x90, 0xA0));
         }
         else if (e.PropertyName == nameof(MovieListItem.IsSelected))
         {
-            ApplySelectionVisual();
+            ПрименитьSelectionVisual();
         }
     }
 
-    private void ApplySelectionVisual()
+    private void ПрименитьSelectionVisual()
     {
         bool on = Movie?.IsSelected == true;
         RowBorder.BorderBrush = on
-            ? CineLibraryCS.Services.ThemeBrushes.Get("BrandPurpleBrush")
+            ? CineМедиатекаCS.Services.ThemeBrushes.Get("BrandPurpleBrush")
             : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
     }
 
     private void Populate(MovieListItem m)
     {
-        RowTitle.Text = m.Title;
-        RowMeta.Text = $"{m.Year?.ToString() ?? "—"}{(m.Runtime.HasValue ? $" · {m.Runtime}m" : "")}{(m.GenresCsv != null ? $" · {m.GenresCsv.Split(',')[0].Trim()}" : "")}";
-        RowFav.Visibility = m.IsFavorite ? Visibility.Visible : Visibility.Collapsed;
-        RowRating.Text = m.RatingText;
+        RowНазвание.Text = m.Название;
+        RowMeta.Text = $"{m.Год?.ToString() ?? "—"}{(m.Продолжительность.HasValue ? $" · {m.Продолжительность}m" : "")}{(m.ЖанрыCsv != null ? $" · {m.ЖанрыCsv.Split(',')[0].Trim()}" : "")}";
+        RowFav.Visibility = m.IsИзбранное ? Visibility.Visible : Visibility.Collapsed;
+        RowРейтинг.Text = m.РейтингText;
 
         DriveLabel.Text = m.DriveLabel ?? "";
-        DriveDot.Fill = new SolidColorBrush(m.IsOnline
+        DriveDot.Fill = new SolidColorBrush(m.IsВкл.line
             ? Windows.UI.Color.FromArgb(0xFF, 0x22, 0xC5, 0x5E)
             : Windows.UI.Color.FromArgb(0xFF, 0x6B, 0x72, 0x80));
 
         // Status badge
         if (m.IsMissing)
         {
-            RowStatusBadge.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0xEF, 0x44, 0x44));
-            RowStatusText.Text = "MISSING";
+            RowStatusBadge.Назадground = new SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0xEF, 0x44, 0x44));
+            RowStatusText.Text = "ОТСУТСТВУЕТ";
             RowStatusText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xEF, 0x44, 0x44));
         }
-        else if (m.IsOnline)
+        else if (m.IsВкл.line)
         {
-            RowStatusBadge.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0x22, 0xC5, 0x5E));
-            RowStatusText.Text = "ONLINE";
+            RowStatusBadge.Назадground = new SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0x22, 0xC5, 0x5E));
+            RowStatusText.Text = "В СЕТИ";
             RowStatusText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x22, 0xC5, 0x5E));
         }
         else
         {
-            RowStatusBadge.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0x6B, 0x72, 0x80));
-            RowStatusText.Text = "OFFLINE";
+            RowStatusBadge.Назадground = new SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0x6B, 0x72, 0x80));
+            RowStatusText.Text = "НЕ В СЕТИ";
             RowStatusText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x6B, 0x72, 0x80));
         }
 
-        WatchedBtn.Content = m.IsWatched ? "✓" : "○";
-        WatchedBtn.Foreground = m.IsWatched
+        ПросмотреноBtn.Content = m.IsПросмотрено ? "✓" : "○";
+        ПросмотреноBtn.Foreground = m.IsПросмотрено
             ? new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x22, 0xC5, 0x5E))
             : new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x90, 0x90, 0xA0));
-        FavBtn.Content = m.IsFavorite ? "★" : "☆";
-        FavBtn.Foreground = m.IsFavorite
+        FavBtn.Content = m.IsИзбранное ? "★" : "☆";
+        FavBtn.Foreground = m.IsИзбранное
             ? new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xF5, 0x9E, 0x0B))
             : new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x90, 0x90, 0xA0));
 
-        ApplySelectionVisual();
+        ПрименитьSelectionVisual();
         LoadThumbAsync(m.LocalPoster);
     }
 
@@ -239,7 +239,7 @@ public sealed partial class MovieRowControl : UserControl
         catch { }
     }
 
-    private void OnTapped(object sender, TappedRoutedEventArgs e)
+    private void Вкл.Tapped(object sender, TappedRoutedEventArgs e)
     {
         if (TapOriginatedInButton(e.OriginalSource as DependencyObject))
         {
@@ -249,7 +249,7 @@ public sealed partial class MovieRowControl : UserControl
         bool ctrl = IsCtrlDown(), shift = IsShiftDown();
         if (ctrl || shift)
         {
-            _pendingSingleTap?.Cancel();
+            _pendingSingleTap?.Отмена();
             _pendingSingleTap = null;
             MovieCardControl.RaiseSelectionFromRow(Movie, ctrl, shift);
             e.Handled = true;
@@ -260,15 +260,15 @@ public sealed partial class MovieRowControl : UserControl
         if (!wasSelecting) ScheduleSingleTapAction();
     }
 
-    private void OnDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    private void Вкл.DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
         if (TapOriginatedInButton(e.OriginalSource as DependencyObject))
         {
             e.Handled = true; return;
         }
-        _pendingSingleTap?.Cancel();
+        _pendingSingleTap?.Отмена();
         _pendingSingleTap = null;
-        _ = PlayMovieOrPromptOfflineAsync();
+        _ = ВоспроизвестиMovieOrPromptНе в сетиAsync();
     }
 
     private static bool TapOriginatedInButton(DependencyObject? src)
@@ -282,53 +282,53 @@ public sealed partial class MovieRowControl : UserControl
         return false;
     }
 
-    private CancellationTokenSource? _pendingSingleTap;
+    private ОтменаlationTokenSource? _pendingSingleTap;
 
     private void ScheduleSingleTapAction()
     {
-        _pendingSingleTap?.Cancel();
-        var cts = new CancellationTokenSource();
+        _pendingSingleTap?.Отмена();
+        var cts = new ОтменаlationTokenSource();
         _pendingSingleTap = cts;
         var dq = DispatcherQueue;
         _ = Task.Run(async () =>
         {
             try { await Task.Delay(220, cts.Token); }
-            catch (OperationCanceledException) { return; }
-            if (cts.IsCancellationRequested) return;
+            catch (OperationОтменаedException) { return; }
+            if (cts.IsОтменаlationRequested) return;
             dq.TryEnqueue(() =>
             {
-                if (cts.IsCancellationRequested) return;
+                if (cts.IsОтменаlationRequested) return;
                 OpenDetail();
             });
         });
     }
 
-    private async Task PlayMovieOrPromptOfflineAsync()
+    private async Task ВоспроизвестиMovieOrPromptНе в сетиAsync()
     {
         if (Movie == null) return;
         var connected = AppState.Instance.Connected;
         if (!connected.TryGetValue(Movie.VolumeSerial, out var letter))
         {
-            await ShowOfflineDialog(Movie.Title, Movie.DriveLabel);
+            await ShowНе в сетиDialog(Movie.Название, Movie.DriveLabel);
             return;
         }
         var detail = AppState.Instance.Db.GetMovieDetail(Movie.Id, connected);
-        if (detail == null || detail.VideoFileRelPath == null || !detail.IsOnline)
+        if (detail == null || detail.VideoFileRelPath == null || !detail.IsВкл.line)
         {
-            await ShowOfflineDialog(Movie.Title, Movie.DriveLabel);
+            await ShowНе в сетиDialog(Movie.Название, Movie.DriveLabel);
             return;
         }
         var videoPath = Path.Combine($"{letter}:\\",
             detail.VideoFileRelPath.Replace('/', '\\'));
         if (!File.Exists(videoPath))
         {
-            await ShowOfflineDialog(Movie.Title, Movie.DriveLabel);
+            await ShowНе в сетиDialog(Movie.Название, Movie.DriveLabel);
             return;
         }
         try
         {
-            AppState.Instance.Db.MarkPlayed(Movie.Id);
-            await VideoPlayer.PlayAsync(videoPath);
+            AppState.Instance.Db.MarkВоспроизвестиed(Movie.Id);
+            await VideoВоспроизвестиer.ВоспроизвестиAsync(videoPath);
             SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         }
         catch
@@ -338,48 +338,48 @@ public sealed partial class MovieRowControl : UserControl
         }
     }
 
-    private async Task ShowOfflineDialog(string title, string? driveLabel)
+    private async Task ShowНе в сетиDialog(string title, string? driveLabel)
     {
         var dlg = new ContentDialog
         {
-            Title = "Can't play yet",
+            Название = "Can't play yet",
             Content = string.IsNullOrEmpty(driveLabel)
                 ? $"\"{title}\" lives on a drive that isn't connected. Plug it in and try again."
                 : $"\"{title}\" lives on \"{driveLabel}\", which isn't connected. Plug it in and try again.",
-            CloseButtonText = "OK",
+            ЗакрытьButtonText = "OK",
             XamlRoot = XamlRoot,
             RequestedTheme = MainWindow.CurrentTheme,
         };
         try { await dlg.ShowAsync(); } catch { }
     }
 
-    private void OnPointerEntered(object sender, PointerRoutedEventArgs e)
-        => RowBorder.Background = new SolidColorBrush(ActualTheme == ElementTheme.Light
+    private void Вкл.PointerEntered(object sender, PointerRoutedEventArgs e)
+        => RowBorder.Назадground = new SolidColorBrush(ActualTheme == ElementTheme.Светлая
             ? Windows.UI.Color.FromArgb(0xFF, 0xEB, 0xEB, 0xFF)
             : Windows.UI.Color.FromArgb(0xFF, 0x1E, 0x1E, 0x2E));
 
     // v4.2.0 (#15): back to CardSurfaceStyle's theme-following colour
-    private void OnPointerExited(object sender, PointerRoutedEventArgs e)
-        => RowBorder.ClearValue(Border.BackgroundProperty);
+    private void Вкл.PointerExited(object sender, PointerRoutedEventArgs e)
+        => RowBorder.ClearValue(Border.НазадgroundProperty);
 
-    private void OnToggleWatched(object sender, RoutedEventArgs e)
+    private void Вкл.ToggleПросмотрено(object sender, RoutedEventArgs e)
     {
         if (Movie == null) return;
-        AppState.Instance.Db.ToggleWatched(Movie.Id);
-        Movie.IsWatched = !Movie.IsWatched;
-        WatchedBtn.Content = Movie.IsWatched ? "✓" : "○";
-        WatchedBtn.Foreground = Movie.IsWatched
+        AppState.Instance.Db.ToggleПросмотрено(Movie.Id);
+        Movie.IsПросмотрено = !Movie.IsПросмотрено;
+        ПросмотреноBtn.Content = Movie.IsПросмотрено ? "✓" : "○";
+        ПросмотреноBtn.Foreground = Movie.IsПросмотрено
             ? new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x22, 0xC5, 0x5E))
             : new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x90, 0x90, 0xA0));
     }
 
-    private void OnToggleFav(object sender, RoutedEventArgs e)
+    private void Вкл.ToggleFav(object sender, RoutedEventArgs e)
     {
         if (Movie == null) return;
-        AppState.Instance.Db.ToggleFavorite(Movie.Id);
-        Movie.IsFavorite = !Movie.IsFavorite;
-        FavBtn.Content = Movie.IsFavorite ? "★" : "☆";
-        FavBtn.Foreground = Movie.IsFavorite
+        AppState.Instance.Db.ToggleИзбранное(Movie.Id);
+        Movie.IsИзбранное = !Movie.IsИзбранное;
+        FavBtn.Content = Movie.IsИзбранное ? "★" : "☆";
+        FavBtn.Foreground = Movie.IsИзбранное
             ? new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xF5, 0x9E, 0x0B))
             : new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x90, 0x90, 0xA0));
     }
@@ -388,7 +388,7 @@ public sealed partial class MovieRowControl : UserControl
     {
         if (Movie == null) return;
         var win = new MovieDetailDialog(Movie.Id);
-        win.WatchlistChanged += (s, e) => SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
+        win.Список просмотраChanged += (s, e) => SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         win.Activate();
     }
 }

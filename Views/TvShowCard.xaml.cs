@@ -1,17 +1,17 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
-using CineLibraryCS.Models;
-using CineLibraryCS.Services;
-using System.Runtime.InteropServices.WindowsRuntime;
+using CineМедиатекаCS.Models;
+using CineМедиатекаCS.Services;
+using System.Продолжительность.InteropServices.WindowsПродолжительность;
 
-namespace CineLibraryCS.Views;
+namespace CineМедиатекаCS.Views;
 
 public sealed partial class TvShowCard : UserControl
 {
     public static readonly DependencyProperty ShowProperty =
         DependencyProperty.Register(nameof(Show), typeof(TvShowListItem), typeof(TvShowCard),
-            new PropertyMetadata(null, OnShowChanged));
+            new PropertyMetadata(null, Вкл.ShowChanged));
 
     public TvShowListItem? Show
     {
@@ -19,10 +19,10 @@ public sealed partial class TvShowCard : UserControl
         set => SetValue(ShowProperty, value);
     }
 
-    // v3.7.0: card size follows the All TV shows S / M / L / XL picker.
+    // v3.7.0: card size follows the Все сериалы S / M / L / XL picker.
     // TvShowsPage reloads the list after a change, so every card re-applies it.
     // v4.0.0: starts from the saved choice, so show rows on other pages (lists,
-    // Favorites, To Watch) match it before All TV shows has been opened.
+    // Избранное, К просмотру) match it before Все сериалы has been opened.
     public static double CardWidth { get; private set; }
     public static double CardHeight { get; private set; }
     static TvShowCard()
@@ -50,7 +50,7 @@ public sealed partial class TvShowCard : UserControl
         PointerEntered += (_, _) =>
         {
             CardLift.Y = -4; CardBorder.Translation = new System.Numerics.Vector3(0, 0, 24);
-            if (Show is { } s) { LoadHoverInfo(s); UpdateHoverActions(s); SetHoverPanel(true); }
+            if (Show is { } s) { LoadHoverInfo(s); ОбновитьHoverActions(s); SetHoverPanel(true); }
         };
         PointerExited += (_, _) =>
         {
@@ -66,22 +66,22 @@ public sealed partial class TvShowCard : UserControl
         InfoStrip.Visibility = open ? Visibility.Collapsed : Visibility.Visible;
     }
 
-    private static void OnShowChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void Вкл.ShowChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TvShowCard c && e.NewValue is TvShowListItem s) c.Populate(s);
+        if (d is TvShowCard c && e.НовыйValue is TvShowListItem s) c.Populate(s);
     }
 
     private void Populate(TvShowListItem s)
     {
         SetHoverPanel(false);   // a recycled card may still show the last show's
-        TitleText.Text = s.Title;
-        // v4.1.0: on Continue Watching the card says which episode is next.
-        MetaText.Text = s.NextEpisode != null ? $"Next: {s.NextEpisode}" : s.YearText;
-        MetaText.Foreground = s.NextEpisode != null ? NextBrush : MetaBrush;
-        FavBadge.Visibility = s.IsFavorite ? Visibility.Visible : Visibility.Collapsed;
+        НазваниеText.Text = s.Название;
+        // v4.1.0: on Продолжить просмотр the card says which episode is next.
+        MetaText.Text = s.NextЭпизод != null ? $"Далее: {s.NextЭпизод}" : s.ГодText;
+        MetaText.Foreground = s.NextЭпизод != null ? NextBrush : MetaBrush;
+        FavBadge.Visibility = s.IsИзбранное ? Visibility.Visible : Visibility.Collapsed;
 
-        if (s.IsMissing) { StatusText.Text = "MISSING"; StatusBadge.Visibility = Visibility.Visible; }
-        else if (!s.IsOnline) { StatusText.Text = "OFFLINE"; StatusBadge.Visibility = Visibility.Visible; }
+        if (s.IsMissing) { StatusText.Text = "ОТСУТСТВУЕТ"; StatusBadge.Visibility = Visibility.Visible; }
+        else if (!s.IsВкл.line) { StatusText.Text = "НЕ В СЕТИ"; StatusBadge.Visibility = Visibility.Visible; }
         else StatusBadge.Visibility = Visibility.Collapsed;
 
         CardRoot.Height = CardHeight;
@@ -94,7 +94,7 @@ public sealed partial class TvShowCard : UserControl
     private void ShowProgress(TvShowListItem s)
     {
         ProgressText.Text = s.ProgressText;
-        WatchedBadge.Visibility = s.FullyWatched ? Visibility.Visible : Visibility.Collapsed;
+        ПросмотреноBadge.Visibility = s.FullyПросмотрено ? Visibility.Visible : Visibility.Collapsed;
         ProgressDoneColumn.Width = new GridLength(s.ProgressFraction, GridUnitType.Star);
         ProgressLeftColumn.Width = new GridLength(1 - s.ProgressFraction, GridUnitType.Star);
     }
@@ -102,8 +102,8 @@ public sealed partial class TvShowCard : UserControl
     // ── v4.1.0 hover panel ───────────────────────────────────────────────────
 
     /// <summary>
-    /// Raised after the panel plays an episode or changes Favorite / Watchlist,
-    /// so Favorites, To Watch and Continue Watching re-list their shows.
+    /// Raised after the panel plays an episode or changes Избранное / Список просмотра,
+    /// so Избранное, К просмотру and Продолжить просмотр re-list their shows.
     /// </summary>
     public static event Action<TvShowListItem>? ShowChanged;
 
@@ -117,39 +117,39 @@ public sealed partial class TvShowCard : UserControl
     private void LoadHoverInfo(TvShowListItem s)
     {
         var info = AppState.Instance.Db.GetShowHoverInfo(s.Id);
-        HoverGenres.Text = info.Genres;
-        HoverGenres.Visibility = info.Genres.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
-        var watched = $"{s.WatchedCount}/{s.EpisodeCount} watched";
+        HoverЖанры.Text = info.Жанры;
+        HoverЖанры.Visibility = info.Жанры.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        var watched = $"{s.ПросмотреноCount}/{s.ЭпизодCount} watched";
         HoverSeasons.Text = info.Seasons > 0
             ? $"{info.Seasons} season{(info.Seasons == 1 ? "" : "s")} · {watched}"
             : watched;
         _next = info.NextId is int id ? (id, info.NextCode!, info.NextFile) : null;
     }
 
-    private void UpdateHoverActions(TvShowListItem s)
+    private void ОбновитьHoverActions(TvShowListItem s)
     {
         var online = AppState.Instance.Connected.ContainsKey(s.VolumeSerial);
-        var canPlay = online && _next is { File: not null };
-        HoverPlayBtn.Visibility = canPlay ? Visibility.Visible : Visibility.Collapsed;
-        if (canPlay) HoverPlayBtn.Content = $"▶ Play {_next!.Value.Code}";
+        var canВоспроизвести = online && _next is { File: not null };
+        HoverВоспроизвестиBtn.Visibility = canВоспроизвести ? Visibility.Visible : Visibility.Collapsed;
+        if (canВоспроизвести) HoverВоспроизвестиBtn.Content = $"▶ Воспроизвести {_next!.Value.Code}";
 
         // Can't play: say where the next episode is, or that the show is done.
         string? note = _next is { } n
-            ? canPlay ? null
-              : online ? $"Next: {n.Code}"
-              : $"Next: {n.Code}\non {s.DriveLabel ?? "a drive that isn't connected"}"
-            : s.EpisodeCount > 0 ? "✓ All watched" : null;
+            ? canВоспроизвести ? null
+              : online ? $"Далее: {n.Code}"
+              : $"Далее: {n.Code}\non {s.DriveLabel ?? "a drive that isn't connected"}"
+            : s.ЭпизодCount > 0 ? "✓ Все watched" : null;
         HoverNote.Text = note ?? "";
         HoverNote.Foreground = _next == null ? DoneBrush : NoteBrush;
         HoverNote.Visibility = note != null ? Visibility.Visible : Visibility.Collapsed;
 
-        HoverFavBtn.Content = s.IsFavorite ? "★ Favorited" : "☆ Favorite";
-        HoverWatchlistBtn.Content = s.IsWatchlist ? "📌 In Watchlist" : "📋 Watchlist";
+        HoverFavBtn.Content = s.IsИзбранное ? "★ В избранноеd" : "☆ Избранное";
+        HoverСписок просмотраBtn.Content = s.IsСписок просмотра ? "📌 In Список просмотра" : "📋 Список просмотра";
     }
 
     // Same as ▶ on the show page: start the player first, then record the play
     // and mark the episode watched.
-    private async void OnHoverPlay(object sender, RoutedEventArgs e)
+    private async void Вкл.HoverВоспроизвести(object sender, RoutedEventArgs e)
     {
         if (Show is not { } s || _next is not { File: { } file } next) return;
         var mw = App.MainWindow as MainWindow;
@@ -158,22 +158,22 @@ public sealed partial class TvShowCard : UserControl
         if (!File.Exists(path)) { mw?.ShowToast($"Couldn't find {next.Code} on the drive"); return; }
 
         bool launched;
-        try { launched = await VideoPlayer.PlayAsync(path); }
+        try { launched = await VideoВоспроизвестиer.ВоспроизвестиAsync(path); }
         catch { launched = false; }
         if (!launched) { mw?.ShowToast("Couldn't launch the video player"); return; }
 
         try
         {
-            AppState.Instance.Db.MarkEpisodePlayed(next.Id);
-            AppState.Instance.Db.SetEpisodeWatched(next.Id, true);
-            s.WatchedCount++;
+            AppState.Instance.Db.MarkЭпизодВоспроизвестиed(next.Id);
+            AppState.Instance.Db.SetЭпизодПросмотрено(next.Id, true);
+            s.ПросмотреноCount++;
             ShowProgress(s);
             LoadHoverInfo(s);
-            UpdateHoverActions(s);
-            if (s.NextEpisode != null && _next is { } now)
+            ОбновитьHoverActions(s);
+            if (s.NextЭпизод != null && _next is { } now)
             {
-                s.NextEpisode = now.Code;
-                MetaText.Text = $"Next: {now.Code}";
+                s.NextЭпизод = now.Code;
+                MetaText.Text = $"Далее: {now.Code}";
             }
             mw?.RefreshSidebar();
             ShowChanged?.Invoke(s);
@@ -181,32 +181,32 @@ public sealed partial class TvShowCard : UserControl
         catch { }
     }
 
-    private void OnHoverFavorite(object sender, RoutedEventArgs e)
+    private void Вкл.HoverИзбранное(object sender, RoutedEventArgs e)
     {
         if (Show is not { } s) return;
-        s.IsFavorite = !s.IsFavorite;
-        AppState.Instance.Db.SetTvShowFavorite(s.Id, s.IsFavorite);
-        FavBadge.Visibility = s.IsFavorite ? Visibility.Visible : Visibility.Collapsed;
+        s.IsИзбранное = !s.IsИзбранное;
+        AppState.Instance.Db.SetTvShowИзбранное(s.Id, s.IsИзбранное);
+        FavBadge.Visibility = s.IsИзбранное ? Visibility.Visible : Visibility.Collapsed;
         AfterHoverChange(s);
     }
 
-    private void OnHoverWatchlist(object sender, RoutedEventArgs e)
+    private void Вкл.HoverСписок просмотра(object sender, RoutedEventArgs e)
     {
         if (Show is not { } s) return;
-        s.IsWatchlist = !s.IsWatchlist;
-        AppState.Instance.Db.SetTvShowWatchlist(s.Id, s.IsWatchlist);
+        s.IsСписок просмотра = !s.IsСписок просмотра;
+        AppState.Instance.Db.SetTvShowСписок просмотра(s.Id, s.IsСписок просмотра);
         AfterHoverChange(s);
     }
 
     private void AfterHoverChange(TvShowListItem s)
     {
-        UpdateHoverActions(s);
+        ОбновитьHoverActions(s);
         (App.MainWindow as MainWindow)?.RefreshSidebar();
         ShowChanged?.Invoke(s);
     }
 
     // The pages open a show on Tapped; a click on a panel button mustn't also do that.
-    private void OnHoverButtonTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    private void Вкл.HoverButtonTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
         => e.Handled = true;
 
     // Per card, not static: a brush belongs to the thread that made it.
@@ -216,7 +216,7 @@ public sealed partial class TvShowCard : UserControl
         new(Windows.UI.Color.FromArgb(0xFF, 0xA7, 0x8B, 0xFA));
 
     // v4.1.0: ask for the S / M / L / XL size but fill whatever width the layout
-    // gives. Rows place the card at this size; the All TV shows grid stretches its
+    // gives. Rows place the card at this size; the Все сериалы grid stretches its
     // cells to fill the row, and the card now fills its cell instead of sitting in
     // the middle of it, so the grid's left edge lines up with the page title.
     protected override Windows.Foundation.Size MeasureOverride(Windows.Foundation.Size availableSize)

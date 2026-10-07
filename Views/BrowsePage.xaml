@@ -1,9 +1,9 @@
 <Page
-    x:Class="CineLibraryCS.Views.BrowsePage"
+    x:Class="CineМедиатекаCS.Views.ОбзорPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:CineLibraryCS.Views"
-    Background="{ThemeResource BgBrush}">
+    xmlns:local="using:CineМедиатекаCS.Views"
+    Назадground="{ThemeResource BgBrush}">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -18,7 +18,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Spacing="2">
-                <TextBlock x:Name="PageTitleText" Text="Browse" FontSize="24" FontWeight="SemiBold"
+                <TextBlock x:Name="PageНазваниеText" Text="Обзор" FontSize="24" FontWeight="SemiBold"
                            Foreground="{ThemeResource TextBrush}"/>
                 <TextBlock x:Name="PageSubText" Text=""
                            FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
@@ -39,15 +39,15 @@
                             VerticalAlignment="Center" HorizontalAlignment="Center"
                             Margin="0,80,0,24" Spacing="8">
                     <FontIcon Glyph="&#xE7BC;" FontSize="44" Opacity="0.5"
-                              FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                              FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                               Foreground="{ThemeResource MutedBrush}"
                               HorizontalAlignment="Center"/>
-                    <TextBlock x:Name="EmptyTitle" Text="Nothing to browse yet"
+                    <TextBlock x:Name="EmptyНазвание" Text="Пока нечего просматривать"
                                FontSize="15" FontWeight="SemiBold"
                                Foreground="{ThemeResource TextBrush}"
                                HorizontalAlignment="Center"/>
                     <TextBlock x:Name="EmptyHint"
-                               Text="Add a folder of movies on the Drives page first."
+                               Text="Сначала добавьте папку с фильмами на странице «Диски»."
                                FontSize="12" Foreground="{ThemeResource MutedBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>

@@ -1,27 +1,27 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using CineLibraryCS.Models;
-using CineLibraryCS.Services;
+using CineМедиатекаCS.Models;
+using CineМедиатекаCS.Services;
 
-namespace CineLibraryCS.Views;
+namespace CineМедиатекаCS.Views;
 
 /// <summary>
-/// v2.9 — "On This Day" full-page view. Surfaces two categories of
+/// v2.9 — "В этот день" full-page view. Surfaces two categories of
 /// matches for today's calendar date:
-///   • Movies you watched on this date in past years
-///   • Movies released on this date in past years (anniversaries)
+///   • Фильмы you watched on this date in past years
+///   • Фильмы released on this date in past years (anniversaries)
 ///
 /// Looks and behaves like the other browse-style pages (back button,
 /// title strip, scrollable card grid). The sidebar entry that leads
 /// here is itself hidden when there's nothing today, so this page is
 /// only reachable when there's content — the empty state is defensive.
 /// </summary>
-public sealed partial class OnThisDayPage : Page
+public sealed partial class Вкл.ThisDayPage : Page
 {
-    /// <summary>Fired when the user hits Back. Host wires this to NavigateTo("library").</summary>
-    public event EventHandler? BackRequested;
+    /// <summary>Fired when the user hits Назад. Host wires this to NavigateTo("library").</summary>
+    public event EventHandler? НазадRequested;
 
-    public OnThisDayPage()
+    public Вкл.ThisDayPage()
     {
         InitializeComponent();
     }
@@ -30,37 +30,37 @@ public sealed partial class OnThisDayPage : Page
     public void Load()
     {
         var connected = AppState.Instance.Connected;
-        var matches = AppState.Instance.Db.GetOnThisDayItems(connected, limit: 48);
+        var matches = AppState.Instance.Db.GetВкл.ThisDayItems(connected, limit: 48);
 
         var watched = matches
-            .Where(m => m.Reason == DatabaseService.OnThisDayReason.Watched)
+            .Where(m => m.Reason == DatabaseService.Вкл.ThisDayReason.Просмотрено)
             .Select(m => m.Movie).ToList();
         var released = matches
-            .Where(m => m.Reason == DatabaseService.OnThisDayReason.Released)
+            .Where(m => m.Reason == DatabaseService.Вкл.ThisDayReason.Дата выхода)
             .Select(m => m.Movie).ToList();
 
         if (watched.Count > 0)
         {
-            WatchedSection.Visibility = Visibility.Visible;
-            WatchedSub.Text = watched.Count == 1 ? "1 movie" : $"{watched.Count} movies";
-            WatchedRepeater.ItemsSource = watched;
+            ПросмотреноSection.Visibility = Visibility.Visible;
+            ПросмотреноSub.Text = watched.Count == 1 ? "1 movie" : $"{watched.Count} movies";
+            ПросмотреноRepeater.ItemsSource = watched;
         }
         else
         {
-            WatchedSection.Visibility = Visibility.Collapsed;
-            WatchedRepeater.ItemsSource = null;
+            ПросмотреноSection.Visibility = Visibility.Collapsed;
+            ПросмотреноRepeater.ItemsSource = null;
         }
 
         if (released.Count > 0)
         {
-            ReleasedSection.Visibility = Visibility.Visible;
-            ReleasedSub.Text = released.Count == 1 ? "1 movie" : $"{released.Count} movies";
-            ReleasedRepeater.ItemsSource = released;
+            Дата выходаSection.Visibility = Visibility.Visible;
+            Дата выходаSub.Text = released.Count == 1 ? "1 movie" : $"{released.Count} movies";
+            Дата выходаRepeater.ItemsSource = released;
         }
         else
         {
-            ReleasedSection.Visibility = Visibility.Collapsed;
-            ReleasedRepeater.ItemsSource = null;
+            Дата выходаSection.Visibility = Visibility.Collapsed;
+            Дата выходаRepeater.ItemsSource = null;
         }
 
         // Adaptive sub-line on the header — mirrors the wording I used
@@ -68,9 +68,9 @@ public sealed partial class OnThisDayPage : Page
         SubText.Text = (watched.Count, released.Count) switch
         {
             (0, 0)            => DateTime.Now.ToString("MMMM d") + " — nothing in your library tied to this date.",
-            (0, 1)            => "One movie released on this date in a past year.",
+            (0, 1)            => "Вкл.e movie released on this date in a past year.",
             (0, var rel)      => $"{rel} movies released on this date in past years.",
-            (1, 0)            => "One movie you watched on this date in a past year.",
+            (1, 0)            => "Вкл.e movie you watched on this date in a past year.",
             (var w, 0)        => $"{w} movies you've watched on this date in years past.",
             (var w, var rel)  => $"{w} you've watched · {rel} released on this date.",
         };
@@ -79,6 +79,6 @@ public sealed partial class OnThisDayPage : Page
             ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private void OnBackClick(object sender, RoutedEventArgs e)
-        => BackRequested?.Invoke(this, EventArgs.Empty);
+    private void Вкл.НазадClick(object sender, RoutedEventArgs e)
+        => НазадRequested?.Invoke(this, EventArgs.Empty);
 }

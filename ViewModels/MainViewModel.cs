@@ -1,11 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CineLibraryCS.Models;
-using CineLibraryCS.Services;
-using DriveInfo = CineLibraryCS.Models.DriveInfo;
-using System.Collections.ObjectModel;
+using CineМедиатекаCS.Models;
+using CineМедиатекаCS.Services;
+using DriveInfo = CineМедиатекаCS.Models.DriveInfo;
+using System.Коллекции.ObjectModel;
 
-namespace CineLibraryCS.ViewModels;
+namespace CineМедиатекаCS.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
@@ -13,8 +13,8 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private ObservableCollection<DriveInfo> _drives = new();
     [ObservableProperty] private ObservableCollection<Collection> _collections = new();
-    [ObservableProperty] private ObservableCollection<GenreFacet> _topGenres = new();
-    [ObservableProperty] private LibraryStats? _stats;
+    [ObservableProperty] private ObservableCollection<GenreFacet> _topЖанры = new();
+    [ObservableProperty] private МедиатекаStats? _stats;
     [ObservableProperty] private string? _toastMessage;
     [ObservableProperty] private bool _toastVisible;
 
@@ -54,23 +54,23 @@ public partial class MainViewModel : ObservableObject
         // methods are [MethodImpl(Synchronized)] so parallel Task.Runs would
         // just serialize anyway, and one background hop is cheaper than four.
         var data = await Task.Run(() => (
-            Drives: _state.Db.GetDrives(),
-            Collections: _state.Db.GetCollections(),
-            Genres: _state.Db.GetTopGenres(8),
+            Диски: _state.Db.GetДиски(),
+            Коллекции: _state.Db.GetКоллекции(),
+            Жанры: _state.Db.GetTopЖанры(8),
             Stats: _state.Db.GetStats()
         ));
 
-        var drives = data.Drives;
-        var collections = data.Collections;
-        var genres = data.Genres;
+        var drives = data.Диски;
+        var collections = data.Коллекции;
+        var genres = data.Жанры;
         var stats = data.Stats;
 
-        Drives.Clear();
-        foreach (var d in drives) Drives.Add(d);
-        Collections.Clear();
-        foreach (var c in collections) Collections.Add(c);
-        TopGenres.Clear();
-        foreach (var g in genres) TopGenres.Add(g);
+        Диски.Clear();
+        foreach (var d in drives) Диски.Добавить(d);
+        Коллекции.Clear();
+        foreach (var c in collections) Коллекции.Добавить(c);
+        TopЖанры.Clear();
+        foreach (var g in genres) TopЖанры.Добавить(g);
         Stats = stats;
     }
 
@@ -83,7 +83,7 @@ public partial class MainViewModel : ObservableObject
     /// a volume arrival/removal. Refreshes the connected set, raises a toast
     /// on new drives, and triggers a sidebar refresh.
     /// </summary>
-    public async Task OnDeviceChangeAsync()
+    public async Task Вкл.DeviceChangeAsync()
     {
         if (_shuttingDown) return;
         // Debounce — USB hubs fire 3–5 WM_DEVICECHANGE messages within ms
@@ -98,7 +98,7 @@ public partial class MainViewModel : ObservableObject
         if (_shuttingDown) return;
         var curr = _state.Connected;
 
-        foreach (var drive in Drives)
+        foreach (var drive in Диски)
         {
             // Read the previous CONNECTED state, not "ever seen". Without
             // this, a drive that disconnects then reconnects in the same
@@ -113,7 +113,7 @@ public partial class MainViewModel : ObservableObject
         // Track every known drive's CONNECTED state (true / false), not just
         // presence — so disconnect→reconnect cycles produce a toast.
         var next = new Dictionary<string, bool>(prev);
-        foreach (var drive in Drives)
+        foreach (var drive in Диски)
             next[drive.VolumeSerial] = curr.ContainsKey(drive.VolumeSerial);
         _prevConnected = next;
 
@@ -141,9 +141,9 @@ public partial class MainViewModel : ObservableObject
 
     // ── Shutdown ──────────────────────────────────────────────────────────
     // Timers fire on ThreadPool threads. Without explicit disposal they can
-    // tick during Close() and race with SqliteConnection teardown, producing
+    // tick during Закрыть() and race with SqliteConnection teardown, producing
     // STATUS_STACK_BUFFER_OVERRUN (0xC0000409). Dispose() is called from
-    // MainWindow.Closed BEFORE the native stack frame unwinds.
+    // MainWindow.Закрытьd BEFORE the native stack frame unwinds.
 
     private volatile bool _shuttingDown;
     public bool IsShuttingDown => _shuttingDown;
@@ -155,27 +155,27 @@ public partial class MainViewModel : ObservableObject
         _toastTimer = null;
     }
 
-    // ── Export ────────────────────────────────────────────────────────────
+    // ── Экспорт ────────────────────────────────────────────────────────────
 
-    public async Task ExportCsvAsync(IEnumerable<MovieListItem> movies, string filePath)
+    public async Task ЭкспортCsvAsync(IEnumerable<MovieListItem> movies, string filePath)
     {
         await Task.Run(() =>
         {
             using var sw = new System.IO.StreamWriter(filePath, false, System.Text.Encoding.UTF8);
-            sw.WriteLine("Title,Year,Rating,Runtime,Genres,Drive,Watched,Favorite,IMDB");
+            sw.WriteLine("Название,Год,Рейтинг,Продолжительность,Жанры,Drive,Просмотрено,Избранное,IMDB");
             foreach (var m in movies)
             {
                 var detail = _state.Db.GetMovieDetail(m.Id, _state.Connected);
                 sw.WriteLine(
-                    $"\"{Esc(m.Title)}\",{m.Year},{m.Rating:F1},{m.Runtime}," +
-                    $"\"{Esc(m.GenresCsv)}\",\"{Esc(m.DriveLabel)}\"," +
-                    $"{(m.IsWatched ? "Yes" : "No")},{(m.IsFavorite ? "Yes" : "No")}," +
+                    $"\"{Esc(m.Название)}\",{m.Год},{m.Рейтинг:F1},{m.Продолжительность}," +
+                    $"\"{Esc(m.ЖанрыCsv)}\",\"{Esc(m.DriveLabel)}\"," +
+                    $"{(m.IsПросмотрено ? "Yes" : "No")},{(m.IsИзбранное ? "Yes" : "No")}," +
                     $"{detail?.ImdbUrl}");
             }
         });
     }
 
-    public async Task ExportHtmlAsync(IEnumerable<MovieListItem> movies, string filePath)
+    public async Task ЭкспортHtmlAsync(IEnumerable<MovieListItem> movies, string filePath)
     {
         await Task.Run(() =>
         {
@@ -185,17 +185,17 @@ public partial class MainViewModel : ObservableObject
             {
                 var detail = _state.Db.GetMovieDetail(m.Id, _state.Connected);
                 var imdb = detail?.ImdbId != null ? $"<a href='https://www.imdb.com/title/{detail.ImdbId}/' style='color:#f5c518'>{detail.ImdbId}</a>" : "";
-                rows.AppendLine($"<tr><td>{++i}</td><td>{System.Net.WebUtility.HtmlEncode(m.Title)}</td><td>{m.Year}</td><td>{m.Rating:F1}</td><td>{m.Runtime}</td><td>{System.Net.WebUtility.HtmlEncode(m.GenresCsv ?? "")}</td><td>{System.Net.WebUtility.HtmlEncode(m.DriveLabel ?? "")}</td><td>{(m.IsWatched ? "✓" : "")}</td><td>{imdb}</td></tr>");
+                rows.AppendLine($"<tr><td>{++i}</td><td>{System.Net.WebUtility.HtmlEncode(m.Название)}</td><td>{m.Год}</td><td>{m.Рейтинг:F1}</td><td>{m.Продолжительность}</td><td>{System.Net.WebUtility.HtmlEncode(m.ЖанрыCsv ?? "")}</td><td>{System.Net.WebUtility.HtmlEncode(m.DriveLabel ?? "")}</td><td>{(m.IsПросмотрено ? "✓" : "")}</td><td>{imdb}</td></tr>");
             }
-            var html = $@"<!DOCTYPE html><html><head><meta charset='utf-8'/><title>CineLibrary Export</title>
+            var html = $@"<!DOCTYPE html><html><head><meta charset='utf-8'/><title>CineМедиатека Экспорт</title>
 <style>body{{background:#0a0a0c;color:#e0e0e0;font-family:system-ui;padding:20px}}
 table{{border-collapse:collapse;width:100%}}th,td{{border:1px solid #333;padding:8px;text-align:left}}
 th{{background:#1a1a2e;color:#a78bfa}}tr:nth-child(even){{background:#111122}}
 tr:hover{{background:#1e1e3a}}</style></head>
-<body><h1 style='color:#a78bfa'>CineLibrary Export — {DateTime.Now:yyyy-MM-dd}</h1>
-<table><thead><tr><th>#</th><th>Title</th><th>Year</th><th>Rating</th><th>Runtime</th><th>Genres</th><th>Drive</th><th>Watched</th><th>IMDb</th></tr></thead>
+<body><h1 style='color:#a78bfa'>CineМедиатека Экспорт — {DateTime.Now:yyyy-MM-dd}</h1>
+<table><thead><tr><th>#</th><th>Название</th><th>Год</th><th>Рейтинг</th><th>Продолжительность</th><th>Жанры</th><th>Drive</th><th>Просмотрено</th><th>IMDb</th></tr></thead>
 <tbody>{rows}</tbody></table></body></html>";
-            File.WriteAllText(filePath, html, System.Text.Encoding.UTF8);
+            File.WriteВсеText(filePath, html, System.Text.Encoding.UTF8);
         });
     }
 

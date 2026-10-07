@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ═══════════════════════════════════════════════════════════════════
-         CINELIBRARY DESIGN SYSTEM — v2.6
+         CINEМЕДИАТЕКА DESIGN SYSTEM — v2.6
          ═══════════════════════════════════════════════════════════════════
 
          Corner-radius scale. Pick from this ladder when adding new controls:
@@ -21,10 +21,10 @@
 
     <!-- Active (checked) toolbar toggles use the brand accent instead of the
          default system-accent fill, so grid/list and S/M/L/XL read the same on
-         every page (v3.8.0: moved here from LibraryPage). -->
-    <SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="#A78BFA"/>
-    <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver" Color="#B49BFB"/>
-    <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPressed" Color="#9B7BF5"/>
+         every page (v3.8.0: moved here from МедиатекаPage). -->
+    <SolidColorBrush x:Key="ToggleButtonНазадgroundChecked" Color="#A78BFA"/>
+    <SolidColorBrush x:Key="ToggleButtonНазадgroundCheckedPointerOver" Color="#B49BFB"/>
+    <SolidColorBrush x:Key="ToggleButtonНазадgroundCheckedPressed" Color="#9B7BF5"/>
     <SolidColorBrush x:Key="ToggleButtonForegroundChecked" Color="White"/>
     <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPointerOver" Color="White"/>
     <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPressed" Color="White"/>
@@ -34,7 +34,7 @@
 
     <!-- Pill button — squared-rounded -->
     <Style x:Key="PillButtonStyle" TargetType="Button">
-        <Setter Property="Background"   Value="{ThemeResource CardBrush}"/>
+        <Setter Property="Назадground"   Value="{ThemeResource CardBrush}"/>
         <Setter Property="Foreground"   Value="{ThemeResource MutedBrush}"/>
         <Setter Property="BorderBrush"  Value="{ThemeResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -44,15 +44,15 @@
     </Style>
 
     <!-- Active pill -->
-    <Style x:Key="PillButtonActiveStyle" TargetType="Button" BasedOn="{StaticResource PillButtonStyle}">
-        <Setter Property="Background"  Value="#A78BFA"/>
+    <Style x:Key="PillButtonActiveStyle" TargetType="Button" BasedВкл.="{StaticResource PillButtonStyle}">
+        <Setter Property="Назадground"  Value="#A78BFA"/>
         <Setter Property="Foreground"  Value="#FFFFFF"/>
         <Setter Property="BorderBrush" Value="#A78BFA"/>
     </Style>
 
     <!-- Icon button -->
     <Style x:Key="IconButtonStyle" TargetType="Button">
-        <Setter Property="Background"      Value="Transparent"/>
+        <Setter Property="Назадground"      Value="Transparent"/>
         <Setter Property="Foreground"      Value="{ThemeResource MutedBrush}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding"         Value="6"/>
@@ -64,7 +64,7 @@
     <!-- Nav item style — full ControlTemplate so we can render an active-state
          left accent bar, matching Spotify/Notion/Discord conventions. -->
     <Style x:Key="NavItemStyle" TargetType="Button">
-        <Setter Property="Background"              Value="Transparent"/>
+        <Setter Property="Назадground"              Value="Transparent"/>
         <Setter Property="Foreground"              Value="{ThemeResource TextBrush}"/>
         <Setter Property="BorderThickness"         Value="0"/>
         <Setter Property="HorizontalAlignment"     Value="Stretch"/>
@@ -85,9 +85,9 @@
                         <Border x:Name="AccentBar" Grid.Column="0"
                                 Width="3" Margin="0,4"
                                 CornerRadius="2"
-                                Background="Transparent"/>
+                                Назадground="Transparent"/>
                         <Border x:Name="RootBg" Grid.Column="1"
-                                Background="{TemplateBinding Background}"
+                                Назадground="{TemplateBinding Назадground}"
                                 BorderBrush="Transparent"
                                 BorderThickness="1"
                                 CornerRadius="{TemplateBinding CornerRadius}"
@@ -102,13 +102,13 @@
                                 <VisualState x:Name="Normal"/>
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
-                                        <Setter Target="RootBg.Background" Value="{ThemeResource NavHoverBgBrush}"/>
+                                        <Setter Target="RootBg.Назадground" Value="{ThemeResource NavHoverBgBrush}"/>
                                         <Setter Target="RootBg.BorderBrush" Value="{ThemeResource NavHoverBorderBrush}"/>
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Pressed">
                                     <VisualState.Setters>
-                                        <Setter Target="RootBg.Background" Value="{ThemeResource NavPressedBgBrush}"/>
+                                        <Setter Target="RootBg.Назадground" Value="{ThemeResource NavPressedBgBrush}"/>
                                         <Setter Target="RootBg.BorderBrush" Value="{ThemeResource NavHoverBorderBrush}"/>
                                     </VisualState.Setters>
                                 </VisualState>
@@ -122,7 +122,7 @@
 
     <!-- Active variant — purple accent bar + tinted bg + bold -->
     <Style x:Key="NavItemActiveStyle" TargetType="Button">
-        <Setter Property="Background"              Value="{ThemeResource NavActiveBgBrush}"/>
+        <Setter Property="Назадground"              Value="{ThemeResource NavActiveBgBrush}"/>
         <Setter Property="Foreground"              Value="{ThemeResource TextBrush}"/>
         <Setter Property="BorderThickness"         Value="0"/>
         <Setter Property="HorizontalAlignment"     Value="Stretch"/>
@@ -142,9 +142,9 @@
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="0" Width="3" Margin="0,4"
                                 CornerRadius="2"
-                                Background="{StaticResource BrandPurpleBrush}"/>
+                                Назадground="{StaticResource BrandPurpleBrush}"/>
                         <Border x:Name="RootBg" Grid.Column="1"
-                                Background="{TemplateBinding Background}"
+                                Назадground="{TemplateBinding Назадground}"
                                 BorderBrush="{ThemeResource NavHoverBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{TemplateBinding CornerRadius}"
@@ -159,7 +159,7 @@
                                 <VisualState x:Name="Normal"/>
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
-                                        <Setter Target="RootBg.Background" Value="{ThemeResource NavActiveHoverBgBrush}"/>
+                                        <Setter Target="RootBg.Назадground" Value="{ThemeResource NavActiveHoverBgBrush}"/>
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
@@ -182,14 +182,14 @@
 
     <!-- Badge -->
     <Style x:Key="BadgeStyle" TargetType="Border">
-        <Setter Property="Background"    Value="{ThemeResource ChipBrush}"/>
+        <Setter Property="Назадground"    Value="{ThemeResource ChipBrush}"/>
         <Setter Property="CornerRadius"  Value="10"/>
         <Setter Property="Padding"       Value="6,2"/>
         <Setter Property="MinWidth"      Value="22"/>
     </Style>
 
     <!-- Status dot -->
-    <Style x:Key="OnlineDotStyle" TargetType="Ellipse">
+    <Style x:Key="Вкл.lineDotStyle" TargetType="Ellipse">
         <Setter Property="Width"             Value="8"/>
         <Setter Property="Height"            Value="8"/>
         <Setter Property="Fill"              Value="#22C55E"/>
@@ -197,7 +197,7 @@
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
 
-    <Style x:Key="OfflineDotStyle" TargetType="Ellipse">
+    <Style x:Key="Не в сетиDotStyle" TargetType="Ellipse">
         <Setter Property="Width"             Value="8"/>
         <Setter Property="Height"            Value="8"/>
         <Setter Property="Fill"              Value="#6B7280"/>
@@ -205,12 +205,12 @@
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
 
-    <!-- Sidebar section header (MY LISTS / LIBRARIES).
-         v2.5.1 — quieted down to match the static group labels (LIBRARY /
-         DISCOVER / BROWSE / TOOLS): same muted micro-label look, no
+    <!-- Sidebar section header (МОИ СПИСКИ / МЕДИАТЕКИ).
+         v2.5.1 — quieted down to match the static group labels (МЕДИАТЕКА /
+         ОБЗОР / ОБЗОР / ИНСТРУМЕНТЫ): same muted micro-label look, no
          orange chip, just a subtle hover so it still reads as clickable. -->
     <Style x:Key="SidebarSectionHeaderStyle" TargetType="Button">
-        <Setter Property="Background"      Value="Transparent"/>
+        <Setter Property="Назадground"      Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Foreground"      Value="{ThemeResource MutedBrush}"/>
         <Setter Property="HorizontalAlignment"        Value="Stretch"/>
@@ -225,7 +225,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="RootBorder"
-                            Background="{TemplateBinding Background}"
+                            Назадground="{TemplateBinding Назадground}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{TemplateBinding CornerRadius}"
@@ -238,12 +238,12 @@
                                 <VisualState x:Name="Normal"/>
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
-                                        <Setter Target="RootBorder.Background" Value="{ThemeResource NavHoverBgBrush}"/>
+                                        <Setter Target="RootBorder.Назадground" Value="{ThemeResource NavHoverBgBrush}"/>
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Pressed">
                                     <VisualState.Setters>
-                                        <Setter Target="RootBorder.Background" Value="{ThemeResource NavPressedBgBrush}"/>
+                                        <Setter Target="RootBorder.Назадground" Value="{ThemeResource NavPressedBgBrush}"/>
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Disabled"/>
@@ -256,7 +256,7 @@
     </Style>
 
     <!-- Section title -->
-    <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+    <Style x:Key="SectionНазваниеStyle" TargetType="TextBlock">
         <Setter Property="FontSize"        Value="10"/>
         <Setter Property="FontWeight"      Value="SemiBold"/>
         <Setter Property="Foreground"      Value="{ThemeResource MutedBrush}"/>
@@ -266,31 +266,31 @@
 
     <!-- Movie card poster badge -->
     <Style x:Key="PosterBadgeStyle" TargetType="Border">
-        <Setter Property="Background"   Value="#CC000000"/>
+        <Setter Property="Назадground"   Value="#CC000000"/>
         <Setter Property="CornerRadius" Value="4"/>
         <Setter Property="Padding"      Value="4,2"/>
     </Style>
 
     <!-- v4.2.0 (#15): a card surface that follows the theme, for cards that light
-         up on hover. The hover code sets a local Background and clears it on exit,
+         up on hover. The hover code sets a local Назадground and clears it on exit,
          so this value comes back. (A fixed rest colour set on exit stayed in the
          theme it was set in, which left list rows dark in the light theme.) -->
     <Style x:Key="CardSurfaceStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource CardBrush}"/>
+        <Setter Property="Назадground" Value="{ThemeResource CardBrush}"/>
     </Style>
 
-    <!-- Statistics tile (small square card with a big number) -->
+    <!-- Статистика tile (small square card with a big number) -->
     <Style x:Key="StatTileStyle" TargetType="Border">
-        <Setter Property="Background"      Value="{ThemeResource CardBrush}"/>
+        <Setter Property="Назадground"      Value="{ThemeResource CardBrush}"/>
         <Setter Property="BorderBrush"     Value="{ThemeResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius"    Value="10"/>
         <Setter Property="Padding"         Value="16"/>
     </Style>
 
-    <!-- Statistics panel (larger container for a chart/list) -->
+    <!-- Статистика panel (larger container for a chart/list) -->
     <Style x:Key="StatPanelStyle" TargetType="Border">
-        <Setter Property="Background"      Value="{ThemeResource CardBrush}"/>
+        <Setter Property="Назадground"      Value="{ThemeResource CardBrush}"/>
         <Setter Property="BorderBrush"     Value="{ThemeResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius"    Value="10"/>

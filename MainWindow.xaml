@@ -1,28 +1,28 @@
 <Window
-    x:Class="CineLibraryCS.MainWindow"
+    x:Class="CineМедиатекаCS.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:CineLibraryCS"
-    xmlns:models="using:CineLibraryCS.Models"
-    xmlns:views="using:CineLibraryCS.Views"
-    Title="CineLibrary">
+    xmlns:local="using:CineМедиатекаCS"
+    xmlns:models="using:CineМедиатекаCS.Models"
+    xmlns:views="using:CineМедиатекаCS.Views"
+    Название="CineМедиатека">
 
     <!-- Transparent root reveals the window's Mica backdrop. The content
          frame stays opaque (crisp pages); only the title bar and the floating
          sidebar card let Mica through. -->
-    <Grid x:Name="RootGrid" Background="Transparent">
+    <Grid x:Name="RootGrid" Назадground="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Solid opaque window fill, shown only when Mica is turned OFF in
-             Settings. Theme-bound so it's always the right base colour. -->
-        <Rectangle x:Name="MicaOffBackdrop" Grid.Row="0" Grid.RowSpan="2"
+             Настройки. Theme-bound so it's always the right base colour. -->
+        <Rectangle x:Name="MicaВыкл.Назадdrop" Grid.Row="0" Grid.RowSpan="2"
                    Fill="{ThemeResource BgBrush}" Visibility="Collapsed"/>
 
         <!-- ═══ CUSTOM TITLEBAR (drag region) ═══ -->
-        <Grid x:Name="AppTitleBar" Grid.Row="0" Background="Transparent">
+        <Grid x:Name="AppНазваниеBar" Grid.Row="0" Назадground="Transparent">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -32,53 +32,53 @@
                         VerticalAlignment="Center" Margin="8,0,0,0">
                 <!-- v2.5.1 — reopen-sidebar toggle lives here so it never
                      overlaps the page title when the sidebar is collapsed. -->
-                <Button x:Name="SidebarReopenBtn" Click="OnToggleSidebar"
+                <Button x:Name="SidebarReopenBtn" Click="Вкл.ToggleSidebar"
                         Visibility="Collapsed"
-                        Background="Transparent" BorderThickness="0"
+                        Назадground="Transparent" BorderThickness="0"
                         Foreground="{ThemeResource MutedBrush}"
                         Padding="6,4" CornerRadius="6"
                         VerticalAlignment="Center"
-                        AutomationProperties.Name="Show sidebar"
-                        ToolTipService.ToolTip="Show sidebar">
+                        AutomationProperties.Name="Показать боковую панель"
+                        ToolTipService.ToolTip="Показать боковую панель">
                     <FontIcon Glyph="&#xE89F;" FontSize="14"
-                              FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                              FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"/>
                 </Button>
                 <Image Source="ms-appx:///Assets/icon.ico"
                        Width="16" Height="16" VerticalAlignment="Center"/>
-                <TextBlock Text="CineLibrary" FontSize="12" FontWeight="SemiBold"
+                <TextBlock Text="CineМедиатека" FontSize="12" FontWeight="SemiBold"
                            Foreground="{ThemeResource TextBrush}" VerticalAlignment="Center"/>
             </StackPanel>
 
             <!-- Global search, centered in the title bar (interactive children
-                 of the title-bar element receive input automatically). Drives
-                 the Library page's search engine. -->
-            <Grid Grid.Column="1" x:Name="TitleSearchHost"
+                 of the title-bar element receive input automatically). Диски
+                 the Медиатека page's search engine. -->
+            <Grid Grid.Column="1" x:Name="НазваниеПоискHost"
                   HorizontalAlignment="Center" VerticalAlignment="Center"
                   Width="520" Margin="0,0,130,0" ColumnSpacing="6">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <ComboBox x:Name="TitleScopeCombo" Grid.Column="0"
-                          SelectionChanged="OnTitleScopeChanged"
+                <ComboBox x:Name="НазваниеScopeCombo" Grid.Column="0"
+                          SelectionChanged="Вкл.НазваниеScopeChanged"
                           SelectedIndex="0"
                           Height="32" MinWidth="84" VerticalAlignment="Center"
                           CornerRadius="8"
-                          Background="{ThemeResource InputBgBrush}"
+                          Назадground="{ThemeResource InputBgBrush}"
                           Foreground="{ThemeResource TextBrush}"
                           BorderBrush="{ThemeResource InputBorderBrush}"
-                          ToolTipService.ToolTip="What the search matches">
-                    <ComboBoxItem Tag="all"   Content="All"/>
-                    <ComboBoxItem Tag="title" Content="Title"/>
-                    <ComboBoxItem Tag="cast"  Content="Cast &amp; crew"/>
+                          ToolTipService.ToolTip="Результаты поиска">
+                    <ComboBoxItem Tag="all"   Content="Все"/>
+                    <ComboBoxItem Tag="title" Content="Название"/>
+                    <ComboBoxItem Tag="cast"  Content="Актёры и съёмочная группа"/>
                 </ComboBox>
-                <AutoSuggestBox x:Name="TitleSearchBox" Grid.Column="1"
-                                PlaceholderText="Search title, actor, director…"
+                <AutoSuggestBox x:Name="НазваниеПоискBox" Grid.Column="1"
+                                PlaceholderText="Поиск названия, актёра, режиссёра…"
                                 QueryIcon="Find"
                                 Height="32" VerticalAlignment="Center"
                                 CornerRadius="8"
-                                TextChanged="OnTitleSearchChanged"
-                                Background="{ThemeResource InputBgBrush}"
+                                TextChanged="Вкл.НазваниеПоискChanged"
+                                Назадground="{ThemeResource InputBgBrush}"
                                 BorderBrush="{ThemeResource InputBorderBrush}"
                                 Foreground="{ThemeResource TextBrush}"/>
             </Grid>
@@ -101,7 +101,7 @@
                  keep the inner content the same 240 px as before). -->
             <Border x:Name="SidebarCard" Grid.Column="0"
                     Margin="8,4,4,8" CornerRadius="12"
-                    Background="{ThemeResource SidebarBrush}"
+                    Назадground="{ThemeResource SidebarBrush}"
                     BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1"
                     Translation="0,0,24">
                 <Border.Shadow>
@@ -119,33 +119,33 @@
                      faint top-edge highlight so it reads as a crisp, lifted
                      badge instead of the flat pale lavender it was before.
                      Click opens the About dialog. -->
-                <Button Grid.Row="0" Click="OnAboutClick"
-                        Background="Transparent" BorderThickness="0"
+                <Button Grid.Row="0" Click="Вкл.AboutClick"
+                        Назадground="Transparent" BorderThickness="0"
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                         Padding="14,12,14,8">
                     <StackPanel x:Name="LogoPanel" Orientation="Horizontal" Spacing="10">
                         <Border CornerRadius="9" Width="32" Height="32"
                                 BorderBrush="#55FFFFFF" BorderThickness="1">
-                            <Border.Background>
+                            <Border.Назадground>
                                 <!-- Vivid violet gradient: bright purple top,
                                      deep indigo-violet base — echoes the app
                                      icon's rich purple body. -->
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0.4,1">
-                                    <GradientStop Offset="0" Color="#C13AEB"/>
-                                    <GradientStop Offset="1" Color="#5B21B6"/>
+                                    <GradientStop Выкл.set="0" Color="#C13AEB"/>
+                                    <GradientStop Выкл.set="1" Color="#5B21B6"/>
                                 </LinearGradientBrush>
-                            </Border.Background>
+                            </Border.Назадground>
                             <!-- Child is clipped to the parent's corner radius. -->
                             <Grid>
                                 <!-- Glossy top sheen — soft white highlight over
                                      the upper half, fading to nothing. -->
                                 <Border>
-                                    <Border.Background>
+                                    <Border.Назадground>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                            <GradientStop Offset="0"    Color="#4DFFFFFF"/>
-                                            <GradientStop Offset="0.55" Color="#00FFFFFF"/>
+                                            <GradientStop Выкл.set="0"    Color="#4DFFFFFF"/>
+                                            <GradientStop Выкл.set="0.55" Color="#00FFFFFF"/>
                                         </LinearGradientBrush>
-                                    </Border.Background>
+                                    </Border.Назадground>
                                 </Border>
                                 <!-- Tiny sparkle, top-left, nodding to the icon. -->
                                 <TextBlock Text="✦" FontSize="7" Foreground="#CCFFFFFF"
@@ -157,8 +157,8 @@
                                          Margin="2,0,0,0">
                                     <Polygon.Fill>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                            <GradientStop Offset="0" Color="#FFFFFF"/>
-                                            <GradientStop Offset="1" Color="#E9D5FF"/>
+                                            <GradientStop Выкл.set="0" Color="#FFFFFF"/>
+                                            <GradientStop Выкл.set="1" Color="#E9D5FF"/>
                                         </LinearGradientBrush>
                                     </Polygon.Fill>
                                 </Polygon>
@@ -168,7 +168,7 @@
                                     Orientation="Horizontal" Spacing="0">
                             <TextBlock Text="Cine" FontSize="15" FontWeight="SemiBold"
                                        Foreground="{ThemeResource TextBrush}"/>
-                            <TextBlock Text="Library" FontSize="15" FontWeight="SemiBold"
+                            <TextBlock Text="Медиатека" FontSize="15" FontWeight="SemiBold"
                                        Foreground="{StaticResource BrandPurpleBrush}"/>
                         </StackPanel>
                     </StackPanel>
@@ -178,22 +178,22 @@
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                     <StackPanel x:Name="NavPanel" Padding="8,0">
 
-                        <!-- LIBRARY group (v1.9.3) -->
-                        <TextBlock Text="LIBRARY" Style="{StaticResource SidebarGroupLabelStyle}"/>
+                        <!-- МЕДИАТЕКА group (v1.9.3) -->
+                        <TextBlock Text="МЕДИАТЕКА" Style="{StaticResource SidebarGroupLabelStyle}"/>
 
-                        <!-- All Movies -->
-                        <Button x:Name="BtnAllMovies" Style="{StaticResource NavItemStyle}"
-                                Click="OnNavAllMovies">
+                        <!-- Все фильмы -->
+                        <Button x:Name="BtnВсеФильмы" Style="{StaticResource NavItemStyle}"
+                                Click="Вкл.NavВсеФильмы">
                             <Grid HorizontalAlignment="Stretch">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE786;" FontSize="15"
-                                              FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                    <FontIcon Foreground="{ThemeResource NavМедиатекаIconBrush}" Glyph="&#xE786;" FontSize="15"
+                                              FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="All Movies" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Все фильмы" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <Border Grid.Column="1" Style="{StaticResource BadgeStyle}">
                                     <TextBlock x:Name="TotalBadge" Text="0" FontSize="11"
@@ -202,18 +202,18 @@
                             </Grid>
                         </Button>
 
-                        <!-- All TV Shows (v2.8) -->
-                        <Button x:Name="BtnTvShows" Style="{StaticResource NavItemStyle}" Click="OnNavTvShows">
+                        <!-- Все сериалы (v2.8) -->
+                        <Button x:Name="BtnTvShows" Style="{StaticResource NavItemStyle}" Click="Вкл.NavTvShows">
                             <Grid HorizontalAlignment="Stretch">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE7F4;" FontSize="15"
-                                              FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                    <FontIcon Foreground="{ThemeResource NavМедиатекаIconBrush}" Glyph="&#xE7F4;" FontSize="15"
+                                              FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="All TV Shows" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Все сериалы" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <Border Grid.Column="1" Style="{StaticResource BadgeStyle}">
                                     <TextBlock x:Name="TvShowsBadge" Text="0" FontSize="11"
@@ -222,84 +222,84 @@
                             </Grid>
                         </Button>
 
-                        <!-- Favorites -->
-                        <Button x:Name="BtnFavorites" Style="{StaticResource NavItemStyle}" Click="OnNavFavorites">
+                        <!-- Избранное -->
+                        <Button x:Name="BtnИзбранное" Style="{StaticResource NavItemStyle}" Click="Вкл.NavИзбранное">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE734;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                <FontIcon Foreground="{ThemeResource NavМедиатекаIconBrush}" Glyph="&#xE734;" FontSize="15"
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Favorites" VerticalAlignment="Center"/>
+                                <TextBlock Text="Избранное" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
-                        <!-- Watchlist (v1.3) -->
-                        <Button x:Name="BtnWatchlist" Style="{StaticResource NavItemStyle}" Click="OnNavWatchlist">
+                        <!-- Список просмотра (v1.3) -->
+                        <Button x:Name="BtnСписок просмотра" Style="{StaticResource NavItemStyle}" Click="Вкл.NavСписок просмотра">
                             <Grid HorizontalAlignment="Stretch">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE74C;" FontSize="15"
-                                              FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                    <FontIcon Foreground="{ThemeResource NavМедиатекаIconBrush}" Glyph="&#xE74C;" FontSize="15"
+                                              FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="To Watch" VerticalAlignment="Center"/>
+                                    <TextBlock Text="К просмотру" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <Border Grid.Column="1" Style="{StaticResource BadgeStyle}">
-                                    <TextBlock x:Name="WatchlistBadge" Text="0" FontSize="11"
+                                    <TextBlock x:Name="Список просмотраBadge" Text="0" FontSize="11"
                                                Foreground="{ThemeResource MutedBrush}" HorizontalAlignment="Center"/>
                                 </Border>
                             </Grid>
                         </Button>
 
-                        <!-- Notes (v2.8.2) — every movie that carries a note -->
-                        <Button x:Name="BtnNotes" Style="{StaticResource NavItemStyle}" Click="OnNavNotes">
+                        <!-- Заметки (v2.8.2) — every movie that carries a note -->
+                        <Button x:Name="BtnЗаметки" Style="{StaticResource NavItemStyle}" Click="Вкл.NavЗаметки">
                             <Grid HorizontalAlignment="Stretch">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE70B;" FontSize="15"
-                                              FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                    <FontIcon Foreground="{ThemeResource NavМедиатекаIconBrush}" Glyph="&#xE70B;" FontSize="15"
+                                              FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="Notes" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Заметки" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <Border Grid.Column="1" Style="{StaticResource BadgeStyle}">
-                                    <TextBlock x:Name="NotesBadge" Text="0" FontSize="11"
+                                    <TextBlock x:Name="ЗаметкиBadge" Text="0" FontSize="11"
                                                Foreground="{ThemeResource MutedBrush}" HorizontalAlignment="Center"/>
                                 </Border>
                             </Grid>
                         </Button>
 
-                        <!-- Watched & Gone (v3.3) — records of watched-then-deleted movies.
+                        <!-- Просмотрено и удалено (v3.3) — records of watched-then-deleted movies.
                              Hidden until the first record exists. -->
-                        <Button x:Name="BtnWatchedGone" Style="{StaticResource NavItemStyle}"
-                                Click="OnNavWatchedGone" Visibility="Collapsed">
+                        <Button x:Name="BtnПросмотреноGone" Style="{StaticResource NavItemStyle}"
+                                Click="Вкл.NavПросмотреноGone" Visibility="Collapsed">
                             <Grid HorizontalAlignment="Stretch">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE7B8;" FontSize="15"
-                                              FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                    <FontIcon Foreground="{ThemeResource NavМедиатекаIconBrush}" Glyph="&#xE7B8;" FontSize="15"
+                                              FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="Watched &amp; Gone" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Просмотрено и удалено" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <Border Grid.Column="1" Style="{StaticResource BadgeStyle}">
-                                    <TextBlock x:Name="WatchedGoneBadge" Text="0" FontSize="11"
+                                    <TextBlock x:Name="ПросмотреноGoneBadge" Text="0" FontSize="11"
                                                Foreground="{ThemeResource MutedBrush}" HorizontalAlignment="Center"/>
                                 </Border>
                             </Grid>
                         </Button>
 
-                        <!-- DISCOVER group (v1.9.3) -->
-                        <TextBlock Text="DISCOVER" Style="{StaticResource SidebarGroupLabelStyle}"/>
+                        <!-- ОБЗОР group (v1.9.3) -->
+                        <TextBlock Text="ОБЗОР" Style="{StaticResource SidebarGroupLabelStyle}"/>
 
-                        <!-- Continue Watching (v1.8) -->
+                        <!-- Продолжить просмотр (v1.8) -->
                         <Button x:Name="BtnContinueWatching" Style="{StaticResource NavItemStyle}"
-                                Click="OnNavContinueWatching">
+                                Click="Вкл.NavContinueWatching">
                             <Grid HorizontalAlignment="Stretch">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -307,9 +307,9 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <FontIcon Foreground="{ThemeResource NavDiscoverIconBrush}" Glyph="&#xE768;" FontSize="15"
-                                              FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                              FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="Continue Watching" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Продолжить просмотр" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <Border Grid.Column="1" Style="{StaticResource BadgeStyle}">
                                     <TextBlock x:Name="ContinueWatchingBadge" Text="0" FontSize="11"
@@ -318,19 +318,19 @@
                             </Grid>
                         </Button>
 
-                        <!-- Recently Added (v1.7) -->
-                        <Button x:Name="BtnRecentlyAdded" Style="{StaticResource NavItemStyle}" Click="OnNavRecentlyAdded">
+                        <!-- Недавно добавленные (v1.7) -->
+                        <Button x:Name="BtnRecentlyДобавитьed" Style="{StaticResource NavItemStyle}" Click="Вкл.NavRecentlyДобавитьed">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Foreground="{ThemeResource NavDiscoverIconBrush}" Glyph="&#xE823;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Recently Added" VerticalAlignment="Center"/>
+                                <TextBlock Text="Недавно добавленные" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
-                        <!-- Recently Watched (v2.9) -->
-                        <Button x:Name="BtnRecentlyWatched" Style="{StaticResource NavItemStyle}"
-                                Click="OnNavRecentlyWatched">
+                        <!-- Недавно просмотренные (v2.9) -->
+                        <Button x:Name="BtnRecentlyПросмотрено" Style="{StaticResource NavItemStyle}"
+                                Click="Вкл.NavRecentlyПросмотрено">
                             <Grid HorizontalAlignment="Stretch">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -338,155 +338,155 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <FontIcon Foreground="{ThemeResource NavDiscoverIconBrush}" Glyph="&#xE823;" FontSize="15"
-                                              FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                              FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="Recently Watched" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Недавно просмотренные" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <Border Grid.Column="1" Style="{StaticResource BadgeStyle}">
-                                    <TextBlock x:Name="RecentlyWatchedBadge" Text="0" FontSize="11"
+                                    <TextBlock x:Name="RecentlyПросмотреноBadge" Text="0" FontSize="11"
                                                Foreground="{ThemeResource MutedBrush}" HorizontalAlignment="Center"/>
                                 </Border>
                             </Grid>
                         </Button>
 
                         <!-- Random Pick (v1.7) -->
-                        <Button x:Name="BtnRandomPick" Style="{StaticResource NavItemStyle}" Click="OnNavRandomPick">
+                        <Button x:Name="BtnRandomPick" Style="{StaticResource NavItemStyle}" Click="Вкл.NavRandomPick">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Foreground="{ThemeResource NavDiscoverIconBrush}" Glyph="&#xE8B1;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Surprise me" VerticalAlignment="Center"/>
+                                <TextBlock Text="Удиви меня" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
-                        <!-- On This Day (v2.9) — hidden when nothing today.
+                        <!-- В этот день (v2.9) — hidden when nothing today.
                              Click opens a dialog with the matches: movies you
                              watched on this date in past years, and films
                              released on this date in past years. -->
-                        <Button x:Name="BtnOnThisDay" Style="{StaticResource NavItemStyle}"
-                                Click="OnNavOnThisDay" Visibility="Collapsed">
+                        <Button x:Name="BtnВкл.ThisDay" Style="{StaticResource NavItemStyle}"
+                                Click="Вкл.NavВкл.ThisDay" Visibility="Collapsed">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Foreground="{ThemeResource NavDiscoverIconBrush}" Glyph="&#xE787;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="On This Day" VerticalAlignment="Center"/>
+                                <TextBlock Text="В этот день" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
-                        <!-- BROWSE group (v2.1) — banner-style category pages -->
-                        <TextBlock Text="BROWSE" Style="{StaticResource SidebarGroupLabelStyle}"/>
+                        <!-- ОБЗОР group (v2.1) — banner-style category pages -->
+                        <TextBlock Text="ОБЗОР" Style="{StaticResource SidebarGroupLabelStyle}"/>
 
-                        <Button x:Name="BtnBrowseGenre" Style="{StaticResource NavItemStyle}"
-                                Click="OnNavBrowseGenre">
+                        <Button x:Name="BtnОбзорGenre" Style="{StaticResource NavItemStyle}"
+                                Click="Вкл.NavОбзорGenre">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Foreground="{ThemeResource NavBrowseIconBrush}" Glyph="&#xE8EC;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                <FontIcon Foreground="{ThemeResource NavОбзорIconBrush}" Glyph="&#xE8EC;" FontSize="15"
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="By Genre" VerticalAlignment="Center"/>
+                                <TextBlock Text="По жанру" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button x:Name="BtnBrowseDecade" Style="{StaticResource NavItemStyle}"
-                                Click="OnNavBrowseDecade">
+                        <Button x:Name="BtnОбзорDecade" Style="{StaticResource NavItemStyle}"
+                                Click="Вкл.NavОбзорDecade">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Foreground="{ThemeResource NavBrowseIconBrush}" Glyph="&#xE787;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                <FontIcon Foreground="{ThemeResource NavОбзорIconBrush}" Glyph="&#xE787;" FontSize="15"
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="By Decade" VerticalAlignment="Center"/>
+                                <TextBlock Text="По десятилетию" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button x:Name="BtnBrowseRating" Style="{StaticResource NavItemStyle}"
-                                Click="OnNavBrowseRating">
+                        <Button x:Name="BtnОбзорРейтинг" Style="{StaticResource NavItemStyle}"
+                                Click="Вкл.NavОбзорРейтинг">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Foreground="{ThemeResource NavBrowseIconBrush}" Glyph="&#xE735;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                <FontIcon Foreground="{ThemeResource NavОбзорIconBrush}" Glyph="&#xE735;" FontSize="15"
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="By Rating" VerticalAlignment="Center"/>
+                                <TextBlock Text="По рейтингу" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button x:Name="BtnCollections" Style="{StaticResource NavItemStyle}"
-                                Click="OnNavCollections">
+                        <Button x:Name="BtnКоллекции" Style="{StaticResource NavItemStyle}"
+                                Click="Вкл.NavКоллекции">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Foreground="{ThemeResource NavBrowseIconBrush}" Glyph="&#xE8B7;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                <FontIcon Foreground="{ThemeResource NavОбзорIconBrush}" Glyph="&#xE8B7;" FontSize="15"
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Collections" VerticalAlignment="Center"/>
+                                <TextBlock Text="Коллекции" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
-                        <!-- TOOLS group (v1.9.3) -->
-                        <TextBlock Text="TOOLS" Style="{StaticResource SidebarGroupLabelStyle}"/>
+                        <!-- ИНСТРУМЕНТЫ group (v1.9.3) -->
+                        <TextBlock Text="ИНСТРУМЕНТЫ" Style="{StaticResource SidebarGroupLabelStyle}"/>
 
-                        <!-- Statistics (v1.4.1) -->
-                        <Button x:Name="BtnStatistics" Style="{StaticResource NavItemStyle}" Click="OnNavStatistics">
+                        <!-- Статистика (v1.4.1) -->
+                        <Button x:Name="BtnСтатистика" Style="{StaticResource NavItemStyle}" Click="Вкл.NavСтатистика">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Foreground="{ThemeResource NavToolsIconBrush}" Glyph="&#xE9D9;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Statistics" VerticalAlignment="Center"/>
+                                <TextBlock Text="Статистика" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
-                        <!-- Dupes (v3.4.4) — find movies held more than once -->
-                        <Button x:Name="BtnDupes" Style="{StaticResource NavItemStyle}" Click="OnNavDupes">
+                        <!-- Дубликаты (v3.4.4) — find movies held more than once -->
+                        <Button x:Name="BtnДубликаты" Style="{StaticResource NavItemStyle}" Click="Вкл.NavДубликаты">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Foreground="{ThemeResource NavToolsIconBrush}" Glyph="&#xE8C8;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Dupes" VerticalAlignment="Center"/>
+                                <TextBlock Text="Дубликаты" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
 
-                        <!-- v2.9 — Backup / restore personal state.
-                             Opens a small dialog with Export / Import. -->
-                        <Button x:Name="BtnBackup" Style="{StaticResource NavItemStyle}"
-                                Click="OnNavBackup">
+                        <!-- v2.9 — Резервная копия / restore personal state.
+                             Opens a small dialog with Экспорт / Import. -->
+                        <Button x:Name="BtnРезервная копия" Style="{StaticResource NavItemStyle}"
+                                Click="Вкл.NavРезервная копия">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Foreground="{ThemeResource NavToolsIconBrush}" Glyph="&#xE74E;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Backup" VerticalAlignment="Center"/>
+                                <TextBlock Text="Резервная копия" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
-                        <!-- v3.9.0 — Export (was a button on All movies): the whole
-                             library, or what All movies shows, as CSV or HTML. -->
-                        <Button x:Name="BtnExport" Style="{StaticResource NavItemStyle}"
-                                Click="OnNavExport">
+                        <!-- v3.9.0 — Экспорт (was a button on Все фильмы): the whole
+                             library, or what Все фильмы shows, as CSV or HTML. -->
+                        <Button x:Name="BtnЭкспорт" Style="{StaticResource NavItemStyle}"
+                                Click="Вкл.NavЭкспорт">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Foreground="{ThemeResource NavToolsIconBrush}" Glyph="&#xEDE1;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Export" VerticalAlignment="Center"/>
+                                <TextBlock Text="Экспорт" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
                         <!-- My Lists section (v1.9.2) — user-defined custom lists.
                              v2.5.1: header restyled as a quiet group label
-                             matching LIBRARY / DISCOVER / BROWSE / TOOLS. -->
+                             matching МЕДИАТЕКА / ОБЗОР / ОБЗОР / ИНСТРУМЕНТЫ. -->
                         <StackPanel x:Name="UserListsHeader" Margin="0,8,0,0">
                             <Grid Margin="8,4,4,2">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Tag="UserLists" Click="OnSidebarSectionToggle"
+                                <Button Grid.Column="0" Tag="UserLists" Click="Вкл.SidebarSectionToggle"
                                         Style="{StaticResource SidebarSectionHeaderStyle}">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="MY LISTS" CharacterSpacing="150"/>
+                                        <TextBlock Text="МОИ СПИСКИ" CharacterSpacing="150"/>
                                         <TextBlock x:Name="UserListsChevron" Grid.Column="1"
                                                    Text="⌃" FontSize="11" Margin="6,0,0,0"/>
                                     </Grid>
                                 </Button>
-                                <Button Grid.Column="1" Click="OnNewUserList"
-                                        Background="Transparent" BorderThickness="0"
+                                <Button Grid.Column="1" Click="Вкл.НовыйUserList"
+                                        Назадground="Transparent" BorderThickness="0"
                                         Padding="6,0" Margin="2,0,0,0"
                                         VerticalAlignment="Stretch"
-                                        ToolTipService.ToolTip="Create a new list">
+                                        ToolTipService.ToolTip="Создать новый список">
                                     <TextBlock Text="+" FontSize="14" FontWeight="Bold"
                                                Foreground="{ThemeResource MutedBrush}"
                                                VerticalAlignment="Center"/>
@@ -499,7 +499,7 @@
                              Populated from DB by RefreshSidebar; hidden when
                              no tags exist yet. -->
                         <StackPanel x:Name="TagsHeader" Visibility="Collapsed" Margin="0,8,0,0">
-                            <Button Tag="Tags" Click="OnSidebarSectionToggle"
+                            <Button Tag="Tags" Click="Вкл.SidebarSectionToggle"
                                     Style="{StaticResource SidebarSectionHeaderStyle}"
                                     Margin="8,4,8,2">
                                 <Grid>
@@ -515,9 +515,9 @@
                             <StackPanel x:Name="TagsItemsPanel"/>
                         </StackPanel>
 
-                        <!-- Libraries section (collapsible, custom header) -->
-                        <StackPanel x:Name="LibrariesHeader" Visibility="Collapsed" Margin="0,8,0,0">
-                            <Button Tag="Libraries" Click="OnSidebarSectionToggle"
+                        <!-- Медиатеки section (collapsible, custom header) -->
+                        <StackPanel x:Name="МедиатекиHeader" Visibility="Collapsed" Margin="0,8,0,0">
+                            <Button Tag="Медиатеки" Click="Вкл.SidebarSectionToggle"
                                     Style="{StaticResource SidebarSectionHeaderStyle}"
                                     Margin="8,4,8,2">
                                 <Grid>
@@ -525,12 +525,12 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="LIBRARIES" CharacterSpacing="150"/>
-                                    <TextBlock x:Name="LibrariesChevron" Grid.Column="1"
+                                    <TextBlock Text="МЕДИАТЕКИ" CharacterSpacing="150"/>
+                                    <TextBlock x:Name="МедиатекиChevron" Grid.Column="1"
                                                Text="⌃" FontSize="11" Margin="6,0,0,0"/>
                                 </Grid>
                             </Button>
-                            <ItemsRepeater x:Name="DrivesRepeater">
+                            <ItemsRepeater x:Name="ДискиRepeater">
                                 <ItemsRepeater.Layout>
                                     <StackLayout Orientation="Vertical"/>
                                 </ItemsRepeater.Layout>
@@ -538,7 +538,7 @@
                                     <DataTemplate x:DataType="models:DriveInfo">
                                         <Button Style="{StaticResource NavItemStyle}"
                                                 Tag="{Binding VolumeSerial}"
-                                                Click="OnNavDriveItem">
+                                                Click="Вкл.NavDriveItem">
                                             <Grid HorizontalAlignment="Stretch">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto"/>
@@ -566,25 +566,25 @@
                         </StackPanel>
 
                         <!-- v2.1: TOP GENRES + COLLECTIONS sub-sections removed.
-                             Both are now first-class pages under the BROWSE section
-                             (By Genre, Collections), which is richer (banner cards,
+                             Both are now first-class pages under the ОБЗОР section
+                             (По жанру, Коллекции), which is richer (banner cards,
                              poster grid) than the previous flat sidebar list. -->
 
                     </StackPanel>
                 </ScrollViewer>
 
-                <!-- v2.5.1 footer: tool row only. Runtime / Avg Rating tiles
+                <!-- v2.5.1 footer: tool row only. Продолжительность / Avg Рейтинг tiles
                      were moved out of the sidebar — they live on the
-                     Statistics page where they have proper context. -->
+                     Статистика page where they have proper context. -->
                 <Border x:Name="FooterPanel" Grid.Row="2"
                         Margin="10,8,10,10" Padding="0"
-                        Background="Transparent"
+                        Назадground="Transparent"
                         BorderThickness="0">
                     <StackPanel Spacing="8">
                         <!-- Tool row — drives / theme / settings / help / collapse, all icon-only.
                              v3.0.0: theme button is now a monochrome FontIcon (matches
-                             the others) instead of a colour emoji, and a Settings gear
-                             was added. v3.9.0: Drives moved here from TOOLS. -->
+                             the others) instead of a colour emoji, and a Настройки gear
+                             was added. v3.9.0: Диски moved here from ИНСТРУМЕНТЫ. -->
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -594,50 +594,50 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <Button x:Name="BtnDrives" Grid.Column="1" Click="OnNavDrives"
-                                    Background="Transparent" BorderThickness="0"
+                            <Button x:Name="BtnДиски" Grid.Column="1" Click="Вкл.NavДиски"
+                                    Назадground="Transparent" BorderThickness="0"
                                     Foreground="{ThemeResource MutedBrush}"
                                     Padding="6" CornerRadius="6"
-                                    AutomationProperties.Name="Drives"
-                                    ToolTipService.ToolTip="Drives">
+                                    AutomationProperties.Name="Диски"
+                                    ToolTipService.ToolTip="Диски">
                                 <FontIcon Glyph="&#xEDA2;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"/>
                             </Button>
-                            <Button x:Name="ThemeBtn" Grid.Column="2" Click="OnToggleTheme"
-                                    Background="Transparent" BorderThickness="0"
+                            <Button x:Name="ThemeBtn" Grid.Column="2" Click="Вкл.ToggleTheme"
+                                    Назадground="Transparent" BorderThickness="0"
                                     Foreground="{ThemeResource MutedBrush}"
                                     Padding="6" Margin="2,0,0,0" CornerRadius="6"
-                                    AutomationProperties.Name="Switch theme"
-                                    ToolTipService.ToolTip="Switch theme">
+                                    AutomationProperties.Name="Сменить тему"
+                                    ToolTipService.ToolTip="Сменить тему">
                                 <FontIcon x:Name="ThemeIcon" Glyph="&#xE706;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"/>
                             </Button>
-                            <Button x:Name="SettingsBtn" Grid.Column="3" Click="OnSettingsClick"
-                                    Background="Transparent" BorderThickness="0"
+                            <Button x:Name="НастройкиBtn" Grid.Column="3" Click="Вкл.НастройкиClick"
+                                    Назадground="Transparent" BorderThickness="0"
                                     Foreground="{ThemeResource MutedBrush}"
                                     Padding="6" Margin="2,0,0,0" CornerRadius="6"
-                                    AutomationProperties.Name="Settings"
-                                    ToolTipService.ToolTip="Settings">
+                                    AutomationProperties.Name="Настройки"
+                                    ToolTipService.ToolTip="Настройки">
                                 <FontIcon Glyph="&#xE713;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"/>
                             </Button>
-                            <Button Grid.Column="4" Click="OnHelpClick"
-                                    Background="Transparent" BorderThickness="0"
+                            <Button Grid.Column="4" Click="Вкл.HelpClick"
+                                    Назадground="Transparent" BorderThickness="0"
                                     Foreground="{ThemeResource MutedBrush}"
                                     Padding="6" Margin="2,0,0,0" CornerRadius="6"
-                                    AutomationProperties.Name="Keyboard shortcuts"
-                                    ToolTipService.ToolTip="Keyboard shortcuts">
+                                    AutomationProperties.Name="Горячие клавиши"
+                                    ToolTipService.ToolTip="Горячие клавиши">
                                 <FontIcon Glyph="&#xE897;" FontSize="14"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"/>
                             </Button>
-                            <Button x:Name="SidebarToggleBtn" Grid.Column="5" Click="OnToggleSidebar"
-                                    Background="Transparent" BorderThickness="0"
+                            <Button x:Name="SidebarToggleBtn" Grid.Column="5" Click="Вкл.ToggleSidebar"
+                                    Назадground="Transparent" BorderThickness="0"
                                     Foreground="{ThemeResource MutedBrush}"
                                     Padding="6" Margin="2,0,0,0" CornerRadius="6"
-                                    AutomationProperties.Name="Collapse sidebar"
-                                    ToolTipService.ToolTip="Collapse sidebar">
+                                    AutomationProperties.Name="Свернуть боковую панель"
+                                    ToolTipService.ToolTip="Свернуть боковую панель">
                                 <FontIcon x:Name="SidebarToggleIcon" Glyph="&#xE8A0;" FontSize="16"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                                          FontСемья="Segoe Fluent Icons,Segoe MDL2 Assets"/>
                             </Button>
                         </Grid>
                     </StackPanel>
@@ -649,17 +649,17 @@
             <!-- Floating OPAQUE content panel on the Mica window: Mica frames it
                  (and the sidebar) for the full Mica look, while the scrolling
                  grid stays opaque so it never composites over Mica → fast. -->
-            <Border x:Name="ContentCard" Grid.Column="1" Background="{ThemeResource BgBrush}"
+            <Border x:Name="ContentCard" Grid.Column="1" Назадground="{ThemeResource BgBrush}"
                     Margin="4,4,8,8" CornerRadius="12"
                     BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1"
                     Translation="0,0,24">
                 <Border.Shadow>
                     <ThemeShadow/>
                 </Border.Shadow>
-                <Frame x:Name="ContentFrame" Background="Transparent"/>
+                <Frame x:Name="ContentFrame" Назадground="Transparent"/>
             </Border>
 
-<!-- v2.5.1: reopen toggle moved into AppTitleBar above to avoid
+<!-- v2.5.1: reopen toggle moved into AppНазваниеBar above to avoid
                  overlapping the active page's title row. -->
 
 
@@ -667,7 +667,7 @@
             <Border x:Name="ToastBorder" Grid.Column="1"
                     VerticalAlignment="Bottom" HorizontalAlignment="Right"
                     Margin="0,0,20,20" Visibility="Collapsed"
-                    Background="{ThemeResource ToastBgBrush}" CornerRadius="10" Padding="16,12"
+                    Назадground="{ThemeResource ToastBgBrush}" CornerRadius="10" Padding="16,12"
                     BorderBrush="{StaticResource BrandPurpleBrush}" BorderThickness="1">
                 <Border.RenderTransform>
                     <TranslateTransform x:Name="ToastSlide" Y="20"/>
@@ -679,14 +679,14 @@
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <TextBlock x:Name="ToastText" Foreground="{ThemeResource TextBrush}"
                                VerticalAlignment="Center" FontSize="13"/>
-                    <Button x:Name="ToastActionBtn" Click="OnToastActionClick"
+                    <Button x:Name="ToastActionBtn" Click="Вкл.ToastActionClick"
                             Visibility="Collapsed"
-                            Background="{StaticResource BrandPurpleBrush}"
+                            Назадground="{StaticResource BrandPurpleBrush}"
                             Foreground="#FFFFFF" BorderThickness="0"
                             CornerRadius="6" Padding="10,4" FontSize="12"
                             VerticalAlignment="Center"/>
-                    <Button Content="✕" Click="OnToastDismiss"
-                            Background="Transparent" BorderThickness="0"
+                    <Button Content="✕" Click="Вкл.ToastDismiss"
+                            Назадground="Transparent" BorderThickness="0"
                             Foreground="{ThemeResource MutedBrush}" Padding="4" FontSize="12"/>
                 </StackPanel>
             </Border>

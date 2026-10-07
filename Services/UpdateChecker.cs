@@ -5,26 +5,26 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace CineLibraryCS.Services;
+namespace CineМедиатекаCS.Services;
 
-public sealed class UpdateInfo
+public sealed class ОбновитьInfo
 {
     public required string LatestVersion { get; init; }
     public required string ReleaseUrl    { get; init; }
 }
 
-public static class UpdateChecker
+public static class ОбновитьChecker
 {
     private const string Owner = "aungkokomm";
-    private const string Repo  = "CineLibraryCS";
+    private const string Repo  = "CineМедиатекаCS";
 
-    private static readonly HttpClient _http = CreateClient();
+    private static readonly HttpClient _http = СоздатьClient();
 
-    private static HttpClient CreateClient()
+    private static HttpClient СоздатьClient()
     {
         var c = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
-        c.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CineLibrary", CurrentVersion()));
-        c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+        c.По умолчаниюRequestHeaders.UserAgent.Добавить(new ProductInfoHeaderValue("CineМедиатека", CurrentVersion()));
+        c.По умолчаниюRequestHeaders.Accept.Добавить(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         return c;
     }
 
@@ -39,7 +39,7 @@ public static class UpdateChecker
     /// when up-to-date, when the network is unreachable, or when the user has
     /// already chosen to skip this exact version.
     /// </summary>
-    public static async Task<UpdateInfo?> CheckAsync(string? skippedVersion = null)
+    public static async Task<ОбновитьInfo?> CheckAsync(string? skippedVersion = null)
     {
         try
         {
@@ -59,10 +59,10 @@ public static class UpdateChecker
             if (skippedVersion != null && string.Equals(latest, skippedVersion, StringComparison.OrdinalIgnoreCase))
                 return null;
 
-            if (!IsNewer(latest, CurrentVersion()))
+            if (!IsНовыйer(latest, CurrentVersion()))
                 return null;
 
-            return new UpdateInfo { LatestVersion = latest, ReleaseUrl = htmlUrl };
+            return new ОбновитьInfo { LatestVersion = latest, ReleaseUrl = htmlUrl };
         }
         catch
         {
@@ -74,7 +74,7 @@ public static class UpdateChecker
     private static string NormalizeVersion(string tag) =>
         tag.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? tag[1..] : tag;
 
-    private static bool IsNewer(string latest, string current)
+    private static bool IsНовыйer(string latest, string current)
     {
         return TryParse(latest, out var a) && TryParse(current, out var b) && a > b;
 

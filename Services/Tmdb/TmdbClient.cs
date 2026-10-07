@@ -2,19 +2,19 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 
-namespace CineLibraryCS.Services.Tmdb;
+namespace CineМедиатекаCS.Services.Tmdb;
 
 /// <summary>
-/// Minimal TMDb client — a trimmed port of CineLibrary Essentials' scraper.
-/// CineLibrary is otherwise fully offline; this client is reached only when the
-/// user asks for it: "Add watched movie" in Watched &amp; Gone, and "Fetch missing
-/// info" on a movie or (v3.10.0) a TV show. Search → pick → details → poster.
+/// Minimal TMDb client — a trimmed port of CineМедиатека Essentials' scraper.
+/// CineМедиатека is otherwise fully offline; this client is reached only when the
+/// user asks for it: "Добавить просмотренный фильм" in Просмотрено и удалено, and "Fetch missing
+/// info" on a movie or (v3.10.0) a TV show. Поиск → pick → details → poster.
 /// </summary>
 public sealed class TmdbClient : IDisposable
 {
-    // Shared embedded key (same one CineLibrary Essentials ships). Works out of
+    // Shared embedded key (same one CineМедиатека Essentials ships). Works out of
     // the box; a user can swap in their own via TMDb if they ever want to.
-    public const string DefaultApiKey = "bbbafb01eb3938531c9270a7147fbb5f";
+    public const string По умолчаниюApiKey = "bbbafb01eb3938531c9270a7147fbb5f";
 
     private const string BaseUrl = "https://api.themoviedb.org/3";
     private const int RequestDelayMs = 250;
@@ -26,7 +26,7 @@ public sealed class TmdbClient : IDisposable
 
     public TmdbClient(string? apiKey = null, string language = "en")
     {
-        _apiKey = string.IsNullOrWhiteSpace(apiKey) ? DefaultApiKey : apiKey!;
+        _apiKey = string.IsNullOrWhiteSpace(apiKey) ? По умолчаниюApiKey : apiKey!;
         _language = string.IsNullOrWhiteSpace(language) ? "en" : language;
 
         // TMDb's CDN returns gzip even unasked; without auto-decompression the
@@ -45,8 +45,8 @@ public sealed class TmdbClient : IDisposable
             ? url
             : $"{url}&language={_language}";
 
-    /// <summary>Searches TMDb by title (and optional year). Returns the top matches.</summary>
-    public async Task<List<TmdbMovie>> SearchMovieAsync(string title, int? year = null)
+    /// <summary>Поискes TMDb by title (and optional year). Returns the top matches.</summary>
+    public async Task<List<TmdbMovie>> ПоискMovieAsync(string title, int? year = null)
     {
         await RateLimitAsync();
 
@@ -59,7 +59,7 @@ public sealed class TmdbClient : IDisposable
         var resp = await _http.GetAsync(url);
         resp.EnsureSuccessStatusCode();
         var json = await resp.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<TmdbSearchResult>(json);
+        var result = JsonSerializer.Deserialize<TmdbПоискResult>(json);
         return result?.Results ?? new List<TmdbMovie>();
     }
 
@@ -88,15 +88,15 @@ public sealed class TmdbClient : IDisposable
             movie.Certification = ParseUsCertification(rd);
         if (root.TryGetProperty("credits", out var credits))
         {
-            movie.Cast = ParseCast(credits);
+            movie.Актёры = ParseАктёры(credits);
             ParseCrew(credits, movie);
         }
 
         return movie;
     }
 
-    /// <summary>v3.10.0: searches TMDb TV shows by name (and optional first-air year).</summary>
-    public async Task<List<TmdbTvShow>> SearchTvAsync(string title, int? year = null)
+    /// <summary>v3.10.0: searches TMDb Сериалы by name (and optional first-air year).</summary>
+    public async Task<List<TmdbTvShow>> ПоискTvAsync(string title, int? year = null)
     {
         await RateLimitAsync();
 
@@ -109,7 +109,7 @@ public sealed class TmdbClient : IDisposable
         var resp = await _http.GetAsync(url);
         resp.EnsureSuccessStatusCode();
         var json = await resp.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<TmdbTvSearchResult>(json);
+        var result = JsonSerializer.Deserialize<TmdbTvПоискResult>(json);
         return result?.Results ?? new List<TmdbTvShow>();
     }
 
@@ -163,7 +163,7 @@ public sealed class TmdbClient : IDisposable
                         character = role.TryGetProperty("character", out var c) ? c.GetString() ?? "" : "";
                         if (character.Length > 0) break;
                     }
-                show.Cast.Add(new TmdbCastMember
+                show.Актёры.Добавить(new TmdbАктёрыMember
                 {
                     Name = m.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "",
                     Character = character,
@@ -175,7 +175,7 @@ public sealed class TmdbClient : IDisposable
         return show;
     }
 
-    /// <summary>Pulls Directors (job == Director) and Writers (department ==
+    /// <summary>Pulls Режиссёрs (job == Режиссёр) and Writers (department ==
     /// Writing) out of credits.crew — the two crew groups Kodi/MediaElch surface.</summary>
     private static void ParseCrew(JsonElement credits, TmdbMovie movie)
     {
@@ -188,27 +188,27 @@ public sealed class TmdbClient : IDisposable
             var job = m.TryGetProperty("job", out var j) ? j.GetString() ?? "" : "";
             var dept = m.TryGetProperty("department", out var d) ? d.GetString() ?? "" : "";
 
-            if (string.Equals(job, "Director", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(job, "Режиссёр", StringComparison.OrdinalIgnoreCase))
             {
-                if (!movie.Directors.Contains(name)) movie.Directors.Add(name);
+                if (!movie.Режиссёрs.Contains(name)) movie.Режиссёрs.Добавить(name);
             }
             else if (string.Equals(dept, "Writing", StringComparison.OrdinalIgnoreCase))
             {
-                if (!movie.Writers.Contains(name)) movie.Writers.Add(name);
+                if (!movie.Writers.Contains(name)) movie.Writers.Добавить(name);
             }
         }
     }
 
     /// <summary>Top-billed cast (capped) from credits.cast, kept in billing order.</summary>
-    private static List<TmdbCastMember> ParseCast(JsonElement credits)
+    private static List<TmdbАктёрыMember> ParseАктёры(JsonElement credits)
     {
-        var list = new List<TmdbCastMember>();
+        var list = new List<TmdbАктёрыMember>();
         if (!credits.TryGetProperty("cast", out var arr) || arr.ValueKind != JsonValueKind.Array)
             return list;
 
         foreach (var m in arr.EnumerateArray().Take(15))
         {
-            list.Add(new TmdbCastMember
+            list.Добавить(new TmdbАктёрыMember
             {
                 Name = m.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "",
                 Character = m.TryGetProperty("character", out var c) ? c.GetString() ?? "" : "",
@@ -229,8 +229,8 @@ public sealed class TmdbClient : IDisposable
         try
         {
             var bytes = await _http.GetByteArrayAsync(url);
-            Directory.CreateDirectory(Path.GetDirectoryName(destFullPath)!);
-            await File.WriteAllBytesAsync(destFullPath, bytes);
+            Режиссёрy.СоздатьРежиссёрy(Path.GetРежиссёрyName(destFullPath)!);
+            await File.WriteВсеBytesAsync(destFullPath, bytes);
             return true;
         }
         catch (Exception ex)

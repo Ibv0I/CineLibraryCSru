@@ -3,35 +3,35 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI;
-using CineLibraryCS.Models;
-using CineLibraryCS.Services;
-using CineLibraryCS.ViewModels;
-using CineLibraryCS.Views;
+using CineМедиатекаCS.Models;
+using CineМедиатекаCS.Services;
+using CineМедиатекаCS.ViewModels;
+using CineМедиатекаCS.Views;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics;
 using Windows.System;
 
-namespace CineLibraryCS;
+namespace CineМедиатекаCS;
 
 public sealed partial class MainWindow : Window
 {
     private readonly MainViewModel _vm;
-    private LibraryPage? _libraryPage;
-    private DrivesPage? _drivesPage;
-    private StatisticsPage? _statisticsPage;
-    private DupesPage? _dupesPage;
-    private BrowsePage? _browsePage;
-    private CollectionsBrowsePage? _collectionsPage;
+    private МедиатекаPage? _libraryPage;
+    private ДискиPage? _drivesPage;
+    private СтатистикаPage? _statisticsPage;
+    private ДубликатыPage? _dupesPage;
+    private ОбзорPage? _browsePage;
+    private КоллекцииОбзорPage? _collectionsPage;
     private TvShowsPage? _tvShowsPage;
-    private OnThisDayPage? _onThisDayPage;
-    private WatchedGonePage? _watchedGonePage;
+    private Вкл.ThisDayPage? _onThisDayPage;
+    private ПросмотреноGonePage? _watchedGonePage;
     private DeviceChangeWatcher? _deviceWatcher;
 
     public MainWindow()
     {
         // Initialize the SQLite-backed AppState SYNCHRONOUSLY first.
-        // Click handlers on the sidebar (e.g. OnNavAllMovies) construct
-        // LibraryViewModel which calls AppState.GetPref → Db.GetPref. If
+        // Click handlers on the sidebar (e.g. Вкл.NavВсеФильмы) construct
+        // МедиатекаViewModel which calls AppState.GetPref → Db.GetPref. If
         // the user can click before the async InitAsync completes, that
         // path NREs because Db is still null. Init is a few ms of SQLite
         // work — fine to run on the UI thread before XAML loads.
@@ -46,24 +46,24 @@ public sealed partial class MainWindow : Window
 
         // v3.0.0 — load UI preferences (card shadows, reduce motion) before any
         // card is built so they paint with the right look on first render.
-        UiSettings.Load();
+        UiНастройки.Load();
 
         InitializeComponent();
 
         // Extend content into titlebar for Mica effect + use our custom drag region
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
+        ExtendsContentIntoНазваниеBar = true;
+        SetНазваниеBar(AppНазваниеBar);
 
-        // Apply Mica material (user-toggleable in Settings) and keep it in sync.
-        ApplyMica();
-        UiSettings.Changed += () => DispatcherQueue.TryEnqueue(ApplyMica);
+        // Применить Mica material (user-toggleable in Настройки) and keep it in sync.
+        ПрименитьMica();
+        UiНастройки.Changed += () => DispatcherQueue.TryEnqueue(ПрименитьMica);
 
         // Window size
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
         var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
         var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
         appWindow.Resize(new SizeInt32(1400, 900));   // restore-size used when the user un-maximizes
-        appWindow.Title = "CineLibrary";
+        appWindow.Название = "CineМедиатека";
 
         // v2.9 — start maximized. The 1400×900 above becomes the size the
         // window restores to when the user clicks the restore button.
@@ -73,7 +73,7 @@ public sealed partial class MainWindow : Window
         // Set custom titlebar icon
         try
         {
-            var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "icon.ico");
+            var iconPath = Path.Combine(AppContext.BaseРежиссёрy, "Assets", "icon.ico");
             if (File.Exists(iconPath))
                 appWindow.SetIcon(iconPath);
         }
@@ -87,38 +87,38 @@ public sealed partial class MainWindow : Window
 
         // Global Ctrl+B to toggle sidebar
         var acc = new KeyboardAccelerator { Key = VirtualKey.B, Modifiers = VirtualKeyModifiers.Control };
-        acc.Invoked += (_, a) => { ApplySidebarCollapsed(!_sidebarCollapsed); a.Handled = true; };
-        RootGrid.KeyboardAccelerators.Add(acc);
+        acc.Invoked += (_, a) => { ПрименитьSidebarCollapsed(!_sidebarCollapsed); a.Handled = true; };
+        RootGrid.KeyboardAccelerators.Добавить(acc);
 
         // Global Ctrl+Q to quit
         var quitAcc = new KeyboardAccelerator { Key = VirtualKey.Q, Modifiers = VirtualKeyModifiers.Control };
-        quitAcc.Invoked += (_, a) => { Close(); a.Handled = true; };
-        RootGrid.KeyboardAccelerators.Add(quitAcc);
+        quitAcc.Invoked += (_, a) => { Закрыть(); a.Handled = true; };
+        RootGrid.KeyboardAccelerators.Добавить(quitAcc);
 
         // Global Ctrl+F to focus search
         var searchAcc = new KeyboardAccelerator { Key = VirtualKey.F, Modifiers = VirtualKeyModifiers.Control };
         searchAcc.Invoked += (_, a) => {
-            TitleSearchBox.Focus(FocusState.Programmatic);
+            НазваниеПоискBox.Focus(FocusState.Programmatic);
             a.Handled = true;
         };
-        RootGrid.KeyboardAccelerators.Add(searchAcc);
+        RootGrid.KeyboardAccelerators.Добавить(searchAcc);
 
         // Esc inside the title-bar search clears the text and exits the box.
-        TitleSearchBox.AddHandler(UIElement.KeyDownEvent,
-            new Microsoft.UI.Xaml.Input.KeyEventHandler(OnTitleSearchKeyDown), handledEventsToo: true);
+        НазваниеПоискBox.ДобавитьHandler(UIElement.KeyDownEvent,
+            new Microsoft.UI.Xaml.Input.KeyEventHandler(Вкл.НазваниеПоискKeyDown), handledEventsToo: true);
 
         // v2.5 — drag-and-drop targets in the sidebar. Drag selected cards
-        // onto Favorites / Watchlist to flip those flags in bulk; drop on
-        // a user-list row to add. AllowDrop must be set per-target.
-        WireSidebarDropTarget(BtnFavorites, ids =>
+        // onto Избранное / Список просмотра to flip those flags in bulk; drop on
+        // a user-list row to add. ВсеowDrop must be set per-target.
+        WireSidebarDropTarget(BtnИзбранное, ids =>
         {
-            foreach (var mid in ids) AppState.Instance.Db.ToggleFavorite(mid);
-            return $"Favorited {ids.Count}";
+            foreach (var mid in ids) AppState.Instance.Db.ToggleИзбранное(mid);
+            return $"В избранном {ids.Count}";
         });
-        WireSidebarDropTarget(BtnWatchlist, ids =>
+        WireSidebarDropTarget(BtnСписок просмотра, ids =>
         {
-            foreach (var mid in ids) AppState.Instance.Db.SetWatchlist(mid, true);
-            return $"Added {ids.Count} to watchlist";
+            foreach (var mid in ids) AppState.Instance.Db.SetСписок просмотра(mid, true);
+            return $"Добавитьed {ids.Count} to watchlist";
         });
 
         // v1.4.1 — Ctrl+? (Ctrl+Shift+/) shows keyboard shortcuts dialog
@@ -128,7 +128,7 @@ public sealed partial class MainWindow : Window
             Modifiers = VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift,
         };
         helpAcc.Invoked += async (_, a) => { a.Handled = true; await ShowShortcutsDialogAsync(); };
-        RootGrid.KeyboardAccelerators.Add(helpAcc);
+        RootGrid.KeyboardAccelerators.Добавить(helpAcc);
 
         // Event-driven drive detection — replaces the 10-second poll timer.
         // The watcher subclasses our HWND and marshals WM_DEVICECHANGE to the
@@ -136,13 +136,13 @@ public sealed partial class MainWindow : Window
         _deviceWatcher = new DeviceChangeWatcher(hwnd, () =>
         {
             // Don't await — we're inside WndProc and must return promptly.
-            _ = _vm.OnDeviceChangeAsync();
+            _ = _vm.Вкл.DeviceChangeAsync();
         });
 
         // Stop background timers BEFORE the XAML/Sqlite teardown begins.
         // The poll timer is gone in v1.5 (see above) but the toast timer
         // still exists, and the SqliteConnection still needs clean disposal.
-        this.Closed += (_, _) =>
+        this.Закрытьd += (_, _) =>
         {
             try { _deviceWatcher?.Dispose(); } catch { }
             _deviceWatcher = null;
@@ -155,50 +155,50 @@ public sealed partial class MainWindow : Window
 
     // ── Theme ─────────────────────────────────────────────────────────────
 
-    public static ElementTheme CurrentTheme { get; private set; } = ElementTheme.Default;
+    public static ElementTheme CurrentTheme { get; private set; } = ElementTheme.По умолчанию;
 
-    private void ApplyTheme(ElementTheme theme)
+    private void ПрименитьTheme(ElementTheme theme)
     {
         CurrentTheme = theme;
         if (Content is FrameworkElement root)
             root.RequestedTheme = theme;
         // v3.0.0 — monochrome FontIcon glyph instead of a colour emoji so it
         // sits cleanly next to the other footer icons.
-        //   Light  → Brightness (sun)   E706
-        //   Dark   → QuietHours (moon)  E708
+        //   Светлая  → Brightness (sun)   E706
+        //   Тёмная   → QuietHours (moon)  E708
         //   System → TVMonitor          E7F4
         ThemeIcon.Glyph = theme switch
         {
-            ElementTheme.Light => "",
-            ElementTheme.Dark  => "",
+            ElementTheme.Светлая => "",
+            ElementTheme.Тёмная  => "",
             _                  => "",
         };
         AppState.Instance.SetPref("theme", theme.ToString());
         // Re-tint the (code-set) sidebar brush for the new theme.
-        ApplyMica();
+        ПрименитьMica();
     }
 
-    private void OnToggleTheme(object sender, RoutedEventArgs e)
+    private void Вкл.ToggleTheme(object sender, RoutedEventArgs e)
     {
         var next = CurrentTheme switch
         {
-            ElementTheme.Default => ElementTheme.Dark,
-            ElementTheme.Dark    => ElementTheme.Light,
-            _                    => ElementTheme.Default,
+            ElementTheme.По умолчанию => ElementTheme.Тёмная,
+            ElementTheme.Тёмная    => ElementTheme.Светлая,
+            _                    => ElementTheme.По умолчанию,
         };
-        ApplyTheme(next);
+        ПрименитьTheme(next);
     }
 
-    // ── v3.0.0 Settings dialog ────────────────────────────────────────────
+    // ── v3.0.0 Настройки dialog ────────────────────────────────────────────
 
     /// <summary>
-    /// Settings dialog: theme (mirrors the quick toggle), card shadows, and
+    /// Настройки dialog: theme (mirrors the quick toggle), card shadows, and
     /// reduce motion. Both visual extras default off, persisted via prefs,
-    /// and applied live (cards listen to UiSettings.Changed).
+    /// and applied live (cards listen to UiНастройки.Changed).
     /// </summary>
-    private async void OnSettingsClick(object sender, RoutedEventArgs e)
+    private async void Вкл.НастройкиClick(object sender, RoutedEventArgs e)
     {
-        var muted = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush");
+        var muted = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush");
 
         TextBlock Header(string t) => new()
         {
@@ -209,8 +209,8 @@ public sealed partial class MainWindow : Window
 
         var panel = new StackPanel { Spacing = 6, MinWidth = 360 };
 
-        // ── Appearance ──
-        panel.Children.Add(Header("APPEARANCE"));
+        // ── Внешний вид ──
+        panel.Children.Добавить(Header("ВНЕШНИЙ ВИД"));
 
         // Theme — three-way segmented choice that mirrors the quick toggle.
         var themeRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 0 };
@@ -224,49 +224,49 @@ public sealed partial class MainWindow : Window
                 MinWidth = 0,
                 Margin = new Thickness(0, 0, 14, 0),
             };
-            rb.Checked += (_, _) => ApplyTheme(value);
+            rb.Checked += (_, _) => ПрименитьTheme(value);
             return rb;
         }
-        themeRow.Children.Add(ThemeChip("Light",  ElementTheme.Light));
-        themeRow.Children.Add(ThemeChip("Dark",   ElementTheme.Dark));
-        themeRow.Children.Add(ThemeChip("System", ElementTheme.Default));
-        panel.Children.Add(new TextBlock { Text = "Theme", FontSize = 13 });
-        panel.Children.Add(themeRow);
+        themeRow.Children.Добавить(ThemeChip("Светлая",  ElementTheme.Светлая));
+        themeRow.Children.Добавить(ThemeChip("Тёмная",   ElementTheme.Тёмная));
+        themeRow.Children.Добавить(ThemeChip("System", ElementTheme.По умолчанию));
+        panel.Children.Добавить(new TextBlock { Text = "Theme", FontSize = 13 });
+        panel.Children.Добавить(themeRow);
 
-        // Background material (Mica) — Off / Subtle / Strong
+        // Назадground material (Mica) — Выкл. / Subtle / Strong
         var micaChoice = new RadioButtons
         {
-            Header = "Background material (Mica)",
+            Header = "Назадground material (Mica)",
             MaxColumns = 3,
             Margin = new Thickness(0, 12, 0, 0),
         };
-        micaChoice.Items.Add("Off");
-        micaChoice.Items.Add("Subtle");
-        micaChoice.Items.Add("Strong");
-        micaChoice.SelectedIndex = (int)UiSettings.Mica;   // Off=0, Subtle=1, Strong=2
+        micaChoice.Items.Добавить("Выкл.");
+        micaChoice.Items.Добавить("Subtle");
+        micaChoice.Items.Добавить("Strong");
+        micaChoice.SelectedIndex = (int)UiНастройки.Mica;   // Выкл.=0, Subtle=1, Strong=2
         micaChoice.SelectionChanged += (_, _) =>
         {
             if (micaChoice.SelectedIndex >= 0)
-                UiSettings.SetMica((UiSettings.MicaLevel)micaChoice.SelectedIndex);
+                UiНастройки.SetMica((UiНастройки.MicaLevel)micaChoice.SelectedIndex);
         };
-        panel.Children.Add(micaChoice);
-        panel.Children.Add(new TextBlock
+        panel.Children.Добавить(micaChoice);
+        panel.Children.Добавить(new TextBlock
         {
-            Text = "How much of the Windows Mica material — your wallpaper, softly tinted — shows behind the sidebar. Off is a flat, solid look, and the lightest on the GPU. (The scrolling poster area always stays solid for speed.)",
+            Text = "How much of the Windows Mica material — your wallpaper, softly tinted — shows behind the sidebar. Выкл. is a flat, solid look, and the lightest on the GPU. (The scrolling poster area always stays solid for speed.)",
             FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
 
-        // Card borders
+        // Границы карточек
         var borderToggle = new ToggleSwitch
         {
-            Header = "Card borders",
-            IsOn = UiSettings.CardBorders,
-            OffContent = "Off", OnContent = "On",
+            Header = "Границы карточек",
+            IsВкл. = UiНастройки.CardBorders,
+            Выкл.Content = "Выкл.", Вкл.Content = "Вкл.",
             Margin = new Thickness(0, 10, 0, 0),
         };
-        borderToggle.Toggled += (_, _) => UiSettings.SetCardBorders(borderToggle.IsOn);
-        panel.Children.Add(borderToggle);
-        panel.Children.Add(new TextBlock
+        borderToggle.Toggled += (_, _) => UiНастройки.SetCardBorders(borderToggle.IsВкл.);
+        panel.Children.Добавить(borderToggle);
+        panel.Children.Добавить(new TextBlock
         {
             Text = "A thin outline around each movie card. Helps the cards stand out, especially in light theme.",
             FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
@@ -275,102 +275,102 @@ public sealed partial class MainWindow : Window
         // Card shadows
         var shadowToggle = new ToggleSwitch
         {
-            Header = "Card drop shadows",
-            IsOn = UiSettings.CardShadows,
-            OffContent = "Off", OnContent = "On",
+            Header = "Тени карточек",
+            IsВкл. = UiНастройки.CardShadows,
+            Выкл.Content = "Выкл.", Вкл.Content = "Вкл.",
             Margin = new Thickness(0, 10, 0, 0),
         };
-        shadowToggle.Toggled += (_, _) => UiSettings.SetCardShadows(shadowToggle.IsOn);
-        panel.Children.Add(shadowToggle);
-        panel.Children.Add(new TextBlock
+        shadowToggle.Toggled += (_, _) => UiНастройки.SetCardShadows(shadowToggle.IsВкл.);
+        panel.Children.Добавить(shadowToggle);
+        panel.Children.Добавить(new TextBlock
         {
-            Text = "A subtle shadow that lifts each movie card. Off by default for the smoothest scrolling.",
+            Text = "A subtle shadow that lifts each movie card. Выкл. by default for the smoothest scrolling.",
             FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
 
-        // Reduce motion
+        // Уменьшить анимацию
         var motionToggle = new ToggleSwitch
         {
-            Header = "Reduce motion",
-            IsOn = UiSettings.ReduceMotion,
-            OffContent = "Off", OnContent = "On",
+            Header = "Уменьшить анимацию",
+            IsВкл. = UiНастройки.ReduceMotion,
+            Выкл.Content = "Выкл.", Вкл.Content = "Вкл.",
             Margin = new Thickness(0, 10, 0, 0),
         };
-        motionToggle.Toggled += (_, _) => UiSettings.SetReduceMotion(motionToggle.IsOn);
-        panel.Children.Add(motionToggle);
-        panel.Children.Add(new TextBlock
+        motionToggle.Toggled += (_, _) => UiНастройки.SetReduceMotion(motionToggle.IsВкл.);
+        panel.Children.Добавить(motionToggle);
+        panel.Children.Добавить(new TextBlock
         {
             Text = "Turns off the zoom/lift animation when you hover a card. Easier on the eyes and on low-end GPUs.",
             FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
 
-        // ── Playback (v3.6.0) ──
-        panel.Children.Add(Header("PLAYBACK"));
-        panel.Children.Add(new TextBlock { Text = "Video player", FontSize = 13 });
+        // ── Воспроизвестиback (v3.6.0) ──
+        panel.Children.Добавить(Header("PLAYBACK"));
+        panel.Children.Добавить(new TextBlock { Text = "Видеоплеер", FontSize = 13 });
         var playerBox = new TextBox
         {
-            IsReadOnly = true,
-            Text = UiSettings.PlayerPath,
-            PlaceholderText = "Windows default player",
+            IsReadВкл.ly = true,
+            Text = UiНастройки.ВоспроизвестиerPath,
+            PlaceholderText = "Стандартный проигрыватель Windows",
         };
-        var choosePlayer = new Button { Content = "Choose…" };
-        var defaultPlayer = new Button
+        var chooseВоспроизвестиer = new Button { Content = "Выбрать…" };
+        var defaultВоспроизвестиer = new Button
         {
             Content = "Use Windows default",
-            IsEnabled = UiSettings.PlayerPath.Length > 0,
+            IsEnabled = UiНастройки.ВоспроизвестиerPath.Length > 0,
             Margin = new Thickness(0, 4, 0, 0),
         };
-        choosePlayer.Click += async (_, _) =>
+        chooseВоспроизвестиer.Click += async (_, _) =>
         {
             try
             {
                 var picker = new Windows.Storage.Pickers.FileOpenPicker
                 {
-                    SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.ComputerFolder,
+                    SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.ComputerПапка,
                 };
-                picker.FileTypeFilter.Add(".exe");
+                picker.FileTypeFilter.Добавить(".exe");
                 WinRT.Interop.InitializeWithWindow.Initialize(picker,
                     WinRT.Interop.WindowNative.GetWindowHandle(this));
                 var file = await picker.PickSingleFileAsync();
                 if (file == null) return;
-                UiSettings.SetPlayerPath(file.Path);
+                UiНастройки.SetВоспроизвестиerPath(file.Path);
                 playerBox.Text = file.Path;
-                defaultPlayer.IsEnabled = true;
+                defaultВоспроизвестиer.IsEnabled = true;
             }
             catch { }
         };
-        defaultPlayer.Click += (_, _) =>
+        defaultВоспроизвестиer.Click += (_, _) =>
         {
-            UiSettings.SetPlayerPath("");
+            UiНастройки.SetВоспроизвестиerPath("");
             playerBox.Text = "";
-            defaultPlayer.IsEnabled = false;
+            defaultВоспроизвестиer.IsEnabled = false;
         };
         var playerRow = new Grid { ColumnSpacing = 8 };
-        playerRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        playerRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        Grid.SetColumn(choosePlayer, 1);
-        playerRow.Children.Add(playerBox);
-        playerRow.Children.Add(choosePlayer);
-        panel.Children.Add(playerRow);
-        panel.Children.Add(defaultPlayer);
-        panel.Children.Add(new TextBlock
+        playerRow.ColumnDefinitions.Добавить(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        playerRow.ColumnDefinitions.Добавить(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(chooseВоспроизвестиer, 1);
+        playerRow.Children.Добавить(playerBox);
+        playerRow.Children.Добавить(chooseВоспроизвестиer);
+        panel.Children.Добавить(playerRow);
+        panel.Children.Добавить(defaultВоспроизвестиer);
+        panel.Children.Добавить(new TextBlock
         {
-            Text = "Play opens videos in this program, for example VLC, MPC-HC, PotPlayer or mpv. With none chosen, Play uses whatever Windows opens video files with.",
+            Text = "Воспроизвести opens videos in this program, for example VLC, MPC-HC, PotВоспроизвестиer or mpv. With none chosen, Воспроизвести uses whatever Windows opens video files with.",
             FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
 
         var dialog = new ContentDialog
         {
-            Title = "Settings",
+            Название = "Настройки",
             Content = new ScrollViewer
             {
                 Content = panel,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 MaxHeight = 520,
-                // Keep text and buttons clear of the scrollbar (v3.7.2).
+                // Оставить text and buttons clear of the scrollbar (v3.7.2).
                 Padding = new Thickness(0, 0, 16, 0),
             },
-            CloseButtonText = "Done",
+            ЗакрытьButtonText = "Done",
             XamlRoot = Content.XamlRoot,
             RequestedTheme = CurrentTheme,
         };
@@ -384,20 +384,20 @@ public sealed partial class MainWindow : Window
         // only does the slower bits: theme apply, sidebar populate, update check.
 
         // Restore saved theme (default = System, not forced dark)
-        var saved = AppState.Instance.GetPref("theme", "Default");
-        var theme = Enum.TryParse<ElementTheme>(saved, out var t) ? t : ElementTheme.Default;
-        ApplyTheme(theme);
+        var saved = AppState.Instance.GetPref("theme", "По умолчанию");
+        var theme = Enum.TryParse<ElementTheme>(saved, out var t) ? t : ElementTheme.По умолчанию;
+        ПрименитьTheme(theme);
 
         // Restore sidebar collapsed state
         if (AppState.Instance.GetPref("sidebarCollapsed", "false") == "true")
-            ApplySidebarCollapsed(true);
+            ПрименитьSidebarCollapsed(true);
 
         // v2.9 — faster perceived startup. Previously we awaited the full
         // sidebar data fetch (drives + collections + stats) BEFORE showing
         // the library, so the main content waited on queries the user isn't
         // even looking at yet. Now:
         //   1. Prime the connected-drive set (fast — just enumerates drive
-        //      letters) so the grid's first paint shows correct ONLINE/OFFLINE.
+        //      letters) so the grid's first paint shows correct В СЕТИ/НЕ В СЕТИ.
         //   2. Show the library immediately; its grid load runs in the
         //      background, in parallel with the sidebar fetch below.
         //   3. Fill the sidebar, rendering it immediately (skip the 150 ms
@@ -405,47 +405,47 @@ public sealed partial class MainWindow : Window
         await Task.Run(() => AppState.Instance.RefreshConnected());
 
         NavigateTo("library");
-        SetActiveNav(BtnAllMovies);   // initial active highlight on All Movies
+        SetActiveNav(BtnВсеФильмы);   // initial active highlight on Все фильмы
 
         await _vm.InitializeAsync();
         RefreshSidebarImmediate();
 
         // Fire-and-forget update check. Silent on no-network. Skipped versions
         // are remembered via the prefs table so the user isn't nagged.
-        _ = CheckForUpdatesAsync();
+        _ = CheckForОбновитьsAsync();
     }
 
-    // ── Update check ──────────────────────────────────────────────────────
+    // ── Обновить check ──────────────────────────────────────────────────────
 
-    private string? _pendingUpdateUrl;
-    private string? _pendingUpdateVersion;
+    private string? _pendingОбновитьUrl;
+    private string? _pendingОбновитьVersion;
 
-    private async Task CheckForUpdatesAsync()
+    private async Task CheckForОбновитьsAsync()
     {
         try
         {
-            var skipped = AppState.Instance.GetPref("skippedUpdate", "");
-            var info = await UpdateChecker.CheckAsync(string.IsNullOrEmpty(skipped) ? null : skipped);
+            var skipped = AppState.Instance.GetPref("skippedОбновить", "");
+            var info = await ОбновитьChecker.CheckAsync(string.IsNullOrEmpty(skipped) ? null : skipped);
             if (info == null) return;
 
-            _pendingUpdateVersion = info.LatestVersion;
-            _pendingUpdateUrl = info.ReleaseUrl;
-            DispatcherQueue.TryEnqueue(() => ShowUpdateToast(info.LatestVersion));
+            _pendingОбновитьVersion = info.LatestVersion;
+            _pendingОбновитьUrl = info.ReleaseUrl;
+            DispatcherQueue.TryEnqueue(() => ShowОбновитьToast(info.LatestVersion));
         }
         catch { /* never let an update check break the app */ }
     }
 
-    private void ShowUpdateToast(string version)
+    private void ShowОбновитьToast(string version)
     {
-        ToastText.Text = $"CineLibrary v{version} is available";
+        ToastText.Text = $"CineМедиатека v{version} is available";
         ToastActionBtn.Content = "Download";
         ToastActionBtn.Visibility = Visibility.Visible;
         ToastBorder.Visibility = Visibility.Visible;
-        // Update toast stays until dismissed — no auto-hide.
+        // Обновить toast stays until dismissed — no auto-hide.
     }
 
     // Pending action for the toast's primary button. The update-notifier
-    // path sets _pendingUpdateUrl; selection bulk-ops set _pendingUndo.
+    // path sets _pendingОбновитьUrl; selection bulk-ops set _pendingUndo.
     // Whichever is set when the button is clicked wins.
     //
     // v2.5.1 — every show-toast call bumps _toastGeneration. Auto-hide
@@ -456,9 +456,9 @@ public sealed partial class MainWindow : Window
     private Action? _pendingUndo;
     private int _toastGeneration;
 
-    private async void OnToastActionClick(object sender, RoutedEventArgs e)
+    private async void Вкл.ToastActionClick(object sender, RoutedEventArgs e)
     {
-        // Undo first (selection bulk-ops). Update download is a fallback.
+        // Undo first (selection bulk-ops). Обновить download is a fallback.
         if (_pendingUndo != null)
         {
             try { _pendingUndo(); } catch { }
@@ -466,8 +466,8 @@ public sealed partial class MainWindow : Window
             ToastBorder.Visibility = Visibility.Collapsed;
             return;
         }
-        if (string.IsNullOrEmpty(_pendingUpdateUrl)) return;
-        try { await Windows.System.Launcher.LaunchUriAsync(new Uri(_pendingUpdateUrl)); }
+        if (string.IsNullOrEmpty(_pendingОбновитьUrl)) return;
+        try { await Windows.System.Launcher.LaunchUriAsync(new Uri(_pendingОбновитьUrl)); }
         catch { }
         ToastBorder.Visibility = Visibility.Collapsed;
     }
@@ -497,7 +497,7 @@ public sealed partial class MainWindow : Window
 
     /// <summary>
     /// Hide the toast 6 s from now, but only if it's still showing the
-    /// generation we captured. Newer ShowToast* calls bump the counter
+    /// generation we captured. Новыйer ShowToast* calls bump the counter
     /// and effectively cancel us.
     /// </summary>
     private void ScheduleToastHide(int generation)
@@ -516,18 +516,18 @@ public sealed partial class MainWindow : Window
     // Multiple DB writes (e.g. a bulk multi-select toggle, or the scanner
     // wrapping up) can fire RefreshSidebar 5+ times in rapid succession;
     // coalescing them within ~150 ms keeps the tree from re-rendering N×.
-    private CancellationTokenSource? _sidebarDebounce;
+    private ОтменаlationTokenSource? _sidebarDebounce;
 
     public void RefreshSidebar()
     {
-        _sidebarDebounce?.Cancel();
-        _sidebarDebounce = new CancellationTokenSource();
+        _sidebarDebounce?.Отмена();
+        _sidebarDebounce = new ОтменаlationTokenSource();
         var token = _sidebarDebounce.Token;
         _ = Task.Delay(150, token).ContinueWith(t =>
         {
-            if (t.IsCanceled) return;
+            if (t.IsОтменаed) return;
             DispatcherQueue.TryEnqueue(RefreshSidebarImmediate);
-        }, TaskScheduler.Default);
+        }, TaskScheduler.По умолчанию);
     }
 
     private void RefreshSidebarImmediate()
@@ -537,77 +537,77 @@ public sealed partial class MainWindow : Window
         // the dispatch in the debouncer above.
         {
             var stats = _vm.Stats;
-            TotalBadge.Text = stats?.TotalMovies.ToString() ?? "0";
-            // v3.9.0: Drives is an icon in the bottom bar now; the count lives in its tooltip.
-            ToolTipService.SetToolTip(BtnDrives, $"Drives ({_vm.Drives.Count})");
+            TotalBadge.Text = stats?.TotalФильмы.ToString() ?? "0";
+            // v3.9.0: Диски is an icon in the bottom bar now; the count lives in its tooltip.
+            ToolTipService.SetToolTip(BtnДиски, $"Диски ({_vm.Диски.Count})");
             try { TvShowsBadge.Text = AppState.Instance.Db.GetTvShowCount().ToString(); } catch { }
-            // v4.3.0: shows with a note count too, like To Watch since 4.0.0
+            // v4.3.0: shows with a note count too, like К просмотру since 4.0.0
             try
             {
-                NotesBadge.Text = (AppState.Instance.Db.GetNotesCount()
-                    + AppState.Instance.Db.GetTvShowPageCount(DatabaseService.TvShowPage.Notes)).ToString();
+                ЗаметкиBadge.Text = (AppState.Instance.Db.GetЗаметкиCount()
+                    + AppState.Instance.Db.GetTvShowPageCount(DatabaseService.TvShowPage.Заметки)).ToString();
             }
             catch { }
-            // v3.3 — Watched & Gone entry appears once the first record exists.
+            // v3.3 — Просмотрено и удалено entry appears once the first record exists.
             try
             {
                 var wg = AppState.Instance.Db.GetArchivedCount();
-                WatchedGoneBadge.Text = wg.ToString();
-                BtnWatchedGone.Visibility = wg > 0 ? Visibility.Visible : Visibility.Collapsed;
+                ПросмотреноGoneBadge.Text = wg.ToString();
+                BtnПросмотреноGone.Visibility = wg > 0 ? Visibility.Visible : Visibility.Collapsed;
             }
             catch { }
-            // v2.5.1 — StatRuntime / StatRating tiles removed from sidebar
-            // (they live on the Statistics page now). Stats object still
+            // v2.5.1 — StatПродолжительность / StatРейтинг tiles removed from sidebar
+            // (they live on the Статистика page now). Stats object still
             // computed because other code paths use it.
 
-            // Update watchlist badge (v1.3). v4.0.0: To Watch, Continue
-            // Watching and their badges include TV shows too.
-            if (_libraryPage?.ViewModel is LibraryViewModel vm)
+            // Обновить watchlist badge (v1.3). v4.0.0: К просмотру, Continue
+            // Watching and their badges include Сериалы too.
+            if (_libraryPage?.ViewModel is МедиатекаViewModel vm)
             {
-                vm.RefreshWatchlistCount();
-                WatchlistBadge.Text = (vm.WatchlistCount
-                    + AppState.Instance.Db.GetTvShowPageCount(DatabaseService.TvShowPage.Watchlist)).ToString();
+                vm.RefreshСписок просмотраCount();
+                Список просмотраBadge.Text = (vm.Список просмотраCount
+                    + AppState.Instance.Db.GetTvShowPageCount(DatabaseService.TvShowPage.Список просмотра)).ToString();
             }
 
-            // Continue Watching badge (v1.8) — only show shortcut if there's anything to continue
+            // Продолжить просмотр badge (v1.8) — only show shortcut if there's anything to continue
             var cwCount = AppState.Instance.Db.GetContinueWatchingCount()
                         + AppState.Instance.Db.GetTvShowPageCount(DatabaseService.TvShowPage.ContinueWatching);
             ContinueWatchingBadge.Text = cwCount.ToString();
             BtnContinueWatching.Visibility = cwCount > 0 ? Visibility.Visible : Visibility.Collapsed;
 
-            // Recently Watched badge (v2.9) — hidden until user has watched anything.
+            // Недавно просмотренные badge (v2.9) — hidden until user has watched anything.
             try
             {
-                var rwCount = AppState.Instance.Db.GetRecentlyWatchedCount();
-                RecentlyWatchedBadge.Text = rwCount.ToString();
-                BtnRecentlyWatched.Visibility = rwCount > 0 ? Visibility.Visible : Visibility.Collapsed;
+                var rwCount = AppState.Instance.Db.GetRecentlyПросмотреноCount();
+                RecentlyПросмотреноBadge.Text = rwCount.ToString();
+                BtnRecentlyПросмотрено.Visibility = rwCount > 0 ? Visibility.Visible : Visibility.Collapsed;
             } catch { }
 
-            // On This Day (v2.9) — only show the sidebar entry when there's
+            // В этот день (v2.9) — only show the sidebar entry when there's
             // something today. Probe is a cheap LIMIT 1 query so we can
             // call it on every sidebar refresh without worrying.
             try
             {
-                BtnOnThisDay.Visibility = AppState.Instance.Db.HasOnThisDayMatches()
+                BtnВкл.ThisDay.Visibility = AppState.Instance.Db.HasВкл.ThisDayMatches()
                     ? Visibility.Visible : Visibility.Collapsed;
-            } catch { BtnOnThisDay.Visibility = Visibility.Collapsed; }
+            } catch { BtnВкл.ThisDay.Visibility = Visibility.Collapsed; }
 
             // v2.9 — Tags section (hidden when no tags exist)
             RefreshTags();
 
-            DrivesRepeater.ItemsSource = _vm.Drives;
-            LibrariesHeader.Visibility = _vm.Drives.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            ДискиRepeater.ItemsSource = _vm.Диски;
+            МедиатекиHeader.Visibility = _vm.Диски.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
             // v2.1: COLLECTIONS + TOP GENRES sub-sections removed. Both live
-            // as BROWSE pages now (Collections grid, By Genre banners).
+            // as ОБЗОР pages now (Коллекции grid, По жанру banners).
 
             RefreshUserLists();
         }
     }
 
     /// <summary>
-    /// Rebuild the MY LISTS section. Each entry is a Button with the list
-    /// name, a count badge, and a context menu (Rename / Delete).
+    /// Rebuild the МОИ СПИСКИ section. Each entry is a Button with the list
+    /// name, a count badge, and a context menu (Rename / Удалить).
     /// </summary>
     public void RefreshUserLists()
     {
@@ -616,12 +616,12 @@ public sealed partial class MainWindow : Window
         foreach (var ul in lists)
         {
             var btn = BuildUserListButton(ul);
-            UserListsItemsPanel.Children.Add(btn);
+            UserListsItemsPanel.Children.Добавить(btn);
         }
     }
 
     /// <summary>
-    /// v2.9 — Rebuild the 🏷 TAGS sidebar section. One Button per tag with
+    /// v2.9 — Rebuild the 🏷 TAGS sidebar section. Вкл.e Button per tag with
     /// a count badge (movies + shows). Hidden entirely when no tags exist
     /// so empty users never see a stub.
     /// </summary>
@@ -630,7 +630,7 @@ public sealed partial class MainWindow : Window
         try
         {
             TagsItemsPanel.Children.Clear();
-            var tags = AppState.Instance.Db.GetAllTags();
+            var tags = AppState.Instance.Db.GetВсеTags();
             if (tags.Count == 0)
             {
                 TagsHeader.Visibility = Visibility.Collapsed;
@@ -638,7 +638,7 @@ public sealed partial class MainWindow : Window
             }
             TagsHeader.Visibility = Visibility.Visible;
             foreach (var t in tags)
-                TagsItemsPanel.Children.Add(BuildTagButton(t));
+                TagsItemsPanel.Children.Добавить(BuildTagButton(t));
         }
         catch { /* sidebar refresh must never throw — table may not exist mid-migration */ }
     }
@@ -655,23 +655,23 @@ public sealed partial class MainWindow : Window
             if (_libraryPage == null) NavigateTo("library");
             _libraryPage?.ViewModel.FilterByTag(t.Id, t.Name);
             if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
-            ClearLibraryBack();
+            ClearМедиатекаНазад();
             SetActiveNav(btn);
         };
 
         var grid = new Grid { HorizontalAlignment = HorizontalAlignment.Stretch };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Добавить(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Добавить(new ColumnDefinition { Width = GridLength.Auto });
 
         var sp = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
-        sp.Children.Add(new TextBlock { Text = "🏷", FontSize = 13, VerticalAlignment = VerticalAlignment.Center });
-        sp.Children.Add(new TextBlock
+        sp.Children.Добавить(new TextBlock { Text = "🏷", FontSize = 13, VerticalAlignment = VerticalAlignment.Center });
+        sp.Children.Добавить(new TextBlock
         {
             Text = t.Name,
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = Microsoft.UI.Xaml.TextTrimming.CharacterEllipsis,
         });
-        grid.Children.Add(sp);
+        grid.Children.Добавить(sp);
 
         var badge = new Border { Style = (Style)Application.Current.Resources["BadgeStyle"] };
         Grid.SetColumn(badge, 1);
@@ -682,7 +682,7 @@ public sealed partial class MainWindow : Window
             FontSize = 11,
             HorizontalAlignment = HorizontalAlignment.Center,
         };
-        grid.Children.Add(badge);
+        grid.Children.Добавить(badge);
 
         btn.Content = grid;
         return btn;
@@ -695,36 +695,36 @@ public sealed partial class MainWindow : Window
             Style = (Style)Application.Current.Resources["NavItemStyle"],
             Tag = ul.Id,
         };
-        btn.Click += (_, _) => _libraryPage?.UpdatePageTitle(ul.Name);
+        btn.Click += (_, _) => _libraryPage?.ОбновитьPageНазвание(ul.Name);
         btn.Click += (_, _) =>
         {
             if (_libraryPage == null) NavigateTo("library");
             _libraryPage?.ViewModel.ShowUserList(ul.Id, ul.Name);
             if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
-            ClearLibraryBack();
+            ClearМедиатекаНазад();
             SetActiveNav(btn);
         };
 
         var grid = new Grid();
         grid.HorizontalAlignment = HorizontalAlignment.Stretch;
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Добавить(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Добавить(new ColumnDefinition { Width = GridLength.Auto });
 
         var sp = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
-        sp.Children.Add(new FontIcon
+        sp.Children.Добавить(new FontIcon
         {
             Glyph = "\uE8FD", // List
-            FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Segoe Fluent Icons,Segoe MDL2 Assets"),
+            FontСемья = new Microsoft.UI.Xaml.Media.FontСемья("Segoe Fluent Icons,Segoe MDL2 Assets"),
             FontSize = 15,
             VerticalAlignment = VerticalAlignment.Center,
         });
-        sp.Children.Add(new TextBlock
+        sp.Children.Добавить(new TextBlock
         {
             Text = ul.Name,
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = Microsoft.UI.Xaml.TextTrimming.CharacterEllipsis,
         });
-        grid.Children.Add(sp);
+        grid.Children.Добавить(sp);
 
         var badge = new Border { Style = (Style)Application.Current.Resources["BadgeStyle"] };
         Grid.SetColumn(badge, 1);
@@ -734,26 +734,26 @@ public sealed partial class MainWindow : Window
             FontSize = 11,
             HorizontalAlignment = HorizontalAlignment.Center,
         };
-        grid.Children.Add(badge);
+        grid.Children.Добавить(badge);
 
         btn.Content = grid;
 
         // Right-click context menu: copy / export image / rename / delete
         var menu = new MenuFlyout();
         var copyItem = new MenuFlyoutItem { Text = "📂 Copy movies to folder…" };
-        copyItem.Click += async (_, _) => await CopyListToFolder(ul);
+        copyItem.Click += async (_, _) => await CopyListToПапка(ul);
         // v2.9 — export the list as a shareable PNG poster grid.
-        var exportImgItem = new MenuFlyoutItem { Text = "📤 Export as image…" };
-        exportImgItem.Click += async (_, _) => await ExportListAsImage(ul);
+        var exportImgItem = new MenuFlyoutItem { Text = "📤 Экспорт as image…" };
+        exportImgItem.Click += async (_, _) => await ЭкспортListAsImage(ul);
         var renameItem = new MenuFlyoutItem { Text = "Rename" };
         renameItem.Click += async (_, _) => await PromptRenameUserList(ul);
-        var deleteItem = new MenuFlyoutItem { Text = "Delete list" };
-        deleteItem.Click += async (_, _) => await ConfirmDeleteUserList(ul);
-        menu.Items.Add(copyItem);
-        menu.Items.Add(exportImgItem);
-        menu.Items.Add(new MenuFlyoutSeparator());
-        menu.Items.Add(renameItem);
-        menu.Items.Add(deleteItem);
+        var deleteItem = new MenuFlyoutItem { Text = "Удалить список" };
+        deleteItem.Click += async (_, _) => await ConfirmУдалитьUserList(ul);
+        menu.Items.Добавить(copyItem);
+        menu.Items.Добавить(exportImgItem);
+        menu.Items.Добавить(new MenuFlyoutSeparator());
+        menu.Items.Добавить(renameItem);
+        menu.Items.Добавить(deleteItem);
         btn.ContextFlyout = menu;
 
         // Drop target for drag-from-card multi-select.
@@ -762,8 +762,8 @@ public sealed partial class MainWindow : Window
         WireSidebarDropTarget(btn, ids =>
         {
             foreach (var mid in ids)
-                AppState.Instance.Db.AddMovieToUserList(listIdCap, mid);
-            return $"Added {ids.Count} to “{listNameCap}”";
+                AppState.Instance.Db.ДобавитьMovieToUserList(listIdCap, mid);
+            return $"Добавитьed {ids.Count} to “{listNameCap}”";
         });
         return btn;
     }
@@ -776,9 +776,9 @@ public sealed partial class MainWindow : Window
     /// </summary>
     private void WireSidebarDropTarget(Button target, Func<List<int>, string> applyOp)
     {
-        target.AllowDrop = true;
-        var purple = CineLibraryCS.Services.ThemeBrushes.Get("BrandPurpleBrush");
-        var origBg = target.Background;
+        target.ВсеowDrop = true;
+        var purple = CineМедиатекаCS.Services.ThemeBrushes.Get("BrandPurpleBrush");
+        var origBg = target.Назадground;
         var origBorderBrush = target.BorderBrush;
         var origBorderThickness = target.BorderThickness;
 
@@ -820,7 +820,7 @@ public sealed partial class MainWindow : Window
                 return;
             }
             _ = RefreshSidebarAsync();
-            // For Favorites/Watchlist the user can undo by flipping
+            // For Избранное/Список просмотра the user can undo by flipping
             // those movies back. We don't have a generic inverse op
             // because applyOp could be anything, so plain toast for now.
             ShowToast(toastMsg);
@@ -856,14 +856,14 @@ public sealed partial class MainWindow : Window
     /// list itself doesn't need to be the currently-viewed page; we fetch
     /// the movies directly from the DB by list id.
     /// </summary>
-    private async Task ExportListAsImage(DatabaseService.UserList ul)
+    private async Task ЭкспортListAsImage(DatabaseService.UserList ul)
     {
         // Fetch movies in the list (all of them — exporter caps display).
         var opts = new DatabaseService.ListOptions(
             UserListId: ul.Id,
             SortKey: "title", SortDir: "asc",
-            Limit: 200, Offset: 0);
-        var movies = AppState.Instance.Db.GetMovies(opts, AppState.Instance.Connected);
+            Limit: 200, Выкл.set: 0);
+        var movies = AppState.Instance.Db.GetФильмы(opts, AppState.Instance.Connected);
         if (movies.Count == 0)
         {
             ShowToast($"“{ul.Name}” has no movies to export");
@@ -871,21 +871,21 @@ public sealed partial class MainWindow : Window
         }
 
         // Pick destination
-        var picker = new Windows.Storage.Pickers.FileSavePicker
+        var picker = new Windows.Storage.Pickers.FileСохранитьPicker
         {
-            SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.PicturesLibrary,
+            SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.PicturesМедиатека,
             SuggestedFileName = $"{SanitizeFileName(ul.Name)}-{DateTime.Now:yyyyMMdd}",
         };
-        picker.FileTypeChoices.Add("PNG image", new List<string> { ".png" });
+        picker.FileTypeChoices.Добавить("PNG image", new List<string> { ".png" });
         WinRT.Interop.InitializeWithWindow.Initialize(picker,
             WinRT.Interop.WindowNative.GetWindowHandle(this));
-        var file = await picker.PickSaveFileAsync();
+        var file = await picker.PickСохранитьFileAsync();
         if (file == null) return;
 
         ShowToast("Rendering image…");
-        var ok = await ListImageExporter.ExportAsync(Content.XamlRoot, ul.Name, movies, file.Path);
-        if (ok) ShowToast($"Saved to {file.Path}");
-        else    ShowToast("Image export failed — see debug log");
+        var ok = await ListImageЭкспортer.ЭкспортAsync(Content.XamlRoot, ul.Name, movies, file.Path);
+        if (ok) ShowToast($"Сохранитьd to {file.Path}");
+        else    ShowToast("Ошибка экспорта изображений — подробности в журнале отладки");
     }
 
     private static string SanitizeFileName(string raw)
@@ -895,14 +895,14 @@ public sealed partial class MainWindow : Window
         return s.Trim();
     }
 
-    private async Task CopyListToFolder(DatabaseService.UserList ul)
+    private async Task CopyListToПапка(DatabaseService.UserList ul)
     {
-        // 1. Folder picker
-        var picker = new Windows.Storage.Pickers.FolderPicker();
-        picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
-        picker.FileTypeFilter.Add("*");
+        // 1. Папка picker
+        var picker = new Windows.Storage.Pickers.ПапкаPicker();
+        picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsМедиатека;
+        picker.FileTypeFilter.Добавить("*");
         WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(this));
-        var folder = await picker.PickSingleFolderAsync();
+        var folder = await picker.PickSingleПапкаAsync();
         if (folder == null) return;
         var destRoot = folder.Path;
 
@@ -921,14 +921,14 @@ public sealed partial class MainWindow : Window
 
         if (plan.Items.Count == 0)
         {
-            var detail = plan.OfflineDriveLabels.Count > 0
-                ? $"All movies are on offline drives. Plug in:\n• {string.Join("\n• ", plan.OfflineDriveLabels)}\n\nThen try again."
+            var detail = plan.Не в сетиDriveLabels.Count > 0
+                ? $"Все фильмы are on offline drives. Plug in:\n• {string.Join("\n• ", plan.Не в сетиDriveLabels)}\n\nThen try again."
                 : "Nothing to copy.";
             var emptyDlg = new ContentDialog
             {
-                Title = "Can't copy yet",
+                Название = "Can't copy yet",
                 Content = detail,
-                CloseButtonText = "OK",
+                ЗакрытьButtonText = "OK",
                 XamlRoot = Content.XamlRoot,
                 RequestedTheme = CurrentTheme,
             };
@@ -939,24 +939,24 @@ public sealed partial class MainWindow : Window
         // 2b. Pre-flight: warn if any drives are offline so the user can
         // plug them in first. Continuing is allowed but only the online
         // movies will be copied.
-        if (plan.OfflineDriveLabels.Count > 0)
+        if (plan.Не в сетиDriveLabels.Count > 0)
         {
             var msg = $"These drives are offline — their movies in this list won't be copied:\n• " +
-                      $"{string.Join("\n• ", plan.OfflineDriveLabels)}\n\n" +
-                      $"Plug them in to include all {plan.Items.Count + plan.OfflineDriveLabels.Count}+ movies, " +
+                      $"{string.Join("\n• ", plan.Не в сетиDriveLabels)}\n\n" +
+                      $"Plug them in to include all {plan.Items.Count + plan.Не в сетиDriveLabels.Count}+ movies, " +
                       $"or continue with the {plan.Items.Count} online ones.";
             var dlg = new ContentDialog
             {
-                Title = $"{plan.OfflineDriveLabels.Count} drive(s) offline",
+                Название = $"{plan.Не в сетиDriveLabels.Count} drive(s) offline",
                 Content = msg,
-                PrimaryButtonText = "Cancel",
+                PrimaryButtonText = "Отмена",
                 SecondaryButtonText = $"Continue with {plan.Items.Count} online",
-                DefaultButton = ContentDialogButton.Primary,
+                По умолчаниюButton = ContentDialogButton.Primary,
                 XamlRoot = Content.XamlRoot,
                 RequestedTheme = CurrentTheme,
             };
             var result = await dlg.ShowAsync();
-            // Primary = Cancel (default — safer when drives are missing)
+            // Primary = Отмена (default — safer when drives are missing)
             if (result != ContentDialogResult.Secondary) return;
         }
 
@@ -966,9 +966,9 @@ public sealed partial class MainWindow : Window
         {
             var dlg = new ContentDialog
             {
-                Title = "Not enough free space",
+                Название = "Not enough free space",
                 Content = $"Need {FormatBytes(plan.TotalBytes)}, only {FormatBytes(free)} free at the destination.",
-                CloseButtonText = "OK",
+                ЗакрытьButtonText = "OK",
                 XamlRoot = Content.XamlRoot,
                 RequestedTheme = CurrentTheme,
             };
@@ -986,12 +986,12 @@ public sealed partial class MainWindow : Window
                 : string.Join("\n", conflicts.Take(5).Select(c => $"• {c}")) + $"\n…and {conflicts.Count - 5} more";
             var dlg = new ContentDialog
             {
-                Title = $"{conflicts.Count} folder(s) already exist at destination",
+                Название = $"{conflicts.Count} folder(s) already exist at destination",
                 Content = $"What should happen to existing copies?\n\n{preview}",
                 PrimaryButtonText = "Skip existing",
                 SecondaryButtonText = "Overwrite",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Primary,
+                ЗакрытьButtonText = "Отмена",
+                По умолчаниюButton = ContentDialogButton.Primary,
                 XamlRoot = Content.XamlRoot,
                 RequestedTheme = CurrentTheme,
             };
@@ -1010,50 +1010,50 @@ public sealed partial class MainWindow : Window
         ListCopyService.CopyPlan plan, string destRoot,
         ListCopyService.ConflictPolicy policy, string listName)
     {
-        var cts = new CancellationTokenSource();
+        var cts = new ОтменаlationTokenSource();
         var bar = new ProgressBar { Minimum = 0, Maximum = plan.TotalBytes, Value = 0, Height = 6 };
-        var movieText = new TextBlock { FontSize = 13, Foreground = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush") };
+        var movieText = new TextBlock { FontSize = 13, Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("TextBrush") };
         var fileText = new TextBlock
         {
             FontSize = 11,
-            Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
+            Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush"),
             TextTrimming = Microsoft.UI.Xaml.TextTrimming.CharacterEllipsis,
         };
-        var bytesText = new TextBlock { FontSize = 11, Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush") };
+        var bytesText = new TextBlock { FontSize = 11, Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush") };
         var content = new StackPanel { Spacing = 10, Width = 480 };
-        content.Children.Add(movieText);
-        content.Children.Add(bar);
-        content.Children.Add(bytesText);
-        content.Children.Add(fileText);
-        if (plan.OfflineDriveLabels.Count > 0)
+        content.Children.Добавить(movieText);
+        content.Children.Добавить(bar);
+        content.Children.Добавить(bytesText);
+        content.Children.Добавить(fileText);
+        if (plan.Не в сетиDriveLabels.Count > 0)
         {
-            content.Children.Add(new TextBlock
+            content.Children.Добавить(new TextBlock
             {
                 FontSize = 11,
-                Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
+                Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush"),
                 FontStyle = Windows.UI.Text.FontStyle.Italic,
-                Text = $"Skipping {plan.OfflineDriveLabels.Count} offline drive(s): " +
-                       string.Join(", ", plan.OfflineDriveLabels),
+                Text = $"Skipping {plan.Не в сетиDriveLabels.Count} offline drive(s): " +
+                       string.Join(", ", plan.Не в сетиDriveLabels),
                 TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap,
             });
         }
 
         var dlg = new ContentDialog
         {
-            Title = $"Copying \"{listName}\" → {destRoot}",
+            Название = $"Copying \"{listName}\" → {destRoot}",
             Content = content,
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.None,
+            ЗакрытьButtonText = "Отмена",
+            По умолчаниюButton = ContentDialogButton.None,
             XamlRoot = Content.XamlRoot,
             RequestedTheme = CurrentTheme,
         };
-        dlg.Closing += (_, args) => cts.Cancel(); // any close path → cancel
+        dlg.Closing += (_, args) => cts.Отмена(); // any close path → cancel
 
         var progress = new Progress<ListCopyService.CopyProgress>(p =>
         {
             // Already on UI thread (Progress<T> captures sync context)
             bar.Value = p.BytesDone;
-            movieText.Text = $"Movie {p.MoviesDone} of {p.MoviesTotal}";
+            movieText.Text = $"Movie {p.ФильмыDone} of {p.ФильмыTotal}";
             bytesText.Text = $"{FormatBytes(p.BytesDone)} of {FormatBytes(p.BytesTotal)}";
             fileText.Text = p.CurrentFile;
         });
@@ -1065,7 +1065,7 @@ public sealed partial class MainWindow : Window
         {
             try { result = t.Result; } catch { }
             DispatcherQueue.TryEnqueue(() => { try { dlg.Hide(); } catch { } });
-        }, TaskScheduler.Default);
+        }, TaskScheduler.По умолчанию);
 
         await dlg.ShowAsync();
 
@@ -1077,10 +1077,10 @@ public sealed partial class MainWindow : Window
         else
         {
             var bits = new List<string>();
-            if (result.Copied > 0) bits.Add($"{result.Copied} copied");
-            if (result.Skipped > 0) bits.Add($"{result.Skipped} skipped");
-            if (result.OfflineSkipped > 0) bits.Add($"{result.OfflineSkipped} offline");
-            ShowToast(result.Cancelled ? $"Cancelled — {string.Join(", ", bits)}" : string.Join(", ", bits));
+            if (result.Copied > 0) bits.Добавить($"{result.Copied} copied");
+            if (result.Skipped > 0) bits.Добавить($"{result.Skipped} skipped");
+            if (result.Не в сетиSkipped > 0) bits.Добавить($"{result.Не в сетиSkipped} offline");
+            ShowToast(result.Отменаled ? $"Отменаled — {string.Join(", ", bits)}" : string.Join(", ", bits));
         }
     }
 
@@ -1093,13 +1093,13 @@ public sealed partial class MainWindow : Window
         return $"{b} B";
     }
 
-    private async void OnNewUserList(object sender, RoutedEventArgs e)
+    private async void Вкл.НовыйUserList(object sender, RoutedEventArgs e)
     {
-        var name = await PromptForListName("New list", "Untitled list");
+        var name = await PromptForListName("Новый список", "Untitled list");
         if (string.IsNullOrWhiteSpace(name)) return;
         try
         {
-            AppState.Instance.Db.CreateUserList(name.Trim());
+            AppState.Instance.Db.СоздатьUserList(name.Trim());
             RefreshUserLists();
         }
         catch (Microsoft.Data.Sqlite.SqliteException)
@@ -1116,22 +1116,22 @@ public sealed partial class MainWindow : Window
         RefreshUserLists();
     }
 
-    private async Task ConfirmDeleteUserList(DatabaseService.UserList ul)
+    private async Task ConfirmУдалитьUserList(DatabaseService.UserList ul)
     {
         var dlg = new ContentDialog
         {
-            Title = $"Delete \"{ul.Name}\"?",
-            Content = $"This list contains {ul.MovieCount} movie(s). Movies themselves are not deleted — only the list and its membership.",
-            PrimaryButtonText = "Delete",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Close,
+            Название = $"Удалить \"{ul.Name}\"?",
+            Content = $"This list contains {ul.MovieCount} movie(s). Фильмы themselves are not deleted — only the list and its membership.",
+            PrimaryButtonText = "Удалить",
+            ЗакрытьButtonText = "Отмена",
+            По умолчаниюButton = ContentDialogButton.Закрыть,
             XamlRoot = Content.XamlRoot,
             RequestedTheme = CurrentTheme,
         };
         var result = await dlg.ShowAsync();
         if (result == ContentDialogResult.Primary)
         {
-            AppState.Instance.Db.DeleteUserList(ul.Id);
+            AppState.Instance.Db.УдалитьUserList(ul.Id);
             RefreshUserLists();
         }
     }
@@ -1141,30 +1141,30 @@ public sealed partial class MainWindow : Window
         var box = new TextBox { Text = initial, PlaceholderText = "List name" };
         var dlg = new ContentDialog
         {
-            Title = title,
+            Название = title,
             Content = box,
             PrimaryButtonText = "OK",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Primary,
+            ЗакрытьButtonText = "Отмена",
+            По умолчаниюButton = ContentDialogButton.Primary,
             XamlRoot = Content.XamlRoot,
             RequestedTheme = CurrentTheme,
         };
         // Auto-select the field
-        box.Loaded += (_, _) => { box.Focus(FocusState.Programmatic); box.SelectAll(); };
+        box.Loaded += (_, _) => { box.Focus(FocusState.Programmatic); box.SelectВсе(); };
         var result = await dlg.ShowAsync();
         return result == ContentDialogResult.Primary ? box.Text : null;
     }
 
     // ── Sidebar section collapse/expand ───────────────────────────────────
 
-    private void OnSidebarSectionToggle(object sender, RoutedEventArgs e)
+    private void Вкл.SidebarSectionToggle(object sender, RoutedEventArgs e)
     {
         if (sender is not Button btn || btn.Tag is not string tag) return;
         var (repeater, chevron) = tag switch
         {
-            "Libraries"   => ((FrameworkElement)DrivesRepeater,      LibrariesChevron),
-            // "Genres" and "Collections" sub-sections removed in v2.1 — their
-            // BROWSE pages replace them. Map kept tolerant of missing keys.
+            "Медиатеки"   => ((FrameworkElement)ДискиRepeater,      МедиатекиChevron),
+            // "Жанры" and "Коллекции" sub-sections removed in v2.1 — their
+            // ОБЗОР pages replace them. Map kept tolerant of missing keys.
             "UserLists"   => (UserListsItemsPanel,                   UserListsChevron),
             "Tags"        => (TagsItemsPanel,                        TagsChevron),
             _             => (null!,                                  null!),
@@ -1177,52 +1177,52 @@ public sealed partial class MainWindow : Window
 
     // ── Navigation ────────────────────────────────────────────────────────
 
-    // ── Mica backdrop (toggleable in Settings) ────────────────────────────
+    // ── Mica backdrop (toggleable in Настройки) ────────────────────────────
 
-    public void ApplyMica()
+    public void ПрименитьMica()
     {
-        var level = UiSettings.Mica;
-        if (level == UiSettings.MicaLevel.Off)
+        var level = UiНастройки.Mica;
+        if (level == UiНастройки.MicaLevel.Выкл.)
         {
-            SystemBackdrop = null;
-            MicaOffBackdrop.Visibility = Visibility.Visible;     // solid window
+            SystemНазадdrop = null;
+            MicaВыкл.Назадdrop.Visibility = Visibility.Visible;     // solid window
         }
         else
         {
-            SystemBackdrop ??= new MicaBackdrop();
-            MicaOffBackdrop.Visibility = Visibility.Collapsed;   // reveal Mica
+            SystemНазадdrop ??= new MicaНазадdrop();
+            MicaВыкл.Назадdrop.Visibility = Visibility.Collapsed;   // reveal Mica
         }
 
         // Sidebar translucency follows the chosen intensity. Built from the
-        // live UI theme's base colour so it stays correct in Light and Dark.
+        // live UI theme's base colour so it stays correct in Светлая and Тёмная.
         byte alpha = level switch
         {
-            UiSettings.MicaLevel.Strong => 0x99,   // ~60% — more wallpaper shows through
-            UiSettings.MicaLevel.Subtle => 0xCC,   // ~80% — gentle hint
-            _ => 0xFF,                              // Off — fully solid sidebar
+            UiНастройки.MicaLevel.Strong => 0x99,   // ~60% — more wallpaper shows through
+            UiНастройки.MicaLevel.Subtle => 0xCC,   // ~80% — gentle hint
+            _ => 0xFF,                              // Выкл. — fully solid sidebar
         };
-        bool light = (Content as FrameworkElement)?.ActualTheme == ElementTheme.Light;
+        bool light = (Content as FrameworkElement)?.ActualTheme == ElementTheme.Светлая;
         var (r, g, b) = light ? ((byte)0xE3, (byte)0xE3, (byte)0xEE)
                               : ((byte)0x0F, (byte)0x0F, (byte)0x18);
-        SidebarCard.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+        SidebarCard.Назадground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
             Windows.UI.Color.FromArgb(alpha, r, g, b));
     }
 
     // ── Global title-bar search ───────────────────────────────────────────
 
-    private void OnTitleSearchChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    private void Вкл.НазваниеПоискChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput) return;
-        GlobalSearch(sender.Text ?? "");
+        GlobalПоиск(sender.Text ?? "");
     }
 
-    private void OnTitleSearchKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    private void Вкл.НазваниеПоискKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
     {
         if (e.Key != Windows.System.VirtualKey.Escape) return;
-        if (!string.IsNullOrEmpty(TitleSearchBox.Text))
+        if (!string.IsNullOrEmpty(НазваниеПоискBox.Text))
         {
-            TitleSearchBox.Text = "";
-            GlobalSearch("");   // clear the search results too
+            НазваниеПоискBox.Text = "";
+            GlobalПоиск("");   // clear the search results too
         }
         // Leave the search box.
         Microsoft.UI.Xaml.Input.FocusManager.TryMoveFocus(
@@ -1230,26 +1230,26 @@ public sealed partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private void OnTitleScopeChanged(object sender, SelectionChangedEventArgs e)
+    private void Вкл.НазваниеScopeChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (TitleScopeCombo.SelectedItem is ComboBoxItem item && item.Tag is string scope
+        if (НазваниеScopeCombo.SelectedItem is ComboBoxItem item && item.Tag is string scope
             && _libraryPage != null)
-            _libraryPage.ViewModel.SearchScope = scope;
+            _libraryPage.ViewModel.ПоискScope = scope;
     }
 
     /// <summary>Focus the global title-bar search box (Ctrl+F and the "/" shortcut).</summary>
-    public void FocusTitleSearch() => TitleSearchBox.Focus(FocusState.Programmatic);
+    public void FocusНазваниеПоиск() => НазваниеПоискBox.Focus(FocusState.Programmatic);
 
-    private void GlobalSearch(string text)
+    private void GlobalПоиск(string text)
     {
-        // Make sure the Library page is showing, then drive its search engine
-        // (_vm.SearchText). Searching from any other page jumps here.
+        // Make sure the Медиатека page is showing, then drive its search engine
+        // (_vm.ПоискText). Поискing from any other page jumps here.
         if (_libraryPage == null || !ReferenceEquals(ContentFrame.Content, _libraryPage))
             NavigateTo("library");
         if (_libraryPage == null) return;
-        if (TitleScopeCombo.SelectedItem is ComboBoxItem scopeItem && scopeItem.Tag is string scope)
-            _libraryPage.ViewModel.SearchScope = scope;
-        _libraryPage.ViewModel.SearchText = text;
+        if (НазваниеScopeCombo.SelectedItem is ComboBoxItem scopeItem && scopeItem.Tag is string scope)
+            _libraryPage.ViewModel.ПоискScope = scope;
+        _libraryPage.ViewModel.ПоискText = text;
     }
 
     private void NavigateTo(string page, object? param = null)
@@ -1258,35 +1258,35 @@ public sealed partial class MainWindow : Window
         {
             if (_libraryPage == null)
             {
-                _libraryPage = new LibraryPage();
+                _libraryPage = new МедиатекаPage();
                 _libraryPage.SidebarRefreshRequested += (_, _) => { _ = RefreshSidebarAsync(); };
-                // Keep the title-bar search box in sync when the Library
+                // Оставить the title-bar search box in sync when the Медиатека
                 // clears/changes search internally (Esc, nav reset, etc.).
-                _libraryPage.SearchTextChanged += (_, txt) =>
+                _libraryPage.ПоискTextChanged += (_, txt) =>
                 {
-                    if (TitleSearchBox.Text != txt) TitleSearchBox.Text = txt;
+                    if (НазваниеПоискBox.Text != txt) НазваниеПоискBox.Text = txt;
                 };
             }
 
-            if (param is LibraryNavParam lp)
+            if (param is МедиатекаNavParam lp)
             {
-                _libraryPage.ApplyNavParam(lp);
+                _libraryPage.ПрименитьNavParam(lp);
             }
-            // Any fresh library navigation hides the Browse-back button by
+            // Any fresh library navigation hides the Обзор-back button by
             // default. Drill-in callers (browse banners / collections)
             // re-arm it immediately after this returns.
-            ClearLibraryBack();
+            ClearМедиатекаНазад();
             ContentFrame.Content = _libraryPage;
         }
         else if (page == "drives")
         {
             if (_drivesPage == null)
             {
-                _drivesPage = new DrivesPage();
-                _drivesPage.NavigateToLibrary += (_, serial) =>
+                _drivesPage = new ДискиPage();
+                _drivesPage.NavigateToМедиатека += (_, serial) =>
                 {
-                    var drive = _vm.Drives.FirstOrDefault(d => d.VolumeSerial == serial);
-                    NavigateTo("library", new LibraryNavParam(DriveSerial: serial, Label: drive?.Label));
+                    var drive = _vm.Диски.FirstOrПо умолчанию(d => d.VolumeSerial == serial);
+                    NavigateTo("library", new МедиатекаNavParam(DriveSerial: serial, Label: drive?.Label));
                 };
                 _drivesPage.RefreshRequested += async (_, _) =>
                 {
@@ -1299,7 +1299,7 @@ public sealed partial class MainWindow : Window
         }
         else if (page == "statistics")
         {
-            _statisticsPage ??= new StatisticsPage();
+            _statisticsPage ??= new СтатистикаPage();
             _statisticsPage.Refresh();
             ContentFrame.Content = _statisticsPage;
         }
@@ -1307,21 +1307,21 @@ public sealed partial class MainWindow : Window
         {
             if (_dupesPage == null)
             {
-                _dupesPage = new DupesPage();
+                _dupesPage = new ДубликатыPage();
                 _dupesPage.SidebarRefreshRequested += (_, _) => { _ = RefreshSidebarAsync(); };
             }
             _dupesPage.Refresh();
             ContentFrame.Content = _dupesPage;
         }
-        else if (page == "browse" && param is DatabaseService.BrowseFacet facet)
+        else if (page == "browse" && param is DatabaseService.ОбзорFacet facet)
         {
-            _browsePage ??= new BrowsePage();
+            _browsePage ??= new ОбзорPage();
             _browsePage.Load(facet);
             ContentFrame.Content = _browsePage;
         }
         else if (page == "collections")
         {
-            _collectionsPage ??= new CollectionsBrowsePage();
+            _collectionsPage ??= new КоллекцииОбзорPage();
             _collectionsPage.Load();
             ContentFrame.Content = _collectionsPage;
         }
@@ -1339,8 +1339,8 @@ public sealed partial class MainWindow : Window
         {
             if (_onThisDayPage == null)
             {
-                _onThisDayPage = new OnThisDayPage();
-                _onThisDayPage.BackRequested += (_, _) => { NavigateTo("library"); SetActiveNav(BtnAllMovies); };
+                _onThisDayPage = new Вкл.ThisDayPage();
+                _onThisDayPage.НазадRequested += (_, _) => { NavigateTo("library"); SetActiveNav(BtnВсеФильмы); };
             }
             _onThisDayPage.Load();
             ContentFrame.Content = _onThisDayPage;
@@ -1349,7 +1349,7 @@ public sealed partial class MainWindow : Window
         {
             if (_watchedGonePage == null)
             {
-                _watchedGonePage = new WatchedGonePage();
+                _watchedGonePage = new ПросмотреноGonePage();
                 _watchedGonePage.SidebarRefreshRequested += (_, _) => { _ = RefreshSidebarAsync(); };
             }
             else
@@ -1366,38 +1366,38 @@ public sealed partial class MainWindow : Window
         RefreshSidebar();
     }
 
-    // ── Browse back navigation (v2.7) ─────────────────────────────────────
-    // When the library view is drilled into from a Browse banner or the
-    // Collections page, remember how to get back so LibraryPage can show
-    // a "‹ By Rating" style button. Cleared on any other navigation.
-    private Action? _libraryBackAction;
+    // ── Обзор back navigation (v2.7) ─────────────────────────────────────
+    // When the library view is drilled into from a Обзор banner or the
+    // Коллекции page, remember how to get back so МедиатекаPage can show
+    // a "‹ По рейтингу" style button. Cleared on any other navigation.
+    private Action? _libraryНазадAction;
 
-    public void SetLibraryBackToBrowse(DatabaseService.BrowseFacet facet)
+    public void SetМедиатекаНазадToОбзор(DatabaseService.ОбзорFacet facet)
     {
-        _libraryBackAction = () => NavigateTo("browse", facet);
-        _libraryPage?.ShowBrowseBack(facet switch
+        _libraryНазадAction = () => NavigateTo("browse", facet);
+        _libraryPage?.ShowОбзорНазад(facet switch
         {
-            DatabaseService.BrowseFacet.Genre  => "By Genre",
-            DatabaseService.BrowseFacet.Decade => "By Decade",
-            DatabaseService.BrowseFacet.Rating => "By Rating",
-            DatabaseService.BrowseFacet.Studio => "By Studio",
-            _ => "Back",
+            DatabaseService.ОбзорFacet.Genre  => "По жанру",
+            DatabaseService.ОбзорFacet.Decade => "По десятилетию",
+            DatabaseService.ОбзорFacet.Рейтинг => "По рейтингу",
+            DatabaseService.ОбзорFacet.Студия => "По студии",
+            _ => "Назад",
         });
     }
 
-    public void SetLibraryBackToCollections()
+    public void SetМедиатекаНазадToКоллекции()
     {
-        _libraryBackAction = () => { NavigateTo("collections"); SetActiveNav(BtnCollections); };
-        _libraryPage?.ShowBrowseBack("Collections");
+        _libraryНазадAction = () => { NavigateTo("collections"); SetActiveNav(BtnКоллекции); };
+        _libraryPage?.ShowОбзорНазад("Коллекции");
     }
 
-    private void ClearLibraryBack()
+    private void ClearМедиатекаНазад()
     {
-        _libraryBackAction = null;
-        _libraryPage?.HideBrowseBack();
+        _libraryНазадAction = null;
+        _libraryPage?.HideОбзорНазад();
     }
 
-    public void OnLibraryBackRequested() => _libraryBackAction?.Invoke();
+    public void Вкл.МедиатекаНазадRequested() => _libraryНазадAction?.Invoke();
 
     // ── Nav handlers ──────────────────────────────────────────────────────
 
@@ -1418,7 +1418,7 @@ public sealed partial class MainWindow : Window
         _activeNavBtn = btn;
     }
 
-    // v4.2.0 (#15): Backup and Export open a dialog or a menu rather than a page,
+    // v4.2.0 (#15): Резервная копия and Экспорт open a dialog or a menu rather than a page,
     // so they light up while it is open, then the page you are on lights up again.
     private Action HighlightWhileOpen(Button btn)
     {
@@ -1427,27 +1427,27 @@ public sealed partial class MainWindow : Window
         return () => { if (ReferenceEquals(_activeNavBtn, btn)) SetActiveNav(page); };
     }
 
-    private void OnNavAllMovies(object sender, RoutedEventArgs e)
+    private void Вкл.NavВсеФильмы(object sender, RoutedEventArgs e)
     {
-        NavigateTo("library", new LibraryNavParam());
-        SetActiveNav(sender as Button ?? BtnAllMovies);
+        NavigateTo("library", new МедиатекаNavParam());
+        SetActiveNav(sender as Button ?? BtnВсеФильмы);
     }
 
-    private void OnNavFavorites(object sender, RoutedEventArgs e)
+    private void Вкл.NavИзбранное(object sender, RoutedEventArgs e)
     {
-        NavigateTo("library", new LibraryNavParam(FavoritesOnly: true, Label: "Favorites"));
-        _libraryPage?.UpdatePageTitle("Favorites");   // v4.0.0: the page holds shows too, so not "All movies › …"
-        SetActiveNav(sender as Button ?? BtnFavorites);
+        NavigateTo("library", new МедиатекаNavParam(ИзбранноеВкл.ly: true, Label: "Избранное"));
+        _libraryPage?.ОбновитьPageНазвание("Избранное");   // v4.0.0: the page holds shows too, so not "Все фильмы › …"
+        SetActiveNav(sender as Button ?? BtnИзбранное);
     }
 
-    private void OnNavTvShows(object sender, RoutedEventArgs e)
+    private void Вкл.NavTvShows(object sender, RoutedEventArgs e)
     {
         NavigateTo("tvshows");
         SetActiveNav(sender as Button ?? BtnTvShows);
     }
 
     /// <summary>Open the TV page directly on a specific show (e.g. from a
-    /// list's "TV shows in this list" row).</summary>
+    /// list's "Сериалы in this list" row).</summary>
     public void OpenTvShow(int showId)
     {
         NavigateTo("tvshows");
@@ -1455,98 +1455,98 @@ public sealed partial class MainWindow : Window
         _tvShowsPage?.OpenShow(showId);
     }
 
-    // ── v3.9.0 Export (Tools) ─────────────────────────────────────────────
-    // Was a button on All movies that wrote only the pages loaded so far. Now
-    // it offers the whole library, plus what All movies shows when that is a
+    // ── v3.9.0 Экспорт (Tools) ─────────────────────────────────────────────
+    // Was a button on Все фильмы that wrote only the pages loaded so far. Now
+    // it offers the whole library, plus what Все фильмы shows when that is a
     // narrower view, and always writes every matching movie.
 
-    private void OnNavExport(object sender, RoutedEventArgs e)
+    private void Вкл.NavЭкспорт(object sender, RoutedEventArgs e)
     {
         var menu = new MenuFlyout { Placement = Microsoft.UI.Xaml.Controls.Primitives.FlyoutPlacementMode.RightEdgeAlignedTop };
-        void Add(string text, Func<Task<List<MovieListItem>>> load, bool html)
+        void Добавить(string text, Func<Task<List<MovieListItem>>> load, bool html)
         {
             var item = new MenuFlyoutItem { Text = text };
-            item.Click += async (_, _) => await ExportMoviesAsync(load, html);
-            menu.Items.Add(item);
+            item.Click += async (_, _) => await ЭкспортФильмыAsync(load, html);
+            menu.Items.Добавить(item);
         }
-        Func<Task<List<MovieListItem>>> all = () => Task.Run(() => AppState.Instance.Db.GetMovies(
+        Func<Task<List<MovieListItem>>> all = () => Task.Run(() => AppState.Instance.Db.GetФильмы(
             new DatabaseService.ListOptions(Limit: int.MaxValue), AppState.Instance.Connected));
-        Add("All movies as CSV…", all, html: false);
-        Add("All movies as HTML…", all, html: true);
+        Добавить("Все фильмы as CSV…", all, html: false);
+        Добавить("Все фильмы as HTML…", all, html: true);
         if (_libraryPage != null && ReferenceEquals(ContentFrame.Content, _libraryPage)
-            && _libraryPage.ViewCount < (_vm.Stats?.TotalMovies ?? 0))
+            && _libraryPage.ViewCount < (_vm.Stats?.TotalФильмы ?? 0))
         {
             var n = _libraryPage.ViewCount;
             var label = n == 1 ? "1 movie" : $"{n:N0} movies";
-            menu.Items.Add(new MenuFlyoutSeparator());
-            Add($"This view ({label}) as CSV…", _libraryPage.GetViewMoviesAsync, html: false);
-            Add($"This view ({label}) as HTML…", _libraryPage.GetViewMoviesAsync, html: true);
+            menu.Items.Добавить(new MenuFlyoutSeparator());
+            Добавить($"This view ({label}) as CSV…", _libraryPage.GetViewФильмыAsync, html: false);
+            Добавить($"This view ({label}) as HTML…", _libraryPage.GetViewФильмыAsync, html: true);
         }
-        var restore = HighlightWhileOpen(sender as Button ?? BtnExport);
-        menu.Closed += (_, _) => restore();
+        var restore = HighlightWhileOpen(sender as Button ?? BtnЭкспорт);
+        menu.Закрытьd += (_, _) => restore();
         menu.ShowAt((FrameworkElement)sender);
     }
 
-    private async Task ExportMoviesAsync(Func<Task<List<MovieListItem>>> load, bool html)
+    private async Task ЭкспортФильмыAsync(Func<Task<List<MovieListItem>>> load, bool html)
     {
-        var picker = new Windows.Storage.Pickers.FileSavePicker
+        var picker = new Windows.Storage.Pickers.FileСохранитьPicker
         {
-            SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary,
+            SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsМедиатека,
             SuggestedFileName = "movies_export",
         };
-        picker.FileTypeChoices.Add(html ? "HTML file" : "CSV file", new List<string> { html ? ".html" : ".csv" });
+        picker.FileTypeChoices.Добавить(html ? "HTML file" : "CSV file", new List<string> { html ? ".html" : ".csv" });
         WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(this));
-        var file = await picker.PickSaveFileAsync();
+        var file = await picker.PickСохранитьFileAsync();
         if (file == null) return;
         var movies = await load();
-        if (html) await _vm.ExportHtmlAsync(movies, file.Path);
-        else await _vm.ExportCsvAsync(movies, file.Path);
-        ShowToast($"Exported {movies.Count:N0} movies to {(html ? "HTML" : "CSV")}");
+        if (html) await _vm.ЭкспортHtmlAsync(movies, file.Path);
+        else await _vm.ЭкспортCsvAsync(movies, file.Path);
+        ShowToast($"Экспортed {movies.Count:N0} movies to {(html ? "HTML" : "CSV")}");
     }
 
-    private void OnNavDrives(object sender, RoutedEventArgs e)
+    private void Вкл.NavДиски(object sender, RoutedEventArgs e)
     {
         NavigateTo("drives");
         SetActiveNav(null);   // the bottom-bar icon isn't a sidebar row to highlight
     }
 
     /// <summary>
-    /// Public navigation hook used by the empty-state CTA on Library.
-    /// Switches to the Drives page; the user proceeds with Add folder there.
+    /// Public navigation hook used by the empty-state CTA on Медиатека.
+    /// Switches to the Диски page; the user proceeds with Добавить папку there.
     /// </summary>
-    public void NavigateToDrivesAndAdd() => NavigateTo("drives");
+    public void NavigateToДискиAndДобавить() => NavigateTo("drives");
 
     /// <summary>
     /// Public hooks used by the movie detail dialog to filter the library
     /// when the user clicks an actor / director / genre / studio chip.
-    /// Each switches the main window to the Library page (creating it on first
+    /// Each switches the main window to the Медиатека page (creating it on first
     /// use), applies the filter, and updates the page header breadcrumb.
     /// </summary>
-    public void NavigateLibraryByActor(string actor)
+    public void NavigateМедиатекаByActor(string actor)
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.FilterByActor(actor);
-        _libraryPage?.UpdatePageTitle($"All movies › {actor}");
+        _libraryPage?.ОбновитьPageНазвание($"Все фильмы › {actor}");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
-        ClearLibraryBack();  // chip-driven (e.g. from detail dialog) — no Browse origin
+        ClearМедиатекаНазад();  // chip-driven (e.g. from detail dialog) — no Обзор origin
     }
 
-    public void NavigateLibraryByDirector(string director)
+    public void NavigateМедиатекаByРежиссёр(string director)
     {
         if (_libraryPage == null) NavigateTo("library");
-        _libraryPage?.ViewModel.FilterByDirector(director);
-        _libraryPage?.UpdatePageTitle($"All movies › {director}");
+        _libraryPage?.ViewModel.FilterByРежиссёр(director);
+        _libraryPage?.ОбновитьPageНазвание($"Все фильмы › {director}");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
-        ClearLibraryBack();
+        ClearМедиатекаНазад();
     }
 
-    public void NavigateLibraryByGenre(string genre)
+    public void NavigateМедиатекаByGenre(string genre)
     {
-        NavigateTo("library", new LibraryNavParam(Genre: genre, Label: genre));
+        NavigateTo("library", new МедиатекаNavParam(Genre: genre, Label: genre));
     }
 
     /// <summary>v2.9 — deeplink: open the library filtered to a tag.</summary>
-    public void NavigateLibraryByTag(string tagName)
+    public void NavigateМедиатекаByTag(string tagName)
     {
         if (_libraryPage == null) NavigateTo("library");
         try
@@ -1554,119 +1554,119 @@ public sealed partial class MainWindow : Window
             var tagId = AppState.Instance.Db.EnsureTag(tagName);
             _libraryPage?.ViewModel.FilterByTag(tagId, tagName);
             if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
-            ClearLibraryBack();
+            ClearМедиатекаНазад();
         }
         catch { }
     }
 
-    public void NavigateLibraryByStudio(string studio)
+    public void NavigateМедиатекаByСтудия(string studio)
     {
         if (_libraryPage == null) NavigateTo("library");
-        _libraryPage?.ViewModel.FilterByStudio(studio);
-        _libraryPage?.UpdatePageTitle($"All movies › {studio}");
+        _libraryPage?.ViewModel.FilterByСтудия(studio);
+        _libraryPage?.ОбновитьPageНазвание($"Все фильмы › {studio}");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
     }
 
-    public void NavigateLibraryByDecade(int decadeStart, string label)
+    public void NavigateМедиатекаByDecade(int decadeStart, string label)
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.FilterByDecade(decadeStart, label);
-        _libraryPage?.UpdatePageTitle($"All movies › {label}");
+        _libraryPage?.ОбновитьPageНазвание($"Все фильмы › {label}");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
     }
 
-    public void NavigateLibraryByRatingBand(string key, string label)
+    public void NavigateМедиатекаByРейтингBand(string key, string label)
     {
         if (_libraryPage == null) NavigateTo("library");
-        _libraryPage?.ViewModel.FilterByRatingBand(key, label);
-        _libraryPage?.UpdatePageTitle($"All movies › {label}");
+        _libraryPage?.ViewModel.FilterByРейтингBand(key, label);
+        _libraryPage?.ОбновитьPageНазвание($"Все фильмы › {label}");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
     }
 
-    public void NavigateLibraryByCollection(int id, string name)
+    public void NavigateМедиатекаByCollection(int id, string name)
     {
-        NavigateTo("library", new LibraryNavParam(CollectionId: id, Label: name));
-        SetLibraryBackToCollections();
+        NavigateTo("library", new МедиатекаNavParam(CollectionId: id, Label: name));
+        SetМедиатекаНазадToКоллекции();
     }
 
-    private void OnNavBrowseGenre(object sender, RoutedEventArgs e)
+    private void Вкл.NavОбзорGenre(object sender, RoutedEventArgs e)
     {
-        NavigateTo("browse", DatabaseService.BrowseFacet.Genre);
-        SetActiveNav(sender as Button ?? BtnBrowseGenre);
+        NavigateTo("browse", DatabaseService.ОбзорFacet.Genre);
+        SetActiveNav(sender as Button ?? BtnОбзорGenre);
     }
-    private void OnNavBrowseDecade(object sender, RoutedEventArgs e)
+    private void Вкл.NavОбзорDecade(object sender, RoutedEventArgs e)
     {
-        NavigateTo("browse", DatabaseService.BrowseFacet.Decade);
-        SetActiveNav(sender as Button ?? BtnBrowseDecade);
+        NavigateTo("browse", DatabaseService.ОбзорFacet.Decade);
+        SetActiveNav(sender as Button ?? BtnОбзорDecade);
     }
-    private void OnNavBrowseRating(object sender, RoutedEventArgs e)
+    private void Вкл.NavОбзорРейтинг(object sender, RoutedEventArgs e)
     {
-        NavigateTo("browse", DatabaseService.BrowseFacet.Rating);
-        SetActiveNav(sender as Button ?? BtnBrowseRating);
+        NavigateTo("browse", DatabaseService.ОбзорFacet.Рейтинг);
+        SetActiveNav(sender as Button ?? BtnОбзорРейтинг);
     }
-    private void OnNavCollections(object sender, RoutedEventArgs e)
+    private void Вкл.NavКоллекции(object sender, RoutedEventArgs e)
     {
         NavigateTo("collections");
-        SetActiveNav(sender as Button ?? BtnCollections);
+        SetActiveNav(sender as Button ?? BtnКоллекции);
     }
 
-    private void OnNavContinueWatching(object sender, RoutedEventArgs e)
+    private void Вкл.NavContinueWatching(object sender, RoutedEventArgs e)
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.ShowContinueWatching();
-        _libraryPage?.UpdatePageTitle("Continue watching");   // v4.0.0: it said "All movies"
+        _libraryPage?.ОбновитьPageНазвание("Continue watching");   // v4.0.0: it said "Все фильмы"
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
-        ClearLibraryBack();
+        ClearМедиатекаНазад();
         SetActiveNav(sender as Button ?? BtnContinueWatching);
     }
 
-    private void OnNavRecentlyAdded(object sender, RoutedEventArgs e)
+    private void Вкл.NavRecentlyДобавитьed(object sender, RoutedEventArgs e)
     {
         if (_libraryPage == null) NavigateTo("library");
-        _libraryPage?.ViewModel.ShowRecentlyAdded();
-        _libraryPage?.UpdatePageTitle("Recently added");
+        _libraryPage?.ViewModel.ShowRecentlyДобавитьed();
+        _libraryPage?.ОбновитьPageНазвание("Recently added");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
-        ClearLibraryBack();
-        SetActiveNav(sender as Button ?? BtnRecentlyAdded);
+        ClearМедиатекаНазад();
+        SetActiveNav(sender as Button ?? BtnRecentlyДобавитьed);
     }
 
-    private void OnNavRecentlyWatched(object sender, RoutedEventArgs e)
+    private void Вкл.NavRecentlyПросмотрено(object sender, RoutedEventArgs e)
     {
         if (_libraryPage == null) NavigateTo("library");
-        _libraryPage?.ViewModel.ShowRecentlyWatched();
-        _libraryPage?.UpdatePageTitle("Recently watched");
+        _libraryPage?.ViewModel.ShowRecentlyПросмотрено();
+        _libraryPage?.ОбновитьPageНазвание("Recently watched");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
-        ClearLibraryBack();
-        SetActiveNav(sender as Button ?? BtnRecentlyWatched);
+        ClearМедиатекаНазад();
+        SetActiveNav(sender as Button ?? BtnRecentlyПросмотрено);
     }
 
     /// <summary>
-    /// v2.9 — Opens the Backup dialog: Export or Import personal state.
+    /// v2.9 — Opens the Резервная копия dialog: Экспорт or Import personal state.
     /// </summary>
-    private async void OnNavBackup(object sender, RoutedEventArgs e)
+    private async void Вкл.NavРезервная копия(object sender, RoutedEventArgs e)
     {
         var panel = new StackPanel { Spacing = 12 };
-        panel.Children.Add(new TextBlock
+        panel.Children.Добавить(new TextBlock
         {
-            Text = "Save or restore everything personal — favorites, watchlist, notes, " +
+            Text = "Сохранить or restore everything personal — favorites, watchlist, notes, " +
                    "lists, tags, watched flags, and watch history. The exported JSON file " +
                    "is portable: import it on another PC to merge your state in.",
             TextWrapping = TextWrapping.Wrap,
             FontSize = 13,
-            Foreground = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush"),
+            Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("TextBrush"),
         });
         var status = new TextBlock
         {
             FontSize = 12,
-            Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
+            Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush"),
             TextWrapping = TextWrapping.Wrap,
             Visibility = Visibility.Collapsed,
         };
 
         var exportBtn = new Button
         {
-            Content = "📤  Export backup…",
-            Background = CineLibraryCS.Services.ThemeBrushes.Get("BrandPurpleBrush"),
+            Content = "📤  Экспорт backup…",
+            Назадground = CineМедиатекаCS.Services.ThemeBrushes.Get("BrandPurpleBrush"),
             Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White),
             BorderThickness = new Thickness(0),
             CornerRadius = new CornerRadius(8),
@@ -1676,48 +1676,48 @@ public sealed partial class MainWindow : Window
         var importBtn = new Button
         {
             Content = "📥  Import backup…",
-            Background = CineLibraryCS.Services.ThemeBrushes.Get("CardBrush"),
-            Foreground = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush"),
-            BorderBrush = CineLibraryCS.Services.ThemeBrushes.Get("BorderBrush"),
+            Назадground = CineМедиатекаCS.Services.ThemeBrushes.Get("CardBrush"),
+            Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("TextBrush"),
+            BorderBrush = CineМедиатекаCS.Services.ThemeBrushes.Get("BorderBrush"),
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(8),
             Padding = new Thickness(14, 8, 14, 8),
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
         };
         var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
-        row.Children.Add(exportBtn);
-        row.Children.Add(importBtn);
-        panel.Children.Add(row);
-        panel.Children.Add(status);
+        row.Children.Добавить(exportBtn);
+        row.Children.Добавить(importBtn);
+        panel.Children.Добавить(row);
+        panel.Children.Добавить(status);
 
         exportBtn.Click += async (_, _) =>
         {
             try
             {
-                var picker = new Windows.Storage.Pickers.FileSavePicker
+                var picker = new Windows.Storage.Pickers.FileСохранитьPicker
                 {
-                    SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary,
+                    SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsМедиатека,
                     SuggestedFileName = $"cinelibrary-backup-{DateTime.Now:yyyyMMdd-HHmmss}",
                 };
-                picker.FileTypeChoices.Add("CineLibrary backup", new List<string> { ".json" });
+                picker.FileTypeChoices.Добавить("CineМедиатека backup", new List<string> { ".json" });
                 WinRT.Interop.InitializeWithWindow.Initialize(picker,
                     WinRT.Interop.WindowNative.GetWindowHandle(this));
-                var file = await picker.PickSaveFileAsync();
+                var file = await picker.PickСохранитьFileAsync();
                 if (file == null) return;
                 status.Visibility = Visibility.Visible;
                 status.Text = "Building backup…";
                 exportBtn.IsEnabled = false; importBtn.IsEnabled = false;
                 await Task.Run(() =>
                 {
-                    var snapshot = BackupService.BuildSnapshot(AppState.Instance.Db, AppVersionString());
-                    BackupService.WriteToFile(snapshot, file.Path);
+                    var snapshot = Резервная копияService.BuildSnapshot(AppState.Instance.Db, AppVersionString());
+                    Резервная копияService.WriteToFile(snapshot, file.Path);
                 });
-                status.Text = $"Saved to {file.Path}";
+                status.Text = $"Сохранитьd to {file.Path}";
             }
             catch (Exception ex)
             {
                 status.Visibility = Visibility.Visible;
-                status.Text = $"Export failed: {ex.Message}";
+                status.Text = $"Ошибка экспорта: {ex.Message}";
             }
             finally { exportBtn.IsEnabled = true; importBtn.IsEnabled = true; }
         };
@@ -1728,9 +1728,9 @@ public sealed partial class MainWindow : Window
             {
                 var picker = new Windows.Storage.Pickers.FileOpenPicker
                 {
-                    SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary,
+                    SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsМедиатека,
                 };
-                picker.FileTypeFilter.Add(".json");
+                picker.FileTypeFilter.Добавить(".json");
                 WinRT.Interop.InitializeWithWindow.Initialize(picker,
                     WinRT.Interop.WindowNative.GetWindowHandle(this));
                 var file = await picker.PickSingleFileAsync();
@@ -1738,40 +1738,40 @@ public sealed partial class MainWindow : Window
                 status.Visibility = Visibility.Visible;
                 status.Text = "Reading backup…";
                 exportBtn.IsEnabled = false; importBtn.IsEnabled = false;
-                BackupService.ImportResult? result = null;
+                Резервная копияService.ImportResult? result = null;
                 await Task.Run(() =>
                 {
-                    var b = BackupService.ReadFromFile(file.Path);
-                    if (b == null) throw new InvalidOperationException("File isn't a CineLibrary backup");
-                    result = BackupService.Import(AppState.Instance.Db, b);
+                    var b = Резервная копияService.ReadFromFile(file.Path);
+                    if (b == null) throw new InvalidOperationException("File isn't a CineМедиатека backup");
+                    result = Резервная копияService.Import(AppState.Instance.Db, b);
                 });
                 if (result != null)
                 {
                     status.Text =
-                        $"Imported: {result.MoviesMerged} movies, {result.ShowsMerged} shows, " +
-                        $"{result.EpisodesMerged} episodes, {result.ListsCreated} new lists, " +
-                        $"{result.TagsCreated} new tags, {result.EventsAppended} history events. " +
-                        $"Skipped: {result.MoviesSkipped + result.ShowsSkipped} (drive not mounted).";
+                        $"Imported: {result.ФильмыMerged} movies, {result.ShowsMerged} shows, " +
+                        $"{result.ЭпизодыMerged} episodes, {result.ListsСоздатьd} new lists, " +
+                        $"{result.TagsСоздатьd} new tags, {result.EventsAppended} history events. " +
+                        $"Skipped: {result.ФильмыSkipped + result.ShowsSkipped} (drive not mounted).";
                     _ = RefreshSidebarAsync();
                 }
             }
             catch (Exception ex)
             {
                 status.Visibility = Visibility.Visible;
-                status.Text = $"Import failed: {ex.Message}";
+                status.Text = $"Ошибка импорта: {ex.Message}";
             }
             finally { exportBtn.IsEnabled = true; importBtn.IsEnabled = true; }
         };
 
         var dlg = new ContentDialog
         {
-            Title = "🔒  Backup",
+            Название = "🔒  Резервная копия",
             Content = panel,
-            CloseButtonText = "Close",
+            ЗакрытьButtonText = "Закрыть",
             XamlRoot = Content.XamlRoot,
             RequestedTheme = CurrentTheme,
         };
-        var restore = HighlightWhileOpen(sender as Button ?? BtnBackup);
+        var restore = HighlightWhileOpen(sender as Button ?? BtnРезервная копия);
         try { await dlg.ShowAsync(); } catch { }
         restore();
     }
@@ -1787,41 +1787,41 @@ public sealed partial class MainWindow : Window
         catch { return ""; }
     }
 
-    private async void OnNavRandomPick(object sender, RoutedEventArgs e)
+    private async void Вкл.NavRandomPick(object sender, RoutedEventArgs e)
     {
-        var id = AppState.Instance.Db.GetRandomUnwatchedId(AppState.Instance.Connected);
+        var id = AppState.Instance.Db.GetRandomНе просмотреноId(AppState.Instance.Connected);
         if (id == null)
         {
             ShowToast("Nothing unwatched left — fully caught up 🎉");
             return;
         }
         var dialog = new MovieDetailDialog(id.Value);
-        dialog.WatchlistChanged += (_, _) => { _ = RefreshSidebarAsync(); };
+        dialog.Список просмотраChanged += (_, _) => { _ = RefreshSidebarAsync(); };
         dialog.Activate();
     }
 
     /// <summary>
-    /// v2.9 — Navigates to the dedicated On This Day page. The sidebar
+    /// v2.9 — Navigates to the dedicated В этот день page. The sidebar
     /// entry is hidden when there are no matches today, so this handler
     /// can assume there's content to show.
     /// </summary>
-    private void OnNavOnThisDay(object sender, RoutedEventArgs e)
+    private void Вкл.NavВкл.ThisDay(object sender, RoutedEventArgs e)
     {
         NavigateTo("onthisday");
-        ClearLibraryBack();
-        SetActiveNav(sender as Button ?? BtnOnThisDay);
+        ClearМедиатекаНазад();
+        SetActiveNav(sender as Button ?? BtnВкл.ThisDay);
     }
 
-    private void OnNavDriveItem(object sender, RoutedEventArgs e)
+    private void Вкл.NavDriveItem(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is string serial)
         {
-            var drive = _vm.Drives.FirstOrDefault(d => d.VolumeSerial == serial);
-            NavigateTo("library", new LibraryNavParam(DriveSerial: serial, Label: drive?.Label));
+            var drive = _vm.Диски.FirstOrПо умолчанию(d => d.VolumeSerial == serial);
+            NavigateTo("library", new МедиатекаNavParam(DriveSerial: serial, Label: drive?.Label));
         }
     }
 
-    private void OnNavCollection(object sender, RoutedEventArgs e)
+    private void Вкл.NavCollection(object sender, RoutedEventArgs e)
     {
         if (sender is not Button btn) return;
         // WinRT can box an int as Int64 when it goes through {Binding} — accept both.
@@ -1830,81 +1830,81 @@ public sealed partial class MainWindow : Window
         else if (btn.Tag is long l) id = (int)l;
         else return;
 
-        var col = _vm.Collections.FirstOrDefault(c => c.Id == id);
-        NavigateTo("library", new LibraryNavParam(CollectionId: id, Label: col?.Name));
+        var col = _vm.Коллекции.FirstOrПо умолчанию(c => c.Id == id);
+        NavigateTo("library", new МедиатекаNavParam(CollectionId: id, Label: col?.Name));
     }
 
-    private void OnNavGenre(object sender, RoutedEventArgs e)
+    private void Вкл.NavGenre(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is string genre)
-            NavigateTo("library", new LibraryNavParam(Genre: genre, Label: genre));
+            NavigateTo("library", new МедиатекаNavParam(Genre: genre, Label: genre));
     }
 
-    // ── v1.3 New Navigation ────────────────────────────────────────────────
+    // ── v1.3 Новый Navigation ────────────────────────────────────────────────
 
-    private void OnNavWatchlist(object sender, RoutedEventArgs e)
+    private void Вкл.NavСписок просмотра(object sender, RoutedEventArgs e)
     {
-        if (_libraryPage?.ViewModel is LibraryViewModel vm)
+        if (_libraryPage?.ViewModel is МедиатекаViewModel vm)
         {
-            vm.ShowWatchlist();
+            vm.ShowСписок просмотра();
             NavigateTo("library");
-            _libraryPage?.UpdatePageTitle("To watch");
+            _libraryPage?.ОбновитьPageНазвание("To watch");
         }
-        SetActiveNav(sender as Button ?? BtnWatchlist);
+        SetActiveNav(sender as Button ?? BtnСписок просмотра);
     }
 
-    private void OnNavNotes(object sender, RoutedEventArgs e)
+    private void Вкл.NavЗаметки(object sender, RoutedEventArgs e)
     {
         if (_libraryPage == null) NavigateTo("library");
-        _libraryPage?.ViewModel.ShowNotes();
-        _libraryPage?.UpdatePageTitle("Notes");
+        _libraryPage?.ViewModel.ShowЗаметки();
+        _libraryPage?.ОбновитьPageНазвание("Заметки");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
-        ClearLibraryBack();
-        SetActiveNav(sender as Button ?? BtnNotes);
+        ClearМедиатекаНазад();
+        SetActiveNav(sender as Button ?? BtnЗаметки);
     }
 
-    private void OnNavWatchedGone(object sender, RoutedEventArgs e)
+    private void Вкл.NavПросмотреноGone(object sender, RoutedEventArgs e)
     {
         NavigateTo("watchedgone");
-        SetActiveNav(sender as Button ?? BtnWatchedGone);
+        SetActiveNav(sender as Button ?? BtnПросмотреноGone);
     }
 
-    // ── v1.4.1 Statistics dashboard ────────────────────────────────────────
+    // ── v1.4.1 Статистика dashboard ────────────────────────────────────────
 
-    private void OnNavStatistics(object sender, RoutedEventArgs e)
+    private void Вкл.NavСтатистика(object sender, RoutedEventArgs e)
     {
         NavigateTo("statistics");
-        SetActiveNav(sender as Button ?? BtnStatistics);
+        SetActiveNav(sender as Button ?? BtnСтатистика);
     }
 
-    private void OnNavDupes(object sender, RoutedEventArgs e)
+    private void Вкл.NavДубликаты(object sender, RoutedEventArgs e)
     {
         NavigateTo("dupes");
-        SetActiveNav(sender as Button ?? BtnDupes);
+        SetActiveNav(sender as Button ?? BtnДубликаты);
     }
 
-    // ── v1.4.1 Keyboard shortcuts dialog ──────────────────────────────────
+    // ── v1.4.1 Горячие клавиши dialog ──────────────────────────────────
 
-    private async void OnHelpClick(object sender, RoutedEventArgs e)
+    private async void Вкл.HelpClick(object sender, RoutedEventArgs e)
         => await ShowShortcutsDialogAsync();
 
     private async Task ShowShortcutsDialogAsync()
     {
         var panel = new StackPanel { Spacing = 10, MinWidth = 360 };
 
-        void AddRow(string keys, string what)
+        void ДобавитьRow(string keys, string what)
         {
             var row = new Grid();
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            row.ColumnDefinitions.Добавить(new ColumnDefinition { Width = new GridLength(150) });
+            row.ColumnDefinitions.Добавить(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
             // Theme-neutral key chip. (Resolving CardBrush/BorderBrush via
             // Application.Resources returns the wrong theme variant — that made
             // the chip white in dark mode, hiding the key text.) A translucent
-            // grey reads correctly in both Light and Dark.
+            // grey reads correctly in both Светлая and Тёмная.
             var kb = new Border
             {
-                Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x22, 0x80, 0x80, 0x80)),
+                Назадground = new SolidColorBrush(Windows.UI.Color.FromArgb(0x22, 0x80, 0x80, 0x80)),
                 BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0x55, 0x80, 0x80, 0x80)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(4),
@@ -1912,9 +1912,9 @@ public sealed partial class MainWindow : Window
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Center,
             };
-            kb.Child = new TextBlock { Text = keys, FontSize = 12, FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas") };
+            kb.Child = new TextBlock { Text = keys, FontSize = 12, FontСемья = new Microsoft.UI.Xaml.Media.FontСемья("Consolas") };
             kb.SetValue(Grid.ColumnProperty, 0);
-            row.Children.Add(kb);
+            row.Children.Добавить(kb);
 
             var desc = new TextBlock
             {
@@ -1925,14 +1925,14 @@ public sealed partial class MainWindow : Window
                 TextWrapping = TextWrapping.Wrap,
             };
             desc.SetValue(Grid.ColumnProperty, 1);
-            row.Children.Add(desc);
+            row.Children.Добавить(desc);
 
-            panel.Children.Add(row);
+            panel.Children.Добавить(row);
         }
 
-        void AddHeader(string text)
+        void ДобавитьHeader(string text)
         {
-            panel.Children.Add(new TextBlock
+            panel.Children.Добавить(new TextBlock
             {
                 Text = text,
                 FontSize = 11,
@@ -1940,44 +1940,44 @@ public sealed partial class MainWindow : Window
                 CharacterSpacing = 120,
                 Opacity = 0.7,
                 Margin = new Thickness(0, 10, 0, 2),
-                Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
+                Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush"),
             });
         }
 
-        AddHeader("SEARCH & GENERAL");
-        AddRow("Ctrl + F   ·   /", "Focus the search box");
-        AddRow("Esc",              "Clear search, then clear selection");
-        AddRow("Ctrl + B",         "Toggle the sidebar");
-        AddRow("Ctrl + Shift + /", "Show this shortcuts dialog");
-        AddRow("Ctrl + Q",         "Quit CineLibrary");
+        ДобавитьHeader("SEARCH & GENERAL");
+        ДобавитьRow("Ctrl + F   ·   /", "Перейти к полю поиска");
+        ДобавитьRow("Esc",              "Clear search, then clear selection");
+        ДобавитьRow("Ctrl + B",         "Toggle the sidebar");
+        ДобавитьRow("Ctrl + Shift + /", "Show this shortcuts dialog");
+        ДобавитьRow("Ctrl + Q",         "Quit CineМедиатека");
 
-        AddHeader("SELECTION & ACTIONS");
-        AddRow("Ctrl + A",     "Select every card on screen");
-        AddRow("Ctrl + click", "Add / remove a single card");
-        AddRow("Shift + click","Range-select from the last card");
-        AddRow("F",            "Toggle favorite on the selection");
-        AddRow("W",            "Toggle watchlist on the selection");
-        AddRow("Delete",       "Remove selection from the current list");
+        ДобавитьHeader("SELECTION & ACTIONS");
+        ДобавитьRow("Ctrl + A",     "Select every card on screen");
+        ДобавитьRow("Ctrl + щелчок", "Добавить / remove a single card");
+        ДобавитьRow("Shift + click","Range-select from the last card");
+        ДобавитьRow("F",            "Toggle favorite on the selection");
+        ДобавитьRow("W",            "Toggle watchlist on the selection");
+        ДобавитьRow("Удалить",       "Remove selection from the current list");
 
-        AddHeader("NAVIGATION");
-        AddRow("PgDn / PgUp",  "Scroll one viewport");
-        AddRow("Home / End",   "Jump to top / bottom");
-        AddRow("↑ / ↓", "Scroll by one row of cards");
+        ДобавитьHeader("НАВИГАЦИЯ");
+        ДобавитьRow("PgDn / PgUp",  "Scroll one viewport");
+        ДобавитьRow("Home / End",   "Jump to top / bottom");
+        ДобавитьRow("↑ / ↓", "Scroll by one row of cards");
 
         var note = new TextBlock
         {
-            Text = "Card shortcuts (F, W, Delete) act on the current selection — "
+            Text = "Card shortcuts (F, W, Удалить) act on the current selection — "
                  + "click one or more cards first. They pause while you're typing in the search box.",
             FontSize = 12,
             Opacity = 0.75,
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 14, 0, 0),
-            Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
+            Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush"),
         };
 
         var dialog = new ContentDialog
         {
-            Title = "Keyboard shortcuts",
+            Название = "Горячие клавиши",
             Content = new ScrollViewer
             {
                 Content = new StackPanel { Children = { panel, note } },
@@ -1985,7 +1985,7 @@ public sealed partial class MainWindow : Window
                 MaxHeight = 520,
                 Padding = new Thickness(0, 0, 16, 0),
             },
-            CloseButtonText = "Close",
+            ЗакрытьButtonText = "Закрыть",
             XamlRoot = Content.XamlRoot,
             RequestedTheme = CurrentTheme,
         };
@@ -1994,31 +1994,31 @@ public sealed partial class MainWindow : Window
 
     // ── About ─────────────────────────────────────────────────────────────
 
-    private async void OnAboutClick(object sender, RoutedEventArgs e)
+    private async void Вкл.AboutClick(object sender, RoutedEventArgs e)
     {
         var panel = new StackPanel { Spacing = 10 };
-        panel.Children.Add(new TextBlock
+        panel.Children.Добавить(new TextBlock
         {
             Text = "A fast, native movie catalog for MediaElch-scraped collections.",
             TextWrapping = TextWrapping.Wrap,
         });
-        panel.Children.Add(new TextBlock
+        panel.Children.Добавить(new TextBlock
         {
-            Text = "Browse, search and play your movies across multiple external drives.",
+            Text = "Обзор, search and play your movies across multiple external drives.",
             TextWrapping = TextWrapping.Wrap,
         });
-        panel.Children.Add(new TextBlock
+        panel.Children.Добавить(new TextBlock
         {
             Text = "Built with C# + WinUI 3.",
             TextWrapping = TextWrapping.Wrap,
         });
         var link = new HyperlinkButton
         {
-            Content = "github.com/aungkokomm/CineLibraryCS",
-            NavigateUri = new Uri("https://github.com/aungkokomm/CineLibraryCS"),
+            Content = "github.com/aungkokomm/CineМедиатекаCS",
+            NavigateUri = new Uri("https://github.com/aungkokomm/CineМедиатекаCS"),
             Padding = new Thickness(0),
         };
-        panel.Children.Add(link);
+        panel.Children.Добавить(link);
 
         // Read the version straight from the assembly so the About box can
         // never drift out of sync with the build again.
@@ -2027,9 +2027,9 @@ public sealed partial class MainWindow : Window
 
         var dialog = new ContentDialog
         {
-            Title = $"CineLibrary v{versionText}",
+            Название = $"CineМедиатека v{versionText}",
             Content = panel,
-            CloseButtonText = "OK",
+            ЗакрытьButtonText = "OK",
             XamlRoot = Content.XamlRoot,
             RequestedTheme = CurrentTheme,
         };
@@ -2072,18 +2072,18 @@ public sealed partial class MainWindow : Window
         };
         Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(anim, ToastSlide);
         Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(anim, "Y");
-        sb.Children.Add(anim);
+        sb.Children.Добавить(anim);
         sb.Begin();
     }
 
-    private void OnToastDismiss(object sender, RoutedEventArgs e)
+    private void Вкл.ToastDismiss(object sender, RoutedEventArgs e)
     {
         // Dismissing an update toast = "skip this version, don't nag again".
-        if (!string.IsNullOrEmpty(_pendingUpdateVersion))
+        if (!string.IsNullOrEmpty(_pendingОбновитьVersion))
         {
-            try { AppState.Instance.SetPref("skippedUpdate", _pendingUpdateVersion); } catch { }
-            _pendingUpdateVersion = null;
-            _pendingUpdateUrl = null;
+            try { AppState.Instance.SetPref("skippedОбновить", _pendingОбновитьVersion); } catch { }
+            _pendingОбновитьVersion = null;
+            _pendingОбновитьUrl = null;
         }
         ToastBorder.Visibility = Visibility.Collapsed;
     }
@@ -2092,10 +2092,10 @@ public sealed partial class MainWindow : Window
 
     private bool _sidebarCollapsed;
 
-    private void OnToggleSidebar(object sender, RoutedEventArgs e)
-        => ApplySidebarCollapsed(!_sidebarCollapsed);
+    private void Вкл.ToggleSidebar(object sender, RoutedEventArgs e)
+        => ПрименитьSidebarCollapsed(!_sidebarCollapsed);
 
-    private void ApplySidebarCollapsed(bool collapsed)
+    private void ПрименитьSidebarCollapsed(bool collapsed)
     {
         _sidebarCollapsed = collapsed;
         if (collapsed)
@@ -2118,11 +2118,11 @@ public sealed partial class MainWindow : Window
     }
 }
 
-public record LibraryNavParam(
+public record МедиатекаNavParam(
     string? DriveSerial = null,
     string? Genre = null,
     int? CollectionId = null,
-    bool FavoritesOnly = false,
-    bool RecentlyAdded = false,
+    bool ИзбранноеВкл.ly = false,
+    bool RecentlyДобавитьed = false,
     string? Label = null
 );

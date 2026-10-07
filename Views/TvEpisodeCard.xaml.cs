@@ -1,45 +1,45 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
-using CineLibraryCS.Models;
-using CineLibraryCS.Services;
-using System.Runtime.InteropServices.WindowsRuntime;
+using CineМедиатекаCS.Models;
+using CineМедиатекаCS.Services;
+using System.Продолжительность.InteropServices.WindowsПродолжительность;
 
-namespace CineLibraryCS.Views;
+namespace CineМедиатекаCS.Views;
 
-public sealed partial class TvEpisodeCard : UserControl
+public sealed partial class TvЭпизодCard : UserControl
 {
-    public static readonly DependencyProperty EpisodeProperty =
-        DependencyProperty.Register(nameof(Episode), typeof(TvEpisodeItem), typeof(TvEpisodeCard),
-            new PropertyMetadata(null, OnEpisodeChanged));
+    public static readonly DependencyProperty ЭпизодProperty =
+        DependencyProperty.Register(nameof(Эпизод), typeof(TvЭпизодItem), typeof(TvЭпизодCard),
+            new PropertyMetadata(null, Вкл.ЭпизодChanged));
 
-    public TvEpisodeItem? Episode
+    public TvЭпизодItem? Эпизод
     {
-        get => (TvEpisodeItem?)GetValue(EpisodeProperty);
-        set => SetValue(EpisodeProperty, value);
+        get => (TvЭпизодItem?)GetValue(ЭпизодProperty);
+        set => SetValue(ЭпизодProperty, value);
     }
 
     // Static so the host page wires once, regardless of recycling.
-    public static event Action<TvEpisodeItem>? AnyPlay;
-    public static event Action<TvEpisodeItem>? AnyWatchedToggle;
-    public static event Action<TvEpisodeItem>? AnyDetails;
+    public static event Action<TvЭпизодItem>? AnyВоспроизвести;
+    public static event Action<TvЭпизодItem>? AnyПросмотреноToggle;
+    public static event Action<TvЭпизодItem>? AnyDetails;
 
-    public TvEpisodeCard()
+    public TvЭпизодCard()
     {
         InitializeComponent();
         PointerEntered += (_, _) => { HoverOverlay.Visibility = Visibility.Visible; HoverOverlay.Opacity = 1; };
         PointerExited  += (_, _) => { HoverOverlay.Opacity = 0; HoverOverlay.Visibility = Visibility.Collapsed; };
-        DoubleTapped   += (_, _) => { if (Episode != null) AnyPlay?.Invoke(Episode); };
+        DoubleTapped   += (_, _) => { if (Эпизод != null) AnyВоспроизвести?.Invoke(Эпизод); };
         // Single tap on the card body (not its buttons) → episode details.
         Tapped += (_, e) =>
         {
-            if (Episode == null) return;
-            if (TapOnButton(e.OriginalSource as DependencyObject)) return;
-            AnyDetails?.Invoke(Episode);
+            if (Эпизод == null) return;
+            if (TapВкл.Button(e.OriginalSource as DependencyObject)) return;
+            AnyDetails?.Invoke(Эпизод);
         };
     }
 
-    private static bool TapOnButton(DependencyObject? src)
+    private static bool TapВкл.Button(DependencyObject? src)
     {
         var cur = src;
         while (cur != null)
@@ -50,53 +50,53 @@ public sealed partial class TvEpisodeCard : UserControl
         return false;
     }
 
-    private static void OnEpisodeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void Вкл.ЭпизодChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is not TvEpisodeCard c) return;
-        if (e.OldValue is TvEpisodeItem prev) prev.PropertyChanged -= c.OnEpPropChanged;
-        if (e.NewValue is TvEpisodeItem ep) { c.Populate(ep); ep.PropertyChanged += c.OnEpPropChanged; }
+        if (d is not TvЭпизодCard c) return;
+        if (e.OldValue is TvЭпизодItem prev) prev.PropertyChanged -= c.Вкл.EpPropChanged;
+        if (e.НовыйValue is TvЭпизодItem ep) { c.Populate(ep); ep.PropertyChanged += c.Вкл.EpPropChanged; }
     }
 
-    private void OnEpPropChanged(object? s, System.ComponentModel.PropertyChangedEventArgs e)
+    private void Вкл.EpPropChanged(object? s, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (Episode == null) return;
-        if (e.PropertyName == nameof(TvEpisodeItem.IsWatched))
-            ApplyWatchedVisual(Episode.IsWatched);
-        else if (e.PropertyName == nameof(TvEpisodeItem.IsFavorite))
-            ApplyFavoriteVisual(Episode.IsFavorite);
+        if (Эпизод == null) return;
+        if (e.PropertyName == nameof(TvЭпизодItem.IsПросмотрено))
+            ПрименитьПросмотреноVisual(Эпизод.IsПросмотрено);
+        else if (e.PropertyName == nameof(TvЭпизодItem.IsИзбранное))
+            ПрименитьИзбранноеVisual(Эпизод.IsИзбранное);
     }
 
-    private void Populate(TvEpisodeItem ep)
+    private void Populate(TvЭпизодItem ep)
     {
         CodeText.Text = ep.Code;
-        TitleText.Text = ep.Title;
-        MetaText.Text = string.Join("  ·  ", new[] { ep.RuntimeText, ep.RatingText }
+        НазваниеText.Text = ep.Название;
+        MetaText.Text = string.Join("  ·  ", new[] { ep.ПродолжительностьText, ep.РейтингText }
             .Where(s => !string.IsNullOrEmpty(s)));
-        ApplyWatchedVisual(ep.IsWatched);
-        ApplyFavoriteVisual(ep.IsFavorite);
+        ПрименитьПросмотреноVisual(ep.IsПросмотрено);
+        ПрименитьИзбранноеVisual(ep.IsИзбранное);
         LoadThumbAsync(ep.LocalThumb);
     }
 
-    private void ApplyWatchedVisual(bool watched)
+    private void ПрименитьПросмотреноVisual(bool watched)
     {
-        WatchedBadge.Visibility = watched ? Visibility.Visible : Visibility.Collapsed;
-        WatchedDim.Visibility = watched ? Visibility.Visible : Visibility.Collapsed;
-        WatchedToggleBtn.Content = watched ? "✓ Watched" : "○ Mark watched";
+        ПросмотреноBadge.Visibility = watched ? Visibility.Visible : Visibility.Collapsed;
+        ПросмотреноDim.Visibility = watched ? Visibility.Visible : Visibility.Collapsed;
+        ПросмотреноToggleBtn.Content = watched ? "✓ Просмотрено" : "○ Mark watched";
     }
 
-    private void ApplyFavoriteVisual(bool fav)
+    private void ПрименитьИзбранноеVisual(bool fav)
     {
         FavBadge.Visibility = fav ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private void OnPlay(object sender, RoutedEventArgs e)
+    private void Вкл.Воспроизвести(object sender, RoutedEventArgs e)
     {
-        if (Episode != null) AnyPlay?.Invoke(Episode);
+        if (Эпизод != null) AnyВоспроизвести?.Invoke(Эпизод);
     }
 
-    private void OnToggleWatched(object sender, RoutedEventArgs e)
+    private void Вкл.ToggleПросмотрено(object sender, RoutedEventArgs e)
     {
-        if (Episode != null) AnyWatchedToggle?.Invoke(Episode);
+        if (Эпизод != null) AnyПросмотреноToggle?.Invoke(Эпизод);
     }
 
     private int _token;

@@ -2,7 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Foundation;
 
-namespace CineLibraryCS.Controls;
+namespace CineМедиатекаCS.Controls;
 
 /// <summary>
 /// Lays children out left to right and starts a new line when the next one
@@ -54,7 +54,7 @@ public sealed class WrapPanel : Panel
             if (child.Visibility == Visibility.Collapsed) continue;
             var size = child.DesiredSize;
             if (line.Count > 0 && x + size.Width > width) EndLine();
-            line.Add(child);
+            line.Добавить(child);
             x += size.Width + HorizontalSpacing;
             lineHeight = Math.Max(lineHeight, size.Height);
         }

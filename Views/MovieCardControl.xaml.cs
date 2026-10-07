@@ -3,13 +3,13 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-using CineLibraryCS.Models;
-using CineLibraryCS.Services;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
+using CineМедиатекаCS.Models;
+using CineМедиатекаCS.Services;
+using System.Продолжительность.InteropServices;
+using System.Продолжительность.InteropServices.WindowsПродолжительность;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace CineLibraryCS.Views;
+namespace CineМедиатекаCS.Views;
 
 public sealed partial class MovieCardControl : UserControl
 {
@@ -20,7 +20,7 @@ public sealed partial class MovieCardControl : UserControl
 
     public static readonly DependencyProperty MovieProperty =
         DependencyProperty.Register(nameof(Movie), typeof(MovieListItem), typeof(MovieCardControl),
-            new PropertyMetadata(null, OnMovieChanged));
+            new PropertyMetadata(null, Вкл.MovieChanged));
 
     public MovieListItem? Movie
     {
@@ -29,43 +29,43 @@ public sealed partial class MovieCardControl : UserControl
     }
 
     public event EventHandler? SidebarRefreshRequested;
-    public event EventHandler<MovieListItem>? WatchedToggleRequested;
-    public event EventHandler<MovieListItem>? WatchlistToggleRequested;
+    public event EventHandler<MovieListItem>? ПросмотреноToggleRequested;
+    public event EventHandler<MovieListItem>? Список просмотраToggleRequested;
 
     // ── Multi-select (v2.5) ────────────────────────────────────────────────
-    // LibraryPage subscribes to these statics so it doesn't have to wire up
+    // МедиатекаPage subscribes to these statics so it doesn't have to wire up
     // every recycled card. Same pattern as GlobalSizeChanged above.
 
     public record SelectionInteractionArgs(MovieListItem Movie, bool Ctrl, bool Shift);
     public static event EventHandler<SelectionInteractionArgs>? AnyCardSelectionInteraction;
 
-    // v3.3 — raised after movies are sent to Watched & Gone (from a card,
+    // v3.3 — raised after movies are sent to Просмотрено и удалено (from a card,
     // row or the selection bar) so the library reloads and the sidebar
     // re-counts. Static for the same recycled-cards reason as above.
     public static event Action? AnyMovieArchived;
     public static void RaiseMovieArchived() => AnyMovieArchived?.Invoke();
 
     /// <summary>
-    /// v3.3 — set true by the Watched &amp; Gone page so the context menu
-    /// offers Restore / Delete record instead of the live-library actions.
+    /// v3.3 — set true by the Просмотрено и удалено page so the context menu
+    /// offers Restore / Удалить record instead of the live-library actions.
     /// Plain CLR property: set once in the page's ItemTemplate, never bound.
     /// </summary>
     public bool ArchiveMode { get; set; }
 
-    /// <summary>List view rows fire the same event so LibraryPage has one
+    /// <summary>Вид списком rows fire the same event so МедиатекаPage has one
     /// place to manage selection regardless of grid vs list mode.</summary>
     public static void RaiseSelectionFromRow(MovieListItem m, bool ctrl, bool shift)
         => AnyCardSelectionInteraction?.Invoke(null, new SelectionInteractionArgs(m, ctrl, shift));
 
     /// <summary>
-    /// LibraryPage installs this so a drag carries every selected card's id
+    /// МедиатекаPage installs this so a drag carries every selected card's id
     /// (and selects the dragged card if it wasn't already selected). Falls
     /// back to a single-id drag when the host doesn't override.
     /// </summary>
     public static Func<MovieListItem, IEnumerable<int>>? ResolveSelectionForDrag;
 
     /// <summary>
-    /// Host (LibraryPage) updates this whenever the selection set changes.
+    /// Host (МедиатекаPage) updates this whenever the selection set changes.
     /// Cards read it so a plain click in selection mode clears the set
     /// without also opening the detail dialog.
     /// </summary>
@@ -92,17 +92,17 @@ public sealed partial class MovieCardControl : UserControl
     public MovieCardControl()
     {
         InitializeComponent();
-        ApplySize();
+        ПрименитьSize();
         // v2.5.1 — subscribe on Loaded / unsubscribe on Unloaded so a
         // recycled card (UniformGridLayout reuses controls aggressively)
         // re-attaches to the density-change event each time it goes back
         // on-screen. The previous "subscribe in ctor, unsubscribe on
         // Unloaded" pattern lost the subscription permanently after the
         // first recycle, so cards stopped resizing on density change.
-        Loaded += OnCardLoaded;
-        Unloaded += OnCardUnloaded;
+        Loaded += Вкл.CardLoaded;
+        Unloaded += Вкл.CardUnloaded;
 
-        // Right-click → flyout with watched/favorite/watchlist + Add to list
+        // Right-click → flyout with watched/favorite/watchlist + Добавить в список
         var flyout = new MenuFlyout();
         flyout.Opening += (_, _) => RebuildContextFlyout(flyout);
         ContextFlyout = flyout;
@@ -111,11 +111,11 @@ public sealed partial class MovieCardControl : UserControl
         // off by default). RestZ is the faint resting depth used only when
         // "Card shadows" is on; hover lifts to a deeper shadow. "Reduce
         // motion" skips the zoom/lift animation entirely.
-        ApplyCardChrome();
+        ПрименитьCardChrome();
         PointerEntered += (_, _) =>
         {
             HoverOverlay.Visibility = Visibility.Visible;
-            if (UiSettings.ReduceMotion)
+            if (UiНастройки.ReduceMotion)
             {
                 HoverOverlay.Opacity = 1;   // no fade, no zoom
             }
@@ -126,11 +126,11 @@ public sealed partial class MovieCardControl : UserControl
                 CardScale.ScaleX = 1.025; CardScale.ScaleY = 1.025;
             }
             // Hover shadow only when card shadows are enabled.
-            CardBorder.Translation = new System.Numerics.Vector3(0, 0, UiSettings.CardShadows ? 24f : 0f);
+            CardBorder.Translation = new System.Numerics.Vector3(0, 0, UiНастройки.CardShadows ? 24f : 0f);
         };
         PointerExited += (_, _) =>
         {
-            if (UiSettings.ReduceMotion)
+            if (UiНастройки.ReduceMotion)
             {
                 HoverOverlay.Opacity = 0;
                 HoverOverlay.Visibility = Visibility.Collapsed;
@@ -141,11 +141,11 @@ public sealed partial class MovieCardControl : UserControl
                 CardLift.Y = 0;
                 CardScale.ScaleX = 1; CardScale.ScaleY = 1;
             }
-            ApplyRestingShadow();
+            ПрименитьRestingShadow();
         };
         // Single tap → open details after a short delay (so a double-tap
         // gets a chance to suppress it). Double tap → play directly.
-        // Ctrl/Shift+tap → route to LibraryPage for multi-select.
+        // Ctrl/Shift+tap → route to МедиатекаPage for multi-select.
         Tapped += (_, e) =>
         {
             if (TapOriginatedInButton(e.OriginalSource as DependencyObject))
@@ -156,7 +156,7 @@ public sealed partial class MovieCardControl : UserControl
             bool ctrl = IsCtrlDown(), shift = IsShiftDown();
             if (ctrl || shift)
             {
-                _pendingSingleTap?.Cancel();
+                _pendingSingleTap?.Отмена();
                 _pendingSingleTap = null;
                 AnyCardSelectionInteraction?.Invoke(this,
                     new SelectionInteractionArgs(Movie, ctrl, shift));
@@ -177,36 +177,36 @@ public sealed partial class MovieCardControl : UserControl
             {
                 e.Handled = true; return;
             }
-            _pendingSingleTap?.Cancel();
+            _pendingSingleTap?.Отмена();
             _pendingSingleTap = null;
-            _ = PlayMovieOrPromptOfflineAsync();
+            _ = ВоспроизвестиMovieOrPromptНе в сетиAsync();
         };
 
         // Drag-and-drop source — every card is draggable so the user can
-        // throw selected movies onto a sidebar list or onto Favorites /
-        // Watchlist / Watched. Data payload is a comma-separated movie-id
-        // list; LibraryPage decides whether to drag just this card or the
+        // throw selected movies onto a sidebar list or onto Избранное /
+        // Список просмотра / Просмотрено. Data payload is a comma-separated movie-id
+        // list; МедиатекаPage decides whether to drag just this card or the
         // whole selected set via ResolveSelectionForDrag.
         CanDrag = true;
-        DragStarting += OnCardDragStarting;
+        DragStarting += Вкл.CardDragStarting;
     }
 
-    private void OnCardDragStarting(UIElement sender, DragStartingEventArgs args)
+    private void Вкл.CardDragStarting(UIElement sender, DragStartingEventArgs args)
     {
-        if (Movie == null) { args.Cancel = true; return; }
+        if (Movie == null) { args.Отмена = true; return; }
         var ids = ResolveSelectionForDrag?.Invoke(Movie)?.ToList() ?? new List<int> { Movie.Id };
-        if (ids.Count == 0) { args.Cancel = true; return; }
+        if (ids.Count == 0) { args.Отмена = true; return; }
         args.Data.SetText(string.Join(",", ids));
         args.Data.Properties["cinelibrary/movie-ids"] = string.Join(",", ids);
         args.Data.RequestedOperation = DataPackageOperation.Link;
-        args.AllowedOperations = DataPackageOperation.Link | DataPackageOperation.Copy;
+        args.ВсеowedOperations = DataPackageOperation.Link | DataPackageOperation.Copy;
         // Friendly drag glyph caption — "3 movies" when bulk, title when one.
-        args.Data.Properties.Title = ids.Count == 1
-            ? Movie.Title
+        args.Data.Properties.Название = ids.Count == 1
+            ? Movie.Название
             : $"{ids.Count} movies";
     }
 
-    private void OnGlobalSizeChanged(object? s, EventArgs e) => ApplySize();
+    private void Вкл.GlobalSizeChanged(object? s, EventArgs e) => ПрименитьSize();
 
     private void AnimateOverlay(double from, double to, int durationMs)
     {
@@ -220,42 +220,42 @@ public sealed partial class MovieCardControl : UserControl
         };
         Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(anim, HoverOverlay);
         Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(anim, "Opacity");
-        sb.Children.Add(anim);
+        sb.Children.Добавить(anim);
         sb.Begin();
     }
 
-    private void OnCardLoaded(object sender, RoutedEventArgs e)
+    private void Вкл.CardLoaded(object sender, RoutedEventArgs e)
     {
         // Defensive unsubscribe-then-subscribe so even a freak double-Load
         // can't end up with two copies of the handler attached.
-        GlobalSizeChanged -= OnGlobalSizeChanged;
-        GlobalSizeChanged += OnGlobalSizeChanged;
-        // React live when the user flips card borders / shadows in Settings.
-        UiSettings.Changed -= OnUiSettingsChanged;
-        UiSettings.Changed += OnUiSettingsChanged;
-        ApplyCardChrome();
+        GlobalSizeChanged -= Вкл.GlobalSizeChanged;
+        GlobalSizeChanged += Вкл.GlobalSizeChanged;
+        // React live when the user flips card borders / shadows in Настройки.
+        UiНастройки.Changed -= Вкл.UiНастройкиChanged;
+        UiНастройки.Changed += Вкл.UiНастройкиChanged;
+        ПрименитьCardChrome();
     }
 
-    private void OnCardUnloaded(object sender, RoutedEventArgs e)
+    private void Вкл.CardUnloaded(object sender, RoutedEventArgs e)
     {
-        GlobalSizeChanged -= OnGlobalSizeChanged;
-        UiSettings.Changed -= OnUiSettingsChanged;
+        GlobalSizeChanged -= Вкл.GlobalSizeChanged;
+        UiНастройки.Changed -= Вкл.UiНастройкиChanged;
     }
 
-    private void OnUiSettingsChanged() => DispatcherQueue.TryEnqueue(ApplyCardChrome);
+    private void Вкл.UiНастройкиChanged() => DispatcherQueue.TryEnqueue(ПрименитьCardChrome);
 
     /// <summary>Re-apply card border + resting shadow from the current settings.</summary>
-    private void ApplyCardChrome()
+    private void ПрименитьCardChrome()
     {
-        CardBorder.BorderThickness = new Thickness(UiSettings.CardBorders ? 1 : 0);
-        ApplyRestingShadow();
+        CardBorder.BorderThickness = new Thickness(UiНастройки.CardBorders ? 1 : 0);
+        ПрименитьRestingShadow();
     }
 
     /// <summary>Resting shadow depth — 0 when "Card shadows" is off (the default).</summary>
-    private void ApplyRestingShadow()
-        => CardBorder.Translation = new System.Numerics.Vector3(0, 0, UiSettings.CardShadows ? RestZ : 0f);
+    private void ПрименитьRestingShadow()
+        => CardBorder.Translation = new System.Numerics.Vector3(0, 0, UiНастройки.CardShadows ? RestZ : 0f);
 
-    private void ApplySize()
+    private void ПрименитьSize()
     {
         CardRoot.Height = GlobalCardHeight;
         InvalidateMeasure();
@@ -280,42 +280,42 @@ public sealed partial class MovieCardControl : UserControl
         return finalSize;
     }
 
-    private static void OnMovieChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void Вкл.MovieChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is not MovieCardControl c) return;
         // Detach from previous binding so recycled cards don't fire on stale items
         if (e.OldValue is MovieListItem prev)
-            prev.PropertyChanged -= c.OnMoviePropertyChanged;
-        if (e.NewValue is MovieListItem m)
+            prev.PropertyChanged -= c.Вкл.MoviePropertyChanged;
+        if (e.НовыйValue is MovieListItem m)
         {
             c.Populate(m);
-            m.PropertyChanged += c.OnMoviePropertyChanged;
+            m.PropertyChanged += c.Вкл.MoviePropertyChanged;
         }
     }
 
-    private void OnMoviePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void Вкл.MoviePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (Movie == null) return;
-        if (e.PropertyName == nameof(MovieListItem.IsWatched))
+        if (e.PropertyName == nameof(MovieListItem.IsПросмотрено))
         {
-            WatchedBadge.Visibility = Movie.IsWatched ? Visibility.Visible : Visibility.Collapsed;
-            WatchedToggleBtn.Content = Movie.IsWatched ? "✓ Watched" : "○ Mark Watched";
+            ПросмотреноBadge.Visibility = Movie.IsПросмотрено ? Visibility.Visible : Visibility.Collapsed;
+            ПросмотреноToggleBtn.Content = Movie.IsПросмотрено ? "✓ Просмотрено" : "○ Отметить просмотренным";
         }
-        else if (e.PropertyName == nameof(MovieListItem.IsFavorite))
+        else if (e.PropertyName == nameof(MovieListItem.IsИзбранное))
         {
-            FavBadge.Visibility = Movie.IsFavorite ? Visibility.Visible : Visibility.Collapsed;
+            FavBadge.Visibility = Movie.IsИзбранное ? Visibility.Visible : Visibility.Collapsed;
         }
-        else if (e.PropertyName == nameof(MovieListItem.IsWatchlist))
+        else if (e.PropertyName == nameof(MovieListItem.IsСписок просмотра))
         {
-            WatchlistToggleBtn.Content = Movie.IsWatchlist ? "📌 In Watchlist" : "📋 Watchlist";
+            Список просмотраToggleBtn.Content = Movie.IsСписок просмотра ? "📌 In Список просмотра" : "📋 Список просмотра";
         }
         else if (e.PropertyName == nameof(MovieListItem.IsSelected))
         {
-            ApplySelectionVisual();
+            ПрименитьSelectionVisual();
         }
     }
 
-    private void ApplySelectionVisual()
+    private void ПрименитьSelectionVisual()
     {
         bool on = Movie?.IsSelected == true;
         SelectedOutline.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
@@ -324,28 +324,28 @@ public sealed partial class MovieCardControl : UserControl
 
     private void Populate(MovieListItem m)
     {
-        TitleText.Text = m.Title;
-        MetaText.Text = $"{m.Year?.ToString() ?? "—"}{(m.Runtime.HasValue ? $" · {m.Runtime}m" : "")}";
-        PlaceholderTitle.Text = m.Title;
+        НазваниеText.Text = m.Название;
+        MetaText.Text = $"{m.Год?.ToString() ?? "—"}{(m.Продолжительность.HasValue ? $" · {m.Продолжительность}m" : "")}";
+        PlaceholderНазвание.Text = m.Название;
 
         // Status badge.
-        //  • MISSING stays loud — it's a real problem (red dot + label).
-        //  • OFFLINE is quiet — just a small dim dot. When a drive is
+        //  • ОТСУТСТВУЕТ stays loud — it's a real problem (red dot + label).
+        //  • НЕ В СЕТИ is quiet — just a small dim dot. When a drive is
         //    unplugged that's the *normal* state for every title on it, so a
-        //    full "OFFLINE" pill on every card was needless noise.
+        //    full "НЕ В СЕТИ" pill on every card was needless noise.
         if (m.IsMissing)
         {
             StatusDot.Fill = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xEF, 0x44, 0x44));
-            StatusText.Text = "MISSING";
+            StatusText.Text = "ОТСУТСТВУЕТ";
             StatusText.Visibility = Visibility.Visible;
-            StatusBadge.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0xCC, 0, 0, 0));
+            StatusBadge.Назадground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xCC, 0, 0, 0));
             StatusBadge.Visibility = Visibility.Visible;
         }
-        else if (!m.IsOnline)
+        else if (!m.IsВкл.line)
         {
             StatusDot.Fill = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x9C, 0xA3, 0xAF));
             StatusText.Visibility = Visibility.Collapsed;   // dot only — no label
-            StatusBadge.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x66, 0, 0, 0));
+            StatusBadge.Назадground = new SolidColorBrush(Windows.UI.Color.FromArgb(0x66, 0, 0, 0));
             StatusBadge.Visibility = Visibility.Visible;
         }
         else
@@ -353,28 +353,28 @@ public sealed partial class MovieCardControl : UserControl
             StatusBadge.Visibility = Visibility.Collapsed;
         }
 
-        FavBadge.Visibility = m.IsFavorite ? Visibility.Visible : Visibility.Collapsed;
-        WatchedBadge.Visibility = m.IsWatched ? Visibility.Visible : Visibility.Collapsed;
-        WatchedToggleBtn.Content = m.IsWatched ? "✓ Watched" : "○ Mark Watched";
-        WatchlistToggleBtn.Content = m.IsWatchlist ? "📌 In Watchlist" : "📋 Watchlist";
+        FavBadge.Visibility = m.IsИзбранное ? Visibility.Visible : Visibility.Collapsed;
+        ПросмотреноBadge.Visibility = m.IsПросмотрено ? Visibility.Visible : Visibility.Collapsed;
+        ПросмотреноToggleBtn.Content = m.IsПросмотрено ? "✓ Просмотрено" : "○ Отметить просмотренным";
+        Список просмотраToggleBtn.Content = m.IsСписок просмотра ? "📌 In Список просмотра" : "📋 Список просмотра";
 
-        // Rating lives once, in the meta row. (The old floating poster badge
+        // Рейтинг lives once, in the meta row. (The old floating poster badge
         // duplicated it — dropped for a cleaner card face.)
-        RatingBadge.Visibility = Visibility.Collapsed;
-        if (m.Rating.HasValue)
+        РейтингBadge.Visibility = Visibility.Collapsed;
+        if (m.Рейтинг.HasValue)
         {
-            RatingInline.Text = $"★ {m.Rating:F1}";
-            RatingInline.Visibility = Visibility.Visible;
+            РейтингInline.Text = $"★ {m.Рейтинг:F1}";
+            РейтингInline.Visibility = Visibility.Visible;
         }
         else
         {
-            RatingInline.Visibility = Visibility.Collapsed;
+            РейтингInline.Visibility = Visibility.Collapsed;
         }
 
-        GenresText.Text = string.Join(" · ",
-            (m.GenresCsv ?? "").Split(',').Select(g => g.Trim()).Where(g => g.Length > 0).Take(3));
+        ЖанрыText.Text = string.Join(" · ",
+            (m.ЖанрыCsv ?? "").Split(',').Select(g => g.Trim()).Where(g => g.Length > 0).Take(3));
 
-        ApplySelectionVisual();
+        ПрименитьSelectionVisual();
         LoadPosterAsync(m.LocalPoster);
     }
 
@@ -436,35 +436,35 @@ public sealed partial class MovieCardControl : UserControl
         }
     }
 
-    private void OnViewDetails(object sender, RoutedEventArgs e) => OpenDetail();
+    private void Вкл.ViewDetails(object sender, RoutedEventArgs e) => OpenDetail();
 
-    private void OnWatchedToggle(object sender, RoutedEventArgs e)
+    private void Вкл.ПросмотреноToggle(object sender, RoutedEventArgs e)
     {
         if (Movie == null) return;
-        WatchedToggleRequested?.Invoke(this, Movie);
-        // Movie.IsWatched already flipped by VM handler — refresh visuals
-        WatchedBadge.Visibility = Movie.IsWatched ? Visibility.Visible : Visibility.Collapsed;
-        WatchedToggleBtn.Content = Movie.IsWatched ? "✓ Watched" : "○ Mark Watched";
+        ПросмотреноToggleRequested?.Invoke(this, Movie);
+        // Movie.IsПросмотрено already flipped by VM handler — refresh visuals
+        ПросмотреноBadge.Visibility = Movie.IsПросмотрено ? Visibility.Visible : Visibility.Collapsed;
+        ПросмотреноToggleBtn.Content = Movie.IsПросмотрено ? "✓ Просмотрено" : "○ Отметить просмотренным";
     }
 
-    private void OnWatchlistToggle(object sender, RoutedEventArgs e)
+    private void Вкл.Список просмотраToggle(object sender, RoutedEventArgs e)
     {
         if (Movie == null) return;
-        WatchlistToggleRequested?.Invoke(this, Movie);
-        WatchlistToggleBtn.Content = Movie.IsWatchlist ? "📌 In Watchlist" : "📋 Watchlist";
+        Список просмотраToggleRequested?.Invoke(this, Movie);
+        Список просмотраToggleBtn.Content = Movie.IsСписок просмотра ? "📌 In Список просмотра" : "📋 Список просмотра";
     }
 
     private void OpenDetail()
     {
         if (Movie == null) return;
         var win = new MovieDetailDialog(Movie.Id);
-        win.WatchlistChanged += (s, e) => SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
+        win.Список просмотраChanged += (s, e) => SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         win.Activate();
     }
 
     /// <summary>
     /// Check if a routed tap origin is inside any Button — used to avoid
-    /// double-open when the user clicks the embedded "View Details" etc.
+    /// double-open when the user clicks the embedded "Подробнее" etc.
     /// </summary>
     private static bool TapOriginatedInButton(DependencyObject? src)
     {
@@ -481,59 +481,59 @@ public sealed partial class MovieCardControl : UserControl
     // 220 ms matches Windows' default double-click threshold closely enough
     // that intentional double-taps reliably suppress the single-tap action,
     // while single-tap latency stays imperceptible.
-    private CancellationTokenSource? _pendingSingleTap;
+    private ОтменаlationTokenSource? _pendingSingleTap;
 
     private void ScheduleSingleTapAction()
     {
-        _pendingSingleTap?.Cancel();
-        var cts = new CancellationTokenSource();
+        _pendingSingleTap?.Отмена();
+        var cts = new ОтменаlationTokenSource();
         _pendingSingleTap = cts;
         var dq = DispatcherQueue;
         _ = Task.Run(async () =>
         {
             try { await Task.Delay(220, cts.Token); }
-            catch (OperationCanceledException) { return; }
-            if (cts.IsCancellationRequested) return;
+            catch (OperationОтменаedException) { return; }
+            if (cts.IsОтменаlationRequested) return;
             dq.TryEnqueue(() =>
             {
-                if (cts.IsCancellationRequested) return;
+                if (cts.IsОтменаlationRequested) return;
                 OpenDetail();
             });
         });
     }
 
     /// <summary>
-    /// Play the movie via the OS default player. Offline → friendly dialog
+    /// Воспроизвести the movie via the OS default player. Не в сети → friendly dialog
     /// telling the user which drive to plug in.
     /// </summary>
-    private async Task PlayMovieOrPromptOfflineAsync()
+    private async Task ВоспроизвестиMovieOrPromptНе в сетиAsync()
     {
         if (Movie == null) return;
         var connected = AppState.Instance.Connected;
         if (!connected.TryGetValue(Movie.VolumeSerial, out var letter))
         {
-            await ShowOfflineDialog(Movie.Title, Movie.DriveLabel);
+            await ShowНе в сетиDialog(Movie.Название, Movie.DriveLabel);
             return;
         }
         // Fetch detail row for video path
         var detail = AppState.Instance.Db.GetMovieDetail(Movie.Id, connected);
-        if (detail == null || detail.VideoFileRelPath == null || !detail.IsOnline)
+        if (detail == null || detail.VideoFileRelPath == null || !detail.IsВкл.line)
         {
-            await ShowOfflineDialog(Movie.Title, Movie.DriveLabel);
+            await ShowНе в сетиDialog(Movie.Название, Movie.DriveLabel);
             return;
         }
         var videoPath = System.IO.Path.Combine($"{letter}:\\",
             detail.VideoFileRelPath.Replace('/', '\\'));
         if (!System.IO.File.Exists(videoPath))
         {
-            await ShowOfflineDialog(Movie.Title, Movie.DriveLabel);
+            await ShowНе в сетиDialog(Movie.Название, Movie.DriveLabel);
             return;
         }
         try
         {
-            AppState.Instance.Db.MarkPlayed(Movie.Id);
-            await VideoPlayer.PlayAsync(videoPath);
-            // Bubble so sidebar Continue Watching count refreshes
+            AppState.Instance.Db.MarkВоспроизвестиed(Movie.Id);
+            await VideoВоспроизвестиer.ВоспроизвестиAsync(videoPath);
+            // Bubble so sidebar Продолжить просмотр count refreshes
             SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         }
         catch
@@ -543,15 +543,15 @@ public sealed partial class MovieCardControl : UserControl
         }
     }
 
-    private async Task ShowOfflineDialog(string title, string? driveLabel)
+    private async Task ShowНе в сетиDialog(string title, string? driveLabel)
     {
         var dlg = new ContentDialog
         {
-            Title = "Can't play yet",
+            Название = "Can't play yet",
             Content = string.IsNullOrEmpty(driveLabel)
                 ? $"\"{title}\" lives on a drive that isn't connected. Plug it in and try again."
                 : $"\"{title}\" lives on \"{driveLabel}\", which isn't connected. Plug it in and try again.",
-            CloseButtonText = "OK",
+            ЗакрытьButtonText = "OK",
             XamlRoot = XamlRoot,
             RequestedTheme = MainWindow.CurrentTheme,
         };
@@ -568,52 +568,52 @@ public sealed partial class MovieCardControl : UserControl
         flyout.Items.Clear();
         if (Movie == null) return;
 
-        // v3.3 — Watched & Gone page: a record's menu is Restore / Delete.
+        // v3.3 — Просмотрено и удалено page: a record's menu is Restore / Удалить.
         if (ArchiveMode)
         {
             BuildArchiveContextFlyout(flyout);
             return;
         }
 
-        // Watched / Favorite / Watchlist toggles
+        // Просмотрено / Избранное / Список просмотра toggles
         var watchedItem = new ToggleMenuFlyoutItem
         {
-            Text = "Watched",
-            IsChecked = Movie.IsWatched,
+            Text = "Просмотрено",
+            IsChecked = Movie.IsПросмотрено,
         };
-        watchedItem.Click += (_, _) => WatchedToggleRequested?.Invoke(this, Movie);
-        flyout.Items.Add(watchedItem);
+        watchedItem.Click += (_, _) => ПросмотреноToggleRequested?.Invoke(this, Movie);
+        flyout.Items.Добавить(watchedItem);
 
         var favItem = new ToggleMenuFlyoutItem
         {
-            Text = "Favorite",
-            IsChecked = Movie.IsFavorite,
+            Text = "Избранное",
+            IsChecked = Movie.IsИзбранное,
         };
         favItem.Click += (_, _) =>
         {
-            AppState.Instance.Db.ToggleFavorite(Movie.Id);
-            Movie.IsFavorite = !Movie.IsFavorite;
+            AppState.Instance.Db.ToggleИзбранное(Movie.Id);
+            Movie.IsИзбранное = !Movie.IsИзбранное;
             SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         };
-        flyout.Items.Add(favItem);
+        flyout.Items.Добавить(favItem);
 
         var watchlistItem = new ToggleMenuFlyoutItem
         {
-            Text = "Watchlist",
-            IsChecked = Movie.IsWatchlist,
+            Text = "Список просмотра",
+            IsChecked = Movie.IsСписок просмотра,
         };
-        watchlistItem.Click += (_, _) => WatchlistToggleRequested?.Invoke(this, Movie);
-        flyout.Items.Add(watchlistItem);
+        watchlistItem.Click += (_, _) => Список просмотраToggleRequested?.Invoke(this, Movie);
+        flyout.Items.Добавить(watchlistItem);
 
-        flyout.Items.Add(new MenuFlyoutSeparator());
+        flyout.Items.Добавить(new MenuFlyoutSeparator());
 
-        // Add to list submenu
-        var listsSub = new MenuFlyoutSubItem { Text = "📑 Add to list" };
+        // Добавить в список submenu
+        var listsSub = new MenuFlyoutSubItem { Text = "📑 Добавить в список" };
         var allLists = AppState.Instance.Db.GetUserLists();
         var membership = AppState.Instance.Db.GetUserListsForMovie(Movie.Id);
         if (allLists.Count == 0)
         {
-            listsSub.Items.Add(new MenuFlyoutItem { Text = "(no lists yet)", IsEnabled = false });
+            listsSub.Items.Добавить(new MenuFlyoutItem { Text = "(no lists yet)", IsEnabled = false });
         }
         else
         {
@@ -625,24 +625,24 @@ public sealed partial class MovieCardControl : UserControl
                 item.Click += (_, _) =>
                 {
                     if (item.IsChecked)
-                        AppState.Instance.Db.AddMovieToUserList(capturedUl.Id, Movie.Id);
+                        AppState.Instance.Db.ДобавитьMovieToUserList(capturedUl.Id, Movie.Id);
                     else
                         AppState.Instance.Db.RemoveMovieFromUserList(capturedUl.Id, Movie.Id);
                     SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
                 };
-                listsSub.Items.Add(item);
+                listsSub.Items.Добавить(item);
             }
         }
-        listsSub.Items.Add(new MenuFlyoutSeparator());
-        var newListItem = new MenuFlyoutItem { Text = "+ New list…" };
+        listsSub.Items.Добавить(new MenuFlyoutSeparator());
+        var newListItem = new MenuFlyoutItem { Text = "+ Новый список…" };
         newListItem.Click += async (_, _) =>
         {
-            var name = await PromptNewListNameDialog();
+            var name = await PromptНовыйListNameDialog();
             if (string.IsNullOrWhiteSpace(name) || Movie == null) return;
             try
             {
-                var newId = AppState.Instance.Db.CreateUserList(name.Trim());
-                AppState.Instance.Db.AddMovieToUserList(newId, Movie.Id);
+                var newId = AppState.Instance.Db.СоздатьUserList(name.Trim());
+                AppState.Instance.Db.ДобавитьMovieToUserList(newId, Movie.Id);
                 SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
             }
             catch (Microsoft.Data.Sqlite.SqliteException)
@@ -651,21 +651,21 @@ public sealed partial class MovieCardControl : UserControl
                     mw.ShowToast($"A list named “{name.Trim()}” already exists");
             }
         };
-        listsSub.Items.Add(newListItem);
-        flyout.Items.Add(listsSub);
+        listsSub.Items.Добавить(newListItem);
+        flyout.Items.Добавить(listsSub);
 
-        flyout.Items.Add(new MenuFlyoutSeparator());
+        flyout.Items.Добавить(new MenuFlyoutSeparator());
         var openItem = new MenuFlyoutItem { Text = "Open details" };
         openItem.Click += (_, _) => OpenDetail();
-        flyout.Items.Add(openItem);
+        flyout.Items.Добавить(openItem);
 
-        // v3.3 — Watched & Gone: keep the record (poster, details, notes,
+        // v3.3 — Просмотрено и удалено: keep the record (poster, details, notes,
         // history) but move the movie out of the live library.
-        flyout.Items.Add(new MenuFlyoutSeparator());
+        flyout.Items.Добавить(new MenuFlyoutSeparator());
         var archiveItem = new MenuFlyoutItem
         {
-            Text = "Send to Watched & Gone",
-            Icon = new FontIcon { Glyph = "", FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Segoe Fluent Icons,Segoe MDL2 Assets") },
+            Text = "Send to Просмотрено и удалено",
+            Icon = new FontIcon { Glyph = "", FontСемья = new Microsoft.UI.Xaml.Media.FontСемья("Segoe Fluent Icons,Segoe MDL2 Assets") },
         };
         archiveItem.Click += async (_, _) =>
         {
@@ -673,27 +673,27 @@ public sealed partial class MovieCardControl : UserControl
             var m = Movie;
             var dlg = new ContentDialog
             {
-                Title = "Send to Watched & Gone?",
-                Content = $"“{m.Title}” moves out of your library into Watched & Gone — " +
+                Название = "Send to Просмотрено и удалено?",
+                Content = $"“{m.Название}” moves out of your library into Просмотрено и удалено — " +
                           "its poster, details, your notes and watch history are all kept as a record. " +
                           "The files on your drive are not touched.\n\n" +
-                          "You can restore it from the Watched & Gone page anytime.",
+                          "You can restore it from the Просмотрено и удалено page anytime.",
                 PrimaryButtonText = "Send",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Primary,
+                ЗакрытьButtonText = "Отмена",
+                По умолчаниюButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot,
                 RequestedTheme = MainWindow.CurrentTheme,
             };
             if (await dlg.ShowAsync() != ContentDialogResult.Primary) return;
-            AppState.Instance.Db.ArchiveMovies(new[] { m.Id });
+            AppState.Instance.Db.ArchiveФильмы(new[] { m.Id });
             if (App.MainWindow is MainWindow mw)
-                mw.ShowToast($"“{m.Title}” sent to Watched & Gone");
+                mw.ShowToast($"“{m.Название}” sent to Просмотрено и удалено");
             RaiseMovieArchived();
         };
-        flyout.Items.Add(archiveItem);
+        flyout.Items.Добавить(archiveItem);
     }
 
-    // v3.3 — context menu for records on the Watched & Gone page.
+    // v3.3 — context menu for records on the Просмотрено и удалено page.
     private void BuildArchiveContextFlyout(MenuFlyout flyout)
     {
         if (Movie == null) return;
@@ -701,57 +701,57 @@ public sealed partial class MovieCardControl : UserControl
 
         var openItem = new MenuFlyoutItem { Text = "Open details" };
         openItem.Click += (_, _) => OpenDetail();
-        flyout.Items.Add(openItem);
+        flyout.Items.Добавить(openItem);
 
-        flyout.Items.Add(new MenuFlyoutSeparator());
+        flyout.Items.Добавить(new MenuFlyoutSeparator());
 
         var restoreItem = new MenuFlyoutItem { Text = "Restore to library" };
         restoreItem.Click += (_, _) =>
         {
             AppState.Instance.Db.RestoreArchivedMovie(m.Id);
             if (App.MainWindow is MainWindow mw)
-                mw.ShowToast($"“{m.Title}” restored to your library");
+                mw.ShowToast($"“{m.Название}” restored to your library");
             RaiseMovieArchived();
         };
-        flyout.Items.Add(restoreItem);
+        flyout.Items.Добавить(restoreItem);
 
         var deleteItem = new MenuFlyoutItem
         {
-            Text = "Delete record permanently",
+            Text = "Удалить record permanently",
             Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xEF, 0x44, 0x44)),
         };
         deleteItem.Click += async (_, _) =>
         {
             var dlg = new ContentDialog
             {
-                Title = "Delete this record?",
-                Content = $"“{m.Title}” — its record, cached poster, notes and watch history " +
-                          "will be permanently removed from CineLibrary. This can't be undone.",
-                PrimaryButtonText = "Delete forever",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Close,
+                Название = "Удалить эту запись?",
+                Content = $"“{m.Название}” — its record, cached poster, notes and watch history " +
+                          "will be permanently removed from CineМедиатека. This can't be undone.",
+                PrimaryButtonText = "Удалить навсегда",
+                ЗакрытьButtonText = "Отмена",
+                По умолчаниюButton = ContentDialogButton.Закрыть,
                 XamlRoot = XamlRoot,
                 RequestedTheme = MainWindow.CurrentTheme,
             };
             if (await dlg.ShowAsync() != ContentDialogResult.Primary) return;
-            AppState.Instance.Db.DeleteArchivedRecord(m.Id);
+            AppState.Instance.Db.УдалитьArchivedRecord(m.Id);
             if (App.MainWindow is MainWindow mw)
                 mw.ShowToast("Record deleted");
             RaiseMovieArchived();
         };
-        flyout.Items.Add(deleteItem);
+        flyout.Items.Добавить(deleteItem);
     }
 
-    private async Task<string?> PromptNewListNameDialog()
+    private async Task<string?> PromptНовыйListNameDialog()
     {
         var box = new TextBox { PlaceholderText = "List name" };
         var dlg = new ContentDialog
         {
-            Title = "New list",
+            Название = "Новый список",
             Content = box,
-            PrimaryButtonText = "Create",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Primary,
+            PrimaryButtonText = "Создать",
+            ЗакрытьButtonText = "Отмена",
+            По умолчаниюButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
             RequestedTheme = MainWindow.CurrentTheme,
         };

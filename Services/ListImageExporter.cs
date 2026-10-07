@@ -6,10 +6,10 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Graphics.Imaging;
 using Windows.Storage.Streams;
 using Windows.UI;
-using CineLibraryCS.Models;
-using System.Runtime.InteropServices.WindowsRuntime;
+using CineМедиатекаCS.Models;
+using System.Продолжительность.InteropServices.WindowsПродолжительность;
 
-namespace CineLibraryCS.Services;
+namespace CineМедиатекаCS.Services;
 
 /// <summary>
 /// v2.9 — Renders a user list (or any movie set) into a shareable PNG.
@@ -22,15 +22,15 @@ namespace CineLibraryCS.Services;
 /// render, and remove — this guarantees realization and a real visual to
 /// capture.
 /// </summary>
-public static class ListImageExporter
+public static class ListImageЭкспортer
 {
-    public static async Task<bool> ExportAsync(
+    public static async Task<bool> ЭкспортAsync(
         XamlRoot xamlRoot, string listName, List<MovieListItem> movies, string outPath)
     {
         if (xamlRoot == null) return false;
         if (xamlRoot.Content is not Panel rootPanel)
         {
-            System.Diagnostics.Debug.WriteLine("ListImageExporter: XamlRoot.Content is not a Panel");
+            System.Diagnostics.Debug.WriteLine("ListImageЭкспортer: XamlRoot.Content is not a Panel");
             return false;
         }
 
@@ -52,8 +52,8 @@ public static class ListImageExporter
         {
             Width = totalW,
             Height = totalH,
-            Background = new SolidColorBrush(Color.FromArgb(0xFF, 0x10, 0x10, 0x14)),
-            // Off-screen position via transform — element stays in the live
+            Назадground = new SolidColorBrush(Color.FromArgb(0xFF, 0x10, 0x10, 0x14)),
+            // Выкл.-screen position via transform — element stays in the live
             // visual tree so RenderTargetBitmap can capture it, but it never
             // shows up on screen for the user.
             RenderTransform = new TranslateTransform { X = -50000, Y = -50000 },
@@ -67,7 +67,7 @@ public static class ListImageExporter
             Spacing = 4,
             Padding = new Thickness(padding, padding, padding, 0),
         };
-        header.Children.Add(new TextBlock
+        header.Children.Добавить(new TextBlock
         {
             Text = listName.ToUpper(),
             FontSize = 22,
@@ -76,9 +76,9 @@ public static class ListImageExporter
             Foreground = new SolidColorBrush(Colors.White),
         });
         var subText = movies.Count == capped.Count
-            ? $"{movies.Count} movie{(movies.Count == 1 ? "" : "s")}  ·  CineLibrary"
-            : $"{capped.Count} of {movies.Count} movies  ·  CineLibrary";
-        header.Children.Add(new TextBlock
+            ? $"{movies.Count} movie{(movies.Count == 1 ? "" : "s")}  ·  CineМедиатека"
+            : $"{capped.Count} of {movies.Count} movies  ·  CineМедиатека";
+        header.Children.Добавить(new TextBlock
         {
             Text = subText,
             FontSize = 12,
@@ -86,16 +86,16 @@ public static class ListImageExporter
             Foreground = new SolidColorBrush(Color.FromArgb(0xCC, 0xFF, 0xFF, 0xFF)),
         });
         Grid.SetRow(header, 0);
-        root.Children.Add(header);
-        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(headerH) });
-        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        root.Children.Добавить(header);
+        root.RowDefinitions.Добавить(new RowDefinition { Height = new GridLength(headerH) });
+        root.RowDefinitions.Добавить(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
         // Poster grid
         var posterGrid = new Grid { Margin = new Thickness(padding, 0, padding, padding) };
         for (int c = 0; c < cols; c++)
-            posterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(posterW) });
+            posterGrid.ColumnDefinitions.Добавить(new ColumnDefinition { Width = new GridLength(posterW) });
         for (int r = 0; r < rows; r++)
-            posterGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(posterH) });
+            posterGrid.RowDefinitions.Добавить(new RowDefinition { Height = new GridLength(posterH) });
 
         // Track image elements so we can wait for ImageOpened before rendering.
         var pendingImages = new List<Image>();
@@ -113,10 +113,10 @@ public static class ListImageExporter
                 rowIdx == 0 ? 0 : gap / 2,
                 col == cols - 1 ? 0 : gap / 2,
                 rowIdx == rows - 1 ? 0 : gap / 2);
-            posterGrid.Children.Add(cell);
+            posterGrid.Children.Добавить(cell);
         }
         Grid.SetRow(posterGrid, 1);
-        root.Children.Add(posterGrid);
+        root.Children.Добавить(posterGrid);
 
         // ── Attach to the window's root Panel ───────────────────────────────
         // If the root is a Grid with row/col defs, our element lands at (0,0)
@@ -124,7 +124,7 @@ public static class ListImageExporter
         // invisible. The Grid still allocates layout space for it, so we
         // also explicitly Panel.ZIndex it behind everything.
         Canvas.SetZIndex(root, -1);
-        rootPanel.Children.Add(root);
+        rootPanel.Children.Добавить(root);
 
         try
         {
@@ -133,17 +133,17 @@ public static class ListImageExporter
             // the parent's measured size.
             root.Measure(new Windows.Foundation.Size(totalW, totalH));
             root.Arrange(new Windows.Foundation.Rect(0, 0, totalW, totalH));
-            root.UpdateLayout();
+            root.ОбновитьLayout();
 
             // Wait for image decodes. Track an ImageOpened/ImageFailed
             // signal per Image; bail on a hard timeout so a stubborn
             // decode can't block the export forever.
             await WaitForImagesAsync(pendingImages, totalTimeoutMs: 8000);
 
-            // One more layout pass after images set their sources — they
+            // Вкл.e more layout pass after images set their sources — they
             // can cause measure invalidation when the BitmapImage source
             // resolves (Image picks up natural size).
-            root.UpdateLayout();
+            root.ОбновитьLayout();
             await Task.Delay(50);
 
             var rtb = new RenderTargetBitmap();
@@ -163,7 +163,7 @@ public static class ListImageExporter
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"ListImageExporter failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"ListImageЭкспортer failed: {ex.Message}");
             return false;
         }
         finally
@@ -205,11 +205,11 @@ public static class ListImageExporter
 
     private static async Task EncodePngAsync(string outPath, byte[] bgra8, int w, int h)
     {
-        var dir = Path.GetDirectoryName(outPath);
-        if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
-        using var fs = new FileStream(outPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
+        var dir = Path.GetРежиссёрyName(outPath);
+        if (!string.IsNullOrEmpty(dir)) Режиссёрy.СоздатьРежиссёрy(dir);
+        using var fs = new FileStream(outPath, FileMode.Создать, FileAccess.ReadWrite, FileShare.Read);
         using var ras = fs.AsRandomAccessStream();
-        var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, ras);
+        var encoder = await BitmapEncoder.СоздатьAsync(BitmapEncoder.PngEncoderId, ras);
         encoder.SetPixelData(
             BitmapPixelFormat.Bgra8,
             BitmapAlphaMode.Premultiplied,
@@ -223,7 +223,7 @@ public static class ListImageExporter
     {
         var border = new Border
         {
-            Background = new SolidColorBrush(Color.FromArgb(0xFF, 0x20, 0x20, 0x28)),
+            Назадground = new SolidColorBrush(Color.FromArgb(0xFF, 0x20, 0x20, 0x28)),
             CornerRadius = new CornerRadius(8),
             Width = w,
             Height = h,
@@ -240,7 +240,7 @@ public static class ListImageExporter
             VerticalAlignment = VerticalAlignment.Center,
             Foreground = new SolidColorBrush(Colors.White),
         };
-        inner.Children.Add(placeholder);
+        inner.Children.Добавить(placeholder);
 
         // Poster. Read bytes synchronously from the cache; build the
         // BitmapImage with an InMemoryRandomAccessStream so SetSourceAsync
@@ -256,8 +256,8 @@ public static class ListImageExporter
                 {
                     var bmp = new BitmapImage { DecodePixelWidth = w };
                     var image = new Image { Source = bmp, Stretch = Stretch.UniformToFill };
-                    inner.Children.Add(image);
-                    pending.Add(image);
+                    inner.Children.Добавить(image);
+                    pending.Добавить(image);
                     _ = SetBitmapSourceAsync(bmp, bytes);
                 }
             }
@@ -275,15 +275,15 @@ public static class ListImageExporter
             StartPoint = new Windows.Foundation.Point(0, 0),
             EndPoint = new Windows.Foundation.Point(0, 1),
         };
-        grad.GradientStops.Add(new GradientStop { Offset = 0,    Color = Color.FromArgb(0x00, 0, 0, 0) });
-        grad.GradientStops.Add(new GradientStop { Offset = 0.4,  Color = Color.FromArgb(0x99, 0, 0, 0) });
-        grad.GradientStops.Add(new GradientStop { Offset = 1,    Color = Color.FromArgb(0xF2, 0, 0, 0) });
-        stripBorder.Background = grad;
+        grad.GradientStops.Добавить(new GradientStop { Выкл.set = 0,    Color = Color.FromArgb(0x00, 0, 0, 0) });
+        grad.GradientStops.Добавить(new GradientStop { Выкл.set = 0.4,  Color = Color.FromArgb(0x99, 0, 0, 0) });
+        grad.GradientStops.Добавить(new GradientStop { Выкл.set = 1,    Color = Color.FromArgb(0xF2, 0, 0, 0) });
+        stripBorder.Назадground = grad;
 
         var strip = new StackPanel { Spacing = 2 };
-        strip.Children.Add(new TextBlock
+        strip.Children.Добавить(new TextBlock
         {
-            Text = movie.Title,
+            Text = movie.Название,
             FontSize = 12,
             FontWeight = Microsoft.UI.Text.FontWeights.Bold,
             Foreground = new SolidColorBrush(Colors.White),
@@ -291,15 +291,15 @@ public static class ListImageExporter
             MaxLines = 2,
             TextWrapping = TextWrapping.WrapWholeWords,
         });
-        if (movie.Year.HasValue)
-            strip.Children.Add(new TextBlock
+        if (movie.Год.HasValue)
+            strip.Children.Добавить(new TextBlock
             {
-                Text = movie.Year.ToString(),
+                Text = movie.Год.ToString(),
                 FontSize = 10,
                 Foreground = new SolidColorBrush(Color.FromArgb(0xCC, 0xFF, 0xFF, 0xFF)),
             });
         stripBorder.Child = strip;
-        inner.Children.Add(stripBorder);
+        inner.Children.Добавить(stripBorder);
 
         border.Child = inner;
         return border;

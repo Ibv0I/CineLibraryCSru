@@ -1,32 +1,32 @@
 <UserControl
-    x:Class="CineLibraryCS.Views.TvShowCard"
+    x:Class="CineМедиатекаCS.Views.TvShowCard"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- No ToolTip: recycled cards orphan tooltips on scroll (see MovieCardControl). -->
     <!-- v4.1.0: no fixed width; the card asks for its size in MeasureOverride and
-         fills the width it is given, so the All TV shows grid lines up with the title. -->
+         fills the width it is given, so the Все сериалы grid lines up with the title. -->
     <Grid x:Name="CardRoot" Height="300" RenderTransformOrigin="0.5,0.5">
         <Grid.RenderTransform>
             <TranslateTransform x:Name="CardLift" Y="0"/>
         </Grid.RenderTransform>
-        <Border x:Name="CardBorder" Background="{ThemeResource CardBrush}" CornerRadius="12">
+        <Border x:Name="CardBorder" Назадground="{ThemeResource CardBrush}" CornerRadius="12">
             <Border.Shadow><ThemeShadow/></Border.Shadow>
             <Grid>
                 <!-- Poster -->
                 <Image x:Name="PosterImage" Stretch="UniformToFill"/>
                 <Grid x:Name="PosterPlaceholder">
-                    <Grid.Background>
+                    <Grid.Назадground>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Offset="0" Color="{ThemeResource PlaceholderTopColor}"/>
-                            <GradientStop Offset="1" Color="{ThemeResource PlaceholderBottomColor}"/>
+                            <GradientStop Выкл.set="0" Color="{ThemeResource PlaceholderTopColor}"/>
+                            <GradientStop Выкл.set="1" Color="{ThemeResource PlaceholderBottomColor}"/>
                         </LinearGradientBrush>
-                    </Grid.Background>
+                    </Grid.Назадground>
                     <TextBlock Text="📺" FontSize="44" Opacity="0.85"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
 
-                <!-- Favorite star -->
+                <!-- Избранное star -->
                 <Border x:Name="FavBadge" Style="{StaticResource PosterBadgeStyle}"
                         VerticalAlignment="Top" HorizontalAlignment="Right"
                         Margin="8" Visibility="Collapsed">
@@ -34,7 +34,7 @@
                 </Border>
 
                 <!-- Status badge -->
-                <Border x:Name="StatusBadge" Background="#CC000000" CornerRadius="8"
+                <Border x:Name="StatusBadge" Назадground="#CC000000" CornerRadius="8"
                         VerticalAlignment="Top" HorizontalAlignment="Left"
                         Padding="6,2" Margin="6" Visibility="Collapsed">
                     <TextBlock x:Name="StatusText" FontSize="9" FontWeight="Bold" Foreground="White"/>
@@ -42,22 +42,22 @@
 
                 <!-- Info strip (hidden under the hover panel, v4.1.0) -->
                 <Border x:Name="InfoStrip" VerticalAlignment="Bottom" CornerRadius="0,0,12,12" Padding="10,8">
-                    <Border.Background>
+                    <Border.Назадground>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Offset="0" Color="#00000000"/>
-                            <GradientStop Offset="0.35" Color="#99000000"/>
-                            <GradientStop Offset="1" Color="#F2000000"/>
+                            <GradientStop Выкл.set="0" Color="#00000000"/>
+                            <GradientStop Выкл.set="0.35" Color="#99000000"/>
+                            <GradientStop Выкл.set="1" Color="#F2000000"/>
                         </LinearGradientBrush>
-                    </Border.Background>
+                    </Border.Назадground>
                     <StackPanel VerticalAlignment="Bottom" Spacing="5">
                         <!-- v3.8.0: green tick once every episode is watched, as on movie cards -->
-                        <Border x:Name="WatchedBadge" Background="#CC22C55E" CornerRadius="10"
+                        <Border x:Name="ПросмотреноBadge" Назадground="#CC22C55E" CornerRadius="10"
                                 Width="22" Height="22" HorizontalAlignment="Left"
                                 Visibility="Collapsed">
                             <TextBlock Text="✓" FontSize="12" FontWeight="Bold" Foreground="White"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <TextBlock x:Name="TitleText" FontSize="13" FontWeight="Bold"
+                        <TextBlock x:Name="НазваниеText" FontSize="13" FontWeight="Bold"
                                    Foreground="White" TextTrimming="CharacterEllipsis"
                                    MaxLines="2" TextWrapping="WrapWholeWords"/>
                         <Grid>
@@ -69,38 +69,38 @@
                             <TextBlock x:Name="ProgressText" Grid.Column="1" FontSize="11"
                                        FontWeight="SemiBold" Foreground="#A78BFA"/>
                         </Grid>
-                        <!-- Watched progress bar (v4.1.0: star columns follow the card's width) -->
-                        <Grid Height="4" CornerRadius="2" Background="#40FFFFFF">
+                        <!-- Просмотрено progress bar (v4.1.0: star columns follow the card's width) -->
+                        <Grid Height="4" CornerRadius="2" Назадground="#40FFFFFF">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition x:Name="ProgressDoneColumn" Width="0*"/>
                                 <ColumnDefinition x:Name="ProgressLeftColumn" Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Border x:Name="ProgressFill" CornerRadius="2"
-                                    Background="{StaticResource BrandPurpleBrush}"/>
+                                    Назадground="{StaticResource BrandPurpleBrush}"/>
                         </Grid>
                     </StackPanel>
                 </Border>
 
                 <!-- v4.1.0: hover panel, like the movie cards': what the show is,
-                     ▶ the next episode, and Favorite / Watchlist without opening
+                     ▶ the next episode, and Избранное / Список просмотра without opening
                      the show. Filled in when the pointer comes in. -->
-                <Border x:Name="HoverOverlay" CornerRadius="12" Background="#CC000000"
+                <Border x:Name="HoverOverlay" CornerRadius="12" Назадground="#CC000000"
                         Visibility="Collapsed">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
                                 Spacing="6" Margin="8">
-                        <TextBlock x:Name="HoverGenres" FontSize="11" Foreground="#E0E0E0"
+                        <TextBlock x:Name="HoverЖанры" FontSize="11" Foreground="#E0E0E0"
                                    TextAlignment="Center" TextWrapping="Wrap" MaxLines="2"
                                    TextTrimming="CharacterEllipsis"/>
                         <TextBlock x:Name="HoverSeasons" FontSize="11" Foreground="#E0E0E0"
                                    TextAlignment="Center" TextWrapping="Wrap"/>
-                        <Button x:Name="HoverPlayBtn" Click="OnHoverPlay" Tapped="OnHoverButtonTapped"
+                        <Button x:Name="HoverВоспроизвестиBtn" Click="Вкл.HoverВоспроизвести" Tapped="Вкл.HoverButtonTapped"
                                 Style="{StaticResource PillButtonActiveStyle}"
                                 HorizontalAlignment="Center" Margin="0,4,0,0"/>
                         <TextBlock x:Name="HoverNote" FontSize="11" TextAlignment="Center"
                                    TextWrapping="Wrap" Margin="0,4,0,0"/>
-                        <Button x:Name="HoverFavBtn" Click="OnHoverFavorite" Tapped="OnHoverButtonTapped"
+                        <Button x:Name="HoverFavBtn" Click="Вкл.HoverИзбранное" Tapped="Вкл.HoverButtonTapped"
                                 Style="{StaticResource PillButtonStyle}" HorizontalAlignment="Center"/>
-                        <Button x:Name="HoverWatchlistBtn" Click="OnHoverWatchlist" Tapped="OnHoverButtonTapped"
+                        <Button x:Name="HoverСписок просмотраBtn" Click="Вкл.HoverСписок просмотра" Tapped="Вкл.HoverButtonTapped"
                                 Style="{StaticResource PillButtonStyle}" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Border>

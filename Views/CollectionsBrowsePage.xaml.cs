@@ -2,12 +2,12 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
-using CineLibraryCS.Services;
+using CineМедиатекаCS.Services;
 
-namespace CineLibraryCS.Views;
+namespace CineМедиатекаCS.Views;
 
 /// <summary>
-/// Tile data-model for the Collections grid. We set CoverImage eagerly
+/// Tile data-model for the Коллекции grid. We set CoverImage eagerly
 /// in Load() via BitmapImage.UriSource — the decode itself stays lazy
 /// (only happens when the Image element actually renders), so virtualization
 /// still pays off. The original lazy-via-ElementPrepared design didn't fire
@@ -20,30 +20,30 @@ public partial class CollectionTileVm : ObservableObject
     public string CountText { get; init; } = "";
     public double CardWidth { get; init; }
     public double CardHeight { get; init; }
-    public Visibility WatchedVisibility { get; init; } = Visibility.Collapsed;
+    public Visibility ПросмотреноVisibility { get; init; } = Visibility.Collapsed;
     [ObservableProperty] private BitmapImage? _coverImage;
 }
 
-public sealed partial class CollectionsBrowsePage : Page
+public sealed partial class КоллекцииОбзорPage : Page
 {
     private List<CollectionTileVm> _tiles = new();
 
     // v3.8.0: sort / watched filter / poster size, remembered in prefs like
-    // the All movies and All TV shows toolbars.
+    // the Все фильмы and Все сериалы toolbars.
     private string _sort = "name:asc";
     private string _filter = "all";
     private double _cardWidth = 150, _cardHeight = 280;
     private bool _uiReady;
-    private readonly string _noCollectionsHint;
+    private readonly string _noКоллекцииHint;
 
-    public CollectionsBrowsePage()
+    public КоллекцииОбзорPage()
     {
         InitializeComponent();
-        _noCollectionsHint = EmptyHint.Text;
+        _noКоллекцииHint = EmptyHint.Text;
         _sort = AppState.Instance.GetPref("collSort", "name:asc");
         _filter = AppState.Instance.GetPref("collFilter", "all");
         if (_filter is not ("all" or "unwatched" or "watched")) _filter = "all";
-        ApplyDensity(AppState.Instance.GetPref("collDensity", "M"));
+        ПрименитьDensity(AppState.Instance.GetPref("collDensity", "M"));
         SyncToolbar();
         _uiReady = true;
     }
@@ -59,9 +59,9 @@ public sealed partial class CollectionsBrowsePage : Page
             all.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         if (entries.Count == 0)
         {
-            EmptyTitle.Text = all.Count == 0 ? "No collections yet"
+            EmptyНазвание.Text = all.Count == 0 ? "Коллекций пока нет"
                 : _filter == "watched" ? "No fully watched collections yet" : "Nothing left to watch";
-            EmptyHint.Text = all.Count == 0 ? _noCollectionsHint : "Choose All to see every collection.";
+            EmptyHint.Text = all.Count == 0 ? _noКоллекцииHint : "Choose Все to see every collection.";
             EmptyState.Visibility = Visibility.Visible;
             GridRepeater.ItemsSource = null;
             _tiles = new();
@@ -78,7 +78,7 @@ public sealed partial class CollectionsBrowsePage : Page
                 CountText = $"{e.Count} movie{(e.Count == 1 ? "" : "s")}",
                 CardWidth = _cardWidth,
                 CardHeight = _cardHeight,
-                WatchedVisibility = e.Watched >= e.Count ? Visibility.Visible : Visibility.Collapsed,
+                ПросмотреноVisibility = e.Просмотрено >= e.Count ? Visibility.Visible : Visibility.Collapsed,
             };
             if (e.CoverPoster != null)
             {
@@ -96,7 +96,7 @@ public sealed partial class CollectionsBrowsePage : Page
                         var bmp = new BitmapImage { DecodePixelWidth = (int)Math.Max(200, _cardWidth * 2) };
                         // new Uri() already encodes '#' / '?' / spaces correctly;
                         // pre-escaping them double-encoded paths under a folder
-                        // like "#Bollywood Movies" and broke the image load.
+                        // like "#Bollywood Фильмы" and broke the image load.
                         bmp.UriSource = new Uri(fullPath);
                         vm.CoverImage = bmp;
                     }
@@ -110,12 +110,12 @@ public sealed partial class CollectionsBrowsePage : Page
 
     private IEnumerable<DatabaseService.CollectionEntry> Filter(IEnumerable<DatabaseService.CollectionEntry> sets) => _filter switch
     {
-        "watched"   => sets.Where(s => s.Watched >= s.Count),
-        "unwatched" => sets.Where(s => s.Watched < s.Count),
+        "watched"   => sets.Where(s => s.Просмотрено >= s.Count),
+        "unwatched" => sets.Where(s => s.Просмотрено < s.Count),
         _           => sets,
     };
 
-    // Name ↑ keeps the database order. The other sorts are stable on top of
+    // Имя ↑ keeps the database order. The other sorts are stable on top of
     // it, so ties stay alphabetical; a set with no years goes last.
     private IEnumerable<DatabaseService.CollectionEntry> Sort(IEnumerable<DatabaseService.CollectionEntry> sets)
     {
@@ -124,14 +124,14 @@ public sealed partial class CollectionsBrowsePage : Page
         return parts[0] switch
         {
             "count"      => desc ? sets.OrderByDescending(s => s.Count) : sets.OrderBy(s => s.Count),
-            "year"       => desc ? sets.OrderByDescending(s => s.LatestYear ?? 0)
-                                 : sets.OrderBy(s => s.LatestYear ?? int.MaxValue),
-            "date_added" => desc ? sets.OrderByDescending(s => s.LastAdded) : sets.OrderBy(s => s.LastAdded),
+            "year"       => desc ? sets.OrderByDescending(s => s.LatestГод ?? 0)
+                                 : sets.OrderBy(s => s.LatestГод ?? int.MaxValue),
+            "date_added" => desc ? sets.OrderByDescending(s => s.LastДобавитьed) : sets.OrderBy(s => s.LastДобавитьed),
             _            => desc ? sets.Reverse() : sets,
         };
     }
 
-    private void OnSortChanged(object sender, SelectionChangedEventArgs e)
+    private void Вкл.SortChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_uiReady || CollSortCombo.SelectedItem is not ComboBoxItem { Tag: string tag }) return;
         _sort = tag;
@@ -139,7 +139,7 @@ public sealed partial class CollectionsBrowsePage : Page
         Load();
     }
 
-    private void OnFilterClick(object sender, RoutedEventArgs e)
+    private void Вкл.FilterClick(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: string tag }) return;
         _filter = tag;
@@ -148,22 +148,22 @@ public sealed partial class CollectionsBrowsePage : Page
         Load();
     }
 
-    private void OnDensityClick(object sender, RoutedEventArgs e)
+    private void Вкл.DensityClick(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement { Tag: string tag }) return;
-        ApplyDensity(tag);
+        ПрименитьDensity(tag);
         AppState.Instance.SetPref("collDensity", tag);
         Load();   // fresh tiles carry the new card size
     }
 
-    private void ApplyDensity(string tag)
+    private void ПрименитьDensity(string tag)
     {
         (_cardWidth, _cardHeight) = tag switch
         {
             "S"  => (120.0, 220.0),
             "L"  => (190.0, 340.0),
             "XL" => (240.0, 420.0),
-            _    => (150.0, 280.0),   // M, the same sizes as All movies
+            _    => (150.0, 280.0),   // M, the same sizes as Все фильмы
         };
         CollGridLayout.MinItemWidth = _cardWidth;
         CollGridLayout.MinItemHeight = _cardHeight;
@@ -176,7 +176,7 @@ public sealed partial class CollectionsBrowsePage : Page
 
     private void SyncToolbar()
     {
-        // Only touch the combo when it's wrong: setting it fires OnSortChanged,
+        // Вкл.ly touch the combo when it's wrong: setting it fires Вкл.SortChanged,
         // which would otherwise store a passing value as the user's choice.
         var index = 0;
         for (int i = 0; i < CollSortCombo.Items.Count; i++)
@@ -184,17 +184,17 @@ public sealed partial class CollectionsBrowsePage : Page
         if (CollSortCombo.SelectedIndex != index) CollSortCombo.SelectedIndex = index;
         var pill = (Style)Application.Current.Resources["PillButtonStyle"];
         var active = (Style)Application.Current.Resources["PillButtonActiveStyle"];
-        CollFilterAll.Style       = _filter == "all"       ? active : pill;
-        CollFilterUnwatched.Style = _filter == "unwatched" ? active : pill;
-        CollFilterWatched.Style   = _filter == "watched"   ? active : pill;
+        CollFilterВсе.Style       = _filter == "all"       ? active : pill;
+        CollFilterНе просмотрено.Style = _filter == "unwatched" ? active : pill;
+        CollFilterПросмотрено.Style   = _filter == "watched"   ? active : pill;
     }
 
-    private void OnTileClick(object sender, RoutedEventArgs e)
+    private void Вкл.TileClick(object sender, RoutedEventArgs e)
     {
         if (sender is not Button b || b.Tag is not int id) return;
-        var tile = _tiles.FirstOrDefault(t => t.Id == id);
+        var tile = _tiles.FirstOrПо умолчанию(t => t.Id == id);
         if (tile == null) return;
         if (App.MainWindow is MainWindow mw)
-            mw.NavigateLibraryByCollection(id, tile.Name);
+            mw.NavigateМедиатекаByCollection(id, tile.Name);
     }
 }

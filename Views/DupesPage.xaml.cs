@@ -1,20 +1,20 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
-using System.Runtime.InteropServices.WindowsRuntime;
-using CineLibraryCS.Models;
-using CineLibraryCS.Services;
+using System.Продолжительность.InteropServices.WindowsПродолжительность;
+using CineМедиатекаCS.Models;
+using CineМедиатекаCS.Services;
 
-namespace CineLibraryCS.Views;
+namespace CineМедиатекаCS.Views;
 
 /// <summary>
-/// v3.4.4 — Tools → Dupes. A review tool for movies the library holds more than
+/// v3.4.4 — Tools → Дубликаты. A review tool for movies the library holds more than
 /// once. Groups are matched by TMDb/IMDb id (else title + year) and classified
 /// conservatively, so deliberately-kept variants (dubs, editions, quality) are
 /// shown as kept-on-purpose. For real duplicates it recommends a keeper, shows
 /// reclaimable space, and offers per-copy actions. The app never deletes files.
 /// </summary>
-public sealed partial class DupesPage : Page
+public sealed partial class ДубликатыPage : Page
 {
     public event EventHandler? SidebarRefreshRequested;
 
@@ -22,18 +22,18 @@ public sealed partial class DupesPage : Page
     private int _posterToken;
     private bool _isLoaded;
 
-    public DupesPage()
+    public ДубликатыPage()
     {
         InitializeComponent();
         Loaded += (_, _) => _isLoaded = true;
         Unloaded += (_, _) => _isLoaded = false;
         // When the user comes back from Explorer (e.g. after deleting a copy),
         // re-check files on disk so a now-resolved set drops off on its own —
-        // no manual Rescan needed.
-        if (App.MainWindow is Window w) w.Activated += OnWindowActivated;
+        // no manual Пересканировать needed.
+        if (App.MainWindow is Window w) w.Activated += Вкл.WindowActivated;
     }
 
-    private void OnWindowActivated(object sender, WindowActivatedEventArgs e)
+    private void Вкл.WindowActivated(object sender, WindowActivatedEventArgs e)
     {
         if (e.WindowActivationState != WindowActivationState.Deactivated && _isLoaded)
             Refresh();
@@ -44,12 +44,12 @@ public sealed partial class DupesPage : Page
         var connected = AppState.Instance.Connected;
         _all = await System.Threading.Tasks.Task.Run(
             () => AppState.Instance.Db.GetDuplicateGroups(connected));
-        ApplyFilter();
+        ПрименитьFilter();
     }
 
-    private void ApplyFilter()
+    private void ПрименитьFilter()
     {
-        bool onlyDupes = OnlyDupesCheck.IsChecked == true;
+        bool onlyДубликаты = Вкл.lyДубликатыCheck.IsChecked == true;
         bool showIgnored = ShowIgnoredCheck.IsChecked == true;
 
         var shown = new List<DupeGroup>();
@@ -61,8 +61,8 @@ public sealed partial class DupesPage : Page
             else if (g.PossibleDuplicate) { possible++; reclaimable += g.ReclaimableBytes; }
 
             if (!showIgnored && g.IsIgnored) continue;
-            if (onlyDupes && !g.PossibleDuplicate) continue;
-            shown.Add(g);
+            if (onlyДубликаты && !g.PossibleDuplicate) continue;
+            shown.Добавить(g);
         }
 
         GroupsRepeater.ItemsSource = shown;
@@ -76,11 +76,11 @@ public sealed partial class DupesPage : Page
         _ = LoadPostersAsync(shown, ++_posterToken);
     }
 
-    private void OnFilterChanged(object sender, RoutedEventArgs e) => ApplyFilter();
+    private void Вкл.FilterChanged(object sender, RoutedEventArgs e) => ПрименитьFilter();
 
     /// <summary>Re-check files on disk and rebuild — used after the user deletes
-    /// a copy. Deleted copies drop out, so a now-single-copy set disappears.</summary>
-    private void OnRescan(object sender, RoutedEventArgs e) => Refresh();
+    /// a copy. Удалитьd copies drop out, so a now-single-copy set disappears.</summary>
+    private void Вкл.Пересканировать(object sender, RoutedEventArgs e) => Refresh();
 
     /// <summary>Trickle-load the keeper poster for each visible group (small set).</summary>
     private async System.Threading.Tasks.Task LoadPostersAsync(List<DupeGroup> groups, int token)
@@ -95,7 +95,7 @@ public sealed partial class DupesPage : Page
             if (full == null) continue;
             try
             {
-                var bytes = await System.Threading.Tasks.Task.Run(() => System.IO.File.ReadAllBytes(full));
+                var bytes = await System.Threading.Tasks.Task.Run(() => System.IO.File.ReadВсеBytes(full));
                 if (token != _posterToken) return;
                 var bmp = new BitmapImage { DecodePixelWidth = 110 };
                 using var ms = new Windows.Storage.Streams.InMemoryRandomAccessStream();
@@ -109,37 +109,37 @@ public sealed partial class DupesPage : Page
         }
     }
 
-    private async void OnOpenFolder(object sender, RoutedEventArgs e)
+    private async void Вкл.OpenПапка(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is not DupeCopy copy) return;
-        if (!copy.IsOnline || copy.CurrentLetter == null || copy.FolderRelPath == null)
+        if (!copy.IsВкл.line || copy.CurrentLetter == null || copy.ПапкаRelPath == null)
         {
             if (App.MainWindow is MainWindow mw) mw.ShowToast("That copy's drive is offline.");
             return;
         }
         var folder = System.IO.Path.Combine($"{copy.CurrentLetter}:\\",
-            copy.FolderRelPath.Replace('/', '\\'));
-        try { await Windows.System.Launcher.LaunchFolderPathAsync(folder); }
+            copy.ПапкаRelPath.Replace('/', '\\'));
+        try { await Windows.System.Launcher.LaunchПапкаPathAsync(folder); }
         catch
         {
             if (App.MainWindow is MainWindow mw2) mw2.ShowToast("Couldn't open that folder.");
         }
     }
 
-    private void OnSendToWg(object sender, RoutedEventArgs e)
+    private void Вкл.SendToWg(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is not DupeCopy copy) return;
-        AppState.Instance.Db.ArchiveMovies(new[] { copy.Id });
-        if (App.MainWindow is MainWindow mw) mw.ShowToast("Sent to Watched & Gone");
+        AppState.Instance.Db.ArchiveФильмы(new[] { copy.Id });
+        if (App.MainWindow is MainWindow mw) mw.ShowToast("Sent to Просмотрено и удалено");
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         Refresh();
     }
 
-    private void OnToggleIgnore(object sender, RoutedEventArgs e)
+    private void Вкл.ToggleIgnore(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is not DupeGroup g) return;
         AppState.Instance.Db.SetDupeIgnored(g.Key, !g.IsIgnored);
         g.IsIgnored = !g.IsIgnored;
-        ApplyFilter();
+        ПрименитьFilter();
     }
 }

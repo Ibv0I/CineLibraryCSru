@@ -1,22 +1,22 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using CineLibraryCS.Models;
-using CineLibraryCS.Services;
-using DriveInfo = CineLibraryCS.Models.DriveInfo;
+using CineМедиатекаCS.Models;
+using CineМедиатекаCS.Services;
+using DriveInfo = CineМедиатекаCS.Models.DriveInfo;
 using SysDriveInfo = System.IO.DriveInfo;
 
-namespace CineLibraryCS.Views;
+namespace CineМедиатекаCS.Views;
 
-public sealed partial class DrivesPage : Page
+public sealed partial class ДискиPage : Page
 {
     public event EventHandler? RefreshRequested;
-    public event EventHandler<string>? NavigateToLibrary;
+    public event EventHandler<string>? NavigateToМедиатека;
 
-    private CancellationTokenSource? _scanCts;
+    private ОтменаlationTokenSource? _scanCts;
     private List<DriveInfo> _drives = new();
 
-    public DrivesPage()
+    public ДискиPage()
     {
         InitializeComponent();
         Refresh();
@@ -25,20 +25,20 @@ public sealed partial class DrivesPage : Page
     public void Refresh()
     {
         AppState.Instance.RefreshConnected();
-        _drives = AppState.Instance.Db.GetDrives();
-        DrivesRepeater.ItemsSource = _drives;
+        _drives = AppState.Instance.Db.GetДиски();
+        ДискиRepeater.ItemsSource = _drives;
         EmptyState.Visibility = _drives.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    // ── Add drive (no scan — just register it) ────────────────────────────
+    // ── Добавить drive (no scan — just register it) ────────────────────────────
 
-    private async void OnAddDrive(object sender, RoutedEventArgs e)
+    private async void Вкл.ДобавитьDrive(object sender, RoutedEventArgs e)
     {
-        try { await DoAddDriveAsync(); }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        try { await DoДобавитьDriveAsync(); }
+        catch (Exception ex) { await ShowInfoDialog("Ошибка", ex.Message); }
     }
 
-    private async Task DoAddDriveAsync()
+    private async Task DoДобавитьDriveAsync()
     {
         var connected = AppState.Instance.Connected;
         if (!connected.Any())
@@ -48,83 +48,83 @@ public sealed partial class DrivesPage : Page
             return;
         }
 
-        var existing = AppState.Instance.Db.GetDrives().Select(d => d.VolumeSerial).ToHashSet();
-        var newDrives = new List<(string Serial, string Letter, string VolumeLabel)>();
+        var existing = AppState.Instance.Db.GetДиски().Select(d => d.VolumeSerial).ToHashSet();
+        var newДиски = new List<(string Serial, string Letter, string VolumeLabel)>();
 
         foreach (var kv in connected)
         {
             if (!existing.Contains(kv.Key))
             {
-                var sdi = SysDriveInfo.GetDrives()
-                    .FirstOrDefault(d => d.Name.StartsWith(kv.Value, StringComparison.OrdinalIgnoreCase));
+                var sdi = SysDriveInfo.GetДиски()
+                    .FirstOrПо умолчанию(d => d.Name.StartsWith(kv.Value, StringComparison.OrdinalIgnoreCase));
                 var label = sdi?.VolumeLabel is { Length: > 0 } vl ? vl : $"Drive ({kv.Value}:)";
-                newDrives.Add((kv.Key, kv.Value, label));
+                newДиски.Добавить((kv.Key, kv.Value, label));
             }
         }
 
-        if (!newDrives.Any())
+        if (!newДиски.Any())
         {
-            await ShowInfoDialog("All drives added", "All connected drives are already in your library.");
+            await ShowInfoDialog("Все drives added", "Все connected drives are already in your library.");
             return;
         }
 
         var combo = new ComboBox { MinWidth = 300 };
-        foreach (var (_, letter, label) in newDrives)
-            combo.Items.Add($"{label} ({letter}:)");
+        foreach (var (_, letter, label) in newДиски)
+            combo.Items.Добавить($"{label} ({letter}:)");
         combo.SelectedIndex = 0;
 
         var nameBox = new TextBox
         {
-            Text = newDrives[0].VolumeLabel,
-            PlaceholderText = "Drive label (e.g. Seagate Red 5TB)"
+            Text = newДиски[0].VolumeLabel,
+            PlaceholderText = "Название диска (например, Seagate Red 5TB)"
         };
 
         combo.SelectionChanged += (_, _) =>
         {
             var idx = combo.SelectedIndex;
-            if (idx >= 0 && idx < newDrives.Count)
-                nameBox.Text = newDrives[idx].VolumeLabel;
+            if (idx >= 0 && idx < newДиски.Count)
+                nameBox.Text = newДиски[idx].VolumeLabel;
         };
 
         var muted = new Microsoft.UI.Xaml.Media.SolidColorBrush(
             Windows.UI.Color.FromArgb(0xFF, 0x90, 0x90, 0xA0));
         var panel = new StackPanel { Spacing = 12 };
-        panel.Children.Add(new TextBlock { Text = "Select drive:", FontSize = 13, Foreground = muted });
-        panel.Children.Add(combo);
-        panel.Children.Add(new TextBlock { Text = "Drive label:", FontSize = 13, Foreground = muted });
-        panel.Children.Add(nameBox);
-        panel.Children.Add(new TextBlock
+        panel.Children.Добавить(new TextBlock { Text = "Select drive:", FontSize = 13, Foreground = muted });
+        panel.Children.Добавить(combo);
+        panel.Children.Добавить(new TextBlock { Text = "Название диска:", FontSize = 13, Foreground = muted });
+        panel.Children.Добавить(nameBox);
+        panel.Children.Добавить(new TextBlock
         {
-            Text = "After adding, use “+ Add Folder” on the drive card to pick which folders to index.",
+            Text = "After adding, use “+ Добавить Папка” on the drive card to pick which folders to index.",
             FontSize = 12, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
 
         var dialog = new ContentDialog
         {
-            Title = "Add Drive",
+            Название = "Добавить диск",
             Content = panel,
-            PrimaryButtonText = "Add",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Primary,
+            PrimaryButtonText = "Добавить",
+            ЗакрытьButtonText = "Отмена",
+            По умолчаниюButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
-            RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
+            RequestedTheme = CineМедиатекаCS.MainWindow.CurrentTheme,
         };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
 
         var selIdx = combo.SelectedIndex;
-        if (selIdx < 0 || selIdx >= newDrives.Count) return;
-        var (ser, let, _) = newDrives[selIdx];
+        if (selIdx < 0 || selIdx >= newДиски.Count) return;
+        var (ser, let, _) = newДиски[selIdx];
 
         var finalLabel = string.IsNullOrWhiteSpace(nameBox.Text) ? $"Drive ({let}:)" : nameBox.Text.Trim();
-        AppState.Instance.Db.AddDrive(ser, finalLabel, let);
+        AppState.Instance.Db.ДобавитьDrive(ser, finalLabel, let);
         Refresh();
         RefreshRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    // ── Add folder to a drive ─────────────────────────────────────────────
+    // ── Добавить папку to a drive ─────────────────────────────────────────────
 
-    private async void OnAddFolder(object sender, RoutedEventArgs e)
+    private async void Вкл.ДобавитьПапка(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -137,15 +137,15 @@ public sealed partial class DrivesPage : Page
                 return;
             }
             var driveRoot = $"{letter}:\\";
-            var drive = _drives.FirstOrDefault(d => d.VolumeSerial == serial);
+            var drive = _drives.FirstOrПо умолчанию(d => d.VolumeSerial == serial);
 
-            var picker = new Windows.Storage.Pickers.FolderPicker();
-            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.ComputerFolder;
-            picker.FileTypeFilter.Add("*");
+            var picker = new Windows.Storage.Pickers.ПапкаPicker();
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.ComputerПапка;
+            picker.FileTypeFilter.Добавить("*");
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
             WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
 
-            var folder = await picker.PickSingleFolderAsync();
+            var folder = await picker.PickSingleПапкаAsync();
             if (folder == null) return;
 
             if (!folder.Path.StartsWith(driveRoot, StringComparison.OrdinalIgnoreCase))
@@ -167,32 +167,32 @@ public sealed partial class DrivesPage : Page
                 return;
             }
 
-            AppState.Instance.Db.AddDriveRoot(serial, relPath);
+            AppState.Instance.Db.ДобавитьDriveRoot(serial, relPath);
 
             // Now scan just that folder
             await ScanDriveAsync(serial, letter, drive?.Label ?? serial, folder.Path);
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog("Ошибка", ex.Message); }
     }
 
     // ── Remove folder ─────────────────────────────────────────────────────
 
-    private async void OnRemoveFolder(object sender, RoutedEventArgs e)
+    private async void Вкл.RemoveПапка(object sender, RoutedEventArgs e)
     {
         try
         {
             if (sender is not Button btn || btn.Tag is not DriveRoot dr) return;
-            var drive = _drives.FirstOrDefault(d => d.VolumeSerial == dr.VolumeSerial);
+            var drive = _drives.FirstOrПо умолчанию(d => d.VolumeSerial == dr.VolumeSerial);
 
             var dialog = new ContentDialog
             {
-                Title = "Remove folder?",
-                Content = $"Remove '{dr.DisplayName}' from '{drive?.Label}'? Movies indexed under this folder will be deleted from the library. The actual files on the drive are untouched.",
+                Название = "Remove folder?",
+                Content = $"Remove '{dr.DisplayName}' from '{drive?.Label}'? Фильмы indexed under this folder will be deleted from the library. The actual files on the drive are untouched.",
                 PrimaryButtonText = "Remove",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Close,
+                ЗакрытьButtonText = "Отмена",
+                По умолчаниюButton = ContentDialogButton.Закрыть,
                 XamlRoot = XamlRoot,
-                RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
+                RequestedTheme = CineМедиатекаCS.MainWindow.CurrentTheme,
             };
             if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
 
@@ -200,12 +200,12 @@ public sealed partial class DrivesPage : Page
             Refresh();
             RefreshRequested?.Invoke(this, EventArgs.Empty);
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog("Ошибка", ex.Message); }
     }
 
-    // ── Update Database (rescan all tracked folders on this drive) ────────
+    // ── Обновить Database (rescan all tracked folders on this drive) ────────
 
-    private async void OnUpdateDatabase(object sender, RoutedEventArgs e)
+    private async void Вкл.ОбновитьDatabase(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -216,11 +216,11 @@ public sealed partial class DrivesPage : Page
                 await ShowInfoDialog("Drive offline", "This drive is not connected.");
                 return;
             }
-            var drive = _drives.FirstOrDefault(d => d.VolumeSerial == serial);
+            var drive = _drives.FirstOrПо умолчанию(d => d.VolumeSerial == serial);
             var roots = AppState.Instance.Db.GetDriveRoots(serial);
             if (roots.Count == 0)
             {
-                await ShowInfoDialog("No folders", "Add at least one folder to this drive before updating.");
+                await ShowInfoDialog("Папок нет", "Добавить at least one folder to this drive before updating.");
                 return;
             }
 
@@ -233,42 +233,42 @@ public sealed partial class DrivesPage : Page
                 await ScanDriveAsync(serial, letter, drive?.Label ?? serial, abs);
             }
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog("Ошибка", ex.Message); }
     }
 
     // ── Scan (shared) ─────────────────────────────────────────────────────
 
-    private async Task ScanDriveAsync(string serial, string letter, string label, string? scanFolder = null)
+    private async Task ScanDriveAsync(string serial, string letter, string label, string? scanПапка = null)
     {
         var driveRoot = $"{letter}:\\";
 
-        var scopeLabel = scanFolder != null && !string.Equals(scanFolder.TrimEnd('\\'), driveRoot.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)
-            ? $"…\\{Path.GetFileName(scanFolder.TrimEnd('\\'))}"
+        var scopeLabel = scanПапка != null && !string.Equals(scanПапка.TrimEnd('\\'), driveRoot.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)
+            ? $"…\\{Path.GetFileName(scanПапка.TrimEnd('\\'))}"
             : label;
 
         ScanOverlay.Visibility = Visibility.Visible;
         ScanStatusText.Text = $"Scanning {scopeLabel}…";
         ScanDetailText.Text = "Preparing…";
 
-        _scanCts = new CancellationTokenSource();
+        _scanCts = new ОтменаlationTokenSource();
 
         var progress = new Progress<ScanProgress>(p =>
         {
             DispatcherQueue.TryEnqueue(() =>
             {
                 ScanStatusText.Text = p.Done
-                    ? $"Done — {p.Inserted} new, {p.Updated} updated, {p.Skipped} skipped"
+                    ? $"Done — {p.Inserted} new, {p.Обновитьd} updated, {p.Skipped} skipped"
                     : $"Scanning {scopeLabel}… ({p.Found} found)";
-                ScanDetailText.Text = p.Done ? "" : Path.GetFileName(p.CurrentFolder);
+                ScanDetailText.Text = p.Done ? "" : Path.GetFileName(p.CurrentПапка);
             });
         });
 
         try
         {
-            await AppState.Instance.Scanner.ScanAsync(serial, driveRoot, progress, _scanCts.Token, scanFolder);
+            await AppState.Instance.Scanner.ScanAsync(serial, driveRoot, progress, _scanCts.Token, scanПапка);
             await Task.Delay(1200);
         }
-        catch (OperationCanceledException)
+        catch (OperationОтменаedException)
         {
             ScanStatusText.Text = "Scan cancelled";
             await Task.Delay(1000);
@@ -285,8 +285,8 @@ public sealed partial class DrivesPage : Page
         }
     }
 
-    private void OnCancelScan(object sender, RoutedEventArgs e)
-        => _scanCts?.Cancel();
+    private void Вкл.ОтменаScan(object sender, RoutedEventArgs e)
+        => _scanCts?.Отмена();
 
     /// <summary>
     /// Incremental rescan of every online drive's *configured drive-roots*
@@ -296,10 +296,10 @@ public sealed partial class DrivesPage : Page
     /// Also runs a cleanup pass to remove any stray rows that the v1 bug
     /// might have inserted on a previous run.
     /// </summary>
-    private async void OnRefreshChanges(object sender, RoutedEventArgs e)
+    private async void Вкл.RefreshChanges(object sender, RoutedEventArgs e)
     {
         var connected = AppState.Instance.Connected;
-        var drives = AppState.Instance.Db.GetDrives()
+        var drives = AppState.Instance.Db.GetДиски()
                           .Where(d => connected.ContainsKey(d.VolumeSerial))
                           .ToList();
         if (drives.Count == 0)
@@ -310,39 +310,39 @@ public sealed partial class DrivesPage : Page
 
         // Build the per-drive-root work list — these are the only paths we
         // should touch. A drive without any drive-root entries is skipped.
-        var work = new List<(string Serial, string Letter, string Label, string DriveRoot, string ScanFolder)>();
+        var work = new List<(string Serial, string Letter, string Label, string DriveRoot, string ScanПапка)>();
         foreach (var d in drives)
         {
             var letter = connected[d.VolumeSerial];
             var driveRoot = $"{letter}:\\";
-            foreach (var r in d.Folders)
+            foreach (var r in d.Папкаs)
             {
                 if (string.IsNullOrWhiteSpace(r.RootPath)) continue;
                 var abs = Path.Combine(driveRoot, r.RootPath.Replace('/', '\\'));
-                if (!Directory.Exists(abs)) continue;
-                work.Add((d.VolumeSerial, letter, d.Label, driveRoot, abs));
+                if (!Режиссёрy.Exists(abs)) continue;
+                work.Добавить((d.VolumeSerial, letter, d.Label, driveRoot, abs));
             }
         }
         if (work.Count == 0)
         {
             await ShowInfoDialog("Nothing to refresh",
                 "None of the online drives have any folders configured to scan. " +
-                "Add a folder on a drive card first.");
+                "Добавить a folder on a drive card first.");
             return;
         }
 
         ScanOverlay.Visibility = Visibility.Visible;
         ScanStatusText.Text = $"Refreshing {work.Count} folder(s)…";
         ScanDetailText.Text = "";
-        _scanCts = new CancellationTokenSource();
+        _scanCts = new ОтменаlationTokenSource();
 
         int strayCleaned = 0;
         try
         {
             for (int i = 0; i < work.Count; i++)
             {
-                if (_scanCts.IsCancellationRequested) break;
-                var (serial, _, label, driveRoot, scanFolder) = work[i];
+                if (_scanCts.IsОтменаlationRequested) break;
+                var (serial, _, label, driveRoot, scanПапка) = work[i];
 
                 int prog = i + 1;
                 var progress = new Progress<ScanProgress>(p =>
@@ -350,27 +350,27 @@ public sealed partial class DrivesPage : Page
                     DispatcherQueue.TryEnqueue(() =>
                     {
                         ScanStatusText.Text = $"{prog}/{work.Count} — {label}: {p.Found} checked";
-                        ScanDetailText.Text = p.Done ? "" : Path.GetFileName(p.CurrentFolder);
+                        ScanDetailText.Text = p.Done ? "" : Path.GetFileName(p.CurrentПапка);
                     });
                 });
 
                 await AppState.Instance.Scanner.ScanAsync(
                     serial, driveRoot, progress, _scanCts.Token,
-                    scanFolder: scanFolder, incremental: true);
+                    scanПапка: scanПапка, incremental: true);
             }
 
             // Cleanup: remove any movies whose folder_rel_path isn't under
             // a configured drive_root. This silently undoes the v1 bug
             // for users who already ran the broken refresh.
             foreach (var d in drives)
-                strayCleaned += AppState.Instance.Db.RemoveMoviesOutsideDriveRoots(d.VolumeSerial);
+                strayCleaned += AppState.Instance.Db.RemoveФильмыOutsideDriveRoots(d.VolumeSerial);
 
             ScanStatusText.Text = strayCleaned > 0
                 ? $"Refreshed — removed {strayCleaned} stray entries"
                 : "Refreshed — sidebar counts updated";
             await Task.Delay(1500);
         }
-        catch (OperationCanceledException)
+        catch (OperationОтменаedException)
         {
             ScanStatusText.Text = "Refresh cancelled";
             await Task.Delay(1000);
@@ -387,28 +387,28 @@ public sealed partial class DrivesPage : Page
         }
     }
 
-    // ── Browse ────────────────────────────────────────────────────────────
+    // ── Обзор ────────────────────────────────────────────────────────────
 
-    private void OnBrowseDrive(object sender, RoutedEventArgs e)
+    private void Вкл.ОбзорDrive(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement fe && fe.Tag is string serial)
-            NavigateToLibrary?.Invoke(this, serial);
+            NavigateToМедиатека?.Invoke(this, serial);
     }
 
-    // ── Folder row hover-reveal (delete button) ───────────────────────────
+    // ── Папка row hover-reveal (delete button) ───────────────────────────
 
-    private static void SetFolderDeleteOpacity(object sender, double opacity)
+    private static void SetПапкаУдалитьOpacity(object sender, double opacity)
     {
         if (sender is Grid g)
             foreach (var child in g.Children)
                 if (child is Button b) { b.Opacity = opacity; break; }
     }
 
-    private void OnFolderPointerEntered(object sender, PointerRoutedEventArgs e)
-        => SetFolderDeleteOpacity(sender, 1);
+    private void Вкл.ПапкаPointerEntered(object sender, PointerRoutedEventArgs e)
+        => SetПапкаУдалитьOpacity(sender, 1);
 
-    private void OnFolderPointerExited(object sender, PointerRoutedEventArgs e)
-        => SetFolderDeleteOpacity(sender, 0);
+    private void Вкл.ПапкаPointerExited(object sender, PointerRoutedEventArgs e)
+        => SetПапкаУдалитьOpacity(sender, 0);
 
     // ── Drive card hover lift ─────────────────────────────────────────────
 
@@ -417,46 +417,46 @@ public sealed partial class DrivesPage : Page
     // lookup of a ThemeDictionary key returns the wrong theme variant (which
     // painted dark cards white on hover).
     private static Microsoft.UI.Xaml.Media.SolidColorBrush CardHoverBrush(FrameworkElement el) =>
-        new(el.ActualTheme == ElementTheme.Light
+        new(el.ActualTheme == ElementTheme.Светлая
             ? Windows.UI.Color.FromArgb(0xFF, 0xED, 0xED, 0xFB)   // #EDEDFB
             : Windows.UI.Color.FromArgb(0xFF, 0x1E, 0x1E, 0x2E)); // #1E1E2E
 
-    private void OnCardPointerEntered(object sender, PointerRoutedEventArgs e)
+    private void Вкл.CardPointerEntered(object sender, PointerRoutedEventArgs e)
     {
-        if (sender is Border b) b.Background = CardHoverBrush(b);
+        if (sender is Border b) b.Назадground = CardHoverBrush(b);
     }
 
-    private void OnCardPointerExited(object sender, PointerRoutedEventArgs e)
+    private void Вкл.CardPointerExited(object sender, PointerRoutedEventArgs e)
     {
         // v4.2.0: back to CardSurfaceStyle's theme-following colour
-        if (sender is Border b) b.ClearValue(Border.BackgroundProperty);
+        if (sender is Border b) b.ClearValue(Border.НазадgroundProperty);
     }
 
     // ── Clean up missing movies ───────────────────────────────────────────
 
-    // v3.3 — Review missing: per-movie choice to keep as a Watched & Gone
+    // v3.3 — Review missing: per-movie choice to keep as a Просмотрено и удалено
     // record (watched/noted ones pre-ticked) or remove. Kept ones are
     // archived; the rest are deleted. Files on the drive are never touched.
-    private async void OnReviewMissing(object sender, RoutedEventArgs e)
+    private async void Вкл.ReviewMissing(object sender, RoutedEventArgs e)
     {
         try
         {
             if (sender is not FrameworkElement fe || fe.Tag is not string serial) return;
-            var drive = _drives.FirstOrDefault(d => d.VolumeSerial == serial);
-            var missing = AppState.Instance.Db.GetMissingMovies(serial);
+            var drive = _drives.FirstOrПо умолчанию(d => d.VolumeSerial == serial);
+            var missing = AppState.Instance.Db.GetMissingФильмы(serial);
             if (missing.Count == 0) return;
 
-            var muted = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush");
-            var chipBg = CineLibraryCS.Services.ThemeBrushes.Get("ChipBrush");
+            var muted = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush");
+            var chipBg = CineМедиатекаCS.Services.ThemeBrushes.Get("ChipBrush");
             var checkboxes = new List<(CheckBox box, int id)>();
 
             var listPanel = new StackPanel { Spacing = 4 };
             foreach (var m in missing)
             {
                 var row = new Grid { Padding = new Thickness(2) };
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                row.ColumnDefinitions.Добавить(new ColumnDefinition { Width = GridLength.Auto });
+                row.ColumnDefinitions.Добавить(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                row.ColumnDefinitions.Добавить(new ColumnDefinition { Width = GridLength.Auto });
 
                 var img = new Image { Width = 36, Height = 54, Stretch = Microsoft.UI.Xaml.Media.Stretch.UniformToFill };
                 var path = m.LocalPoster != null ? AppState.Instance.Db.GetCachedImagePath(m.LocalPoster) : null;
@@ -465,53 +465,53 @@ public sealed partial class DrivesPage : Page
                 var imgBorder = new Border
                 {
                     CornerRadius = new CornerRadius(4), Child = img,
-                    Margin = new Thickness(0, 0, 10, 0), Background = chipBg,
+                    Margin = new Thickness(0, 0, 10, 0), Назадground = chipBg,
                 };
                 Grid.SetColumn(imgBorder, 0);
-                row.Children.Add(imgBorder);
+                row.Children.Добавить(imgBorder);
 
                 var info = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-                info.Children.Add(new TextBlock
+                info.Children.Добавить(new TextBlock
                 {
-                    Text = m.Title, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                    Text = m.Название, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
                     FontSize = 13, TextTrimming = TextTrimming.CharacterEllipsis,
                 });
                 var bits = new List<string>();
-                if (m.Year != null) bits.Add(m.Year.ToString()!);
-                bits.Add(m.IsWatched ? "Watched" : "Unwatched");
-                if (m.HasNote) bits.Add("Has note");
-                info.Children.Add(new TextBlock { Text = string.Join("  ·  ", bits), FontSize = 11, Foreground = muted });
+                if (m.Год != null) bits.Добавить(m.Год.ToString()!);
+                bits.Добавить(m.IsПросмотрено ? "Просмотрено" : "Не просмотрено");
+                if (m.HasNote) bits.Добавить("Has note");
+                info.Children.Добавить(new TextBlock { Text = string.Join("  ·  ", bits), FontSize = 11, Foreground = muted });
                 Grid.SetColumn(info, 1);
-                row.Children.Add(info);
+                row.Children.Добавить(info);
 
                 var cb = new CheckBox
                 {
-                    IsChecked = m.IsWatched || m.HasNote,
-                    Content = "Keep", MinWidth = 0, VerticalAlignment = VerticalAlignment.Center,
+                    IsChecked = m.IsПросмотрено || m.HasNote,
+                    Content = "Оставить", MinWidth = 0, VerticalAlignment = VerticalAlignment.Center,
                 };
                 Grid.SetColumn(cb, 2);
-                row.Children.Add(cb);
-                checkboxes.Add((cb, m.Id));
-                listPanel.Children.Add(row);
+                row.Children.Добавить(cb);
+                checkboxes.Добавить((cb, m.Id));
+                listPanel.Children.Добавить(row);
             }
 
             var content = new StackPanel { Spacing = 6, MinWidth = 480 };
-            content.Children.Add(new TextBlock
+            content.Children.Добавить(new TextBlock
             {
                 Text = $"{missing.Count} movie(s) on “{drive?.Label}” weren't found in the last scan. " +
-                       "Tick the ones to keep as records in Watched & Gone — their poster, details, notes and " +
-                       "watch history stay. Unticked ones are removed from CineLibrary. Your files are never touched.",
+                       "Tick the ones to keep as records in Просмотрено и удалено — their poster, details, notes and " +
+                       "watch history stay. Unticked ones are removed from CineМедиатека. Your files are never touched.",
                 TextWrapping = TextWrapping.Wrap, FontSize = 13, Foreground = muted, Margin = new Thickness(0, 0, 0, 4),
             });
-            var keepAll = new HyperlinkButton { Content = "Keep all" };
-            keepAll.Click += (_, _) => { foreach (var (b, _) in checkboxes) b.IsChecked = true; };
-            var keepNone = new HyperlinkButton { Content = "Keep none" };
+            var keepВсе = new HyperlinkButton { Content = "Оставить все" };
+            keepВсе.Click += (_, _) => { foreach (var (b, _) in checkboxes) b.IsChecked = true; };
+            var keepNone = new HyperlinkButton { Content = "Оставить none" };
             keepNone.Click += (_, _) => { foreach (var (b, _) in checkboxes) b.IsChecked = false; };
             var quick = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
-            quick.Children.Add(keepAll);
-            quick.Children.Add(keepNone);
-            content.Children.Add(quick);
-            content.Children.Add(new ScrollViewer
+            quick.Children.Добавить(keepВсе);
+            quick.Children.Добавить(keepNone);
+            content.Children.Добавить(quick);
+            content.Children.Добавить(new ScrollViewer
             {
                 Content = listPanel, MaxHeight = 380,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -520,72 +520,72 @@ public sealed partial class DrivesPage : Page
 
             var dialog = new ContentDialog
             {
-                Title = "Review missing movies",
+                Название = "Review missing movies",
                 Content = content,
-                PrimaryButtonText = "Apply",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Primary,
+                PrimaryButtonText = "Применить",
+                ЗакрытьButtonText = "Отмена",
+                По умолчаниюButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot,
-                RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
+                RequestedTheme = CineМедиатекаCS.MainWindow.CurrentTheme,
             };
             if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
 
             var keepIds = checkboxes.Where(c => c.box.IsChecked == true).Select(c => c.id).ToList();
             var dropIds = checkboxes.Where(c => c.box.IsChecked != true).Select(c => c.id).ToList();
-            int kept = keepIds.Count > 0 ? AppState.Instance.Db.ArchiveMovies(keepIds) : 0;
-            int removed = dropIds.Count > 0 ? AppState.Instance.Db.DeleteMoviesByIds(dropIds) : 0;
+            int kept = keepIds.Count > 0 ? AppState.Instance.Db.ArchiveФильмы(keepIds) : 0;
+            int removed = dropIds.Count > 0 ? AppState.Instance.Db.УдалитьФильмыByIds(dropIds) : 0;
 
             Refresh();
             RefreshRequested?.Invoke(this, EventArgs.Empty);
-            if (App.MainWindow is CineLibraryCS.MainWindow mw)
+            if (App.MainWindow is CineМедиатекаCS.MainWindow mw)
                 mw.ShowToast($"Kept {kept} as record(s) · removed {removed}");
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog("Ошибка", ex.Message); }
     }
 
-    private async void OnCleanupMissing(object sender, RoutedEventArgs e)
+    private async void Вкл.CleanupMissing(object sender, RoutedEventArgs e)
     {
         try
         {
             if (sender is not Button btn || btn.Tag is not string serial) return;
-            var drive = _drives.FirstOrDefault(d => d.VolumeSerial == serial);
+            var drive = _drives.FirstOrПо умолчанию(d => d.VolumeSerial == serial);
             if (drive == null || drive.MissingCount == 0) return;
 
             var dialog = new ContentDialog
             {
-                Title = $"Remove {drive.MissingCount} missing movies?",
+                Название = $"Remove {drive.MissingCount} missing movies?",
                 Content =
                     $"The last scan of '{drive.Label}' didn't find {drive.MissingCount} movie(s) that were previously indexed. " +
                     "Their folders may have been renamed or deleted on the drive.\n\n" +
-                    "Removing them will delete their entries (and cached posters/fanart) from the CineLibrary database. " +
+                    "Removing them will delete their entries (and cached posters/fanart) from the CineМедиатека database. " +
                     "The actual files on the drive are not touched.\n\n" +
                     "Tip: if the drive was only partially connected or you scanned the wrong folder, " +
                     "cancel this and rescan first — otherwise you'll re-scrape these next time.",
-                PrimaryButtonText = $"Delete {drive.MissingCount} entries",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Close,
+                PrimaryButtonText = $"Удалить {drive.MissingCount} entries",
+                ЗакрытьButtonText = "Отмена",
+                По умолчаниюButton = ContentDialogButton.Закрыть,
                 XamlRoot = XamlRoot,
-                RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
+                RequestedTheme = CineМедиатекаCS.MainWindow.CurrentTheme,
             };
             if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
 
-            var deleted = AppState.Instance.Db.CleanupMissingMovies(serial);
+            var deleted = AppState.Instance.Db.CleanupMissingФильмы(serial);
             Refresh();
             RefreshRequested?.Invoke(this, EventArgs.Empty);
 
             await ShowInfoDialog("Cleaned up", $"Removed {deleted} missing movie entries from '{drive.Label}'.");
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog("Ошибка", ex.Message); }
     }
 
-    // ── Rename drive ──────────────────────────────────────────────────────
+    // ── Переименовать диск ──────────────────────────────────────────────────────
 
-    private async void OnRenameDrive(object sender, RoutedEventArgs e)
+    private async void Вкл.RenameDrive(object sender, RoutedEventArgs e)
     {
         try
         {
             if (sender is not FrameworkElement btn || btn.Tag is not string serial) return;
-            var drive = _drives.FirstOrDefault(d => d.VolumeSerial == serial);
+            var drive = _drives.FirstOrПо умолчанию(d => d.VolumeSerial == serial);
             if (drive == null) return;
 
             var box = new TextBox
@@ -593,28 +593,28 @@ public sealed partial class DrivesPage : Page
                 Text = drive.Label,
                 SelectionStart = 0,
                 SelectionLength = drive.Label.Length,
-                PlaceholderText = "e.g. Seagate Red 5TB - Movies",
+                PlaceholderText = "e.g. Seagate Red 5TB - Фильмы",
                 MinWidth = 320,
             };
             var muted = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                 Windows.UI.Color.FromArgb(0xFF, 0x90, 0x90, 0xA0));
             var panel = new StackPanel { Spacing = 10 };
-            panel.Children.Add(new TextBlock
+            panel.Children.Добавить(new TextBlock
             {
                 Text = "Give this drive a unique name so you can tell it apart from other drives with the same model.",
                 FontSize = 12, Foreground = muted, TextWrapping = TextWrapping.Wrap,
             });
-            panel.Children.Add(box);
+            panel.Children.Добавить(box);
 
             var dialog = new ContentDialog
             {
-                Title = "Rename Drive",
+                Название = "Rename Drive",
                 Content = panel,
                 PrimaryButtonText = "Rename",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Primary,
+                ЗакрытьButtonText = "Отмена",
+                По умолчаниюButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot,
-                RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
+                RequestedTheme = CineМедиатекаCS.MainWindow.CurrentTheme,
             };
             if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
 
@@ -626,57 +626,57 @@ public sealed partial class DrivesPage : Page
             Refresh();
             RefreshRequested?.Invoke(this, EventArgs.Empty);
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog("Ошибка", ex.Message); }
     }
 
-    // ── Remove drive ──────────────────────────────────────────────────────
+    // ── Удалить диск ──────────────────────────────────────────────────────
 
-    private async void OnRemoveDrive(object sender, RoutedEventArgs e)
+    private async void Вкл.RemoveDrive(object sender, RoutedEventArgs e)
     {
         try
         {
             if (sender is not FrameworkElement btn || btn.Tag is not string serial) return;
-            var drive = _drives.FirstOrDefault(d => d.VolumeSerial == serial);
+            var drive = _drives.FirstOrПо умолчанию(d => d.VolumeSerial == serial);
 
             // v2.7 — count how many movies on this drive carry personal state
             // (watched / favorite / watchlist / last_played / notes / list
             // membership). If there's any, offer to mirror it to disk first
             // so the user can re-add the drive later and get everything back.
-            var stateful = AppState.Instance.Db.GetMoviesWithPersonalState(serial).Count;
+            var stateful = AppState.Instance.Db.GetФильмыWithPersonalState(serial).Count;
             var canSync = drive?.IsConnected == true && stateful > 0;
 
             var panel = new StackPanel { Spacing = 10 };
-            panel.Children.Add(new TextBlock
+            panel.Children.Добавить(new TextBlock
             {
-                Text = $"Remove '{drive?.Label}' and all its {drive?.MovieCount} movies from CineLibrary? The actual files on the drive are not deleted.",
+                Text = $"Remove '{drive?.Label}' and all its {drive?.MovieCount} movies from CineМедиатека? The actual files on the drive are not deleted.",
                 TextWrapping = TextWrapping.Wrap,
             });
             CheckBox? syncBox = null;
             if (stateful > 0)
             {
-                panel.Children.Add(new TextBlock
+                panel.Children.Добавить(new TextBlock
                 {
                     Text = $"{stateful} movie(s) on this drive have watched / favorite / list / notes data.",
                     FontSize = 12,
-                    Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
+                    Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush"),
                     TextWrapping = TextWrapping.Wrap,
                 });
                 if (canSync)
                 {
                     syncBox = new CheckBox
                     {
-                        Content = "Save that state to the drive first (so it comes back if you re-add this drive later)",
+                        Content = "Сохранить that state to the drive first (so it comes back if you re-add this drive later)",
                         IsChecked = true,
                     };
-                    panel.Children.Add(syncBox);
+                    panel.Children.Добавить(syncBox);
                 }
                 else
                 {
-                    panel.Children.Add(new TextBlock
+                    panel.Children.Добавить(new TextBlock
                     {
                         Text = "⚠ Drive is offline — that state will be lost unless you cancel and connect the drive first.",
                         FontSize = 12,
-                        Foreground = CineLibraryCS.Services.ThemeBrushes.Get("AccentRedBrush"),
+                        Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("AccentRedBrush"),
                         TextWrapping = TextWrapping.Wrap,
                     });
                 }
@@ -684,13 +684,13 @@ public sealed partial class DrivesPage : Page
 
             var dialog = new ContentDialog
             {
-                Title = "Remove Drive?",
+                Название = "Remove Drive?",
                 Content = panel,
                 PrimaryButtonText = "Remove",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Close,
+                ЗакрытьButtonText = "Отмена",
+                По умолчаниюButton = ContentDialogButton.Закрыть,
                 XamlRoot = XamlRoot,
-                RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
+                RequestedTheme = CineМедиатекаCS.MainWindow.CurrentTheme,
             };
             if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
 
@@ -698,7 +698,7 @@ public sealed partial class DrivesPage : Page
             {
                 var (written, skipped) = await Task.Run(() =>
                     AppState.Instance.SweepStateSidecars(serial));
-                if (App.MainWindow is CineLibraryCS.MainWindow mw)
+                if (App.MainWindow is CineМедиатекаCS.MainWindow mw)
                     mw.ShowToast($"Synced state to {written} movie(s){(skipped > 0 ? $" — {skipped} skipped" : "")}");
             }
 
@@ -706,22 +706,22 @@ public sealed partial class DrivesPage : Page
             Refresh();
             RefreshRequested?.Invoke(this, EventArgs.Empty);
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog("Ошибка", ex.Message); }
     }
 
-    private async void OnSyncStateToDrive(object sender, RoutedEventArgs e)
+    private async void Вкл.SyncStateToDrive(object sender, RoutedEventArgs e)
     {
         try
         {
             if (sender is not FrameworkElement btn || btn.Tag is not string serial) return;
             var (written, skipped) = await Task.Run(() =>
                 AppState.Instance.SweepStateSidecars(serial, includeFetchedArt: true));
-            if (App.MainWindow is CineLibraryCS.MainWindow mw)
+            if (App.MainWindow is CineМедиатекаCS.MainWindow mw)
                 mw.ShowToast(written == 0
                     ? "Nothing to sync — no personal state or fetched info on this drive yet."
                     : $"Synced {written} movie(s) to drive — state + any fetched art{(skipped > 0 ? $", {skipped} skipped" : "")}");
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog("Ошибка", ex.Message); }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────
@@ -730,9 +730,9 @@ public sealed partial class DrivesPage : Page
     {
         var dialog = new ContentDialog
         {
-            Title = title, Content = message, CloseButtonText = "OK",
+            Название = title, Content = message, ЗакрытьButtonText = "OK",
             XamlRoot = XamlRoot,
-            RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
+            RequestedTheme = CineМедиатекаCS.MainWindow.CurrentTheme,
         };
         await dialog.ShowAsync();
     }

@@ -1,13 +1,13 @@
-using System.Collections.Concurrent;
+using System.Коллекции.Concurrent;
 
-namespace CineLibraryCS.Services;
+namespace CineМедиатекаCS.Services;
 
 /// <summary>
 /// Tiny LRU byte-cache for poster/thumbnail images.
 ///
 /// Why: MovieCardControl / MovieRowControl / MovieDetailDialog all recycle as
 /// the user scrolls and each realization previously did a fresh
-/// File.ReadAllBytes off the disk (sometimes an external USB drive). With
+/// File.ReadВсеBytes off the disk (sometimes an external USB drive). With
 /// ~1000 movies and fast scrolling that was the scrolling hot-path.
 ///
 /// This cache stores raw bytes keyed by the cache-relative poster path.
@@ -43,7 +43,7 @@ public static class ImageCache
             if (_map.TryGetValue(key, out var node))
             {
                 _lru.Remove(node);
-                _lru.AddFirst(node);
+                _lru.ДобавитьFirst(node);
                 return node.Value.Bytes;
             }
             return null;
@@ -65,7 +65,7 @@ public static class ImageCache
             }
 
             var node = new LinkedListNode<Entry>(new Entry(key, bytes));
-            _lru.AddFirst(node);
+            _lru.ДобавитьFirst(node);
             _map[key] = node;
             _bytes += bytes.Length;
 
@@ -90,7 +90,7 @@ public static class ImageCache
         if (cached != null) return cached;
         try
         {
-            var bytes = File.ReadAllBytes(fullPath);
+            var bytes = File.ReadВсеBytes(fullPath);
             Set(key, bytes);
             return bytes;
         }
@@ -134,7 +134,7 @@ public static class ImageCache
             if (_decMap.TryGetValue(key, out var node))
             {
                 _decLru.Remove(node);
-                _decLru.AddFirst(node);
+                _decLru.ДобавитьFirst(node);
                 return node.Value.Image;
             }
             return null;
@@ -157,7 +157,7 @@ public static class ImageCache
                 _decMap.Remove(key);
             }
             var node = new LinkedListNode<DecEntry>(new DecEntry(key, image, size));
-            _decLru.AddFirst(node);
+            _decLru.ДобавитьFirst(node);
             _decMap[key] = node;
             _decBytes += size;
 

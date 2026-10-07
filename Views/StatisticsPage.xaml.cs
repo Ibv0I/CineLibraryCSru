@@ -1,14 +1,14 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using CineLibraryCS.Models;
-using CineLibraryCS.Services;
+using CineМедиатекаCS.Models;
+using CineМедиатекаCS.Services;
 
-namespace CineLibraryCS.Views;
+namespace CineМедиатекаCS.Views;
 
-public sealed partial class StatisticsPage : Page
+public sealed partial class СтатистикаPage : Page
 {
-    public StatisticsPage()
+    public СтатистикаPage()
     {
         InitializeComponent();
         Loaded += (_, _) => Refresh();
@@ -20,18 +20,18 @@ public sealed partial class StatisticsPage : Page
 
         // Summary tiles
         var stats = db.GetStats();
-        TileTotalMovies.Text   = stats.TotalMovies.ToString("N0");
-        TileTotalRuntime.Text  = FormatRuntime(stats.TotalRuntime);
-        TileAvgRating.Text     = stats.AvgRating.HasValue ? $"★ {stats.AvgRating:F1}" : "—";
-        TileTotalDrives.Text   = stats.TotalDrives.ToString();
+        TileTotalФильмы.Text   = stats.TotalФильмы.ToString("N0");
+        TileTotalПродолжительность.Text  = FormatПродолжительность(stats.TotalПродолжительность);
+        TileAvgРейтинг.Text     = stats.AvgРейтинг.HasValue ? $"★ {stats.AvgРейтинг:F1}" : "—";
+        TileTotalДиски.Text   = stats.TotalДиски.ToString();
 
         var archived = db.GetArchivedCount();
-        ArchivedLine.Text = $"Plus {archived:N0} {(archived == 1 ? "movie" : "movies")} kept in Watched & Gone.";
+        ArchivedLine.Text = $"Plus {archived:N0} {(archived == 1 ? "movie" : "movies")} kept in Просмотрено и удалено.";
         ArchivedLine.Visibility = archived > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         if (stats.TotalMissing > 0)
         {
-            MissingHint.Text = $"⚠ {stats.TotalMissing} movie{(stats.TotalMissing == 1 ? "" : "s")} marked missing. Clean up in the Drives page.";
+            MissingHint.Text = $"⚠ {stats.TotalMissing} movie{(stats.TotalMissing == 1 ? "" : "s")} marked missing. Clean up in the Диски page.";
             MissingHint.Visibility = Visibility.Visible;
         }
         else
@@ -44,8 +44,8 @@ public sealed partial class StatisticsPage : Page
         WatchProgressBar.Value = percent;
         WatchProgressText.Text = $"{watched:N0} / {total:N0} ({percent:F0}%)";
 
-        var watchlist = db.GetWatchlistCount();
-        WatchlistCountText.Text = watchlist > 0
+        var watchlist = db.GetСписок просмотраCount();
+        Список просмотраCountText.Text = watchlist > 0
             ? $"📌 {watchlist} on your watchlist"
             : "Tip: add movies to your watchlist from the movie detail dialog.";
 
@@ -55,11 +55,11 @@ public sealed partial class StatisticsPage : Page
         {
             TvSection.Visibility = Visibility.Visible;
             TileTotalShows.Text = tv.TotalShows.ToString("N0");
-            TileTotalEpisodes.Text = tv.TotalEpisodes.ToString("N0");
-            TileTvRuntime.Text = FormatRuntime(tv.TotalRuntime);
-            TileTvAvgRating.Text = tv.AvgRatingText;
+            TileTotalЭпизоды.Text = tv.TotalЭпизоды.ToString("N0");
+            TileTvПродолжительность.Text = FormatПродолжительность(tv.TotalПродолжительность);
+            TileTvAvgРейтинг.Text = tv.AvgРейтингText;
             TvWatchProgressBar.Value = tv.WatchPercent;
-            TvWatchProgressText.Text = $"{tv.WatchedEpisodes:N0} / {tv.TotalEpisodes:N0} ({tv.WatchPercent}%)";
+            TvWatchProgressText.Text = $"{tv.ПросмотреноЭпизоды:N0} / {tv.TotalЭпизоды:N0} ({tv.WatchPercent}%)";
         }
         else
         {
@@ -67,7 +67,7 @@ public sealed partial class StatisticsPage : Page
         }
 
         // Decades — simple horizontal bars
-        var decades = db.GetMoviesByDecade();
+        var decades = db.GetФильмыByDecade();
         DecadesPanel.Children.Clear();
         if (decades.Count == 0)
         {
@@ -80,44 +80,44 @@ public sealed partial class StatisticsPage : Page
             foreach (var d in decades) if (d.count > max) max = d.count;
             foreach (var d in decades)
             {
-                DecadesPanel.Children.Add(BuildBarRow(
+                DecadesPanel.Children.Добавить(BuildBarRow(
                     label: $"{d.decade}s",
                     count: d.count,
                     barFraction: (double)d.count / max,
-                    hint: d.avgRating > 0 ? $"★ {d.avgRating:F1}" : null));
+                    hint: d.avgРейтинг > 0 ? $"★ {d.avgРейтинг:F1}" : null));
             }
         }
 
         // Top genres (reuse sidebar genres)
-        var topGenres = db.GetTopGenres(10);
-        GenresPanel.Children.Clear();
-        if (topGenres.Count == 0)
+        var topЖанры = db.GetTopЖанры(10);
+        ЖанрыPanel.Children.Clear();
+        if (topЖанры.Count == 0)
         {
-            GenresEmpty.Visibility = Visibility.Visible;
+            ЖанрыEmpty.Visibility = Visibility.Visible;
         }
         else
         {
-            GenresEmpty.Visibility = Visibility.Collapsed;
+            ЖанрыEmpty.Visibility = Visibility.Collapsed;
             int max = 1;
-            foreach (var g in topGenres) if (g.Count > max) max = g.Count;
-            foreach (var g in topGenres)
-                GenresPanel.Children.Add(BuildBarRow(g.Name, g.Count, (double)g.Count / max, null));
+            foreach (var g in topЖанры) if (g.Count > max) max = g.Count;
+            foreach (var g in topЖанры)
+                ЖанрыPanel.Children.Добавить(BuildBarRow(g.Name, g.Count, (double)g.Count / max, null));
         }
 
         // Top directors
-        var dirs = db.GetTopDirectors(10);
-        DirectorsPanel.Children.Clear();
+        var dirs = db.GetTopРежиссёрs(10);
+        РежиссёрsPanel.Children.Clear();
         if (dirs.Count == 0)
         {
-            DirectorsEmpty.Visibility = Visibility.Visible;
+            РежиссёрsEmpty.Visibility = Visibility.Visible;
         }
         else
         {
-            DirectorsEmpty.Visibility = Visibility.Collapsed;
+            РежиссёрsEmpty.Visibility = Visibility.Collapsed;
             int max = 1;
             foreach (var d in dirs) if (d.Count > max) max = d.Count;
             foreach (var d in dirs)
-                DirectorsPanel.Children.Add(BuildBarRow(d.Name, d.Count, (double)d.Count / max, null));
+                РежиссёрsPanel.Children.Добавить(BuildBarRow(d.Name, d.Count, (double)d.Count / max, null));
         }
 
         // Top actors
@@ -133,20 +133,20 @@ public sealed partial class StatisticsPage : Page
             int max = 1;
             foreach (var a in actors) if (a.Count > max) max = a.Count;
             foreach (var a in actors)
-                ActorsPanel.Children.Add(BuildBarRow(a.Name, a.Count, (double)a.Count / max, null));
+                ActorsPanel.Children.Добавить(BuildBarRow(a.Name, a.Count, (double)a.Count / max, null));
         }
     }
 
     // v3.7.2: the page column gets an explicit width. With MaxWidth alone,
     // WinUI centred it by the width it asked for, so a small library pushed
     // it right and cut off the right-hand tiles.
-    private void OnPageScrollerSizeChanged(object sender, SizeChangedEventArgs e)
+    private void Вкл.PageScrollerSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        var inner = e.NewSize.Width - PageScroller.Padding.Left - PageScroller.Padding.Right;
+        var inner = e.НовыйSize.Width - PageScroller.Padding.Left - PageScroller.Padding.Right;
         PageStack.Width = Math.Clamp(inner, 0, 1100);
     }
 
-    private static string FormatRuntime(long minutes)
+    private static string FormatПродолжительность(long minutes)
     {
         if (minutes <= 0) return "—";
         var hours = minutes / 60;
@@ -162,9 +162,9 @@ public sealed partial class StatisticsPage : Page
         if (barFraction > 1) barFraction = 1;
 
         var grid = new Grid();
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(120) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Добавить(new ColumnDefinition { Width = new GridLength(120) });
+        grid.ColumnDefinitions.Добавить(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Добавить(new ColumnDefinition { Width = GridLength.Auto });
 
         var labelTb = new TextBlock
         {
@@ -175,35 +175,35 @@ public sealed partial class StatisticsPage : Page
         };
         labelTb.SetValue(Grid.ColumnProperty, 0);
         labelTb.SetValue(ToolTipService.ToolTipProperty, label);
-        grid.Children.Add(labelTb);
+        grid.Children.Добавить(labelTb);
 
         // Bar track
         var track = new Border
         {
             Height = 10,
             CornerRadius = new CornerRadius(5),
-            Background = CineLibraryCS.Services.ThemeBrushes.Get("BorderBrush"),
+            Назадground = CineМедиатекаCS.Services.ThemeBrushes.Get("BorderBrush"),
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Stretch,
             Margin = new Thickness(8, 0, 8, 0),
         };
 
         var barHost = new Grid();
-        barHost.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(barFraction, GridUnitType.Star) });
-        barHost.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1 - barFraction, GridUnitType.Star) });
+        barHost.ColumnDefinitions.Добавить(new ColumnDefinition { Width = new GridLength(barFraction, GridUnitType.Star) });
+        barHost.ColumnDefinitions.Добавить(new ColumnDefinition { Width = new GridLength(1 - barFraction, GridUnitType.Star) });
 
         var filled = new Border
         {
             Height = 10,
             CornerRadius = new CornerRadius(5),
-            Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xA7, 0x8B, 0xFA)),
+            Назадground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xA7, 0x8B, 0xFA)),
         };
         filled.SetValue(Grid.ColumnProperty, 0);
-        barHost.Children.Add(filled);
+        barHost.Children.Добавить(filled);
 
         track.Child = barHost;
         track.SetValue(Grid.ColumnProperty, 1);
-        grid.Children.Add(track);
+        grid.Children.Добавить(track);
 
         var countTb = new TextBlock
         {
@@ -215,7 +215,7 @@ public sealed partial class StatisticsPage : Page
             TextAlignment = TextAlignment.Right,
         };
         countTb.SetValue(Grid.ColumnProperty, 2);
-        grid.Children.Add(countTb);
+        grid.Children.Добавить(countTb);
 
         return grid;
     }

@@ -4,21 +4,21 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Media.Animation;
 using Windows.System;
-using CineLibraryCS.Models;
-using CineLibraryCS.Services;
-using CineLibraryCS.ViewModels;
-using CineLibraryCS.Views;
+using CineМедиатекаCS.Models;
+using CineМедиатекаCS.Services;
+using CineМедиатекаCS.ViewModels;
+using CineМедиатекаCS.Views;
 
-namespace CineLibraryCS.Views;
+namespace CineМедиатекаCS.Views;
 
-public sealed partial class LibraryPage : Page
+public sealed partial class МедиатекаPage : Page
 {
-    private readonly LibraryViewModel _vm;
-    public LibraryViewModel ViewModel => _vm;
+    private readonly МедиатекаViewModel _vm;
+    public МедиатекаViewModel ViewModel => _vm;
     public event EventHandler? SidebarRefreshRequested;
     // Raised whenever the search text changes (incl. internal clears) so the
     // global title-bar search box can stay in sync.
-    public event EventHandler<string>? SearchTextChanged;
+    public event EventHandler<string>? ПоискTextChanged;
 
     // ── Multi-select state (v2.5) ─────────────────────────────────────────
     private readonly HashSet<int> _selectedIds = new();
@@ -29,32 +29,32 @@ public sealed partial class LibraryPage : Page
     // InitializeComponent() — we must not touch _vm from those before it's wired up.
     private bool _ready;
 
-    public LibraryPage()
+    public МедиатекаPage()
     {
         // _vm MUST be created before InitializeComponent() — the SortCombo's
         // initial SelectionChanged fires inside InitializeComponent and touches _vm.
-        _vm = new LibraryViewModel();
+        _vm = new МедиатекаViewModel();
 
         InitializeComponent();
 
         // Assign ItemsSource once — ObservableCollection handles all future updates
-        GridRepeater.ItemsSource = _vm.Movies;
-        ListRepeater.ItemsSource = _vm.Movies;
+        GridRepeater.ItemsSource = _vm.Фильмы;
+        ListRepeater.ItemsSource = _vm.Фильмы;
 
         // Reflect saved prefs in the UI (sort dropdown, grid/list toggle)
         SyncUiFromVm();
 
         // Load density pref (S/M/L/XL)
-        ApplyDensity(AppState.Instance.GetPref("gridDensity", "M"));
+        ПрименитьDensity(AppState.Instance.GetPref("gridDensity", "M"));
 
-        // Keyboard shortcuts (Ctrl+F is handled globally in MainWindow,
+        // Горячие клавиши (Ctrl+F is handled globally in MainWindow,
         // which focuses the title-bar search box).
-        AddAccelerator(VirtualKey.Escape, VirtualKeyModifiers.None, (_, a) =>
+        ДобавитьAccelerator(VirtualKey.Escape, VirtualKeyModifiers.None, (_, a) =>
         {
             // Esc clears search first, then selection — never both at once.
-            if (!string.IsNullOrEmpty(_vm.SearchText))
+            if (!string.IsNullOrEmpty(_vm.ПоискText))
             {
-                _vm.SearchText = "";   // sync event clears the title-bar box
+                _vm.ПоискText = "";   // sync event clears the title-bar box
                 a.Handled = true;
                 return;
             }
@@ -64,28 +64,28 @@ public sealed partial class LibraryPage : Page
                 a.Handled = true;
             }
         });
-        AddAccelerator(VirtualKey.A, VirtualKeyModifiers.Control, (_, a) =>
+        ДобавитьAccelerator(VirtualKey.A, VirtualKeyModifiers.Control, (_, a) =>
         {
-            if (IsTextEditFocused()) return;
-            SelectAllVisible();
+            if (IsTextИзменитьFocused()) return;
+            SelectВсеVisible();
             a.Handled = true;
         });
 
         // Navigation shortcuts (v2.0.1) — PgDn/PgUp scroll one viewport,
-        // Home/End jump to top/bottom, ↑/↓ scroll by a card-row. All gated
+        // Home/End jump to top/bottom, ↑/↓ scroll by a card-row. Все gated
         // on focus: when the search box is editing text, these keys do
         // their default text-cursor thing and we leave them alone.
-        AddAccelerator(VirtualKey.PageDown, VirtualKeyModifiers.None,
+        ДобавитьAccelerator(VirtualKey.PageDown, VirtualKeyModifiers.None,
             (_, a) => { if (TryScrollByViewport(+1)) a.Handled = true; });
-        AddAccelerator(VirtualKey.PageUp, VirtualKeyModifiers.None,
+        ДобавитьAccelerator(VirtualKey.PageUp, VirtualKeyModifiers.None,
             (_, a) => { if (TryScrollByViewport(-1)) a.Handled = true; });
-        AddAccelerator(VirtualKey.Home, VirtualKeyModifiers.None,
+        ДобавитьAccelerator(VirtualKey.Home, VirtualKeyModifiers.None,
             (_, a) => { if (TryScrollTo(0)) a.Handled = true; });
-        AddAccelerator(VirtualKey.End, VirtualKeyModifiers.None,
+        ДобавитьAccelerator(VirtualKey.End, VirtualKeyModifiers.None,
             (_, a) => { if (TryScrollToEnd()) a.Handled = true; });
-        AddAccelerator(VirtualKey.Down, VirtualKeyModifiers.None,
+        ДобавитьAccelerator(VirtualKey.Down, VirtualKeyModifiers.None,
             (_, a) => { if (TryScrollByRow(+1)) a.Handled = true; });
-        AddAccelerator(VirtualKey.Up, VirtualKeyModifiers.None,
+        ДобавитьAccelerator(VirtualKey.Up, VirtualKeyModifiers.None,
             (_, a) => { if (TryScrollByRow(-1)) a.Handled = true; });
 
         // v2.9 — Card / selection shortcuts. Gated on text-edit focus so
@@ -93,45 +93,45 @@ public sealed partial class LibraryPage : Page
         //   /        focuses the search box (streaming-style search shortcut)
         //   F        toggle favorite on the current selection
         //   W        toggle watchlist on the current selection
-        //   Delete   remove from current list (when viewing a list)
-        AddAccelerator((VirtualKey)0xBF /* Oem2 = / */, VirtualKeyModifiers.None, (_, a) =>
+        //   Удалить   remove from current list (when viewing a list)
+        ДобавитьAccelerator((VirtualKey)0xBF /* Oem2 = / */, VirtualKeyModifiers.None, (_, a) =>
         {
-            if (IsTextEditFocused()) return;
-            (App.MainWindow as CineLibraryCS.MainWindow)?.FocusTitleSearch();
+            if (IsTextИзменитьFocused()) return;
+            (App.MainWindow as CineМедиатекаCS.MainWindow)?.FocusНазваниеПоиск();
             a.Handled = true;
         });
-        AddAccelerator(VirtualKey.F, VirtualKeyModifiers.None, (_, a) =>
+        ДобавитьAccelerator(VirtualKey.F, VirtualKeyModifiers.None, (_, a) =>
         {
-            if (IsTextEditFocused() || _selectedIds.Count == 0) return;
-            OnSelToggleFav(this, new RoutedEventArgs());
+            if (IsTextИзменитьFocused() || _selectedIds.Count == 0) return;
+            Вкл.SelToggleFav(this, new RoutedEventArgs());
             a.Handled = true;
         });
-        AddAccelerator(VirtualKey.W, VirtualKeyModifiers.None, (_, a) =>
+        ДобавитьAccelerator(VirtualKey.W, VirtualKeyModifiers.None, (_, a) =>
         {
-            if (IsTextEditFocused() || _selectedIds.Count == 0) return;
-            OnSelToggleWatchlist(this, new RoutedEventArgs());
+            if (IsTextИзменитьFocused() || _selectedIds.Count == 0) return;
+            Вкл.SelToggleСписок просмотра(this, new RoutedEventArgs());
             a.Handled = true;
         });
-        AddAccelerator(VirtualKey.Delete, VirtualKeyModifiers.None, (_, a) =>
+        ДобавитьAccelerator(VirtualKey.Удалить, VirtualKeyModifiers.None, (_, a) =>
         {
-            if (IsTextEditFocused() || _selectedIds.Count == 0) return;
+            if (IsTextИзменитьFocused() || _selectedIds.Count == 0) return;
             if (_vm.UserListId == null) return;  // only meaningful in a list view
-            OnSelRemoveFromCurrentList(this, new RoutedEventArgs());
+            Вкл.SelRemoveFromCurrentList(this, new RoutedEventArgs());
             a.Handled = true;
         });
 
-        _vm.PropertyChanged += OnVmPropertyChanged;
-        _vm.Movies.CollectionChanged += (_, _) => UpdateEmptyState();
+        _vm.PropertyChanged += Вкл.VmPropertyChanged;
+        _vm.Фильмы.CollectionChanged += (_, _) => ОбновитьEmptyState();
 
         // v4.0.0: the page is cached and put back on screen as it is, so
         // re-query the shows row each time; a show may have been made a
         // favorite (or finished) on its own page meanwhile.
         Loaded += (_, _) => { _shownRowKey = ""; RefreshShowsInList(); };
         // v4.1.0: a show card's hover panel changed a show (un-favorited it on
-        // Favorites, finished it on Continue Watching): re-list the row.
+        // Избранное, finished it on Продолжить просмотр): re-list the row.
         TvShowCard.ShowChanged += _ => { _shownRowKey = ""; RefreshShowsInList(); };
 
-        // v2.8.2 — tap a show card in the "TV shows in this list" row to
+        // v2.8.2 — tap a show card in the "Сериалы in this list" row to
         // open that show on the TV page.
         ShowsInListRepeater.Tapped += (s, e) =>
         {
@@ -142,8 +142,8 @@ public sealed partial class LibraryPage : Page
                 mw.OpenTvShow(card.Show.Id);
         };
 
-        // v2.9 — same tap behaviour for the "TV shows matching" search row.
-        ShowsInSearchRepeater.Tapped += (s, e) =>
+        // v2.9 — same tap behaviour for the "Сериалы matching" search row.
+        ShowsInПоискRepeater.Tapped += (s, e) =>
         {
             var d = e.OriginalSource as DependencyObject;
             while (d != null && d is not TvShowCard)
@@ -154,30 +154,30 @@ public sealed partial class LibraryPage : Page
 
         // Wire up sidebar refresh from movie cards (watchlist / favorite / watched toggles
         // made inside the detail dialog need to bubble back up so the sidebar counts refresh)
-        GridRepeater.ElementPrepared += OnGridRepeaterElementPrepared;
-        GridRepeater.ElementClearing += OnGridRepeaterElementClearing;
-        ListRepeater.ElementPrepared += OnListRepeaterElementPrepared;
-        ListRepeater.ElementClearing += OnListRepeaterElementClearing;
+        GridRepeater.ElementPrepared += Вкл.GridRepeaterElementPrepared;
+        GridRepeater.ElementClearing += Вкл.GridRepeaterElementClearing;
+        ListRepeater.ElementPrepared += Вкл.ListRepeaterElementPrepared;
+        ListRepeater.ElementClearing += Вкл.ListRepeaterElementClearing;
 
         // Multi-select wiring (v2.5) — cards/rows raise this static event;
         // we manage the actual selection set and visual.
-        MovieCardControl.AnyCardSelectionInteraction += OnCardSelectionInteraction;
+        MovieCardControl.AnyCardSelectionInteraction += Вкл.CardSelectionInteraction;
         MovieCardControl.ResolveSelectionForDrag = ResolveSelectionForDrag;
-        // v3.3 — a movie was sent to Watched & Gone (card context menu or
+        // v3.3 — a movie was sent to Просмотрено и удалено (card context menu or
         // selection bar): drop it from the current view + re-count sidebar.
         // Subscribed on Loaded (not just ctor) because this page instance is
         // cached and re-shown — a ctor-only subscription would die for good
         // at the first Unloaded.
-        MovieCardControl.AnyMovieArchived += OnAnyMovieArchived;
+        MovieCardControl.AnyMovieArchived += Вкл.AnyMovieArchived;
         Loaded += (_, _) =>
         {
-            MovieCardControl.AnyMovieArchived -= OnAnyMovieArchived;
-            MovieCardControl.AnyMovieArchived += OnAnyMovieArchived;
+            MovieCardControl.AnyMovieArchived -= Вкл.AnyMovieArchived;
+            MovieCardControl.AnyMovieArchived += Вкл.AnyMovieArchived;
         };
         Unloaded += (_, _) =>
         {
-            MovieCardControl.AnyCardSelectionInteraction -= OnCardSelectionInteraction;
-            MovieCardControl.AnyMovieArchived -= OnAnyMovieArchived;
+            MovieCardControl.AnyCardSelectionInteraction -= Вкл.CardSelectionInteraction;
+            MovieCardControl.AnyMovieArchived -= Вкл.AnyMovieArchived;
             if (MovieCardControl.ResolveSelectionForDrag == (Func<MovieListItem, IEnumerable<int>>)ResolveSelectionForDrag)
                 MovieCardControl.ResolveSelectionForDrag = null;
         };
@@ -186,18 +186,18 @@ public sealed partial class LibraryPage : Page
         // selected; movies that scrolled out of the view get pruned
         // from _selectedIds. Each newly-added item has its IsSelected
         // flag rehydrated from _selectedIds so its visual matches.
-        _vm.Movies.CollectionChanged += (_, e) =>
+        _vm.Фильмы.CollectionChanged += (_, e) =>
         {
             switch (e.Action)
             {
-                case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
-                    if (e.NewItems != null)
-                        foreach (MovieListItem m in e.NewItems)
+                case System.Коллекции.Specialized.NotifyCollectionChangedAction.Добавить:
+                    if (e.НовыйItems != null)
+                        foreach (MovieListItem m in e.НовыйItems)
                             if (_selectedIds.Contains(m.Id) && !m.IsSelected)
                                 m.IsSelected = true;
                     break;
-                case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
-                    // Movies just cleared — the next batch of Adds will repopulate.
+                case System.Коллекции.Specialized.NotifyCollectionChangedAction.Reset:
+                    // Фильмы just cleared — the next batch of Добавитьs will repopulate.
                     // Schedule a prune after they land so _selectedIds drops any
                     // ids that no longer have a card on screen, and the "X
                     // selected" counter stays honest.
@@ -205,7 +205,7 @@ public sealed partial class LibraryPage : Page
                     {
                         DispatcherQueue.TryEnqueue(() =>
                         {
-                            var visible = new HashSet<int>(_vm.Movies.Select(m => m.Id));
+                            var visible = new HashSet<int>(_vm.Фильмы.Select(m => m.Id));
                             var before = _selectedIds.Count;
                             _selectedIds.IntersectWith(visible);
                             if (_selectedIds.Count != before) AfterSelectionChanged();
@@ -223,7 +223,7 @@ public sealed partial class LibraryPage : Page
 
     // ── Multi-select handlers (v2.5) ──────────────────────────────────────
 
-    private void OnCardSelectionInteraction(object? sender, MovieCardControl.SelectionInteractionArgs e)
+    private void Вкл.CardSelectionInteraction(object? sender, MovieCardControl.SelectionInteractionArgs e)
     {
         if (e.Ctrl)
         {
@@ -245,7 +245,7 @@ public sealed partial class LibraryPage : Page
 
     private void ToggleSelect(MovieListItem m)
     {
-        if (_selectedIds.Add(m.Id)) m.IsSelected = true;
+        if (_selectedIds.Добавить(m.Id)) m.IsSelected = true;
         else { _selectedIds.Remove(m.Id); m.IsSelected = false; }
         AfterSelectionChanged();
     }
@@ -253,28 +253,28 @@ public sealed partial class LibraryPage : Page
     private void SelectRangeTo(MovieListItem target)
     {
         if (_selectionAnchor == null) { ToggleSelect(target); return; }
-        int a = _vm.Movies.IndexOf(_selectionAnchor);
-        int b = _vm.Movies.IndexOf(target);
+        int a = _vm.Фильмы.IndexOf(_selectionAnchor);
+        int b = _vm.Фильмы.IndexOf(target);
         if (a < 0 || b < 0) { ToggleSelect(target); return; }
         if (a > b) (a, b) = (b, a);
         for (int i = a; i <= b; i++)
         {
-            var m = _vm.Movies[i];
-            if (_selectedIds.Add(m.Id)) m.IsSelected = true;
+            var m = _vm.Фильмы[i];
+            if (_selectedIds.Добавить(m.Id)) m.IsSelected = true;
         }
         AfterSelectionChanged();
     }
 
-    private void SelectAllVisible()
+    private void SelectВсеVisible()
     {
-        foreach (var m in _vm.Movies)
-            if (_selectedIds.Add(m.Id)) m.IsSelected = true;
+        foreach (var m in _vm.Фильмы)
+            if (_selectedIds.Добавить(m.Id)) m.IsSelected = true;
         AfterSelectionChanged();
     }
 
     private void ClearSelection()
     {
-        foreach (var m in _vm.Movies)
+        foreach (var m in _vm.Фильмы)
             if (m.IsSelected) m.IsSelected = false;
         _selectedIds.Clear();
         AfterSelectionChanged();
@@ -316,7 +316,7 @@ public sealed partial class LibraryPage : Page
         };
         Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(anim, SelectionBarSlide);
         Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(anim, "Y");
-        sb.Children.Add(anim);
+        sb.Children.Добавить(anim);
         sb.Begin();
     }
 
@@ -342,23 +342,23 @@ public sealed partial class LibraryPage : Page
 
     /// <summary>
     /// Snapshot of selected MovieListItems for batch ops. Order follows
-    /// the current Movies list so operations feel predictable.
+    /// the current Фильмы list so operations feel predictable.
     /// </summary>
-    private List<MovieListItem> SelectedMovies() =>
-        _vm.Movies.Where(m => _selectedIds.Contains(m.Id)).ToList();
+    private List<MovieListItem> SelectedФильмы() =>
+        _vm.Фильмы.Where(m => _selectedIds.Contains(m.Id)).ToList();
 
-    private void OnSelClear(object sender, RoutedEventArgs e) => ClearSelection();
+    private void Вкл.SelClear(object sender, RoutedEventArgs e) => ClearSelection();
 
-    private void OnSelListsFlyoutOpening(object sender, object e)
+    private void Вкл.SelListsFlyoutOpening(object sender, object e)
     {
         SelListsFlyout.Items.Clear();
-        var ids = SelectedMovies().Select(m => m.Id).ToList();
+        var ids = SelectedФильмы().Select(m => m.Id).ToList();
         if (ids.Count == 0) return;
 
         var lists = AppState.Instance.Db.GetUserLists();
         if (lists.Count == 0)
         {
-            SelListsFlyout.Items.Add(new MenuFlyoutItem
+            SelListsFlyout.Items.Добавить(new MenuFlyoutItem
             {
                 Text = "(no lists yet — use + below)", IsEnabled = false
             });
@@ -367,19 +367,19 @@ public sealed partial class LibraryPage : Page
         {
             var item = new MenuFlyoutItem { Text = $"📑 {ul.Name}" };
             var capturedUl = ul;
-            item.Click += (_, _) => AddSelectedToList(capturedUl.Id, capturedUl.Name);
-            SelListsFlyout.Items.Add(item);
+            item.Click += (_, _) => ДобавитьSelectedToList(capturedUl.Id, capturedUl.Name);
+            SelListsFlyout.Items.Добавить(item);
         }
-        SelListsFlyout.Items.Add(new MenuFlyoutSeparator());
-        var newItem = new MenuFlyoutItem { Text = "+ New list…" };
+        SelListsFlyout.Items.Добавить(new MenuFlyoutSeparator());
+        var newItem = new MenuFlyoutItem { Text = "+ Новый список…" };
         newItem.Click += async (_, _) =>
         {
-            var name = await PromptNewListName();
+            var name = await PromptНовыйListName();
             if (string.IsNullOrWhiteSpace(name)) return;
             try
             {
-                var listId = AppState.Instance.Db.CreateUserList(name.Trim());
-                AddSelectedToList(listId, name.Trim());
+                var listId = AppState.Instance.Db.СоздатьUserList(name.Trim());
+                ДобавитьSelectedToList(listId, name.Trim());
             }
             catch (Microsoft.Data.Sqlite.SqliteException)
             {
@@ -387,17 +387,17 @@ public sealed partial class LibraryPage : Page
                     mw.ShowToast($"A list named “{name.Trim()}” already exists");
             }
         };
-        SelListsFlyout.Items.Add(newItem);
+        SelListsFlyout.Items.Добавить(newItem);
     }
 
-    private void AddSelectedToList(int listId, string listName)
+    private void ДобавитьSelectedToList(int listId, string listName)
     {
-        var ids = SelectedMovies().Select(m => m.Id).ToList();
+        var ids = SelectedФильмы().Select(m => m.Id).ToList();
         if (ids.Count == 0) return;
         foreach (var mid in ids)
-            AppState.Instance.Db.AddMovieToUserList(listId, mid);
+            AppState.Instance.Db.ДобавитьMovieToUserList(listId, mid);
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
-        ShowSelectionToast($"Added {ids.Count} to “{listName}”", () =>
+        ShowSelectionToast($"Добавитьed {ids.Count} to “{listName}”", () =>
         {
             foreach (var mid in ids)
                 AppState.Instance.Db.RemoveMovieFromUserList(listId, mid);
@@ -405,59 +405,59 @@ public sealed partial class LibraryPage : Page
         });
     }
 
-    private void OnSelToggleWatched(object sender, RoutedEventArgs e)
+    private void Вкл.SelToggleПросмотрено(object sender, RoutedEventArgs e)
     {
-        var picked = SelectedMovies();
+        var picked = SelectedФильмы();
         if (picked.Count == 0) return;
-        bool anyUnwatched = picked.Any(m => !m.IsWatched);
+        bool anyНе просмотрено = picked.Any(m => !m.IsПросмотрено);
         var changed = new List<MovieListItem>();
         foreach (var m in picked)
         {
-            if (m.IsWatched == anyUnwatched) continue;
-            AppState.Instance.Db.ToggleWatched(m.Id);
-            m.IsWatched = anyUnwatched;
-            changed.Add(m);
+            if (m.IsПросмотрено == anyНе просмотрено) continue;
+            AppState.Instance.Db.ToggleПросмотрено(m.Id);
+            m.IsПросмотрено = anyНе просмотрено;
+            changed.Добавить(m);
         }
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         ShowSelectionToast(
-            $"{(anyUnwatched ? "Marked" : "Unmarked")} {changed.Count} watched",
+            $"{(anyНе просмотрено ? "Marked" : "Unmarked")} {changed.Count} watched",
             () => {
                 foreach (var m in changed)
                 {
-                    AppState.Instance.Db.ToggleWatched(m.Id);
-                    m.IsWatched = !anyUnwatched;
+                    AppState.Instance.Db.ToggleПросмотрено(m.Id);
+                    m.IsПросмотрено = !anyНе просмотрено;
                 }
                 SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
             });
     }
 
-    private void OnSelToggleWatchlist(object sender, RoutedEventArgs e)
+    private void Вкл.SelToggleСписок просмотра(object sender, RoutedEventArgs e)
     {
-        var picked = SelectedMovies();
+        var picked = SelectedФильмы();
         if (picked.Count == 0) return;
-        bool anyOff = picked.Any(m => !m.IsWatchlist);
+        bool anyВыкл. = picked.Any(m => !m.IsСписок просмотра);
         var changed = new List<MovieListItem>();
         foreach (var m in picked)
         {
-            if (m.IsWatchlist == anyOff) continue;
-            AppState.Instance.Db.SetWatchlist(m.Id, anyOff);
-            m.IsWatchlist = anyOff;
-            changed.Add(m);
+            if (m.IsСписок просмотра == anyВыкл.) continue;
+            AppState.Instance.Db.SetСписок просмотра(m.Id, anyВыкл.);
+            m.IsСписок просмотра = anyВыкл.;
+            changed.Добавить(m);
         }
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         ShowSelectionToast(
-            $"{(anyOff ? "Added" : "Removed")} {changed.Count} {(anyOff ? "to" : "from")} watchlist",
+            $"{(anyВыкл. ? "Добавитьed" : "Removed")} {changed.Count} {(anyВыкл. ? "to" : "from")} watchlist",
             () => {
                 foreach (var m in changed)
                 {
-                    AppState.Instance.Db.SetWatchlist(m.Id, !anyOff);
-                    m.IsWatchlist = !anyOff;
+                    AppState.Instance.Db.SetСписок просмотра(m.Id, !anyВыкл.);
+                    m.IsСписок просмотра = !anyВыкл.;
                 }
                 SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
             });
     }
 
-    private void OnAnyMovieArchived()
+    private void Вкл.AnyMovieArchived()
     {
         DispatcherQueue.TryEnqueue(() =>
         {
@@ -466,104 +466,104 @@ public sealed partial class LibraryPage : Page
         });
     }
 
-    // v3.3 — selection bar: send every selected movie to Watched & Gone.
-    private async void OnSelArchive(object sender, RoutedEventArgs e)
+    // v3.3 — selection bar: send every selected movie to Просмотрено и удалено.
+    private async void Вкл.SelArchive(object sender, RoutedEventArgs e)
     {
-        var picked = SelectedMovies();
+        var picked = SelectedФильмы();
         if (picked.Count == 0) return;
         var dlg = new ContentDialog
         {
-            Title = $"Send {picked.Count} movie(s) to Watched & Gone?",
-            Content = "They move out of your library into Watched & Gone — posters, details, " +
+            Название = $"Send {picked.Count} movie(s) to Просмотрено и удалено?",
+            Content = "They move out of your library into Просмотрено и удалено — posters, details, " +
                       "your notes and watch history are all kept as records. " +
                       "The files on your drives are not touched.",
             PrimaryButtonText = "Send",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Primary,
+            ЗакрытьButtonText = "Отмена",
+            По умолчаниюButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
-            RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
+            RequestedTheme = CineМедиатекаCS.MainWindow.CurrentTheme,
         };
         if (await dlg.ShowAsync() != ContentDialogResult.Primary) return;
 
-        var n = AppState.Instance.Db.ArchiveMovies(picked.Select(m => m.Id).ToList());
+        var n = AppState.Instance.Db.ArchiveФильмы(picked.Select(m => m.Id).ToList());
         ClearSelection();
-        if (App.MainWindow is CineLibraryCS.MainWindow mw)
-            mw.ShowToast($"Sent {n} movie(s) to Watched & Gone");
+        if (App.MainWindow is CineМедиатекаCS.MainWindow mw)
+            mw.ShowToast($"Sent {n} movie(s) to Просмотрено и удалено");
         MovieCardControl.RaiseMovieArchived();
     }
 
-    private void OnSelToggleFav(object sender, RoutedEventArgs e)
+    private void Вкл.SelToggleFav(object sender, RoutedEventArgs e)
     {
-        var picked = SelectedMovies();
+        var picked = SelectedФильмы();
         if (picked.Count == 0) return;
-        bool anyOff = picked.Any(m => !m.IsFavorite);
+        bool anyВыкл. = picked.Any(m => !m.IsИзбранное);
         var changed = new List<MovieListItem>();
         foreach (var m in picked)
         {
-            if (m.IsFavorite == anyOff) continue;
-            AppState.Instance.Db.ToggleFavorite(m.Id);
-            m.IsFavorite = anyOff;
-            changed.Add(m);
+            if (m.IsИзбранное == anyВыкл.) continue;
+            AppState.Instance.Db.ToggleИзбранное(m.Id);
+            m.IsИзбранное = anyВыкл.;
+            changed.Добавить(m);
         }
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         ShowSelectionToast(
-            $"{(anyOff ? "Favorited" : "Unfavorited")} {changed.Count}",
+            $"{(anyВыкл. ? "В избранном" : "Unfavorited")} {changed.Count}",
             () => {
                 foreach (var m in changed)
                 {
-                    AppState.Instance.Db.ToggleFavorite(m.Id);
-                    m.IsFavorite = !anyOff;
+                    AppState.Instance.Db.ToggleИзбранное(m.Id);
+                    m.IsИзбранное = !anyВыкл.;
                 }
                 SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
             });
     }
 
-    private void OnSelRemoveFromCurrentList(object sender, RoutedEventArgs e)
+    private void Вкл.SelRemoveFromCurrentList(object sender, RoutedEventArgs e)
     {
         if (_vm.UserListId == null) return;
         var listId = _vm.UserListId.Value;
-        var picked = SelectedMovies();
+        var picked = SelectedФильмы();
         if (picked.Count == 0) return;
         var ids = picked.Select(m => m.Id).ToList();
         // Snapshot of (movie, original index) so Undo can put each item
         // back exactly where the user removed it from. Reloading the page
         // would lose anything past page 1 of the paged list.
         var snapshots = picked
-            .Select(m => (Movie: m, Index: _vm.Movies.IndexOf(m)))
+            .Select(m => (Movie: m, Index: _vm.Фильмы.IndexOf(m)))
             .OrderBy(s => s.Index)
             .ToList();
         foreach (var mid in ids)
             AppState.Instance.Db.RemoveMovieFromUserList(listId, mid);
         // Visually remove from the current view (we're viewing this list).
-        foreach (var m in picked) _vm.Movies.Remove(m);
+        foreach (var m in picked) _vm.Фильмы.Remove(m);
         _selectedIds.Clear();
         AfterSelectionChanged();
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         ShowSelectionToast($"Removed {ids.Count} from list", () =>
         {
             foreach (var mid in ids)
-                AppState.Instance.Db.AddMovieToUserList(listId, mid);
+                AppState.Instance.Db.ДобавитьMovieToUserList(listId, mid);
             // Re-insert in place. Iterate from the lowest-index outwards
             // so later items don't have to be re-indexed as we go.
             foreach (var snap in snapshots)
             {
-                var idx = Math.Min(snap.Index, _vm.Movies.Count);
-                _vm.Movies.Insert(idx, snap.Movie);
+                var idx = Math.Min(snap.Index, _vm.Фильмы.Count);
+                _vm.Фильмы.Insert(idx, snap.Movie);
             }
             SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         });
     }
 
-    private async Task<string?> PromptNewListName()
+    private async Task<string?> PromptНовыйListName()
     {
         var box = new TextBox { PlaceholderText = "List name" };
         var dlg = new ContentDialog
         {
-            Title = "New list",
+            Название = "Новый список",
             Content = box,
-            PrimaryButtonText = "Create",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Primary,
+            PrimaryButtonText = "Создать",
+            ЗакрытьButtonText = "Отмена",
+            По умолчаниюButton = ContentDialogButton.Primary,
             XamlRoot = this.XamlRoot,
             RequestedTheme = MainWindow.CurrentTheme,
         };
@@ -581,75 +581,75 @@ public sealed partial class LibraryPage : Page
     // Named handlers so we can unsubscribe on ElementClearing — anonymous
     // lambdas would accumulate every time ItemsRepeater recycles a card,
     // and a click would fire the handler N times → even count = no net
-    // change → "Mark Watched looks like it stops working" bug.
-    private void OnCardSidebarRefresh(object? s, EventArgs e)
+    // change → "Отметить просмотренным looks like it stops working" bug.
+    private void Вкл.CardSidebarRefresh(object? s, EventArgs e)
         => SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
-    private void OnCardWatchedToggle(object? s, MovieListItem movie)
-        => _vm.ToggleWatched(movie);
-    private void OnCardWatchlistToggle(object? s, MovieListItem movie)
+    private void Вкл.CardПросмотреноToggle(object? s, MovieListItem movie)
+        => _vm.ToggleПросмотрено(movie);
+    private void Вкл.CardСписок просмотраToggle(object? s, MovieListItem movie)
     {
-        _vm.ToggleWatchlistOnCard(movie);
+        _vm.ToggleСписок просмотраВкл.Card(movie);
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
     }
-    private void OnRowSidebarRefresh(object? s, EventArgs e)
+    private void Вкл.RowSidebarRefresh(object? s, EventArgs e)
         => SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
 
-    private void OnGridRepeaterElementPrepared(ItemsRepeater sender, ItemsRepeaterElementPreparedEventArgs args)
+    private void Вкл.GridRepeaterElementPrepared(ItemsRepeater sender, ItemsRepeaterElementPreparedEventArgs args)
     {
         if (args.Element is MovieCardControl card)
         {
             // Defensive unsubscribe — if a card was prepared without a paired
             // clearing (rare, but keeps the count honest).
-            card.SidebarRefreshRequested -= OnCardSidebarRefresh;
-            card.WatchedToggleRequested  -= OnCardWatchedToggle;
-            card.WatchlistToggleRequested -= OnCardWatchlistToggle;
+            card.SidebarRefreshRequested -= Вкл.CardSidebarRefresh;
+            card.ПросмотреноToggleRequested  -= Вкл.CardПросмотреноToggle;
+            card.Список просмотраToggleRequested -= Вкл.CardСписок просмотраToggle;
 
-            card.SidebarRefreshRequested += OnCardSidebarRefresh;
-            card.WatchedToggleRequested  += OnCardWatchedToggle;
-            card.WatchlistToggleRequested += OnCardWatchlistToggle;
+            card.SidebarRefreshRequested += Вкл.CardSidebarRefresh;
+            card.ПросмотреноToggleRequested  += Вкл.CardПросмотреноToggle;
+            card.Список просмотраToggleRequested += Вкл.CardСписок просмотраToggle;
         }
     }
 
-    private void OnGridRepeaterElementClearing(ItemsRepeater sender, ItemsRepeaterElementClearingEventArgs args)
+    private void Вкл.GridRepeaterElementClearing(ItemsRepeater sender, ItemsRepeaterElementClearingEventArgs args)
     {
         if (args.Element is MovieCardControl card)
         {
-            card.SidebarRefreshRequested -= OnCardSidebarRefresh;
-            card.WatchedToggleRequested  -= OnCardWatchedToggle;
-            card.WatchlistToggleRequested -= OnCardWatchlistToggle;
+            card.SidebarRefreshRequested -= Вкл.CardSidebarRefresh;
+            card.ПросмотреноToggleRequested  -= Вкл.CardПросмотреноToggle;
+            card.Список просмотраToggleRequested -= Вкл.CardСписок просмотраToggle;
         }
     }
 
-    private void OnListRepeaterElementPrepared(ItemsRepeater sender, ItemsRepeaterElementPreparedEventArgs args)
+    private void Вкл.ListRepeaterElementPrepared(ItemsRepeater sender, ItemsRepeaterElementPreparedEventArgs args)
     {
         if (args.Element is MovieRowControl row)
         {
-            row.SidebarRefreshRequested -= OnRowSidebarRefresh;
-            row.SidebarRefreshRequested += OnRowSidebarRefresh;
+            row.SidebarRefreshRequested -= Вкл.RowSidebarRefresh;
+            row.SidebarRefreshRequested += Вкл.RowSidebarRefresh;
         }
     }
 
-    private void OnListRepeaterElementClearing(ItemsRepeater sender, ItemsRepeaterElementClearingEventArgs args)
+    private void Вкл.ListRepeaterElementClearing(ItemsRepeater sender, ItemsRepeaterElementClearingEventArgs args)
     {
         if (args.Element is MovieRowControl row)
-            row.SidebarRefreshRequested -= OnRowSidebarRefresh;
+            row.SidebarRefreshRequested -= Вкл.RowSidebarRefresh;
     }
 
-    private void AddAccelerator(VirtualKey key, VirtualKeyModifiers mods,
+    private void ДобавитьAccelerator(VirtualKey key, VirtualKeyModifiers mods,
         Windows.Foundation.TypedEventHandler<KeyboardAccelerator, KeyboardAcceleratorInvokedEventArgs> handler)
     {
         var acc = new KeyboardAccelerator { Key = key, Modifiers = mods };
         acc.Invoked += handler;
-        KeyboardAccelerators.Add(acc);
+        KeyboardAccelerators.Добавить(acc);
     }
 
-    public void FocusSearchBox()
+    public void FocusПоискBox()
     {
-        (App.MainWindow as CineLibraryCS.MainWindow)?.FocusTitleSearch();
+        (App.MainWindow as CineМедиатекаCS.MainWindow)?.FocusНазваниеПоиск();
     }
 
     // ── Keyboard navigation (v2.0.1) ──────────────────────────────────────
-    // All return true when they handled the keypress so the accelerator
+    // Все return true when they handled the keypress so the accelerator
     // can swallow it; false when focus is in a text input (let the user
     // navigate the text cursor instead) or scroll can't happen.
 
@@ -657,7 +657,7 @@ public sealed partial class LibraryPage : Page
     /// True when the focused element is a text-editing surface (search box,
     /// notes editor, etc.). In that case we don't steal PgDn / arrow keys.
     /// </summary>
-    private bool IsTextEditFocused()
+    private bool IsTextИзменитьFocused()
     {
         var focused = Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(XamlRoot);
         return focused is TextBox or AutoSuggestBox || (
@@ -667,41 +667,41 @@ public sealed partial class LibraryPage : Page
 
     private bool TryScrollByViewport(int direction)
     {
-        if (IsTextEditFocused()) return false;
-        var target = MainScroller.VerticalOffset + direction * MainScroller.ViewportHeight;
+        if (IsTextИзменитьFocused()) return false;
+        var target = MainScroller.VerticalВыкл.set + direction * MainScroller.ViewportHeight;
         MainScroller.ChangeView(null, target, null);
         return true;
     }
 
     /// <summary>
-    /// Scroll by roughly one row of cards/list-rows. Grid view: a row is
-    /// the current card height + spacing. List view: a fixed ~44 px row.
+    /// Scroll by roughly one row of cards/list-rows. Вид сеткой: a row is
+    /// the current card height + spacing. Вид списком: a fixed ~44 px row.
     /// </summary>
     private bool TryScrollByRow(int direction)
     {
-        if (IsTextEditFocused()) return false;
+        if (IsTextИзменитьFocused()) return false;
         double rowPx = _vm.ViewMode == ViewMode.Grid
             ? MovieCardControl.GlobalCardHeight + 12
             : 44;
-        MainScroller.ChangeView(null, MainScroller.VerticalOffset + direction * rowPx, null);
+        MainScroller.ChangeView(null, MainScroller.VerticalВыкл.set + direction * rowPx, null);
         return true;
     }
 
     private bool TryScrollTo(double offset)
     {
-        if (IsTextEditFocused()) return false;
+        if (IsTextИзменитьFocused()) return false;
         MainScroller.ChangeView(null, offset, null);
         return true;
     }
 
     /// <summary>
-    /// End-of-list jump. Library uses 60-per-page lazy loading so we
+    /// End-of-list jump. Медиатека uses 60-per-page lazy loading so we
     /// first drain remaining pages until everything's loaded, then scroll
-    /// to the bottom. Small libraries finish instantly.
+    /// to the bottom. Маленький libraries finish instantly.
     /// </summary>
     private bool TryScrollToEnd()
     {
-        if (IsTextEditFocused()) return false;
+        if (IsTextИзменитьFocused()) return false;
         _ = ScrollToEndAsync();
         return true;
     }
@@ -716,16 +716,16 @@ public sealed partial class LibraryPage : Page
             guard++;
         }
         // Layout pass needed before ScrollableHeight is final
-        MainScroller.UpdateLayout();
+        MainScroller.ОбновитьLayout();
         MainScroller.ChangeView(null, MainScroller.ScrollableHeight, null);
     }
 
-    public void UpdatePageTitle(string title) => PageTitleText.Text = title;
+    public void ОбновитьPageНазвание(string title) => PageНазваниеText.Text = title;
 
-    private void UpdateEmptyState()
+    private void ОбновитьEmptyState()
     {
-        // v4.0.0: a page whose only items are TV shows (the row above) isn't empty.
-        var empty = _vm.Movies.Count == 0 && !_vm.IsLoading
+        // v4.0.0: a page whose only items are Сериалы (the row above) isn't empty.
+        var empty = _vm.Фильмы.Count == 0 && !_vm.IsLoading
                     && ShowsInListSection.Visibility != Visibility.Visible;
         EmptyState.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
         GridBorder.Opacity = empty ? 0 : 1;
@@ -733,78 +733,78 @@ public sealed partial class LibraryPage : Page
 
         if (!empty) return;
 
-        // First-launch: zero drives in DB → big CTA pointing to Drives → Add folder.
+        // First-launch: zero drives in DB → big CTA pointing to Диски → Добавить папку.
         // Empty user list → list-specific message (v2.5.2).
         // Otherwise: filter-empty hint (existing behaviour).
-        var hasAnyDrive = AppState.Instance.Db.GetDrives().Count > 0;
+        var hasAnyDrive = AppState.Instance.Db.GetДиски().Count > 0;
         if (!hasAnyDrive)
         {
-            EmptyTitle.Text = "Welcome to CineLibrary";
+            EmptyНазвание.Text = "Welcome to CineМедиатека";
             EmptyStateHint.Text =
-                "Point CineLibrary at the folder where MediaElch saved your scraped " +
+                "Point CineМедиатека at the folder where MediaElch saved your scraped " +
                 "movies (each movie in its own folder with a .nfo + poster). " +
-                "Drives → Add folder.";
-            EmptyCtaBtn.Content = "📂 Add my movies folder";
+                "Диски → Добавить папку.";
+            EmptyCtaBtn.Content = "📂 Добавить my movies folder";
             EmptyCtaBtn.Visibility = Visibility.Visible;
         }
-        else if (_vm.UserListId != null && string.IsNullOrEmpty(_vm.SearchText))
+        else if (_vm.UserListId != null && string.IsNullOrEmpty(_vm.ПоискText))
         {
-            EmptyTitle.Text = "This list is empty";
+            EmptyНазвание.Text = "This list is empty";
             EmptyStateHint.Text =
-                "Add movies by right-clicking any poster and choosing " +
-                "“📑 Add to list”, or from a movie's detail dialog. " +
+                "Добавить movies by right-clicking any poster and choosing " +
+                "“📑 Добавить в список”, or from a movie's detail dialog. " +
                 "You can also Ctrl+click multiple cards in the library and " +
                 "drag them onto this list in the sidebar.";
             EmptyCtaBtn.Visibility = Visibility.Collapsed;
         }
         else
         {
-            EmptyTitle.Text = "No movies match your filters";
-            EmptyStateHint.Text = "Try clearing the search or choosing 'All' watched filter.";
+            EmptyНазвание.Text = "Нет фильмов, соответствующих фильтрам";
+            EmptyStateHint.Text = "Попробуйте очистить поиск или выбрать фильтр «Все».";
             EmptyCtaBtn.Visibility = Visibility.Collapsed;
         }
     }
 
-    private void OnEmptyCtaClick(object sender, RoutedEventArgs e)
+    private void Вкл.EmptyCtaClick(object sender, RoutedEventArgs e)
     {
         if (App.MainWindow is MainWindow mw)
-            mw.NavigateToDrivesAndAdd();
+            mw.NavigateToДискиAndДобавить();
     }
 
-    private void OnClearFilters(object sender, RoutedEventArgs e)
+    private void Вкл.ClearFilters(object sender, RoutedEventArgs e)
     {
-        SearchBox.Text = "";
-        _vm.SearchText = "";
-        // Reset watched-pill to All
+        ПоискBox.Text = "";
+        _vm.ПоискText = "";
+        // Reset watched-pill to Все
         var pill = (Style)Application.Current.Resources["PillButtonStyle"];
         var pillActive = (Style)Application.Current.Resources["PillButtonActiveStyle"];
-        FilterAll.Style = pillActive;
-        FilterUnwatched.Style = pill;
-        FilterWatched.Style = pill;
-        _vm.WatchedFilter = WatchedFilter.All;
+        FilterВсе.Style = pillActive;
+        FilterНе просмотрено.Style = pill;
+        FilterПросмотрено.Style = pill;
+        _vm.ПросмотреноFilter = ПросмотреноFilter.Все;
         _vm.ClearFilters();
-        PageTitleText.Text = "All movies";
-        UpdateClearFiltersButton();
+        PageНазваниеText.Text = "Все фильмы";
+        ОбновитьClearFiltersButton();
     }
 
-    private void UpdateClearFiltersButton()
+    private void ОбновитьClearFiltersButton()
     {
-        // v2.6 — covers the new Decade / Rating / ContinueWatching filters too.
+        // v2.6 — covers the new Decade / Рейтинг / ContinueWatching filters too.
         ClearFiltersBtn.Visibility = AnyFilterActive()
             ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // ── Density (S/M/L/XL) ────────────────────────────────────────────────
 
-    private void OnDensityClick(object sender, RoutedEventArgs e)
+    private void Вкл.DensityClick(object sender, RoutedEventArgs e)
     {
         if (!_ready) return;
         if (sender is not FrameworkElement { Tag: string tag }) return;
-        ApplyDensity(tag);
+        ПрименитьDensity(tag);
         AppState.Instance.SetPref("gridDensity", tag);
     }
 
-    private void ApplyDensity(string tag)
+    private void ПрименитьDensity(string tag)
     {
         var (w, h) = tag switch
         {
@@ -848,16 +848,16 @@ public sealed partial class LibraryPage : Page
 
     // Sort combo — match the item whose Tag corresponds to current SortKey+SortDir.
     // v4.1.0: runs whenever the sort changes (it ran only at start, so Continue
-    // Watching's own order never showed), and knows Last Watched (it read "Title").
+    // Watching's own order never showed), and knows Last Просмотрено (it read "Название").
     private void SyncSortCombo()
     {
         var keyStr = _vm.SortKey switch
         {
-            SortKey.Year       => "year",
-            SortKey.Rating     => "rating",
-            SortKey.Runtime    => "runtime",
-            SortKey.DateAdded  => "date_added",
-            SortKey.LastPlayed => "last_played",
+            SortKey.Год       => "year",
+            SortKey.Рейтинг     => "rating",
+            SortKey.Продолжительность    => "runtime",
+            SortKey.DateДобавитьed  => "date_added",
+            SortKey.LastВоспроизвестиed => "last_played",
             _                  => "title"
         };
         var dirStr = _vm.SortDir == SortDir.Asc ? "asc" : "desc";
@@ -873,14 +873,14 @@ public sealed partial class LibraryPage : Page
         if (SortCombo.SelectedIndex < 0) SortCombo.SelectedIndex = 0;
     }
 
-    public void ApplyNavParam(LibraryNavParam p)
+    public void ПрименитьNavParam(МедиатекаNavParam p)
     {
-        SearchBox.Text = "";
-        _vm.SearchText = "";
+        ПоискBox.Text = "";
+        _vm.ПоискText = "";
         _shownRowKey = "";   // re-query the shows row: favorites may have changed elsewhere
 
-        if (p.FavoritesOnly)
-            _vm.SetFavorites();
+        if (p.ИзбранноеВкл.ly)
+            _vm.SetИзбранное();
         else if (p.DriveSerial != null)
             _vm.SetDriveFilter(p.DriveSerial, p.Label);
         else if (p.Genre != null)
@@ -890,107 +890,107 @@ public sealed partial class LibraryPage : Page
         else
             _vm.ClearFilters();
 
-        // Breadcrumb-style title: "All movies › Drama"
-        PageTitleText.Text = p.Label == null
-            ? "All movies"
-            : $"All movies › {p.Label}";
+        // Breadcrumb-style title: "Все фильмы › Драма"
+        PageНазваниеText.Text = p.Label == null
+            ? "Все фильмы"
+            : $"Все фильмы › {p.Label}";
     }
 
-    private void OnVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void Вкл.VmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         DispatcherQueue.TryEnqueue(() =>
         {
-            if (e.PropertyName == nameof(LibraryViewModel.TotalCount) ||
-                e.PropertyName == nameof(LibraryViewModel.HasMore) ||
-                e.PropertyName == nameof(LibraryViewModel.FilterTotal))
+            if (e.PropertyName == nameof(МедиатекаViewModel.TotalCount) ||
+                e.PropertyName == nameof(МедиатекаViewModel.HasMore) ||
+                e.PropertyName == nameof(МедиатекаViewModel.FilterTotal))
             {
                 // v3.9.0: how many movies the view holds. (It used to read
                 // "60 of 1,200" while pages were still loading, which looked
                 // like a filter.)
-                UpdateCountText();
+                ОбновитьCountText();
             }
-            if (e.PropertyName == nameof(LibraryViewModel.IsLoading))
+            if (e.PropertyName == nameof(МедиатекаViewModel.IsLoading))
             {
                 LoadingRing.IsActive = _vm.IsLoading;
                 LoadingRing.Visibility = _vm.IsLoading ? Visibility.Visible : Visibility.Collapsed;
-                UpdateEmptyState();
+                ОбновитьEmptyState();
             }
-            if (e.PropertyName == nameof(LibraryViewModel.SearchText))
-                SearchTextChanged?.Invoke(this, _vm.SearchText ?? "");
-            if (e.PropertyName is nameof(LibraryViewModel.SortKey) or nameof(LibraryViewModel.SortDir))
+            if (e.PropertyName == nameof(МедиатекаViewModel.ПоискText))
+                ПоискTextChanged?.Invoke(this, _vm.ПоискText ?? "");
+            if (e.PropertyName is nameof(МедиатекаViewModel.SortKey) or nameof(МедиатекаViewModel.SortDir))
                 SyncSortCombo();
             // Any filter-related VM change should reflect in the Clear button
-            UpdateClearFiltersButton();
-            UpdateFilterChips();
+            ОбновитьClearFiltersButton();
+            ОбновитьFilterChips();
             RefreshShowsInList();
-            RefreshShowsInSearch();
-            // v2.9 — Recently Added / Recently Watched / On This Day are
+            RefreshShowsInПоиск();
+            // v2.9 — Недавно добавленные / Недавно просмотренные / В этот день are
             // accessed via sidebar entries instead of home rows now; the
             // horizontal rows interfered with vertical scrolling through
             // the main grid.
         });
     }
 
-    // v2.9 — Recently Added / Recently Watched / On This Day rows used to
-    // live at the top of the Library home, but a horizontal scroll row
+    // v2.9 — Недавно добавленные / Недавно просмотренные / В этот день rows used to
+    // live at the top of the Медиатека home, but a horizontal scroll row
     // inside a vertical ScrollViewer steals the mouse wheel and makes the
     // main grid feel unscrollable. They're now sidebar entries only.
 
     // ── v2.9 TV-in-search row ────────────────────────────────────────────────
 
-    private string? _lastShowsSearchTerm;
+    private string? _lastShowsПоискTerm;
 
     /// <summary>
-    /// When the search box has a term, also surface matching TV shows above
+    /// When the search box has a term, also surface matching Сериалы above
     /// the movie grid. Re-queried only when the search term actually changes.
     /// </summary>
-    private void RefreshShowsInSearch()
+    private void RefreshShowsInПоиск()
     {
-        var q = (_vm.SearchText ?? "").Trim();
+        var q = (_vm.ПоискText ?? "").Trim();
         if (q.Length < 2)
         {
-            ShowsInSearchSection.Visibility = Visibility.Collapsed;
-            ShowsInSearchRepeater.ItemsSource = null;
-            _lastShowsSearchTerm = null;
+            ShowsInПоискSection.Visibility = Visibility.Collapsed;
+            ShowsInПоискRepeater.ItemsSource = null;
+            _lastShowsПоискTerm = null;
             return;
         }
-        if (q == _lastShowsSearchTerm) return;
-        _lastShowsSearchTerm = q;
+        if (q == _lastShowsПоискTerm) return;
+        _lastShowsПоискTerm = q;
 
-        var shows = AppState.Instance.Db.SearchTvShows(q, AppState.Instance.Connected, limit: 24);
+        var shows = AppState.Instance.Db.ПоискTvShows(q, AppState.Instance.Connected, limit: 24);
         if (shows.Count == 0)
         {
-            ShowsInSearchSection.Visibility = Visibility.Collapsed;
-            ShowsInSearchRepeater.ItemsSource = null;
+            ShowsInПоискSection.Visibility = Visibility.Collapsed;
+            ShowsInПоискRepeater.ItemsSource = null;
             return;
         }
-        ShowsInSearchHeader.Text = shows.Count == 1
+        ShowsInПоискHeader.Text = shows.Count == 1
             ? "TV SHOW MATCHING"
-            : $"TV SHOWS MATCHING ({shows.Count})";
-        ShowsInSearchRepeater.ItemsSource = shows;
-        ShowsInSearchSection.Visibility = Visibility.Visible;
+            : $"ПОДХОДЯЩИЕ СЕРИАЛЫ ({shows.Count})";
+        ShowsInПоискRepeater.ItemsSource = shows;
+        ShowsInПоискSection.Visibility = Visibility.Visible;
     }
 
     // ── v2.9 Surprise Me 🎲 ──────────────────────────────────────────────────
 
     /// <summary>
-    /// Filter-aware random pick. Uses the current LibraryViewModel filters so
+    /// Filter-aware random pick. Uses the current МедиатекаViewModel filters so
     /// the dice are rolled across whatever the user is looking at — random
     /// 90s comedy, random movie in this list, random favorite, etc. Falls
     /// back to an unfiltered random unwatched if the filter set is empty.
     /// </summary>
-    private void OnSurpriseMeClick(object sender, RoutedEventArgs e)
+    private void Вкл.SurpriseMeClick(object sender, RoutedEventArgs e)
     {
         var opts = _vm.BuildOptsForPick();
         var id = AppState.Instance.Db.GetRandomMovieIdMatching(opts, AppState.Instance.Connected);
         if (id == null)
         {
             if (App.MainWindow is MainWindow mw)
-                mw.ShowToast("No movies match the current filter — try clearing some filters");
+                mw.ShowToast("Фильмов нет match the current filter — try clearing some filters");
             return;
         }
         var dialog = new MovieDetailDialog(id.Value);
-        dialog.WatchlistChanged += (_, _) => SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
+        dialog.Список просмотраChanged += (_, _) => SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         dialog.Activate();
     }
 
@@ -999,18 +999,18 @@ public sealed partial class LibraryPage : Page
 
     /// <summary>
     /// v2.8.2 — when the current view is a user list, show that list's TV
-    /// shows in a row above the movie grid. v4.0.0: Favorites, To Watch and
-    /// Continue Watching get the same row; v4.3.0: Notes too. Re-queried only
+    /// shows in a row above the movie grid. v4.0.0: Избранное, К просмотру and
+    /// Продолжить просмотр get the same row; v4.3.0: Заметки too. Re-queried only
     /// when the view changes (or the page is opened again), so routine VM
     /// updates stay cheap.
     /// </summary>
     private void RefreshShowsInList()
     {
         DatabaseService.TvShowPage? page =
-            _vm.FavoritesOnly      ? DatabaseService.TvShowPage.Favorites :
-            _vm.IsWatchlistOnly    ? DatabaseService.TvShowPage.Watchlist :
+            _vm.ИзбранноеВкл.ly      ? DatabaseService.TvShowPage.Избранное :
+            _vm.IsСписок просмотраВкл.ly    ? DatabaseService.TvShowPage.Список просмотра :
             _vm.IsContinueWatching ? DatabaseService.TvShowPage.ContinueWatching :
-            _vm.HasNoteOnly        ? DatabaseService.TvShowPage.Notes : null;
+            _vm.HasNoteВкл.ly        ? DatabaseService.TvShowPage.Заметки : null;
         var key = _vm.UserListId is int listId ? $"list:{listId}" : page?.ToString();
         if (key == _shownRowKey) return;
         _shownRowKey = key;
@@ -1019,16 +1019,16 @@ public sealed partial class LibraryPage : Page
         var shows = _vm.UserListId is int id ? db.GetTvShowsInList(id, AppState.Instance.Connected)
                   : page is { } p ? db.GetTvShowsForPage(p, AppState.Instance.Connected)
                   : new List<TvShowListItem>();
-        ShowsInListHeader.Text = _vm.UserListId != null ? "TV SHOWS IN THIS LIST" : "TV SHOWS";
+        ShowsInListHeader.Text = _vm.UserListId != null ? "СЕРИАЛЫ В ЭТОМ СПИСКЕ" : "TV SHOWS";
         ShowsInListRepeater.ItemsSource = shows.Count > 0 ? shows : null;
         ShowsInListSection.Visibility = shows.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         _rowShowCount = shows.Count;
-        UpdateCountText();
-        UpdateEmptyState();
+        ОбновитьCountText();
+        ОбновитьEmptyState();
     }
 
     /// <summary>"128 movies", plus " · 3 shows" when the shows row is showing (v4.0.0).</summary>
-    private void UpdateCountText()
+    private void ОбновитьCountText()
     {
         var movies = _vm.FilterTotal == 1 ? "1 movie" : $"{_vm.FilterTotal:N0} movies";
         MovieCountText.Text = _rowShowCount == 0 ? movies
@@ -1040,171 +1040,171 @@ public sealed partial class LibraryPage : Page
     /// narrowing the view and drop any single one with one click.
     ///
     /// Each chip's onClear action also reloads — VM filter setters have no
-    /// partial OnXxxChanged handlers, so nulling the field alone wouldn't
+    /// partial Вкл.XxxChanged handlers, so nulling the field alone wouldn't
     /// re-query. We do a reload + re-render the chip strip to keep
     /// everything in sync.
     /// </summary>
-    private void UpdateFilterChips()
+    private void ОбновитьFilterChips()
     {
         ActiveFilterChips.Items.Clear();
-        AddChip("Genre",    _vm.Genre,           () => DropFilter(() => _vm.Genre = null));
+        ДобавитьChip("Genre",    _vm.Genre,           () => DropFilter(() => _vm.Genre = null));
         if (_vm.FilterDecadeStart.HasValue)
-            AddChip("Decade", $"{_vm.FilterDecadeStart.Value}s",
+            ДобавитьChip("Decade", $"{_vm.FilterDecadeStart.Value}s",
                 () => DropFilter(() => _vm.FilterDecadeStart = null));
-        AddChip("Rating",   _vm.FilterRatingBand,() => DropFilter(() => _vm.FilterRatingBand = null));
-        AddChip("Actor",    _vm.FilterActor,     () => DropFilter(() => _vm.FilterActor = null));
-        AddChip("Director", _vm.FilterDirector,  () => DropFilter(() => _vm.FilterDirector = null));
-        AddChip("Studio",   _vm.FilterStudio,    () => DropFilter(() => _vm.FilterStudio = null));
-        if (_vm.FavoritesOnly)
-            AddChip("Favorites", "★",   () => DropFilter(() => _vm.FavoritesOnly = false));
-        if (_vm.IsWatchlistOnly)
-            AddChip("Watchlist", "📌",  () => DropFilter(() => _vm.IsWatchlistOnly = false));
+        ДобавитьChip("Рейтинг",   _vm.FilterРейтингBand,() => DropFilter(() => _vm.FilterРейтингBand = null));
+        ДобавитьChip("Actor",    _vm.FilterActor,     () => DropFilter(() => _vm.FilterActor = null));
+        ДобавитьChip("Режиссёр", _vm.FilterРежиссёр,  () => DropFilter(() => _vm.FilterРежиссёр = null));
+        ДобавитьChip("Студия",   _vm.FilterСтудия,    () => DropFilter(() => _vm.FilterСтудия = null));
+        if (_vm.ИзбранноеВкл.ly)
+            ДобавитьChip("Избранное", "★",   () => DropFilter(() => _vm.ИзбранноеВкл.ly = false));
+        if (_vm.IsСписок просмотраВкл.ly)
+            ДобавитьChip("Список просмотра", "📌",  () => DropFilter(() => _vm.IsСписок просмотраВкл.ly = false));
         if (_vm.IsContinueWatching)
-            AddChip("Continue", "▶",    () => DropFilter(() => _vm.IsContinueWatching = false));
-        if (_vm.IsRecentlyWatched)
-            AddChip("Recent", "🕓",     () => DropFilter(() => _vm.IsRecentlyWatched = false));
-        if (_vm.IsRecentlyAdded)
-            AddChip("New", "🆕",        () => DropFilter(() => _vm.IsRecentlyAdded = false));
-        if (_vm.HasNoteOnly)
-            AddChip("Notes", "📝",      () => DropFilter(() => _vm.HasNoteOnly = false));
+            ДобавитьChip("Continue", "▶",    () => DropFilter(() => _vm.IsContinueWatching = false));
+        if (_vm.IsRecentlyПросмотрено)
+            ДобавитьChip("Recent", "🕓",     () => DropFilter(() => _vm.IsRecentlyПросмотрено = false));
+        if (_vm.IsRecentlyДобавитьed)
+            ДобавитьChip("Новый", "🆕",        () => DropFilter(() => _vm.IsRecentlyДобавитьed = false));
+        if (_vm.HasNoteВкл.ly)
+            ДобавитьChip("Заметки", "📝",      () => DropFilter(() => _vm.HasNoteВкл.ly = false));
         if (_vm.TagId != null && !string.IsNullOrEmpty(_vm.TagName))
-            AddChip("Tag",   _vm.TagName, () => DropFilter(() => { _vm.TagId = null; _vm.TagName = null; }));
+            ДобавитьChip("Tag",   _vm.TagName, () => DropFilter(() => { _vm.TagId = null; _vm.TagName = null; }));
         ActiveFilterChips.Visibility = ActiveFilterChips.Items.Count > 0
             ? Visibility.Visible : Visibility.Collapsed;
     }
 
     /// <summary>
-    /// Apply a single filter mutation, then reload. If the result is "no
+    /// Применить a single filter mutation, then reload. If the result is "no
     /// filters left", also reset the page title so the breadcrumb doesn't
-    /// stick around ("ALL MOVIES › 2010S" should revert to "ALL MOVIES").
+    /// stick around ("ВСЕ ФИЛЬМЫ › 2010S" should revert to "ВСЕ ФИЛЬМЫ").
     /// </summary>
     private void DropFilter(Action mutate)
     {
         mutate();
         if (!AnyFilterActive())
         {
-            _vm.PageTitle = "All Movies";
-            PageTitleText.Text = "All movies";
+            _vm.PageНазвание = "Все фильмы";
+            PageНазваниеText.Text = "Все фильмы";
         }
         _ = _vm.LoadAsync();
-        UpdateClearFiltersButton();
+        ОбновитьClearFiltersButton();
     }
 
     private bool AnyFilterActive() =>
-        !string.IsNullOrEmpty(_vm.SearchText) ||
-        _vm.WatchedFilter != WatchedFilter.All ||
-        _vm.FavoritesOnly || _vm.IsWatchlistOnly || _vm.IsContinueWatching ||
-        _vm.IsRecentlyWatched || _vm.IsRecentlyAdded || _vm.HasNoteOnly ||
+        !string.IsNullOrEmpty(_vm.ПоискText) ||
+        _vm.ПросмотреноFilter != ПросмотреноFilter.Все ||
+        _vm.ИзбранноеВкл.ly || _vm.IsСписок просмотраВкл.ly || _vm.IsContinueWatching ||
+        _vm.IsRecentlyПросмотрено || _vm.IsRecentlyДобавитьed || _vm.HasNoteВкл.ly ||
         _vm.DriveSerial != null || _vm.Genre != null || _vm.CollectionId != null ||
-        _vm.FilterActor != null || _vm.FilterDirector != null || _vm.FilterStudio != null ||
-        _vm.FilterDecadeStart != null || _vm.FilterRatingBand != null ||
+        _vm.FilterActor != null || _vm.FilterРежиссёр != null || _vm.FilterСтудия != null ||
+        _vm.FilterDecadeStart != null || _vm.FilterРейтингBand != null ||
         _vm.UserListId != null || _vm.TagId != null;
 
-    private void AddChip(string label, string? value, Action onClear)
+    private void ДобавитьChip(string label, string? value, Action onClear)
     {
         if (string.IsNullOrWhiteSpace(value)) return;
         var border = new Border
         {
-            Background = CineLibraryCS.Services.ThemeBrushes.Get("ChipBrush"),
-            BorderBrush = CineLibraryCS.Services.ThemeBrushes.Get("BorderBrush"),
+            Назадground = CineМедиатекаCS.Services.ThemeBrushes.Get("ChipBrush"),
+            BorderBrush = CineМедиатекаCS.Services.ThemeBrushes.Get("BorderBrush"),
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(12),
             Padding = new Thickness(10, 3, 6, 3),
         };
         var sp = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-        sp.Children.Add(new TextBlock
+        sp.Children.Добавить(new TextBlock
         {
             FontSize = 11,
-            Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
+            Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush"),
             Text = label + ":",
             VerticalAlignment = VerticalAlignment.Center,
         });
-        sp.Children.Add(new TextBlock
+        sp.Children.Добавить(new TextBlock
         {
             FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-            Foreground = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush"),
+            Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("TextBrush"),
             Text = value,
             VerticalAlignment = VerticalAlignment.Center,
         });
         var x = new Button
         {
             Content = "✕", FontSize = 10,
-            Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent),
-            Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
+            Назадground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent),
+            Foreground = CineМедиатекаCS.Services.ThemeBrushes.Get("MutedBrush"),
             BorderThickness = new Thickness(0),
             Padding = new Thickness(4, 0, 4, 0),
             MinWidth = 18, MinHeight = 18,
         };
         ToolTipService.SetToolTip(x, $"Clear {label.ToLower()} filter");
         x.Click += (_, _) => onClear();
-        sp.Children.Add(x);
+        sp.Children.Добавить(x);
         border.Child = sp;
-        ActiveFilterChips.Items.Add(border);
+        ActiveFilterChips.Items.Добавить(border);
     }
 
-    // ── Search ────────────────────────────────────────────────────────────
+    // ── Поиск ────────────────────────────────────────────────────────────
 
-    private void OnSearchChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    private void Вкл.ПоискChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (!_ready) return;
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
-            _vm.SearchText = sender.Text;
+            _vm.ПоискText = sender.Text;
         // v2.6 — Esc hint visibility tracks "has text" (Esc only does
         // something when there's a search to clear).
-        UpdateSearchEscHint();
+        ОбновитьПоискEscHint();
     }
 
-    // v3.1 — search scope (All / Title / Cast & crew).
-    private void OnScopeChanged(object sender, SelectionChangedEventArgs e)
+    // v3.1 — search scope (Все / Название / Актёры и съёмочная группа).
+    private void Вкл.ScopeChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_ready) return;
         if (ScopeCombo.SelectedItem is ComboBoxItem item && item.Tag is string scope)
-            _vm.SearchScope = scope;
+            _vm.ПоискScope = scope;
     }
 
-    private void OnSearchBoxFocus(object sender, RoutedEventArgs e)
+    private void Вкл.ПоискBoxFocus(object sender, RoutedEventArgs e)
     {
-        SearchBox.BorderBrush = CineLibraryCS.Services.ThemeBrushes.Get("BrandPurpleBrush");
-        UpdateSearchEscHint();
+        ПоискBox.BorderBrush = CineМедиатекаCS.Services.ThemeBrushes.Get("BrandPurpleBrush");
+        ОбновитьПоискEscHint();
     }
 
-    private void OnSearchBoxBlur(object sender, RoutedEventArgs e)
+    private void Вкл.ПоискBoxBlur(object sender, RoutedEventArgs e)
     {
-        SearchBox.BorderBrush = CineLibraryCS.Services.ThemeBrushes.Get("InputBorderBrush");
-        UpdateSearchEscHint();
+        ПоискBox.BorderBrush = CineМедиатекаCS.Services.ThemeBrushes.Get("InputBorderBrush");
+        ОбновитьПоискEscHint();
     }
 
-    private void UpdateSearchEscHint()
+    private void ОбновитьПоискEscHint()
     {
         // Show only when the box is focused AND has text to clear.
-        var hasText = !string.IsNullOrEmpty(SearchBox.Text);
+        var hasText = !string.IsNullOrEmpty(ПоискBox.Text);
         var focused = Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(XamlRoot)
-            is FrameworkElement fe && (fe == SearchBox || fe.Parent == SearchBox);
-        SearchEscHint.Visibility = (hasText && focused) ? Visibility.Visible : Visibility.Collapsed;
+            is FrameworkElement fe && (fe == ПоискBox || fe.Parent == ПоискBox);
+        ПоискEscHint.Visibility = (hasText && focused) ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // ── Sort ──────────────────────────────────────────────────────────────
 
-    private void OnSortChanged(object sender, SelectionChangedEventArgs e)
+    private void Вкл.SortChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_ready) return;
         if (SortCombo.SelectedItem is not ComboBoxItem item) return;
         var parts = (item.Tag as string ?? "title:asc").Split(':');
         _vm.SortKey = parts[0] switch
         {
-            "year"        => SortKey.Year,
-            "rating"      => SortKey.Rating,
-            "runtime"     => SortKey.Runtime,
-            "date_added"  => SortKey.DateAdded,
-            "last_played" => SortKey.LastPlayed,
-            _             => SortKey.Title
+            "year"        => SortKey.Год,
+            "rating"      => SortKey.Рейтинг,
+            "runtime"     => SortKey.Продолжительность,
+            "date_added"  => SortKey.DateДобавитьed,
+            "last_played" => SortKey.LastВоспроизвестиed,
+            _             => SortKey.Название
         };
         _vm.SortDir = parts.Length > 1 && parts[1] == "desc" ? SortDir.Desc : SortDir.Asc;
     }
 
     // ── View mode ─────────────────────────────────────────────────────────
 
-    private void OnViewGrid(object sender, RoutedEventArgs e)
+    private void Вкл.ViewGrid(object sender, RoutedEventArgs e)
     {
         if (!_ready) return;
         GridViewToggle.IsChecked = true;
@@ -1214,7 +1214,7 @@ public sealed partial class LibraryPage : Page
         _vm.ViewMode = ViewMode.Grid;
     }
 
-    private void OnViewList(object sender, RoutedEventArgs e)
+    private void Вкл.ViewList(object sender, RoutedEventArgs e)
     {
         if (!_ready) return;
         ListViewToggle.IsChecked  = true;
@@ -1224,63 +1224,63 @@ public sealed partial class LibraryPage : Page
         _vm.ViewMode = ViewMode.List;
     }
 
-    // ── Watched filter ────────────────────────────────────────────────────
+    // ── Просмотрено filter ────────────────────────────────────────────────────
 
-    private void OnWatchedFilter(object sender, RoutedEventArgs e)
+    private void Вкл.ПросмотреноFilter(object sender, RoutedEventArgs e)
     {
         if (!_ready) return;
         if (sender is not Button btn) return;
         var pill = (Style)Application.Current.Resources["PillButtonStyle"];
         var pillActive = (Style)Application.Current.Resources["PillButtonActiveStyle"];
-        FilterAll.Style       = pill;
-        FilterWatched.Style   = pill;
-        FilterUnwatched.Style = pill;
+        FilterВсе.Style       = pill;
+        FilterПросмотрено.Style   = pill;
+        FilterНе просмотрено.Style = pill;
         btn.Style = pillActive;
 
-        _vm.WatchedFilter = (btn.Tag as string) switch
+        _vm.ПросмотреноFilter = (btn.Tag as string) switch
         {
-            "watched"   => WatchedFilter.Watched,
-            "unwatched" => WatchedFilter.Unwatched,
-            _           => WatchedFilter.All
+            "watched"   => ПросмотреноFilter.Просмотрено,
+            "unwatched" => ПросмотреноFilter.Не просмотрено,
+            _           => ПросмотреноFilter.Все
         };
     }
 
     // ── Infinite scroll ───────────────────────────────────────────────────
 
-    private void OnScrollChanged(object sender, ScrollViewerViewChangedEventArgs e)
+    private void Вкл.ScrollChanged(object sender, ScrollViewerViewChangedEventArgs e)
     {
         if (sender is not ScrollViewer sv) return;
-        if (sv.VerticalOffset >= sv.ScrollableHeight - 300 && _vm.HasMore && !_vm.IsLoading)
+        if (sv.VerticalВыкл.set >= sv.ScrollableHeight - 300 && _vm.HasMore && !_vm.IsLoading)
             _ = _vm.LoadMoreAsync();
     }
 
-    // ── Export ────────────────────────────────────────────────────────────
+    // ── Экспорт ────────────────────────────────────────────────────────────
 
-    // v3.9.0 — Export moved to Tools in the sidebar. These let it offer
+    // v3.9.0 — Экспорт moved to Tools in the sidebar. These let it offer
     // "this view" and write every matching movie, not just the loaded pages.
     public int ViewCount => _vm.FilterTotal;
-    public Task<List<MovieListItem>> GetViewMoviesAsync() => _vm.GetAllMatchingAsync();
+    public Task<List<MovieListItem>> GetViewФильмыAsync() => _vm.GetВсеMatchingAsync();
 
-    // ── Back/Toggle sidebar button ────────────────────────────────────────
+    // ── Назад/Toggle sidebar button ────────────────────────────────────────
 
-    public void ShowBackButton(bool show)
+    public void ShowНазадButton(bool show)
     {
         // Button is already defined in XAML with Visibility="Collapsed"
         // This will be called by MainWindow to show/hide it
     }
 
-    // v2.7 — "back to Browse" button. MainWindow drives visibility via
-    // ShowBrowseBack / HideBrowseBack and handles the actual navigation.
-    private void OnBrowseBackClick(object sender, RoutedEventArgs e)
-        => (App.MainWindow as MainWindow)?.OnLibraryBackRequested();
+    // v2.7 — "back to Обзор" button. MainWindow drives visibility via
+    // ShowОбзорНазад / HideОбзорНазад and handles the actual navigation.
+    private void Вкл.ОбзорНазадClick(object sender, RoutedEventArgs e)
+        => (App.MainWindow as MainWindow)?.Вкл.МедиатекаНазадRequested();
 
-    public void ShowBrowseBack(string label)
+    public void ShowОбзорНазад(string label)
     {
-        BackLabel.Text = label;
-        BackToggleBtn.Visibility = Visibility.Visible;
+        НазадLabel.Text = label;
+        НазадToggleBtn.Visibility = Visibility.Visible;
     }
 
-    public void HideBrowseBack() => BackToggleBtn.Visibility = Visibility.Collapsed;
+    public void HideОбзорНазад() => НазадToggleBtn.Visibility = Visibility.Collapsed;
 }
 
 

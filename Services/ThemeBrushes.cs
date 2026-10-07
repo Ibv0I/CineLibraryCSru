@@ -1,7 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 
-namespace CineLibraryCS.Services;
+namespace CineМедиатекаCS.Services;
 
 /// <summary>
 /// Resolves a theme-aware brush honouring the app's ACTUAL UI theme.
@@ -10,7 +10,7 @@ namespace CineLibraryCS.Services;
 /// merged <c>ThemeDictionaries</c> against <c>Application.RequestedTheme</c>
 /// (which follows the <b>system</b> theme), not the in-app theme the user
 /// picked. For anyone whose Windows theme differs from their chosen
-/// CineLibrary theme, that returns the wrong variant — e.g. a light (white)
+/// CineМедиатека theme, that returns the wrong variant — e.g. a light (white)
 /// card brush behind a dark dialog, which made the shortcuts dialog's key
 /// chips render as white boxes with invisible text.</para>
 ///
@@ -23,8 +23,8 @@ public static class ThemeBrushes
 {
     public static SolidColorBrush Get(string key)
     {
-        var theme = (App.MainWindow?.Content as FrameworkElement)?.ActualTheme ?? ElementTheme.Dark;
-        var dictKey = theme == ElementTheme.Light ? "Light" : "Dark";
+        var theme = (App.MainWindow?.Content as FrameworkElement)?.ActualTheme ?? ElementTheme.Тёмная;
+        var dictKey = theme == ElementTheme.Светлая ? "Светлая" : "Тёмная";
 
         foreach (var md in Application.Current.Resources.MergedDictionaries)
         {

@@ -1,10 +1,10 @@
 using Microsoft.Data.Sqlite;
-using CineLibraryCS.Models;
-using System.Runtime.CompilerServices;
+using CineМедиатекаCS.Models;
+using System.Продолжительность.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace CineLibraryCS.Services;
+namespace CineМедиатекаCS.Services;
 
 public class DatabaseService : IDisposable
 {
@@ -19,24 +19,24 @@ public class DatabaseService : IDisposable
     public DatabaseService(string dataDir)
     {
         _dataDir = dataDir;
-        Directory.CreateDirectory(dataDir);
+        Режиссёрy.СоздатьРежиссёрy(dataDir);
         var dbPath = Path.Combine(dataDir, "cinelibrary.db");
         _conn = new SqliteConnection($"Data Source={dbPath}");
         _conn.Open();
         ExecutePragmas();
-        CreateSchema();
+        СоздатьSchema();
         RunMigrations();
-        SetupFullTextSearch();
+        SetupFullTextПоиск();
     }
 
     // ── v3.1 Full-text search (FTS5) ──────────────────────────────────────────
 
     /// <summary>
-    /// Create the FTS5 index (if the SQLite build supports it) and populate it
+    /// Создать the FTS5 index (if the SQLite build supports it) and populate it
     /// once for existing libraries. Columns are weighted at query time so a
     /// title hit always outranks a plot hit.
     /// </summary>
-    private void SetupFullTextSearch()
+    private void SetupFullTextПоиск()
     {
         // v3.1.2 — FTS5 search is DISABLED, and any leftover index is removed.
         //
@@ -46,7 +46,7 @@ public class DatabaseService : IDisposable
         // malformed" on later writes (e.g. a drive scan). Dropping the table
         // clears that corruption and leaves the rest of the catalog intact.
         //
-        // Search itself uses the proven LIKE path (title + cast, no plot
+        // Поиск itself uses the proven LIKE path (title + cast, no plot
         // noise) plus the scope selector — FtsMatchFor() always returns null
         // while this flag is false.
         _ftsAvailable = false;
@@ -62,7 +62,7 @@ public class DatabaseService : IDisposable
         try
         {
             var drops = new List<(string Type, string Name)>();
-            using (var q = _conn.CreateCommand())
+            using (var q = _conn.СоздатьCommand())
             {
                 q.CommandText =
                     @"SELECT type, name FROM sqlite_master
@@ -70,7 +70,7 @@ public class DatabaseService : IDisposable
                          AND name NOT LIKE 'sqlite_%'";
                 using var r = q.ExecuteReader();
                 while (r.Read())
-                    drops.Add((r.IsDBNull(0) ? "" : r.GetString(0),
+                    drops.Добавить((r.IsDBNull(0) ? "" : r.GetString(0),
                                r.IsDBNull(1) ? "" : r.GetString(1)));
             }
             // Drop triggers/views first (they reference the table), then the
@@ -97,7 +97,7 @@ public class DatabaseService : IDisposable
 
     private long ScalarLong(string sql)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = sql;
         var v = cmd.ExecuteScalar();
         return v == null || v == DBNull.Value ? 0 : Convert.ToInt64(v);
@@ -111,7 +111,7 @@ public class DatabaseService : IDisposable
     /// multi-statement batching.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void RebuildMovieSearchIndex()
+    public void RebuildMovieПоискIndex()
     {
         if (!_ftsAvailable) return;
         try
@@ -136,7 +136,7 @@ public class DatabaseService : IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"RebuildMovieSearchIndex failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"RebuildMovieПоискIndex failed: {ex.Message}");
         }
     }
 
@@ -148,13 +148,13 @@ public class DatabaseService : IDisposable
     /// </summary>
     private string? FtsMatchFor(ListOptions opts)
     {
-        if (!_ftsAvailable || string.IsNullOrWhiteSpace(opts.Search)) return null;
+        if (!_ftsAvailable || string.IsNullOrWhiteSpace(opts.Поиск)) return null;
 
         // Pull out runs of letters/digits as words (so "spider-man" → spider,
         // man and nothing in the query can be read as an FTS operator). Each
         // word becomes a prefix term; words are AND-ed.
-        var words = System.Text.RegularExpressions.Regex.Matches(opts.Search, @"[\p{L}\p{N}]+");
-        string? column = opts.SearchScope switch
+        var words = System.Text.RegularExpressions.Regex.Matches(opts.Поиск, @"[\p{L}\p{N}]+");
+        string? column = opts.ПоискScope switch
         {
             "title" => "{title original_title}",
             "cast"  => "{people}",
@@ -162,7 +162,7 @@ public class DatabaseService : IDisposable
         };
         var terms = new List<string>();
         foreach (System.Text.RegularExpressions.Match w in words)
-            terms.Add(column != null ? $"{column} : {w.Value}*" : $"{w.Value}*");
+            terms.Добавить(column != null ? $"{column} : {w.Value}*" : $"{w.Value}*");
         return terms.Count == 0 ? null : string.Join(" AND ", terms);
     }
 
@@ -178,7 +178,7 @@ public class DatabaseService : IDisposable
         Exec("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;");
     }
 
-    private void CreateSchema()
+    private void СоздатьSchema()
     {
         Exec(@"
 CREATE TABLE IF NOT EXISTS drives (
@@ -186,7 +186,7 @@ CREATE TABLE IF NOT EXISTS drives (
     label TEXT NOT NULL,
     last_seen_letter TEXT,
     last_connected_at INTEGER,
-    movie_root_relative TEXT NOT NULL DEFAULT 'Movies'
+    movie_root_relative TEXT NOT NULL DEFAULT 'Фильмы'
 );
 
 CREATE TABLE IF NOT EXISTS drive_roots (
@@ -278,7 +278,7 @@ CREATE TABLE IF NOT EXISTS preferences (
 );
 
 -- v1.9.2 — user-defined custom lists (e.g. ""Date night"", ""80s sci-fi"").
--- Movies can be in many lists; deleting a list cascades the join rows.
+-- Фильмы can be in many lists; deleting a list cascades the join rows.
 CREATE TABLE IF NOT EXISTS user_lists (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE NOT NULL,
@@ -294,7 +294,7 @@ CREATE TABLE IF NOT EXISTS user_list_movies (
 
 -- v2.8 — TV Shows. A show folder (contains tvshow.nfo) maps to one
 -- tv_shows row; each episode file maps to one tv_episodes row. Seasons
--- are derived from tv_episodes.season (no separate table). Watched is
+-- are derived from tv_episodes.season (no separate table). Просмотрено is
 -- per-episode; favorite/watchlist/note are show-level.
 CREATE TABLE IF NOT EXISTS tv_shows (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -385,10 +385,10 @@ CREATE TABLE IF NOT EXISTS user_list_shows (
     private void RunMigrations()
     {
         var cols = new HashSet<string>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "PRAGMA table_info(movies)";
         using var r = cmd.ExecuteReader();
-        while (r.Read()) cols.Add(r.GetString(1));
+        while (r.Read()) cols.Добавить(r.GetString(1));
 
         if (!cols.Contains("is_watched"))
             Exec("ALTER TABLE movies ADD COLUMN is_watched INTEGER DEFAULT 0");
@@ -413,7 +413,7 @@ CREATE TABLE IF NOT EXISTS user_list_shows (
         if (!cols.Contains("duration_seconds")) Exec("ALTER TABLE movies ADD COLUMN duration_seconds INTEGER");
         if (!cols.Contains("container_ext"))    Exec("ALTER TABLE movies ADD COLUMN container_ext TEXT");
         if (!cols.Contains("file_size_bytes"))  Exec("ALTER TABLE movies ADD COLUMN file_size_bytes INTEGER");
-        // v3.3 — Watched & Gone. NULL = normal library movie; a unix
+        // v3.3 — Просмотрено и удалено. NULL = normal library movie; a unix
         // timestamp = the movie was archived (watched then deleted from
         // disk, kept as a record with poster/notes/history). Archived rows
         // are excluded from every live-library query and survive drive
@@ -422,8 +422,8 @@ CREATE TABLE IF NOT EXISTS user_list_shows (
         // Hidden sentinel drive that archived records are re-pointed to when
         // their original drive is removed (movies cascade-delete with their
         // drive, and a record must outlive the drive it came from). Never
-        // shown in the Drives UI.
-        Exec("INSERT OR IGNORE INTO drives (volume_serial, label) VALUES ('__archive__', 'Watched & Gone')");
+        // shown in the Диски UI.
+        Exec("INSERT OR IGNORE INTO drives (volume_serial, label) VALUES ('__archive__', 'Просмотрено и удалено')");
 
         // Multi-source ratings table (TMDb / IMDb / Rotten Tomatoes / …)
         Exec(@"
@@ -495,7 +495,7 @@ CREATE TABLE IF NOT EXISTS user_list_movies (
         var genreSplitKey = $"_migration_split_genres_{GenreAliases.Version}";
         if (GetPref(genreSplitKey) != "done")
         {
-            try { SplitAndAliasGenresMigration(); SetPref(genreSplitKey, "done"); }
+            try { SplitAndAliasЖанрыMigration(); SetPref(genreSplitKey, "done"); }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"genre split {GenreAliases.Version} skipped: {ex.Message}");
@@ -506,10 +506,10 @@ CREATE TABLE IF NOT EXISTS user_list_movies (
         // parser (covers <collection>, <sets><set>…, <setname>, etc.).
         // Cheap targeted re-parse: doesn't re-copy artwork or re-process the
         // rest of the metadata — just rebuilds movie_sets linkage.
-        var setRescanKey = "_migration_recompute_sets_v211";
-        if (GetPref(setRescanKey) != "done")
+        var setПересканироватьKey = "_migration_recompute_sets_v211";
+        if (GetPref(setПересканироватьKey) != "done")
         {
-            try { RecomputeAllSetsFromNfos(); SetPref(setRescanKey, "done"); }
+            try { RecomputeВсеSetsFromNfos(); SetPref(setПересканироватьKey, "done"); }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"sets recompute v2.1.1 skipped: {ex.Message}");
@@ -533,7 +533,7 @@ CREATE TABLE IF NOT EXISTS user_list_movies (
 
         // Watch events — append-only log of every play / mark-watched /
         // mark-unwatched interaction, for both movies and TV episodes.
-        // Powers "Recently Watched" and "On This Day" features. item_kind
+        // Powers "Недавно просмотренные" and "В этот день" features. item_kind
         // is 'movie' or 'episode'; item_id refers to the matching table's
         // primary key. No FK so deletions don't cascade — history survives
         // even if a drive is unplugged and a row is later pruned.
@@ -551,7 +551,7 @@ CREATE INDEX IF NOT EXISTS idx_watch_events_when
     ON watch_events(watched_at DESC);
 ");
 
-        // v3.4.4 — Dupes: group keys the user has chosen to ignore (kept on
+        // v3.4.4 — Дубликаты: group keys the user has chosen to ignore (kept on
         // purpose, or a case the classifier got wrong). Survives rescans.
         Exec(@"
 CREATE TABLE IF NOT EXISTS dupe_ignored (
@@ -559,7 +559,7 @@ CREATE TABLE IF NOT EXISTS dupe_ignored (
     created_at INTEGER DEFAULT (strftime('%s','now'))
 );");
 
-        // Free-form tags — independent of lists. Movies and shows reference
+        // Free-form tags — independent of lists. Фильмы and shows reference
         // the same `tags` rows so a tag like "rewatched" can carry across.
         Exec(@"
 CREATE TABLE IF NOT EXISTS tags (
@@ -583,19 +583,19 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
 
         // Per-episode favorite + note columns. Defensive ALTER so re-runs are no-ops.
         var epCols = new HashSet<string>();
-        using (var ec = _conn.CreateCommand())
+        using (var ec = _conn.СоздатьCommand())
         {
             ec.CommandText = "PRAGMA table_info(tv_episodes)";
             using var er = ec.ExecuteReader();
-            while (er.Read()) epCols.Add(er.GetString(1));
+            while (er.Read()) epCols.Добавить(er.GetString(1));
         }
         if (!epCols.Contains("is_favorite"))
             Exec("ALTER TABLE tv_episodes ADD COLUMN is_favorite INTEGER DEFAULT 0");
         if (!epCols.Contains("note"))
             Exec("ALTER TABLE tv_episodes ADD COLUMN note TEXT");
 
-        // Create indexes for performance
-        CreateIndexes();
+        // Создать indexes for performance
+        СоздатьIndexes();
     }
 
     /// <summary>
@@ -613,7 +613,7 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
     /// </summary>
 
     /// <summary>
-    /// One-shot v2.1.0 fix for genre rows that contain multiple genres in
+    /// Вкл.e-shot v2.1.0 fix for genre rows that contain multiple genres in
     /// one string (e.g. "Action / Adventure / Sci-Fi") plus alias drift
     /// (Science Fiction → Sci-Fi). For every offender, splits into separate
     /// canonical names, repoints movie_genres links to the canonical rows,
@@ -625,22 +625,22 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
     /// one-shot v2.1.1 migration so users don't need to do a full rescan to
     /// pick up collections their nfos always had (in formats we didn't read).
     /// </summary>
-    private void RecomputeAllSetsFromNfos()
+    private void RecomputeВсеSetsFromNfos()
     {
         // Snapshot (movie_id, nfo_path) pairs
         var movies = new List<(int id, string nfoRel)>();
-        using (var sel = _conn.CreateCommand())
+        using (var sel = _conn.СоздатьCommand())
         {
             sel.CommandText = "SELECT id, local_nfo FROM movies WHERE local_nfo IS NOT NULL AND is_missing=0";
             using var r = sel.ExecuteReader();
             while (r.Read())
-                movies.Add((r.GetInt32(0), r.GetString(1)));
+                movies.Добавить((r.GetInt32(0), r.GetString(1)));
         }
         if (movies.Count == 0) return;
 
         // Cache existing set names → ids (case-insensitive)
         var setCache = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        using (var sel = _conn.CreateCommand())
+        using (var sel = _conn.СоздатьCommand())
         {
             sel.CommandText = "SELECT id, name FROM sets";
             using var r = sel.ExecuteReader();
@@ -665,11 +665,11 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
                 if (parsed == null) continue;
 
                 // Drop existing links, re-insert from the re-parsed list
-                using (var del = _conn.CreateCommand())
+                using (var del = _conn.СоздатьCommand())
                 {
                     del.Transaction = tx;
                     del.CommandText = "DELETE FROM movie_sets WHERE movie_id=@m";
-                    del.Parameters.AddWithValue("@m", movieId);
+                    del.Parameters.ДобавитьWithValue("@m", movieId);
                     del.ExecuteNonQuery();
                 }
 
@@ -677,23 +677,23 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
                 foreach (var raw in parsed.Sets)
                 {
                     var name = (raw ?? "").Trim();
-                    if (string.IsNullOrEmpty(name) || !seen.Add(name)) continue;
+                    if (string.IsNullOrEmpty(name) || !seen.Добавить(name)) continue;
 
                     if (!setCache.TryGetValue(name, out var setId))
                     {
-                        using var ins = _conn.CreateCommand();
+                        using var ins = _conn.СоздатьCommand();
                         ins.Transaction = tx;
                         ins.CommandText = "INSERT INTO sets (name) VALUES (@n); SELECT last_insert_rowid();";
-                        ins.Parameters.AddWithValue("@n", name);
+                        ins.Parameters.ДобавитьWithValue("@n", name);
                         setId = Convert.ToInt32(ins.ExecuteScalar());
                         setCache[name] = setId;
                     }
 
-                    using var link = _conn.CreateCommand();
+                    using var link = _conn.СоздатьCommand();
                     link.Transaction = tx;
                     link.CommandText = "INSERT OR IGNORE INTO movie_sets VALUES (@m, @s)";
-                    link.Parameters.AddWithValue("@m", movieId);
-                    link.Parameters.AddWithValue("@s", setId);
+                    link.Parameters.ДобавитьWithValue("@m", movieId);
+                    link.Parameters.ДобавитьWithValue("@s", setId);
                     link.ExecuteNonQuery();
                 }
             }
@@ -714,8 +714,8 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
     private void RecomputeRichNfoFields()
     {
         var rows = new List<(int id, string nfoRel, string? videoRel, string letter, string serial)>();
-        var connected = GetConnectedDrives();
-        using (var sel = _conn.CreateCommand())
+        var connected = GetConnectedДиски();
+        using (var sel = _conn.СоздатьCommand())
         {
             sel.CommandText = @"SELECT id, local_nfo, video_file_rel_path, volume_serial
                                 FROM movies WHERE local_nfo IS NOT NULL AND is_missing=0";
@@ -724,7 +724,7 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
             {
                 var serial = r.GetString(3);
                 connected.TryGetValue(serial, out var letter);
-                rows.Add((r.GetInt32(0), r.GetString(1), r.IsDBNull(2) ? null : r.GetString(2), letter ?? "", serial));
+                rows.Добавить((r.GetInt32(0), r.GetString(1), r.IsDBNull(2) ? null : r.GetString(2), letter ?? "", serial));
             }
         }
         if (rows.Count == 0) return;
@@ -732,7 +732,7 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
         var writerCache = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         try
         {
-            using var preload = _conn.CreateCommand();
+            using var preload = _conn.СоздатьCommand();
             preload.CommandText = "SELECT id, name FROM writers";
             using var r = preload.ExecuteReader();
             while (r.Read()) writerCache[r.GetString(1)] = r.GetInt32(0);
@@ -754,8 +754,8 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
 
                 var sd = p.Stream;
 
-                // Update stream + trailer columns
-                using (var upd = _conn.CreateCommand())
+                // Обновить stream + trailer columns
+                using (var upd = _conn.СоздатьCommand())
                 {
                     upd.Transaction = tx;
                     upd.CommandText = @"UPDATE movies SET
@@ -764,22 +764,22 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
                         hdr_type=@hdr, audio_codec=@ac, audio_channels=@ach,
                         audio_languages=@al, subtitle_languages=@sl, duration_seconds=@dur
                         WHERE id=@id";
-                    upd.Parameters.AddWithValue("@id", row.id);
-                    upd.Parameters.AddWithValue("@tr",  (object?)p.Trailer ?? DBNull.Value);
-                    upd.Parameters.AddWithValue("@vw",  (object?)sd?.VideoWidth        ?? DBNull.Value);
-                    upd.Parameters.AddWithValue("@vh",  (object?)sd?.VideoHeight       ?? DBNull.Value);
-                    upd.Parameters.AddWithValue("@vc",  (object?)sd?.VideoCodec        ?? DBNull.Value);
-                    upd.Parameters.AddWithValue("@va",  (object?)sd?.VideoAspect       ?? DBNull.Value);
-                    upd.Parameters.AddWithValue("@hdr", (object?)sd?.HdrType           ?? DBNull.Value);
-                    upd.Parameters.AddWithValue("@ac",  (object?)sd?.AudioCodec        ?? DBNull.Value);
-                    upd.Parameters.AddWithValue("@ach", (object?)sd?.AudioChannels     ?? DBNull.Value);
-                    upd.Parameters.AddWithValue("@al",  (object?)sd?.AudioLanguages    ?? DBNull.Value);
-                    upd.Parameters.AddWithValue("@sl",  (object?)sd?.SubtitleLanguages ?? DBNull.Value);
-                    upd.Parameters.AddWithValue("@dur", (object?)sd?.DurationSeconds   ?? DBNull.Value);
+                    upd.Parameters.ДобавитьWithValue("@id", row.id);
+                    upd.Parameters.ДобавитьWithValue("@tr",  (object?)p.Trailer ?? DBNull.Value);
+                    upd.Parameters.ДобавитьWithValue("@vw",  (object?)sd?.VideoWidth        ?? DBNull.Value);
+                    upd.Parameters.ДобавитьWithValue("@vh",  (object?)sd?.VideoHeight       ?? DBNull.Value);
+                    upd.Parameters.ДобавитьWithValue("@vc",  (object?)sd?.VideoCodec        ?? DBNull.Value);
+                    upd.Parameters.ДобавитьWithValue("@va",  (object?)sd?.VideoAspect       ?? DBNull.Value);
+                    upd.Parameters.ДобавитьWithValue("@hdr", (object?)sd?.HdrType           ?? DBNull.Value);
+                    upd.Parameters.ДобавитьWithValue("@ac",  (object?)sd?.АудиоCodec        ?? DBNull.Value);
+                    upd.Parameters.ДобавитьWithValue("@ach", (object?)sd?.АудиоChannels     ?? DBNull.Value);
+                    upd.Parameters.ДобавитьWithValue("@al",  (object?)sd?.АудиоLanguages    ?? DBNull.Value);
+                    upd.Parameters.ДобавитьWithValue("@sl",  (object?)sd?.SubtitleLanguages ?? DBNull.Value);
+                    upd.Parameters.ДобавитьWithValue("@dur", (object?)sd?.DurationSeconds   ?? DBNull.Value);
                     upd.ExecuteNonQuery();
                 }
 
-                // File size + container — only if drive online + file present
+                // Размер файла + container — only if drive online + file present
                 if (!string.IsNullOrEmpty(row.letter) && row.videoRel != null)
                 {
                     var full = Path.Combine($"{row.letter}:\\", row.videoRel.Replace('/', '\\'));
@@ -788,42 +788,42 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
                         long size = 0;
                         try { size = new FileInfo(full).Length; } catch { }
                         var ext = Path.GetExtension(full).TrimStart('.').ToLowerInvariant();
-                        using var upd = _conn.CreateCommand();
+                        using var upd = _conn.СоздатьCommand();
                         upd.Transaction = tx;
                         upd.CommandText = "UPDATE movies SET file_size_bytes=@s, container_ext=@x WHERE id=@id";
-                        upd.Parameters.AddWithValue("@s", size);
-                        upd.Parameters.AddWithValue("@x", ext);
-                        upd.Parameters.AddWithValue("@id", row.id);
+                        upd.Parameters.ДобавитьWithValue("@s", size);
+                        upd.Parameters.ДобавитьWithValue("@x", ext);
+                        upd.Parameters.ДобавитьWithValue("@id", row.id);
                         upd.ExecuteNonQuery();
                     }
                 }
 
-                // Ratings — rebuild
-                using (var del = _conn.CreateCommand())
+                // Рейтингs — rebuild
+                using (var del = _conn.СоздатьCommand())
                 {
                     del.Transaction = tx;
                     del.CommandText = "DELETE FROM movie_ratings WHERE movie_id=@id";
-                    del.Parameters.AddWithValue("@id", row.id);
+                    del.Parameters.ДобавитьWithValue("@id", row.id);
                     del.ExecuteNonQuery();
                 }
-                foreach (var rt in p.Ratings)
+                foreach (var rt in p.Рейтингs)
                 {
-                    using var ins = _conn.CreateCommand();
+                    using var ins = _conn.СоздатьCommand();
                     ins.Transaction = tx;
                     ins.CommandText = "INSERT OR REPLACE INTO movie_ratings VALUES (@m,@s,@v,@vt)";
-                    ins.Parameters.AddWithValue("@m", row.id);
-                    ins.Parameters.AddWithValue("@s", rt.Source);
-                    ins.Parameters.AddWithValue("@v", rt.Value);
-                    ins.Parameters.AddWithValue("@vt", (object?)rt.Votes ?? DBNull.Value);
+                    ins.Parameters.ДобавитьWithValue("@m", row.id);
+                    ins.Parameters.ДобавитьWithValue("@s", rt.Source);
+                    ins.Parameters.ДобавитьWithValue("@v", rt.Value);
+                    ins.Parameters.ДобавитьWithValue("@vt", (object?)rt.Votes ?? DBNull.Value);
                     ins.ExecuteNonQuery();
                 }
 
                 // Writers — rebuild
-                using (var del = _conn.CreateCommand())
+                using (var del = _conn.СоздатьCommand())
                 {
                     del.Transaction = tx;
                     del.CommandText = "DELETE FROM movie_writers WHERE movie_id=@id";
-                    del.Parameters.AddWithValue("@id", row.id);
+                    del.Parameters.ДобавитьWithValue("@id", row.id);
                     del.ExecuteNonQuery();
                 }
                 foreach (var name in p.Writers)
@@ -832,18 +832,18 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
                     if (clean.Length == 0) continue;
                     if (!writerCache.TryGetValue(clean, out var wid))
                     {
-                        using var ins = _conn.CreateCommand();
+                        using var ins = _conn.СоздатьCommand();
                         ins.Transaction = tx;
                         ins.CommandText = "INSERT INTO writers (name) VALUES (@n); SELECT last_insert_rowid();";
-                        ins.Parameters.AddWithValue("@n", clean);
+                        ins.Parameters.ДобавитьWithValue("@n", clean);
                         wid = Convert.ToInt32(ins.ExecuteScalar());
                         writerCache[clean] = wid;
                     }
-                    using var link = _conn.CreateCommand();
+                    using var link = _conn.СоздатьCommand();
                     link.Transaction = tx;
                     link.CommandText = "INSERT OR IGNORE INTO movie_writers VALUES (@m,@w)";
-                    link.Parameters.AddWithValue("@m", row.id);
-                    link.Parameters.AddWithValue("@w", wid);
+                    link.Parameters.ДобавитьWithValue("@m", row.id);
+                    link.Parameters.ДобавитьWithValue("@w", wid);
                     link.ExecuteNonQuery();
                 }
             }
@@ -856,7 +856,7 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
         }
     }
 
-    private void SplitAndAliasGenresMigration()
+    private void SplitAndAliasЖанрыMigration()
     {
         // Shared map — single source of truth for alias folding.
         var aliases = GenreAliases.Map;
@@ -868,11 +868,11 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
         }
 
         var rows = new List<(int id, string name)>();
-        using (var sel = _conn.CreateCommand())
+        using (var sel = _conn.СоздатьCommand())
         {
             sel.CommandText = "SELECT id, name FROM genres";
             using var r = sel.ExecuteReader();
-            while (r.Read()) rows.Add((r.GetInt32(0), r.GetString(1)));
+            while (r.Read()) rows.Добавить((r.GetInt32(0), r.GetString(1)));
         }
 
         var canon = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -899,49 +899,49 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
                 {
                     if (!canon.TryGetValue(part, out var pid))
                     {
-                        using var ins = _conn.CreateCommand();
+                        using var ins = _conn.СоздатьCommand();
                         ins.Transaction = tx;
                         ins.CommandText = "INSERT INTO genres (name) VALUES (@n); SELECT last_insert_rowid();";
-                        ins.Parameters.AddWithValue("@n", part);
+                        ins.Parameters.ДобавитьWithValue("@n", part);
                         pid = Convert.ToInt32(ins.ExecuteScalar());
                         canon[part] = pid;
                     }
-                    if (pid != id) partIds.Add(pid);
+                    if (pid != id) partIds.Добавить(pid);
                 }
                 if (partIds.Count == 0) continue;
 
-                var linkedMovies = new List<int>();
-                using (var s2 = _conn.CreateCommand())
+                var linkedФильмы = new List<int>();
+                using (var s2 = _conn.СоздатьCommand())
                 {
                     s2.Transaction = tx;
                     s2.CommandText = "SELECT movie_id FROM movie_genres WHERE genre_id=@id";
-                    s2.Parameters.AddWithValue("@id", id);
+                    s2.Parameters.ДобавитьWithValue("@id", id);
                     using var rr = s2.ExecuteReader();
-                    while (rr.Read()) linkedMovies.Add(rr.GetInt32(0));
+                    while (rr.Read()) linkedФильмы.Добавить(rr.GetInt32(0));
                 }
-                foreach (var mid in linkedMovies)
+                foreach (var mid in linkedФильмы)
                     foreach (var pid in partIds)
                     {
-                        using var link = _conn.CreateCommand();
+                        using var link = _conn.СоздатьCommand();
                         link.Transaction = tx;
                         link.CommandText = "INSERT OR IGNORE INTO movie_genres VALUES (@m, @g)";
-                        link.Parameters.AddWithValue("@m", mid);
-                        link.Parameters.AddWithValue("@g", pid);
+                        link.Parameters.ДобавитьWithValue("@m", mid);
+                        link.Parameters.ДобавитьWithValue("@g", pid);
                         link.ExecuteNonQuery();
                     }
 
-                using (var del1 = _conn.CreateCommand())
+                using (var del1 = _conn.СоздатьCommand())
                 {
                     del1.Transaction = tx;
                     del1.CommandText = "DELETE FROM movie_genres WHERE genre_id=@id";
-                    del1.Parameters.AddWithValue("@id", id);
+                    del1.Parameters.ДобавитьWithValue("@id", id);
                     del1.ExecuteNonQuery();
                 }
-                using (var del2 = _conn.CreateCommand())
+                using (var del2 = _conn.СоздатьCommand())
                 {
                     del2.Transaction = tx;
                     del2.CommandText = "DELETE FROM genres WHERE id=@id";
-                    del2.Parameters.AddWithValue("@id", id);
+                    del2.Parameters.ДобавитьWithValue("@id", id);
                     del2.ExecuteNonQuery();
                 }
             }
@@ -958,11 +958,11 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
     {
         // 1. Snapshot all rows
         var rows = new List<(int id, string raw)>();
-        using (var sel = _conn.CreateCommand())
+        using (var sel = _conn.СоздатьCommand())
         {
             sel.CommandText = $"SELECT id, name FROM {nameTable}";
             using var r = sel.ExecuteReader();
-            while (r.Read()) rows.Add((r.GetInt32(0), r.GetString(1)));
+            while (r.Read()) rows.Добавить((r.GetInt32(0), r.GetString(1)));
         }
 
         // 2. Group by normalized lowercase name
@@ -991,10 +991,10 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
             if (string.IsNullOrEmpty(key)) continue;
             if (!groups.TryGetValue(key, out var list))
                 groups[key] = list = new();
-            list.Add(row);
+            list.Добавить(row);
         }
 
-        // 3 + 4. One transaction for the whole table — large libraries can
+        // 3 + 4. Вкл.e transaction for the whole table — large libraries can
         // produce thousands of UPDATEs, doing it in one tx is much faster
         // than per-row commits and either succeeds whole or rolls back.
         using var tx = _conn.BeginTransaction();
@@ -1003,7 +1003,7 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
             foreach (var (key, list) in groups)
             {
                 if (list.Count == 0) continue;
-                // Keeper = lowest id; rest are duplicates
+                // Оставитьer = lowest id; rest are duplicates
                 list.Sort((a, b) => a.id.CompareTo(b.id));
                 var keepId = list[0].id;
                 var normalizedDisplay = Normalize(list[0].raw);
@@ -1015,26 +1015,26 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
                     // would collide on (movie_id, fk) primary key — those
                     // are the same association via different ids and one
                     // row is enough.
-                    using (var upd = _conn.CreateCommand())
+                    using (var upd = _conn.СоздатьCommand())
                     {
                         upd.Transaction = tx;
                         upd.CommandText = $"UPDATE OR IGNORE {joinTable} SET {fkCol}=@k WHERE {fkCol}=@d";
-                        upd.Parameters.AddWithValue("@k", keepId);
-                        upd.Parameters.AddWithValue("@d", dupId);
+                        upd.Parameters.ДобавитьWithValue("@k", keepId);
+                        upd.Parameters.ДобавитьWithValue("@d", dupId);
                         upd.ExecuteNonQuery();
                     }
-                    using (var del = _conn.CreateCommand())
+                    using (var del = _conn.СоздатьCommand())
                     {
                         del.Transaction = tx;
                         del.CommandText = $"DELETE FROM {joinTable} WHERE {fkCol}=@d";
-                        del.Parameters.AddWithValue("@d", dupId);
+                        del.Parameters.ДобавитьWithValue("@d", dupId);
                         del.ExecuteNonQuery();
                     }
-                    using (var delName = _conn.CreateCommand())
+                    using (var delName = _conn.СоздатьCommand())
                     {
                         delName.Transaction = tx;
                         delName.CommandText = $"DELETE FROM {nameTable} WHERE id=@d";
-                        delName.Parameters.AddWithValue("@d", dupId);
+                        delName.Parameters.ДобавитьWithValue("@d", dupId);
                         delName.ExecuteNonQuery();
                     }
                 }
@@ -1043,11 +1043,11 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
                 // (no more collisions possible — duplicates are gone).
                 if (normalizedDisplay != list[0].raw)
                 {
-                    using var updName = _conn.CreateCommand();
+                    using var updName = _conn.СоздатьCommand();
                     updName.Transaction = tx;
                     updName.CommandText = $"UPDATE {nameTable} SET name=@n WHERE id=@id";
-                    updName.Parameters.AddWithValue("@n", normalizedDisplay);
-                    updName.Parameters.AddWithValue("@id", keepId);
+                    updName.Parameters.ДобавитьWithValue("@n", normalizedDisplay);
+                    updName.Parameters.ДобавитьWithValue("@id", keepId);
                     updName.ExecuteNonQuery();
                 }
             }
@@ -1060,7 +1060,7 @@ CREATE TABLE IF NOT EXISTS tv_show_tags (
         }
     }
 
-    private void CreateIndexes()
+    private void СоздатьIndexes()
     {
         Exec(@"
 CREATE INDEX IF NOT EXISTS idx_movies_title ON movies(title);
@@ -1085,15 +1085,15 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         ");
     }
 
-    // ── Drives ───────────────────────────────────────────────────────────────
+    // ── Диски ───────────────────────────────────────────────────────────────
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<Models.DriveInfo> GetDrives()
+    public List<Models.DriveInfo> GetДиски()
     {
         var list = new List<Models.DriveInfo>();
-        var connected = GetConnectedDrives();
+        var connected = GetConnectedДиски();
 
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT d.volume_serial, d.label, d.last_seen_letter, d.movie_root_relative,
                    COUNT(m.id) as movie_count,
@@ -1107,22 +1107,22 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         {
             var serial = r.GetString(0);
             var letter = connected.TryGetValue(serial, out var l) ? l : null;
-            list.Add(new Models.DriveInfo
+            list.Добавить(new Models.DriveInfo
             {
                 VolumeSerial = serial,
                 Label = r.GetString(1),
                 LastSeenLetter = r.IsDBNull(2) ? null : r.GetString(2),
-                MovieRootRelative = r.IsDBNull(3) ? "Movies" : r.GetString(3),
+                MovieRootRelative = r.IsDBNull(3) ? "Фильмы" : r.GetString(3),
                 IsConnected = letter != null,
                 CurrentLetter = letter,
                 MovieCount = r.IsDBNull(4) ? 0 : r.GetInt32(4),
                 MissingCount = r.IsDBNull(5) ? 0 : r.GetInt32(5),
             });
         }
-        r.Close();
+        r.Закрыть();
         // v2.8 — TV show count per drive (separate query; cheap).
         var tvCounts = new Dictionary<string, int>();
-        using (var tc = _conn.CreateCommand())
+        using (var tc = _conn.СоздатьCommand())
         {
             tc.CommandText = "SELECT volume_serial, COUNT(*) FROM tv_shows GROUP BY volume_serial";
             using var tr = tc.ExecuteReader();
@@ -1131,7 +1131,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         foreach (var d in list)
         {
             if (tvCounts.TryGetValue(d.VolumeSerial, out var n)) d.TvShowCount = n;
-            d.Folders = GetDriveRoots(d.VolumeSerial);
+            d.Папкаs = GetDriveRoots(d.VolumeSerial);
         }
         return list;
     }
@@ -1140,13 +1140,13 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     public List<Models.DriveRoot> GetDriveRoots(string serial)
     {
         var list = new List<Models.DriveRoot>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT id, volume_serial, root_path FROM drive_roots WHERE volume_serial=@s ORDER BY root_path";
-        cmd.Parameters.AddWithValue("@s", serial);
+        cmd.Parameters.ДобавитьWithValue("@s", serial);
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
-            list.Add(new Models.DriveRoot
+            list.Добавить(new Models.DriveRoot
             {
                 Id = r.GetInt32(0),
                 VolumeSerial = r.GetString(1),
@@ -1157,13 +1157,13 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     }
 
     /// <summary>
-    /// Delete movies whose folder_rel_path isn't under any of the drive's
-    /// configured drive_roots. Used to undo the v1.9.2 "Refresh changes"
+    /// Удалить movies whose folder_rel_path isn't under any of the drive's
+    /// configured drive_roots. Used to undo the v1.9.2 "Обновить изменения"
     /// bug that walked the whole drive and inserted episode .nfo files as
     /// fake movies. Returns count deleted. Also clears their cached artwork.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public int RemoveMoviesOutsideDriveRoots(string serial)
+    public int RemoveФильмыOutsideDriveRoots(string serial)
     {
         var roots = GetDriveRoots(serial);
         if (roots.Count == 0) return 0;
@@ -1176,18 +1176,18 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             var r = roots[i].RootPath ?? "";
             // Empty root_path means "whole drive" — match everything, nothing to remove
             if (string.IsNullOrEmpty(r)) return 0;
-            keepParts.Add($"(folder_rel_path = @r{i} OR folder_rel_path LIKE @p{i})");
-            pars.Add(($"@r{i}", r));
-            pars.Add(($"@p{i}", r + "/%"));
+            keepParts.Добавить($"(folder_rel_path = @r{i} OR folder_rel_path LIKE @p{i})");
+            pars.Добавить(($"@r{i}", r));
+            pars.Добавить(($"@p{i}", r + "/%"));
         }
         var keepSql = string.Join(" OR ", keepParts);
 
         // First, collect cached artwork paths so we can clean them up
-        using (var sel = _conn.CreateCommand())
+        using (var sel = _conn.СоздатьCommand())
         {
             sel.CommandText = $"SELECT local_poster, local_fanart, local_nfo FROM movies WHERE volume_serial=@s AND archived_at IS NULL AND NOT ({keepSql})";
-            sel.Parameters.AddWithValue("@s", serial);
-            foreach (var (n, v) in pars) sel.Parameters.AddWithValue(n, v);
+            sel.Parameters.ДобавитьWithValue("@s", serial);
+            foreach (var (n, v) in pars) sel.Parameters.ДобавитьWithValue(n, v);
             using var r = sel.ExecuteReader();
             while (r.Read())
             {
@@ -1196,28 +1196,28 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                     if (!r.IsDBNull(i))
                     {
                         var p = Path.Combine(_dataDir, r.GetString(i));
-                        if (File.Exists(p)) try { File.Delete(p); } catch { }
+                        if (File.Exists(p)) try { File.Удалить(p); } catch { }
                     }
                 }
             }
         }
 
-        using var del = _conn.CreateCommand();
+        using var del = _conn.СоздатьCommand();
         del.CommandText = $"DELETE FROM movies WHERE volume_serial=@s AND archived_at IS NULL AND NOT ({keepSql})";
-        del.Parameters.AddWithValue("@s", serial);
-        foreach (var (n, v) in pars) del.Parameters.AddWithValue(n, v);
+        del.Parameters.ДобавитьWithValue("@s", serial);
+        foreach (var (n, v) in pars) del.Parameters.ДобавитьWithValue(n, v);
         return del.ExecuteNonQuery();
     }
 
     /// <summary>Purge movies flagged is_missing=1 for this drive (plus their cached artwork). Returns count deleted.</summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public int CleanupMissingMovies(string serial)
+    public int CleanupMissingФильмы(string serial)
     {
         // First, collect + delete cached artwork for missing rows
-        using (var get = _conn.CreateCommand())
+        using (var get = _conn.СоздатьCommand())
         {
             get.CommandText = "SELECT local_poster, local_fanart, local_nfo FROM movies WHERE volume_serial=@s AND is_missing=1 AND archived_at IS NULL";
-            get.Parameters.AddWithValue("@s", serial);
+            get.Parameters.ДобавитьWithValue("@s", serial);
             using var rr = get.ExecuteReader();
             while (rr.Read())
             {
@@ -1226,26 +1226,26 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                     if (!rr.IsDBNull(i))
                     {
                         var p = Path.Combine(_dataDir, rr.GetString(i));
-                        if (File.Exists(p)) try { File.Delete(p); } catch { }
+                        if (File.Exists(p)) try { File.Удалить(p); } catch { }
                     }
                 }
             }
         }
 
-        using var del = _conn.CreateCommand();
+        using var del = _conn.СоздатьCommand();
         del.CommandText = "DELETE FROM movies WHERE volume_serial=@s AND is_missing=1 AND archived_at IS NULL";
-        del.Parameters.AddWithValue("@s", serial);
+        del.Parameters.ДобавитьWithValue("@s", serial);
         return del.ExecuteNonQuery();
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void AddDriveRoot(string serial, string relPath)
+    public void ДобавитьDriveRoot(string serial, string relPath)
     {
         var norm = (relPath ?? "").Replace('\\', '/').Trim().TrimEnd('/');
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "INSERT OR IGNORE INTO drive_roots (volume_serial, root_path) VALUES (@s, @p)";
-        cmd.Parameters.AddWithValue("@s", serial);
-        cmd.Parameters.AddWithValue("@p", norm);
+        cmd.Parameters.ДобавитьWithValue("@s", serial);
+        cmd.Parameters.ДобавитьWithValue("@p", norm);
         cmd.ExecuteNonQuery();
     }
 
@@ -1255,14 +1255,14 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     {
         var norm = (relPath ?? "").Replace('\\', '/').Trim().TrimEnd('/');
 
-        // Delete cached artwork for movies under this root
-        using (var get = _conn.CreateCommand())
+        // Удалить cached artwork for movies under this root
+        using (var get = _conn.СоздатьCommand())
         {
             get.CommandText = @"SELECT local_poster, local_fanart, local_nfo FROM movies
                                 WHERE volume_serial=@s AND archived_at IS NULL AND (folder_rel_path=@r OR folder_rel_path LIKE @p)";
-            get.Parameters.AddWithValue("@s", serial);
-            get.Parameters.AddWithValue("@r", norm);
-            get.Parameters.AddWithValue("@p", norm + "/%");
+            get.Parameters.ДобавитьWithValue("@s", serial);
+            get.Parameters.ДобавитьWithValue("@r", norm);
+            get.Parameters.ДобавитьWithValue("@p", norm + "/%");
             using var rr = get.ExecuteReader();
             while (rr.Read())
             {
@@ -1271,39 +1271,39 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                     if (!rr.IsDBNull(i))
                     {
                         var p = Path.Combine(_dataDir, rr.GetString(i));
-                        if (File.Exists(p)) try { File.Delete(p); } catch { }
+                        if (File.Exists(p)) try { File.Удалить(p); } catch { }
                     }
                 }
             }
         }
 
         using var tx = _conn.BeginTransaction();
-        using (var del1 = _conn.CreateCommand())
+        using (var del1 = _conn.СоздатьCommand())
         {
             del1.Transaction = tx;
             del1.CommandText = @"DELETE FROM movies
                                  WHERE volume_serial=@s AND archived_at IS NULL AND (folder_rel_path=@r OR folder_rel_path LIKE @p)";
-            del1.Parameters.AddWithValue("@s", serial);
-            del1.Parameters.AddWithValue("@r", norm);
-            del1.Parameters.AddWithValue("@p", norm + "/%");
+            del1.Parameters.ДобавитьWithValue("@s", serial);
+            del1.Parameters.ДобавитьWithValue("@r", norm);
+            del1.Parameters.ДобавитьWithValue("@p", norm + "/%");
             del1.ExecuteNonQuery();
         }
-        using (var del2 = _conn.CreateCommand())
+        using (var del2 = _conn.СоздатьCommand())
         {
             del2.Transaction = tx;
             del2.CommandText = "DELETE FROM drive_roots WHERE volume_serial=@s AND root_path=@p";
-            del2.Parameters.AddWithValue("@s", serial);
-            del2.Parameters.AddWithValue("@p", norm);
+            del2.Parameters.ДобавитьWithValue("@s", serial);
+            del2.Parameters.ДобавитьWithValue("@p", norm);
             del2.ExecuteNonQuery();
         }
         tx.Commit();
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public Dictionary<string, string> GetConnectedDrives()
+    public Dictionary<string, string> GetConnectedДиски()
     {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var drive in global::System.IO.DriveInfo.GetDrives())
+        foreach (var drive in global::System.IO.DriveInfo.GetДиски())
         {
             if (!drive.IsReady) continue;
             try
@@ -1330,31 +1330,31 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         return null;
     }
 
-    [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
+    [System.Продолжительность.InteropServices.DllImport("kernel32.dll", CharSet = System.Продолжительность.InteropServices.CharSet.Auto, SetLastОшибка = true)]
     private static extern bool GetVolumeInformation(
         string lpRootPathName, 
-        [System.Runtime.InteropServices.Out] StringBuilder lpVolumeNameBuffer, 
+        [System.Продолжительность.InteropServices.Out] StringBuilder lpVolumeNameBuffer, 
         int nVolumeNameSize,
         out uint lpVolumeSerialNumber, 
         out uint lpMaximumComponentLength, 
         out uint lpFileSystemFlags,
-        [System.Runtime.InteropServices.Out] StringBuilder? lpFileSystemNameBuffer, 
+        [System.Продолжительность.InteropServices.Out] StringBuilder? lpFileSystemNameBuffer, 
         int nFileSystemNameSize);
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void AddDrive(string volumeSerial, string label, string lastSeenLetter)
+    public void ДобавитьDrive(string volumeSerial, string label, string lastSeenLetter)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"INSERT OR IGNORE INTO drives (volume_serial, label, last_seen_letter, movie_root_relative)
-                            VALUES (@s, @l, @let, 'Movies')";
-        cmd.Parameters.AddWithValue("@s", volumeSerial);
-        cmd.Parameters.AddWithValue("@l", label);
-        cmd.Parameters.AddWithValue("@let", lastSeenLetter);
+                            VALUES (@s, @l, @let, 'Фильмы')";
+        cmd.Parameters.ДобавитьWithValue("@s", volumeSerial);
+        cmd.Parameters.ДобавитьWithValue("@l", label);
+        cmd.Parameters.ДобавитьWithValue("@let", lastSeenLetter);
         cmd.ExecuteNonQuery();
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void UpdateDriveLastSeen(string serial, string letter)
+    public void ОбновитьDriveLastSeen(string serial, string letter)
     {
         // v2.6 — fire-and-forget cosmetic bookkeeping. busy_timeout already
         // makes us wait up to 5 s for the write lock; if the scanner is
@@ -1363,10 +1363,10 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         // sidebar nav) will pick it up. Better than crashing the UI.
         try
         {
-            using var cmd = _conn.CreateCommand();
+            using var cmd = _conn.СоздатьCommand();
             cmd.CommandText = "UPDATE drives SET last_seen_letter=@l, last_connected_at=strftime('%s','now') WHERE volume_serial=@s";
-            cmd.Parameters.AddWithValue("@l", letter);
-            cmd.Parameters.AddWithValue("@s", serial);
+            cmd.Parameters.ДобавитьWithValue("@l", letter);
+            cmd.Parameters.ДобавитьWithValue("@s", serial);
             cmd.ExecuteNonQuery();
         }
         catch (Microsoft.Data.Sqlite.SqliteException)
@@ -1378,10 +1378,10 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void RenameDrive(string serial, string newLabel)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "UPDATE drives SET label=@l WHERE volume_serial=@s";
-        cmd.Parameters.AddWithValue("@l", newLabel);
-        cmd.Parameters.AddWithValue("@s", serial);
+        cmd.Parameters.ДобавитьWithValue("@l", newLabel);
+        cmd.Parameters.ДобавитьWithValue("@s", serial);
         cmd.ExecuteNonQuery();
     }
 
@@ -1390,9 +1390,9 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     {
         // Clean up cached image files (archived records keep theirs — the
         // poster IS the record).
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT local_poster, local_fanart, local_nfo FROM movies WHERE volume_serial=@s AND archived_at IS NULL";
-        cmd.Parameters.AddWithValue("@s", serial);
+        cmd.Parameters.ДобавитьWithValue("@s", serial);
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
@@ -1401,67 +1401,67 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 if (!r.IsDBNull(idx))
                 {
                     var p = Path.Combine(_dataDir, r.GetString(idx));
-                    if (File.Exists(p)) try { File.Delete(p); } catch { }
+                    if (File.Exists(p)) try { File.Удалить(p); } catch { }
                 }
             }
         }
-        r.Close();
+        r.Закрыть();
 
         // v3.3 — archived records must outlive the drive (movies cascade
         // with their drive row). Re-point them to the hidden sentinel.
-        using (var move = _conn.CreateCommand())
+        using (var move = _conn.СоздатьCommand())
         {
             move.CommandText = "UPDATE movies SET volume_serial='__archive__' WHERE volume_serial=@s AND archived_at IS NOT NULL";
-            move.Parameters.AddWithValue("@s", serial);
+            move.Parameters.ДобавитьWithValue("@s", serial);
             move.ExecuteNonQuery();
         }
 
-        using var del = _conn.CreateCommand();
+        using var del = _conn.СоздатьCommand();
         del.CommandText = "DELETE FROM drives WHERE volume_serial=@s";
-        del.Parameters.AddWithValue("@s", serial);
+        del.Parameters.ДобавитьWithValue("@s", serial);
         del.ExecuteNonQuery();
     }
 
-    // ── Movies List ──────────────────────────────────────────────────────────
+    // ── Фильмы List ──────────────────────────────────────────────────────────
 
     public record ListOptions(
-        string? Search = null,
-        string SearchScope = "all",     // v3.1 — all | title | cast
+        string? Поиск = null,
+        string ПоискScope = "all",     // v3.1 — all | title | cast
         string SortKey = "title",
         string SortDir = "asc",
         string? DriveSerial = null,
         string? Genre = null,
         string? Actor = null,
-        string? Director = null,
-        string? Studio = null,
+        string? Режиссёр = null,
+        string? Студия = null,
         int? CollectionId = null,
-        string WatchedFilter = "all",   // all | watched | unwatched
-        bool FavoritesOnly = false,
-        bool IsWatchlistOnly = false,
+        string ПросмотреноFilter = "all",   // all | watched | unwatched
+        bool ИзбранноеВкл.ly = false,
+        bool IsСписок просмотраВкл.ly = false,
         bool ContinueWatching = false,  // true = last_played_at > 0 AND is_watched = 0
-        bool RecentlyWatchedOnly = false, // v2.9 — true = last_played_at > 0 (any watched state)
-        bool RecentlyAddedOnly = false,   // v2.9.0 fix — true = restrict to top N most-recently-added
-        int RecentlyAddedTopN = 50,
-        bool HasNoteOnly = false,       // v2.8.2 — only movies carrying a note
+        bool RecentlyПросмотреноВкл.ly = false, // v2.9 — true = last_played_at > 0 (any watched state)
+        bool RecentlyДобавитьedВкл.ly = false,   // v2.9.0 fix — true = restrict to top N most-recently-added
+        int RecentlyДобавитьedTopN = 50,
+        bool HasNoteВкл.ly = false,       // v2.8.2 — only movies carrying a note
         int? UserListId = null,
         int? TagId = null,              // v2.9 — filter movies by tag id
         int? DecadeStart = null,        // e.g. 1980 → year in [1980..1989]
-        string? RatingBand = null,      // bucket key: "9","8","7","6","5","0"
-        bool ArchivedOnly = false,      // v3.3 — Watched & Gone page
+        string? РейтингBand = null,      // bucket key: "9","8","7","6","5","0"
+        bool ArchivedВкл.ly = false,      // v3.3 — Просмотрено и удалено page
         int Limit = 60,
-        int Offset = 0
+        int Выкл.set = 0
     );
 
     /// <summary>
-    /// Total rows that would match these ListOptions ignoring Limit/Offset.
+    /// Total rows that would match these ListOptions ignoring Limit/Выкл.set.
     /// Used for the "X of Y movies" header so we don't mislead the user
-    /// with the per-page Movies.Count.
+    /// with the per-page Фильмы.Count.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public int GetMoviesCount(ListOptions opts)
+    public int GetФильмыCount(ListOptions opts)
     {
         var (whereStr, _) = BuildMovieListWhere(opts);
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = $"SELECT COUNT(*) FROM movies m {whereStr}";
         BindMovieListParams(cmd, opts, includePaging: false);
         return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
@@ -1473,7 +1473,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     /// "iron man 2008" match titles in any order with punctuation between
     /// them — e.g. "Iron Man (2008)" or "The Iron Man — 2008 Remaster".
     /// </summary>
-    private static string[] TokenizeSearch(string s) =>
+    private static string[] TokenizeПоиск(string s) =>
         s.Trim().Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
     /// <summary>
@@ -1489,14 +1489,14 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     private (string whereStr, List<string> clauses) BuildMovieListWhere(ListOptions opts)
     {
         var where = new List<string>();
-        if (!string.IsNullOrWhiteSpace(opts.Search))
+        if (!string.IsNullOrWhiteSpace(opts.Поиск))
         {
             var ftsMatch = FtsMatchFor(opts);
             if (ftsMatch != null)
             {
                 // v3.1 — FTS5 path: word-aware, ranked, fast. The scope is
                 // baked into the MATCH expression (see FtsMatchFor).
-                where.Add("m.id IN (SELECT rowid FROM movies_fts WHERE movies_fts MATCH @ftsq)");
+                where.Добавить("m.id IN (SELECT rowid FROM movies_fts WHERE movies_fts MATCH @ftsq)");
             }
             else
             {
@@ -1504,7 +1504,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 // and tagline are intentionally excluded — a short word like
                 // "hit" appears in hundreds of plot summaries and floods the
                 // results. Scope is honoured at a basic level.
-                var tokens = TokenizeSearch(opts.Search);
+                var tokens = TokenizeПоиск(opts.Поиск);
                 for (int i = 0; i < tokens.Length; i++)
                 {
                     var p = $"@q{i}";
@@ -1512,77 +1512,77 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                     var castClause =
                         $"EXISTS (SELECT 1 FROM movie_actors ma JOIN actors a ON a.id=ma.actor_id WHERE ma.movie_id=m.id AND a.name LIKE {p} ESCAPE '\\')"
                       + $" OR EXISTS (SELECT 1 FROM movie_directors md JOIN directors d ON d.id=md.director_id WHERE md.movie_id=m.id AND d.name LIKE {p} ESCAPE '\\')";
-                    string clause = opts.SearchScope switch
+                    string clause = opts.ПоискScope switch
                     {
                         "title" => titleClause,
                         "cast"  => castClause,
-                        _        => $"{titleClause} OR CAST(m.year AS TEXT) LIKE {p} ESCAPE '\\' OR {castClause}"
+                        _        => $"{titleClause} OR АКТЁРЫ(m.year AS TEXT) LIKE {p} ESCAPE '\\' OR {castClause}"
                                   + $" OR EXISTS (SELECT 1 FROM movie_sets ms JOIN sets s ON s.id=ms.set_id WHERE ms.movie_id=m.id AND s.name LIKE {p} ESCAPE '\\')",
                     };
-                    where.Add($"({clause})");
+                    where.Добавить($"({clause})");
                 }
             }
         }
-        if (opts.DriveSerial != null) where.Add("m.volume_serial=@serial");
-        if (opts.Genre != null) where.Add("EXISTS (SELECT 1 FROM movie_genres mg JOIN genres g ON g.id=mg.genre_id WHERE mg.movie_id=m.id AND g.name=@genre)");
-        if (opts.Actor != null) where.Add("EXISTS (SELECT 1 FROM movie_actors ma JOIN actors a ON a.id=ma.actor_id WHERE ma.movie_id=m.id AND LOWER(a.name)=LOWER(@actor))");
-        if (opts.Director != null) where.Add("EXISTS (SELECT 1 FROM movie_directors md JOIN directors d ON d.id=md.director_id WHERE md.movie_id=m.id AND LOWER(d.name)=LOWER(@director))");
-        if (opts.Studio != null) where.Add("LOWER(m.studio)=LOWER(@studio)");
-        if (opts.CollectionId != null) where.Add("EXISTS (SELECT 1 FROM movie_sets ms WHERE ms.movie_id=m.id AND ms.set_id=@colId)");
-        if (opts.WatchedFilter == "watched") where.Add("m.is_watched=1");
-        else if (opts.WatchedFilter == "unwatched") where.Add("m.is_watched=0");
-        if (opts.FavoritesOnly) where.Add("m.is_favorite=1");
-        if (opts.IsWatchlistOnly) where.Add("m.is_watchlist=1");
-        if (opts.HasNoteOnly) where.Add("m.note IS NOT NULL AND TRIM(m.note) != ''");
-        if (opts.ContinueWatching) where.Add("m.last_played_at > 0 AND m.is_watched = 0");
-        if (opts.RecentlyWatchedOnly) where.Add("m.last_played_at > 0");
-        if (opts.RecentlyAddedOnly)
-            where.Add($"m.id IN (SELECT id FROM movies WHERE is_missing=0 AND archived_at IS NULL ORDER BY date_added DESC, id DESC LIMIT {Math.Max(1, opts.RecentlyAddedTopN)})");
-        if (opts.UserListId != null) where.Add("EXISTS (SELECT 1 FROM user_list_movies ulm WHERE ulm.movie_id=m.id AND ulm.list_id=@listId)");
-        if (opts.TagId != null) where.Add("EXISTS (SELECT 1 FROM movie_tags mt WHERE mt.movie_id=m.id AND mt.tag_id=@tagId)");
+        if (opts.DriveSerial != null) where.Добавить("m.volume_serial=@serial");
+        if (opts.Genre != null) where.Добавить("EXISTS (SELECT 1 FROM movie_genres mg JOIN genres g ON g.id=mg.genre_id WHERE mg.movie_id=m.id AND g.name=@genre)");
+        if (opts.Actor != null) where.Добавить("EXISTS (SELECT 1 FROM movie_actors ma JOIN actors a ON a.id=ma.actor_id WHERE ma.movie_id=m.id AND LOWER(a.name)=LOWER(@actor))");
+        if (opts.Режиссёр != null) where.Добавить("EXISTS (SELECT 1 FROM movie_directors md JOIN directors d ON d.id=md.director_id WHERE md.movie_id=m.id AND LOWER(d.name)=LOWER(@director))");
+        if (opts.Студия != null) where.Добавить("LOWER(m.studio)=LOWER(@studio)");
+        if (opts.CollectionId != null) where.Добавить("EXISTS (SELECT 1 FROM movie_sets ms WHERE ms.movie_id=m.id AND ms.set_id=@colId)");
+        if (opts.ПросмотреноFilter == "watched") where.Добавить("m.is_watched=1");
+        else if (opts.ПросмотреноFilter == "unwatched") where.Добавить("m.is_watched=0");
+        if (opts.ИзбранноеВкл.ly) where.Добавить("m.is_favorite=1");
+        if (opts.IsСписок просмотраВкл.ly) where.Добавить("m.is_watchlist=1");
+        if (opts.HasNoteВкл.ly) where.Добавить("m.note IS NOT NULL AND TRIM(m.note) != ''");
+        if (opts.ContinueWatching) where.Добавить("m.last_played_at > 0 AND m.is_watched = 0");
+        if (opts.RecentlyПросмотреноВкл.ly) where.Добавить("m.last_played_at > 0");
+        if (opts.RecentlyДобавитьedВкл.ly)
+            where.Добавить($"m.id IN (SELECT id FROM movies WHERE is_missing=0 AND archived_at IS NULL ORDER BY date_added DESC, id DESC LIMIT {Math.Max(1, opts.RecentlyДобавитьedTopN)})");
+        if (opts.UserListId != null) where.Добавить("EXISTS (SELECT 1 FROM user_list_movies ulm WHERE ulm.movie_id=m.id AND ulm.list_id=@listId)");
+        if (opts.TagId != null) where.Добавить("EXISTS (SELECT 1 FROM movie_tags mt WHERE mt.movie_id=m.id AND mt.tag_id=@tagId)");
         if (opts.DecadeStart != null)
-            where.Add("m.year >= @decLo AND m.year <= @decHi");
-        if (opts.RatingBand != null)
-            where.Add("m.rating >= @ratLo AND m.rating < @ratHi");
-        // v3.3 — Watched & Gone isolation. Every live-library query excludes
+            where.Добавить("m.year >= @decLo AND m.year <= @decHi");
+        if (opts.РейтингBand != null)
+            where.Добавить("m.rating >= @ratLo AND m.rating < @ratHi");
+        // v3.3 — Просмотрено и удалено isolation. Every live-library query excludes
         // archived rows; the W&G page flips the flag to see ONLY them. Always
         // present, so a missed call site can't leak archived movies.
-        where.Add(opts.ArchivedOnly ? "m.archived_at IS NOT NULL" : "m.archived_at IS NULL");
+        where.Добавить(opts.ArchivedВкл.ly ? "m.archived_at IS NOT NULL" : "m.archived_at IS NULL");
         return ("WHERE " + string.Join(" AND ", where), where);
     }
 
     private void BindMovieListParams(SqliteCommand cmd, ListOptions opts, bool includePaging)
     {
-        if (!string.IsNullOrWhiteSpace(opts.Search))
+        if (!string.IsNullOrWhiteSpace(opts.Поиск))
         {
             var ftsMatch = FtsMatchFor(opts);
             if (ftsMatch != null)
             {
-                cmd.Parameters.AddWithValue("@ftsq", ftsMatch);
+                cmd.Parameters.ДобавитьWithValue("@ftsq", ftsMatch);
             }
             else
             {
-                var tokens = TokenizeSearch(opts.Search);
+                var tokens = TokenizeПоиск(opts.Поиск);
                 for (int i = 0; i < tokens.Length; i++)
-                    cmd.Parameters.AddWithValue($"@q{i}", $"%{EscapeLike(tokens[i])}%");
+                    cmd.Parameters.ДобавитьWithValue($"@q{i}", $"%{EscapeLike(tokens[i])}%");
             }
         }
-        if (opts.DriveSerial != null) cmd.Parameters.AddWithValue("@serial", opts.DriveSerial);
-        if (opts.Genre != null) cmd.Parameters.AddWithValue("@genre", opts.Genre);
-        if (opts.Actor != null) cmd.Parameters.AddWithValue("@actor", opts.Actor);
-        if (opts.Director != null) cmd.Parameters.AddWithValue("@director", opts.Director);
-        if (opts.Studio != null) cmd.Parameters.AddWithValue("@studio", opts.Studio);
-        if (opts.CollectionId != null) cmd.Parameters.AddWithValue("@colId", opts.CollectionId);
-        if (opts.UserListId != null) cmd.Parameters.AddWithValue("@listId", opts.UserListId);
-        if (opts.TagId != null) cmd.Parameters.AddWithValue("@tagId", opts.TagId);
+        if (opts.DriveSerial != null) cmd.Parameters.ДобавитьWithValue("@serial", opts.DriveSerial);
+        if (opts.Genre != null) cmd.Parameters.ДобавитьWithValue("@genre", opts.Genre);
+        if (opts.Actor != null) cmd.Parameters.ДобавитьWithValue("@actor", opts.Actor);
+        if (opts.Режиссёр != null) cmd.Parameters.ДобавитьWithValue("@director", opts.Режиссёр);
+        if (opts.Студия != null) cmd.Parameters.ДобавитьWithValue("@studio", opts.Студия);
+        if (opts.CollectionId != null) cmd.Parameters.ДобавитьWithValue("@colId", opts.CollectionId);
+        if (opts.UserListId != null) cmd.Parameters.ДобавитьWithValue("@listId", opts.UserListId);
+        if (opts.TagId != null) cmd.Parameters.ДобавитьWithValue("@tagId", opts.TagId);
         if (opts.DecadeStart != null)
         {
-            cmd.Parameters.AddWithValue("@decLo", opts.DecadeStart.Value);
-            cmd.Parameters.AddWithValue("@decHi", opts.DecadeStart.Value + 9);
+            cmd.Parameters.ДобавитьWithValue("@decLo", opts.DecadeStart.Value);
+            cmd.Parameters.ДобавитьWithValue("@decHi", opts.DecadeStart.Value + 9);
         }
-        if (opts.RatingBand != null)
+        if (opts.РейтингBand != null)
         {
-            var (lo, hi) = opts.RatingBand switch
+            var (lo, hi) = opts.РейтингBand switch
             {
                 "9" => (9.0, 10.1),
                 "8" => (8.0, 9.0),
@@ -1591,18 +1591,18 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 "5" => (5.0, 6.0),
                 _   => (0.0, 5.0),
             };
-            cmd.Parameters.AddWithValue("@ratLo", lo);
-            cmd.Parameters.AddWithValue("@ratHi", hi);
+            cmd.Parameters.ДобавитьWithValue("@ratLo", lo);
+            cmd.Parameters.ДобавитьWithValue("@ratHi", hi);
         }
         if (includePaging)
         {
-            cmd.Parameters.AddWithValue("@lim", opts.Limit);
-            cmd.Parameters.AddWithValue("@off", opts.Offset);
+            cmd.Parameters.ДобавитьWithValue("@lim", opts.Limit);
+            cmd.Parameters.ДобавитьWithValue("@off", opts.Выкл.set);
         }
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<MovieListItem> GetMovies(ListOptions opts, Dictionary<string, string> connected)
+    public List<MovieListItem> GetФильмы(ListOptions opts, Dictionary<string, string> connected)
     {
         var (whereStr, _) = BuildMovieListWhere(opts);
         var sortCol = opts.SortKey switch
@@ -1612,18 +1612,18 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             "runtime" => "m.runtime",
             "date_added" => "m.date_added",
             "last_played" => "m.last_played_at",
-            "archived" => "m.archived_at",   // v3.3 — Watched & Gone "recently gone"
+            "archived" => "m.archived_at",   // v3.3 — Просмотрено и удалено "recently gone"
             _ => "m.sort_title"
         };
         var sortDir = opts.SortDir == "desc" ? "DESC" : "ASC";
         var nullsLast = sortDir == "ASC" ? "NULLS LAST" : "NULLS FIRST";
 
-        // Search relevance ordering.
+        // Поиск relevance ordering.
         //  • FTS path: rank by bm25 with title weighted highest, plot lowest,
         //    so the best textual match floats to the top.
         //  • LIKE fallback: a simple CASE — title prefix, then title contains,
         //    then everything else.
-        bool hasSearch = !string.IsNullOrWhiteSpace(opts.Search);
+        bool hasПоиск = !string.IsNullOrWhiteSpace(opts.Поиск);
         var ftsMatch = FtsMatchFor(opts);
         bool useFts = ftsMatch != null;
 
@@ -1636,7 +1636,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
 
         var relevanceOrder =
             useFts ? "fr.frank ASC, "
-          : hasSearch
+          : hasПоиск
                 ? @"CASE
                         WHEN m.title LIKE @relPrefix   ESCAPE '\' THEN 0
                         WHEN m.title LIKE @relContains ESCAPE '\' THEN 1
@@ -1644,7 +1644,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                       END, "
           : "";
 
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = $@"
             SELECT m.id, m.title, m.year, m.rating, m.runtime, m.local_poster,
                    m.is_missing, m.is_favorite, m.is_watched, m.volume_serial, d.label,
@@ -1660,11 +1660,11 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             LIMIT @lim OFFSET @off";
 
         BindMovieListParams(cmd, opts, includePaging: true);
-        if (hasSearch && !useFts)
+        if (hasПоиск && !useFts)
         {
-            var clean = EscapeLike((opts.Search ?? "").Trim());
-            cmd.Parameters.AddWithValue("@relPrefix", clean + "%");
-            cmd.Parameters.AddWithValue("@relContains", "%" + clean + "%");
+            var clean = EscapeLike((opts.Поиск ?? "").Trim());
+            cmd.Parameters.ДобавитьWithValue("@relPrefix", clean + "%");
+            cmd.Parameters.ДобавитьWithValue("@relContains", "%" + clean + "%");
         }
 
         var list = new List<MovieListItem>();
@@ -1672,22 +1672,22 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         while (r.Read())
         {
             var serial = r.GetString(9);
-            list.Add(new MovieListItem
+            list.Добавить(new MovieListItem
             {
                 Id = r.GetInt32(0),
-                Title = r.GetString(1),
-                Year = r.IsDBNull(2) ? null : r.GetInt32(2),
-                Rating = r.IsDBNull(3) ? null : r.GetDouble(3),
-                Runtime = r.IsDBNull(4) ? null : r.GetInt32(4),
+                Название = r.GetString(1),
+                Год = r.IsDBNull(2) ? null : r.GetInt32(2),
+                Рейтинг = r.IsDBNull(3) ? null : r.GetDouble(3),
+                Продолжительность = r.IsDBNull(4) ? null : r.GetInt32(4),
                 LocalPoster = r.IsDBNull(5) ? null : r.GetString(5),
                 IsMissing = r.GetInt32(6) == 1,
-                IsFavorite = r.GetInt32(7) == 1,
-                IsWatched = r.GetInt32(8) == 1,
+                IsИзбранное = r.GetInt32(7) == 1,
+                IsПросмотрено = r.GetInt32(8) == 1,
                 VolumeSerial = serial,
                 DriveLabel = r.IsDBNull(10) ? null : r.GetString(10),
-                GenresCsv = r.IsDBNull(11) ? null : r.GetString(11),
-                IsWatchlist = !r.IsDBNull(12) && r.GetInt32(12) == 1,
-                IsOnline = connected.ContainsKey(serial),
+                ЖанрыCsv = r.IsDBNull(11) ? null : r.GetString(11),
+                IsСписок просмотра = !r.IsDBNull(12) && r.GetInt32(12) == 1,
+                IsВкл.line = connected.ContainsKey(serial),
             });
         }
         return list;
@@ -1698,7 +1698,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     [MethodImpl(MethodImplOptions.Synchronized)]
     public MovieDetail? GetMovieDetail(int id, Dictionary<string, string> connected)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT m.id, m.title, m.original_title, m.year, m.rating, m.runtime,
                    m.plot, m.tagline, m.mpaa, m.imdb_id, m.premiered, m.studio, m.country,
@@ -1711,7 +1711,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                    m.tmdb_id
             FROM movies m LEFT JOIN drives d ON d.volume_serial=m.volume_serial
             WHERE m.id=@id";
-        cmd.Parameters.AddWithValue("@id", id);
+        cmd.Parameters.ДобавитьWithValue("@id", id);
 
         MovieDetail? movie = null;
         using (var r = cmd.ExecuteReader())
@@ -1726,30 +1726,30 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             movie = new MovieDetail
             {
                 Id = r.GetInt32(0),
-                Title = r.GetString(1),
-                OriginalTitle = r.IsDBNull(2) ? null : r.GetString(2),
-                Year = r.IsDBNull(3) ? null : r.GetInt32(3),
-                Rating = r.IsDBNull(4) ? null : r.GetDouble(4),
-                Runtime = r.IsDBNull(5) ? null : r.GetInt32(5),
+                Название = r.GetString(1),
+                OriginalНазвание = r.IsDBNull(2) ? null : r.GetString(2),
+                Год = r.IsDBNull(3) ? null : r.GetInt32(3),
+                Рейтинг = r.IsDBNull(4) ? null : r.GetDouble(4),
+                Продолжительность = r.IsDBNull(5) ? null : r.GetInt32(5),
                 Plot = r.IsDBNull(6) ? null : r.GetString(6),
                 Tagline = r.IsDBNull(7) ? null : r.GetString(7),
                 Mpaa = r.IsDBNull(8) ? null : r.GetString(8),
                 ImdbId = r.IsDBNull(9) ? null : r.GetString(9),
                 Premiered = r.IsDBNull(10) ? null : r.GetString(10),
-                Studio = r.IsDBNull(11) ? null : r.GetString(11),
-                Country = r.IsDBNull(12) ? null : r.GetString(12),
+                Студия = r.IsDBNull(11) ? null : r.GetString(11),
+                Страна = r.IsDBNull(12) ? null : r.GetString(12),
                 LocalPoster = r.IsDBNull(13) ? null : r.GetString(13),
                 LocalFanart = r.IsDBNull(14) ? null : r.GetString(14),
                 IsMissing = r.GetInt32(15) == 1,
-                IsFavorite = r.GetInt32(16) == 1,
-                IsWatched = r.GetInt32(17) == 1,
-                IsWatchlist = r.GetInt32(18) == 1,
+                IsИзбранное = r.GetInt32(16) == 1,
+                IsПросмотрено = r.GetInt32(17) == 1,
+                IsСписок просмотра = r.GetInt32(18) == 1,
                 VolumeSerial = serial,
                 DriveLabel = r.IsDBNull(20) ? null : r.GetString(20),
                 CurrentLetter = letter,
-                IsOnline = letter != null,
-                Playable = playable,
-                FolderRelPath = folderRel,
+                IsВкл.line = letter != null,
+                Воспроизвестиable = playable,
+                ПапкаRelPath = folderRel,
                 VideoFileRelPath = videoRel,
                 Outline = r.IsDBNull(23) ? null : r.GetString(23),
                 Note = r.IsDBNull(24) ? null : r.GetString(24),
@@ -1759,9 +1759,9 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 VideoCodec        = r.IsDBNull(28) ? null : r.GetString(28),
                 VideoAspect       = r.IsDBNull(29) ? null : r.GetString(29),
                 HdrType           = r.IsDBNull(30) ? null : r.GetString(30),
-                AudioCodec        = r.IsDBNull(31) ? null : r.GetString(31),
-                AudioChannels     = r.IsDBNull(32) ? null : r.GetString(32),
-                AudioLanguages    = r.IsDBNull(33) ? null : r.GetString(33),
+                АудиоCodec        = r.IsDBNull(31) ? null : r.GetString(31),
+                АудиоChannels     = r.IsDBNull(32) ? null : r.GetString(32),
+                АудиоLanguages    = r.IsDBNull(33) ? null : r.GetString(33),
                 SubtitleLanguages = r.IsDBNull(34) ? null : r.GetString(34),
                 DurationSeconds   = r.IsDBNull(35) ? null : r.GetInt32(35),
                 ContainerExt      = r.IsDBNull(36) ? null : r.GetString(36),
@@ -1771,12 +1771,12 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         }
 
         // Load related data
-        movie.Genres = GetMovieGenres(id);
-        movie.Directors = GetMovieDirectors(id);
+        movie.Жанры = GetMovieЖанры(id);
+        movie.Режиссёрs = GetMovieРежиссёрs(id);
         movie.Writers = GetMovieWriters(id);
         movie.Actors = GetMovieActors(id);
         movie.Sets = GetMovieSets(id);
-        movie.AllRatings = GetMovieRatings(id);
+        movie.ВсеРейтингs = GetMovieРейтингs(id);
         movie.Tags = GetTagNamesForMovie(id);
         return movie;
     }
@@ -1784,58 +1784,58 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     private List<string> GetMovieWriters(int id)
     {
         var list = new List<string>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT w.name FROM movie_writers mw JOIN writers w ON w.id=mw.writer_id WHERE mw.movie_id=@id";
-        cmd.Parameters.AddWithValue("@id", id);
+        cmd.Parameters.ДобавитьWithValue("@id", id);
         using var r = cmd.ExecuteReader();
-        while (r.Read()) list.Add(r.GetString(0));
+        while (r.Read()) list.Добавить(r.GetString(0));
         return list;
     }
 
-    private List<(string Source, double Value, int? Votes)> GetMovieRatings(int id)
+    private List<(string Source, double Value, int? Votes)> GetMovieРейтингs(int id)
     {
         var list = new List<(string, double, int?)>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT source, value, votes FROM movie_ratings WHERE movie_id=@id ORDER BY value DESC";
-        cmd.Parameters.AddWithValue("@id", id);
+        cmd.Parameters.ДобавитьWithValue("@id", id);
         using var r = cmd.ExecuteReader();
         while (r.Read())
-            list.Add((r.GetString(0), r.GetDouble(1), r.IsDBNull(2) ? (int?)null : r.GetInt32(2)));
+            list.Добавить((r.GetString(0), r.GetDouble(1), r.IsDBNull(2) ? (int?)null : r.GetInt32(2)));
         return list;
     }
 
-    private List<string> GetMovieGenres(int id)
+    private List<string> GetMovieЖанры(int id)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT g.name FROM movie_genres mg JOIN genres g ON g.id=mg.genre_id WHERE mg.movie_id=@id";
-        cmd.Parameters.AddWithValue("@id", id);
+        cmd.Parameters.ДобавитьWithValue("@id", id);
         var list = new List<string>();
         using var r = cmd.ExecuteReader();
-        while (r.Read()) list.Add(r.GetString(0));
+        while (r.Read()) list.Добавить(r.GetString(0));
         return list;
     }
 
-    private List<string> GetMovieDirectors(int id)
+    private List<string> GetMovieРежиссёрs(int id)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT d.name FROM movie_directors md JOIN directors d ON d.id=md.director_id WHERE md.movie_id=@id";
-        cmd.Parameters.AddWithValue("@id", id);
+        cmd.Parameters.ДобавитьWithValue("@id", id);
         var list = new List<string>();
         using var r = cmd.ExecuteReader();
-        while (r.Read()) list.Add(r.GetString(0));
+        while (r.Read()) list.Добавить(r.GetString(0));
         return list;
     }
 
     private List<Actor> GetMovieActors(int id)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT a.name, ma.role, a.thumb, ma.sort_order FROM movie_actors ma JOIN actors a ON a.id=ma.actor_id WHERE ma.movie_id=@id ORDER BY ma.sort_order LIMIT 12";
-        cmd.Parameters.AddWithValue("@id", id);
+        cmd.Parameters.ДобавитьWithValue("@id", id);
         var list = new List<Actor>();
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
-            list.Add(new Actor
+            list.Добавить(new Actor
             {
                 Name = r.GetString(0),
                 Role = r.IsDBNull(1) ? null : r.GetString(1),
@@ -1848,12 +1848,12 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
 
     private List<string> GetMovieSets(int id)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT s.name FROM movie_sets ms JOIN sets s ON s.id=ms.set_id WHERE ms.movie_id=@id";
-        cmd.Parameters.AddWithValue("@id", id);
+        cmd.Parameters.ДобавитьWithValue("@id", id);
         var list = new List<string>();
         using var r = cmd.ExecuteReader();
-        while (r.Read()) list.Add(r.GetString(0));
+        while (r.Read()) list.Добавить(r.GetString(0));
         return list;
     }
 
@@ -1871,20 +1871,20 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void ToggleFavorite(int id)
+    public void ToggleИзбранное(int id)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "UPDATE movies SET is_favorite = 1 - is_favorite WHERE id=@id";
-        cmd.Parameters.AddWithValue("@id", id);
+        cmd.Parameters.ДобавитьWithValue("@id", id);
         cmd.ExecuteNonQuery();
         RaisePersonalStateChanged(id);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void ToggleWatched(int id)
+    public void ToggleПросмотрено(int id)
     {
         int newState = 0;
-        using (var cmd = _conn.CreateCommand())
+        using (var cmd = _conn.СоздатьCommand())
         {
             // RETURNING gives us the post-toggle value so we can log the
             // right event (and bump last_played_at only on 0→1).
@@ -1895,7 +1895,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                                         ELSE last_played_at END
                                 WHERE id=@id
                                 RETURNING is_watched";
-            cmd.Parameters.AddWithValue("@id", id);
+            cmd.Parameters.ДобавитьWithValue("@id", id);
             var o = cmd.ExecuteScalar();
             if (o != null && o != DBNull.Value) newState = Convert.ToInt32(o);
         }
@@ -1903,25 +1903,25 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         RaisePersonalStateChanged(id);
     }
 
-    // ── Watched & Gone (v3.3) ────────────────────────────────────────────────
+    // ── Просмотрено и удалено (v3.3) ────────────────────────────────────────────────
     // A movie the user watched and then deleted from disk can be kept as a
     // permanent record — poster, metadata, notes, tags and watch history all
     // stay on the row; only archived_at flips. Records live outside the main
     // library (see BuildMovieListWhere) and survive drive removal.
 
-    /// <summary>Send movies to Watched &amp; Gone. No-op for already-archived ids.</summary>
+    /// <summary>Send movies to Просмотрено и удалено. No-op for already-archived ids.</summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public int ArchiveMovies(IReadOnlyCollection<int> ids)
+    public int ArchiveФильмы(IReadВкл.lyCollection<int> ids)
     {
         if (ids.Count == 0) return 0;
         var inList = string.Join(",", ids);
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = $"UPDATE movies SET archived_at=strftime('%s','now') WHERE id IN ({inList}) AND archived_at IS NULL";
         return cmd.ExecuteNonQuery();
     }
 
     /// <summary>
-    /// Creates a Watched &amp; Gone record from scratch — a movie the user
+    /// Создатьs a Просмотрено и удалено record from scratch — a movie the user
     /// watched but never had in the library (no file on any drive). Lives on the
     /// '__archive__' sentinel drive with a synthetic, collision-proof
     /// folder_rel_path so a real scan can never match or disturb it. Marked
@@ -1929,7 +1929,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     /// watch event. Returns the new movie id.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public int InsertWatchedGoneRecord(
+    public int InsertПросмотреноGoneRecord(
         string title, int? year, double? rating, int? votes, int? runtime,
         string? plot, string? tagline, string? mpaa, string? imdbId, string? tmdbId,
         string? premiered, string? studio, string? country,
@@ -1937,10 +1937,10 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     {
         // Synthetic path: unique per record, namespaced so it's obvious in the
         // DB and can never equal a real "<folder>" produced by the scanner.
-        var folderRel = "__manual__/" + Guid.NewGuid().ToString("N");
+        var folderRel = "__manual__/" + Guid.НовыйGuid().ToString("N");
 
         int newId;
-        using (var cmd = _conn.CreateCommand())
+        using (var cmd = _conn.СоздатьCommand())
         {
             cmd.CommandText = @"
                 INSERT INTO movies
@@ -1952,22 +1952,22 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                      @pl, @tg, @mp, @im, @tm, @pr, @su, @co,
                      @lp, @nt, 0, 1, strftime('%s','now'))
                 RETURNING id";
-            cmd.Parameters.AddWithValue("@fr", folderRel);
-            cmd.Parameters.AddWithValue("@t", title);
-            cmd.Parameters.AddWithValue("@y", (object?)year ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ra", (object?)rating ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@vo", (object?)votes ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ru", (object?)runtime ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@pl", (object?)plot ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@tg", (object?)tagline ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@mp", (object?)mpaa ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@im", (object?)imdbId ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@tm", (object?)tmdbId ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@pr", (object?)premiered ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@su", (object?)studio ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@co", (object?)country ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@lp", (object?)posterRelPath ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@nt",
+            cmd.Parameters.ДобавитьWithValue("@fr", folderRel);
+            cmd.Parameters.ДобавитьWithValue("@t", title);
+            cmd.Parameters.ДобавитьWithValue("@y", (object?)year ?? DBNull.Value);
+            cmd.Parameters.ДобавитьWithValue("@ra", (object?)rating ?? DBNull.Value);
+            cmd.Parameters.ДобавитьWithValue("@vo", (object?)votes ?? DBNull.Value);
+            cmd.Parameters.ДобавитьWithValue("@ru", (object?)runtime ?? DBNull.Value);
+            cmd.Parameters.ДобавитьWithValue("@pl", (object?)plot ?? DBNull.Value);
+            cmd.Parameters.ДобавитьWithValue("@tg", (object?)tagline ?? DBNull.Value);
+            cmd.Parameters.ДобавитьWithValue("@mp", (object?)mpaa ?? DBNull.Value);
+            cmd.Parameters.ДобавитьWithValue("@im", (object?)imdbId ?? DBNull.Value);
+            cmd.Parameters.ДобавитьWithValue("@tm", (object?)tmdbId ?? DBNull.Value);
+            cmd.Parameters.ДобавитьWithValue("@pr", (object?)premiered ?? DBNull.Value);
+            cmd.Parameters.ДобавитьWithValue("@su", (object?)studio ?? DBNull.Value);
+            cmd.Parameters.ДобавитьWithValue("@co", (object?)country ?? DBNull.Value);
+            cmd.Parameters.ДобавитьWithValue("@lp", (object?)posterRelPath ?? DBNull.Value);
+            cmd.Parameters.ДобавитьWithValue("@nt",
                 string.IsNullOrWhiteSpace(note) ? (object)DBNull.Value : note.Trim());
             newId = Convert.ToInt32(cmd.ExecuteScalar());
         }
@@ -1978,22 +1978,22 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             {
                 var clean = (raw ?? "").Trim();
                 if (clean.Length == 0) continue;
-                AddMovieTag(newId, EnsureTag(clean));
+                ДобавитьMovieTag(newId, EnsureTag(clean));
             }
 
         // A dated watch event so the record reads like any other watched movie.
         try
         {
-            using var ev = _conn.CreateCommand();
+            using var ev = _conn.СоздатьCommand();
             ev.CommandText = @"INSERT INTO watch_events(item_kind, item_id, watched_at, action)
                                VALUES('movie', @id, @when, 'watched')";
-            ev.Parameters.AddWithValue("@id", newId);
-            ev.Parameters.AddWithValue("@when", watchedAtUnix);
+            ev.Parameters.ДобавитьWithValue("@id", newId);
+            ev.Parameters.ДобавитьWithValue("@when", watchedAtUnix);
             ev.ExecuteNonQuery();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"InsertWatchedGoneRecord watch event failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"InsertПросмотреноGoneRecord watch event failed: {ex.Message}");
         }
 
         return newId;
@@ -2003,7 +2003,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     /// v3.4 — fill ONLY the blank fields of an existing movie from a TMDB fetch.
     /// Every column is written with a fill-only guard (numeric COALESCE / text
     /// emptiness check), so anything the user or MediaElch already set is never
-    /// overwritten. Cast is handled separately (see <see cref="AddManualActors"/>),
+    /// overwritten. Актёры is handled separately (see <see cref="ДобавитьManualActors"/>),
     /// only when the movie currently has none. Returns true if any row changed.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
@@ -2013,7 +2013,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         string? premiered, string? studio, string? country,
         string? posterRel, string? fanartRel)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             UPDATE movies SET
                 year         = COALESCE(year, @y),
@@ -2032,21 +2032,21 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 local_fanart = CASE WHEN local_fanart IS NULL OR local_fanart='' THEN @lf ELSE local_fanart END,
                 date_modified = strftime('%s','now')
             WHERE id=@id";
-        cmd.Parameters.AddWithValue("@id", id);
-        cmd.Parameters.AddWithValue("@y", (object?)year ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@ra", (object?)rating ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@vo", (object?)votes ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@ru", (object?)runtime ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@pl", (object?)plot ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@tg", (object?)tagline ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@mp", (object?)mpaa ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@im", (object?)imdbId ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@tm", (object?)tmdbId ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@pr", (object?)premiered ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@su", (object?)studio ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@co", (object?)country ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@lp", (object?)posterRel ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@lf", (object?)fanartRel ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@id", id);
+        cmd.Parameters.ДобавитьWithValue("@y", (object?)year ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@ra", (object?)rating ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@vo", (object?)votes ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@ru", (object?)runtime ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@pl", (object?)plot ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@tg", (object?)tagline ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@mp", (object?)mpaa ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@im", (object?)imdbId ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@tm", (object?)tmdbId ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@pr", (object?)premiered ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@su", (object?)studio ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@co", (object?)country ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@lp", (object?)posterRel ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@lf", (object?)fanartRel ?? DBNull.Value);
         var changed = cmd.ExecuteNonQuery() > 0;
         if (changed) RaisePersonalStateChanged(id);
         return changed;
@@ -2056,9 +2056,9 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     /// whether a TMDB fetch should fill in the cast.</summary>
     public bool MovieHasActors(int id)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT EXISTS(SELECT 1 FROM movie_actors WHERE movie_id=@id)";
-        cmd.Parameters.AddWithValue("@id", id);
+        cmd.Parameters.ДобавитьWithValue("@id", id);
         return Convert.ToInt32(cmd.ExecuteScalar()) == 1;
     }
 
@@ -2068,9 +2068,9 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     /// currently has none of that kind, so existing MediaElch data is untouched.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void FillMovieGenreDirectorWriter(
-        int movieId, IReadOnlyList<string> genres,
-        IReadOnlyList<string> directors, IReadOnlyList<string> writers)
+    public void FillMovieGenreРежиссёрWriter(
+        int movieId, IReadВкл.lyList<string> genres,
+        IReadВкл.lyList<string> directors, IReadВкл.lyList<string> writers)
     {
         FillNamedRelation(movieId, genres,    "genres",    "movie_genres",    "genre_id");
         FillNamedRelation(movieId, directors, "directors", "movie_directors", "director_id");
@@ -2079,15 +2079,15 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
 
     // Table/column names here are all fixed literals (never user input).
     private void FillNamedRelation(
-        int movieId, IReadOnlyList<string>? names,
+        int movieId, IReadВкл.lyList<string>? names,
         string nameTable, string joinTable, string fkCol)
     {
         if (names == null || names.Count == 0) return;
 
-        using (var ck = _conn.CreateCommand())
+        using (var ck = _conn.СоздатьCommand())
         {
             ck.CommandText = $"SELECT EXISTS(SELECT 1 FROM {joinTable} WHERE movie_id=@m)";
-            ck.Parameters.AddWithValue("@m", movieId);
+            ck.Parameters.ДобавитьWithValue("@m", movieId);
             if (Convert.ToInt32(ck.ExecuteScalar()) == 1) return;   // fill-only
         }
 
@@ -2096,22 +2096,22 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             var name = (raw ?? "").Trim();
             if (name.Length == 0) continue;
             int rowId;
-            using (var ins = _conn.CreateCommand())
+            using (var ins = _conn.СоздатьCommand())
             {
                 ins.CommandText = $"INSERT OR IGNORE INTO {nameTable}(name) VALUES(@n)";
-                ins.Parameters.AddWithValue("@n", name);
+                ins.Parameters.ДобавитьWithValue("@n", name);
                 ins.ExecuteNonQuery();
             }
-            using (var sel = _conn.CreateCommand())
+            using (var sel = _conn.СоздатьCommand())
             {
                 sel.CommandText = $"SELECT id FROM {nameTable} WHERE name=@n";
-                sel.Parameters.AddWithValue("@n", name);
+                sel.Parameters.ДобавитьWithValue("@n", name);
                 rowId = Convert.ToInt32(sel.ExecuteScalar());
             }
-            using var link = _conn.CreateCommand();
+            using var link = _conn.СоздатьCommand();
             link.CommandText = $"INSERT OR IGNORE INTO {joinTable}(movie_id, {fkCol}) VALUES(@m, @r)";
-            link.Parameters.AddWithValue("@m", movieId);
-            link.Parameters.AddWithValue("@r", rowId);
+            link.Parameters.ДобавитьWithValue("@m", movieId);
+            link.Parameters.ДобавитьWithValue("@r", rowId);
             link.ExecuteNonQuery();
         }
     }
@@ -2119,14 +2119,14 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     /// <summary>
     /// v3.4 — real (non-archived) movies that carry TMDB-fetched art: a poster /
     /// fanart in the manual cache, or a cast member with a manual_actors thumb.
-    /// Used by "Sync to drive" to know which folders need their fetched art and
-    /// metadata written home. Excludes manual Watched &amp; Gone records (they have
+    /// Used by "Синхронизировать с диском" to know which folders need their fetched art and
+    /// metadata written home. Excludes manual Просмотрено и удалено records (they have
     /// no drive). Optionally restricted to one drive.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<int> GetMoviesWithFetchedData(string? onlyVolumeSerial = null)
+    public List<int> GetФильмыWithFetchedData(string? onlyVolumeSerial = null)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         var drive = onlyVolumeSerial != null ? " AND m.volume_serial=@s" : "";
         cmd.CommandText = $@"
             SELECT m.id FROM movies m
@@ -2137,26 +2137,26 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                  OR EXISTS (SELECT 1 FROM movie_actors ma JOIN actors a ON a.id=ma.actor_id
                              WHERE ma.movie_id=m.id AND a.thumb LIKE 'manual_actors/%')
                   )";
-        if (onlyVolumeSerial != null) cmd.Parameters.AddWithValue("@s", onlyVolumeSerial);
+        if (onlyVolumeSerial != null) cmd.Parameters.ДобавитьWithValue("@s", onlyVolumeSerial);
         var ids = new List<int>();
         using var r = cmd.ExecuteReader();
-        while (r.Read()) ids.Add(r.GetInt32(0));
+        while (r.Read()) ids.Добавить(r.GetInt32(0));
         return ids;
     }
 
     /// <summary>
     /// v3.4 — the data-folder-relative art paths for a movie: poster, fanart,
-    /// and each cast member's (name, thumb). Used by "Sync to drive" to copy
+    /// and each cast member's (name, thumb). Used by "Синхронизировать с диском" to copy
     /// fetched art into the movie's folder.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
     public (string? Poster, string? Fanart, List<(string Name, string? Thumb)> Actors) GetMovieArtForSync(int id)
     {
         string? poster = null, fanart = null;
-        using (var c = _conn.CreateCommand())
+        using (var c = _conn.СоздатьCommand())
         {
             c.CommandText = "SELECT local_poster, local_fanart FROM movies WHERE id=@id";
-            c.Parameters.AddWithValue("@id", id);
+            c.Parameters.ДобавитьWithValue("@id", id);
             using var r = c.ExecuteReader();
             if (r.Read())
             {
@@ -2165,41 +2165,41 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             }
         }
         var actors = new List<(string, string?)>();
-        using (var c = _conn.CreateCommand())
+        using (var c = _conn.СоздатьCommand())
         {
             c.CommandText = @"SELECT a.name, a.thumb FROM movie_actors ma
                                JOIN actors a ON a.id=ma.actor_id
                               WHERE ma.movie_id=@id ORDER BY ma.sort_order";
-            c.Parameters.AddWithValue("@id", id);
+            c.Parameters.ДобавитьWithValue("@id", id);
             using var r = c.ExecuteReader();
             while (r.Read())
-                actors.Add((r.GetString(0), r.IsDBNull(1) ? null : r.GetString(1)));
+                actors.Добавить((r.GetString(0), r.IsDBNull(1) ? null : r.GetString(1)));
         }
         return (poster, fanart, actors);
     }
 
-    // ── Dupes (v3.4.4) ───────────────────────────────────────────────────────
+    // ── Дубликаты (v3.4.4) ───────────────────────────────────────────────────────
 
     /// <summary>
     /// Group the library's movies into duplicate sets — same film held more than
     /// once. Matched by TMDb id, else IMDb id, else normalised title + year (never
     /// title alone, so remakes with the same name aren't merged). Archived
-    /// Watched &amp; Gone records are excluded. Each group is classified
+    /// Просмотрено и удалено records are excluded. Each group is classified
     /// conservatively: <see cref="DupeGroup.PossibleDuplicate"/> is only set when
     /// the copies share the same audio languages, resolution, HDR, codec and
     /// edition — so deliberately-kept variants (a dub vs the original, 1080p vs
-    /// 4K, an HEVC re-encode, a Director's Cut) are flagged as kept-on-purpose.
+    /// 4K, an HEVC re-encode, a Режиссёр's Cut) are flagged as kept-on-purpose.
     /// Also picks the keeper, computes reclaimable space, flags name-only matches,
     /// and marks groups the user has ignored.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<DupeGroup> GetDuplicateGroups(IReadOnlyDictionary<string, string> connected)
+    public List<DupeGroup> GetDuplicateGroups(IReadВкл.lyDictionary<string, string> connected)
     {
         var ignored = GetIgnoredDupeKeys();
 
         var byKey = new Dictionary<string, List<DupeCopy>>();
         var nameKeyed = new HashSet<string>();
-        using (var cmd = _conn.CreateCommand())
+        using (var cmd = _conn.СоздатьCommand())
         {
             cmd.CommandText = @"
                 SELECT m.id, m.title, m.year, m.tmdb_id, m.imdb_id,
@@ -2222,18 +2222,18 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 string key;
                 if (!string.IsNullOrWhiteSpace(tmdb)) key = "t:" + tmdb!.Trim();
                 else if (!string.IsNullOrWhiteSpace(imdb)) key = "i:" + imdb!.Trim();
-                else { key = "n:" + title.Trim().ToLowerInvariant() + "|" + (year?.ToString() ?? ""); nameKeyed.Add(key); }
+                else { key = "n:" + title.Trim().ToLowerInvariant() + "|" + (year?.ToString() ?? ""); nameKeyed.Добавить(key); }
 
                 var copy = new DupeCopy
                 {
                     Id = r.GetInt32(0),
-                    Title = title,
-                    Year = year,
+                    Название = title,
+                    Год = year,
                     VolumeSerial = serial,
                     DriveLabel = r.IsDBNull(6) ? null : r.GetString(6),
-                    FolderRelPath = folderRel,
+                    ПапкаRelPath = folderRel,
                     VideoFileRelPath = r.IsDBNull(8) ? null : r.GetString(8),
-                    AudioLanguages = r.IsDBNull(9) ? null : r.GetString(9),
+                    АудиоLanguages = r.IsDBNull(9) ? null : r.GetString(9),
                     VideoHeight = r.IsDBNull(10) ? (int?)null : r.GetInt32(10),
                     HdrType = r.IsDBNull(11) ? null : r.GetString(11),
                     FileSizeBytes = r.IsDBNull(12) ? (long?)null : r.GetInt64(12),
@@ -2241,11 +2241,11 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                     IsMissing = !r.IsDBNull(14) && r.GetInt32(14) == 1,
                     VideoCodec = r.IsDBNull(15) ? null : r.GetString(15),
                     VideoWidth = r.IsDBNull(16) ? (int?)null : r.GetInt32(16),
-                    Edition = DetectDupeEdition(folderRel),
+                    Изменитьion = DetectDupeИзменитьion(folderRel),
                 };
                 if (connected.TryGetValue(serial, out var letter))
                 {
-                    copy.IsOnline = true;
+                    copy.IsВкл.line = true;
                     copy.CurrentLetter = letter;
                     // Ground truth: if the file was deleted on disk (e.g. the user
                     // removed one of two copies), don't count it — the set then
@@ -2254,7 +2254,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 }
 
                 if (!byKey.TryGetValue(key, out var list)) { list = new List<DupeCopy>(); byKey[key] = list; }
-                list.Add(copy);
+                list.Добавить(copy);
             }
         }
 
@@ -2270,15 +2270,15 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 if (c != 0) return c;
                 c = (b.FileSizeBytes ?? 0).CompareTo(a.FileSizeBytes ?? 0);
                 if (c != 0) return c;
-                return b.IsOnline.CompareTo(a.IsOnline);
+                return b.IsВкл.line.CompareTo(a.IsВкл.line);
             });
-            members[0].IsKeeper = true;
+            members[0].IsОставитьer = true;
 
             var g = new DupeGroup
             {
                 Key = kv.Key,
-                Title = members[0].Title,
-                Year = members[0].Year,
+                Название = members[0].Название,
+                Год = members[0].Год,
                 Copies = members,
                 MatchedByName = nameKeyed.Contains(kv.Key),
                 IsIgnored = ignored.Contains(kv.Key),
@@ -2290,7 +2290,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 foreach (var c in members) total += c.FileSizeBytes ?? 0;
                 g.ReclaimableBytes = total - keep;
             }
-            groups.Add(g);
+            groups.Добавить(g);
         }
 
         groups.Sort((a, b) =>
@@ -2300,7 +2300,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             if (c != 0) return c;
             c = b.ReclaimableBytes.CompareTo(a.ReclaimableBytes);
             if (c != 0) return c;
-            return string.Compare(a.Title, b.Title, StringComparison.OrdinalIgnoreCase);
+            return string.Compare(a.Название, b.Название, StringComparison.OrdinalIgnoreCase);
         });
         return groups;
     }
@@ -2315,32 +2315,32 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         var drives = new HashSet<string>();
         foreach (var c in g.Copies)
         {
-            var ls = DupeLangSig(c.AudioLanguages);
-            if (ls.Length > 0) langs.Add(ls);
+            var ls = DupeLangSig(c.АудиоLanguages);
+            if (ls.Length > 0) langs.Добавить(ls);
             var tier = DupeResTier(c.VideoWidth, c.VideoHeight);
-            if (tier >= 0) reses.Add(tier);
-            hdrs.Add((c.HdrType ?? "").Trim().ToLowerInvariant());
-            codecs.Add(NormalizeCodec(c.VideoCodec));
-            editions.Add((c.Edition ?? "").Trim().ToLowerInvariant());
-            drives.Add(c.VolumeSerial);
+            if (tier >= 0) reses.Добавить(tier);
+            hdrs.Добавить((c.HdrType ?? "").Trim().ToLowerInvariant());
+            codecs.Добавить(NormalizeCodec(c.VideoCodec));
+            editions.Добавить((c.Изменитьion ?? "").Trim().ToLowerInvariant());
+            drives.Добавить(c.VolumeSerial);
         }
         bool diffLang = langs.Count > 1;
-        bool diffEdition = editions.Count > 1;
+        bool diffИзменитьion = editions.Count > 1;
         bool diffRes = reses.Count > 1;
         bool diffHdr = hdrs.Count > 1;
         bool diffCodec = codecs.Count > 1;
         bool diffQuality = diffRes || diffHdr || diffCodec;
 
-        // Only different *languages* or *editions* are deliberately-kept copies.
+        // Вкл.ly different *languages* or *editions* are deliberately-kept copies.
         // A different quality / codec of the same film is almost always
         // accumulation (you upgraded and forgot the old one) — treat it as a
         // duplicate worth reclaiming, keeping the best copy.
-        bool keptOnPurpose = diffLang || diffEdition;
-        g.PossibleDuplicate = !keptOnPurpose;
+        bool keptВкл.Purpose = diffLang || diffИзменитьion;
+        g.PossibleDuplicate = !keptВкл.Purpose;
 
         int n = g.Copies.Count;
         bool sameDrive = drives.Count == 1;
-        if (diffEdition) g.Summary = $"{n} versions · different editions";
+        if (diffИзменитьion) g.Summary = $"{n} versions · different editions";
         else if (diffLang) g.Summary = $"{n} versions · different audio languages";
         else if (diffQuality) g.Summary = $"{n} copies · different quality, keep the best" + (sameDrive ? " · same drive" : "");
         else g.Summary = $"{n} copies · same version" + (sameDrive ? " · same drive" : "");
@@ -2367,7 +2367,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         return c;   // "" when unknown — same bucket, doesn't force a split
     }
 
-    private static readonly string[] EditionKeywords =
+    private static readonly string[] ИзменитьionKeywords =
     {
         "director's cut", "directors cut", "director cut", "extended", "uncut", "unrated",
         "theatrical", "imax", "remaster", "criterion", "special edition", "ultimate",
@@ -2376,21 +2376,21 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
 
     /// <summary>Detects an edition tag from a movie's folder name, so different
     /// editions of the same film count as kept-on-purpose, not duplicates.</summary>
-    private static string? DetectDupeEdition(string? folderRel)
+    private static string? DetectDupeИзменитьion(string? folderRel)
     {
         if (string.IsNullOrWhiteSpace(folderRel)) return null;
         var name = folderRel.Replace('\\', '/');
         var slash = name.LastIndexOf('/');
         if (slash >= 0) name = name.Substring(slash + 1);
         var lower = name.ToLowerInvariant();
-        foreach (var kw in EditionKeywords)
+        foreach (var kw in ИзменитьionKeywords)
             if (lower.Contains(kw))
-                return System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(kw);
+                return System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToНазваниеCase(kw);
         return null;
     }
 
     /// <summary>True if the copy's video file (or its folder) still exists on the
-    /// connected drive. Errors are treated as "exists" so a transient I/O hiccup
+    /// connected drive. Ошибкаs are treated as "exists" so a transient I/O hiccup
     /// never makes a copy vanish from the list.</summary>
     private static bool DupeFileExists(string letter, string? folderRel, string? videoRel)
     {
@@ -2399,7 +2399,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             if (!string.IsNullOrEmpty(videoRel))
                 return File.Exists(Path.Combine($"{letter}:\\", videoRel.Replace('/', '\\')));
             if (!string.IsNullOrEmpty(folderRel))
-                return Directory.Exists(Path.Combine($"{letter}:\\", folderRel.Replace('/', '\\')));
+                return Режиссёрy.Exists(Path.Combine($"{letter}:\\", folderRel.Replace('/', '\\')));
             return true;
         }
         catch { return true; }
@@ -2413,7 +2413,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         foreach (var p in audio.Split(new[] { ',', ';', '/', '|' }, StringSplitOptions.RemoveEmptyEntries))
         {
             var t = p.Trim().ToLowerInvariant();
-            if (t.Length > 0) set.Add(t);
+            if (t.Length > 0) set.Добавить(t);
         }
         return string.Join(",", set);
     }
@@ -2422,32 +2422,32 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     public HashSet<string> GetIgnoredDupeKeys()
     {
         var set = new HashSet<string>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT group_key FROM dupe_ignored";
         using var r = cmd.ExecuteReader();
-        while (r.Read()) set.Add(r.GetString(0));
+        while (r.Read()) set.Добавить(r.GetString(0));
         return set;
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void SetDupeIgnored(string groupKey, bool ignored)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = ignored
             ? "INSERT OR IGNORE INTO dupe_ignored(group_key) VALUES(@k)"
             : "DELETE FROM dupe_ignored WHERE group_key=@k";
-        cmd.Parameters.AddWithValue("@k", groupKey);
+        cmd.Parameters.ДобавитьWithValue("@k", groupKey);
         cmd.ExecuteNonQuery();
     }
 
     /// <summary>
-    /// Attach cast to a manual Watched &amp; Gone record. Actor rows are shared by
+    /// Attach cast to a manual Просмотрено и удалено record. Actor rows are shared by
     /// name; a thumb is only set when the actor is new, so we never clobber a
     /// scanned actor's existing .actors thumbnail. Thumb paths are stored
     /// relative to the data folder (like posters) so the record stays portable.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void AddManualActors(
+    public void ДобавитьManualActors(
         int movieId,
         IEnumerable<(string Name, string? Role, int Order, string? ThumbRel)> actors)
     {
@@ -2457,17 +2457,17 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             if (name.Length == 0) continue;
 
             var actorId = UpsertManualActor(name, a.ThumbRel);
-            using (var link = _conn.CreateCommand())
+            using (var link = _conn.СоздатьCommand())
             {
                 // OR IGNORE (not REPLACE): if this actor is already linked to the
                 // movie, keep the existing role/order — we only add new cast and
                 // upgrade thumbs, never disturb good existing cast metadata.
                 link.CommandText = @"INSERT OR IGNORE INTO movie_actors(movie_id, actor_id, role, sort_order)
                                      VALUES(@m, @a, @r, @o)";
-                link.Parameters.AddWithValue("@m", movieId);
-                link.Parameters.AddWithValue("@a", actorId);
-                link.Parameters.AddWithValue("@r", (object?)a.Role ?? DBNull.Value);
-                link.Parameters.AddWithValue("@o", a.Order);
+                link.Parameters.ДобавитьWithValue("@m", movieId);
+                link.Parameters.ДобавитьWithValue("@a", actorId);
+                link.Parameters.ДобавитьWithValue("@r", (object?)a.Role ?? DBNull.Value);
+                link.Parameters.ДобавитьWithValue("@o", a.Order);
                 link.ExecuteNonQuery();
             }
         }
@@ -2478,17 +2478,17 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     private int UpsertManualActor(string name, string? thumbRel)
     {
         int actorId;
-        using (var ins = _conn.CreateCommand())
+        using (var ins = _conn.СоздатьCommand())
         {
             ins.CommandText = "INSERT OR IGNORE INTO actors(name, thumb) VALUES(@n, @t)";
-            ins.Parameters.AddWithValue("@n", name);
-            ins.Parameters.AddWithValue("@t", (object?)thumbRel ?? DBNull.Value);
+            ins.Parameters.ДобавитьWithValue("@n", name);
+            ins.Parameters.ДобавитьWithValue("@t", (object?)thumbRel ?? DBNull.Value);
             ins.ExecuteNonQuery();
         }
-        using (var sel = _conn.CreateCommand())
+        using (var sel = _conn.СоздатьCommand())
         {
             sel.CommandText = "SELECT id FROM actors WHERE name=@n";
-            sel.Parameters.AddWithValue("@n", name);
+            sel.Parameters.ДобавитьWithValue("@n", name);
             actorId = Convert.ToInt32(sel.ExecuteScalar());
         }
         // Upgrade the actor's thumb to our portable cache copy when the
@@ -2501,18 +2501,18 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         if (!string.IsNullOrEmpty(thumbRel))
         {
             string? current;
-            using (var get = _conn.CreateCommand())
+            using (var get = _conn.СоздатьCommand())
             {
                 get.CommandText = "SELECT thumb FROM actors WHERE id=@id";
-                get.Parameters.AddWithValue("@id", actorId);
+                get.Parameters.ДобавитьWithValue("@id", actorId);
                 current = get.ExecuteScalar() as string;
             }
             if (IsWeakActorThumb(current))
             {
-                using var upd = _conn.CreateCommand();
+                using var upd = _conn.СоздатьCommand();
                 upd.CommandText = "UPDATE actors SET thumb=@t WHERE id=@id";
-                upd.Parameters.AddWithValue("@t", thumbRel);
-                upd.Parameters.AddWithValue("@id", actorId);
+                upd.Parameters.ДобавитьWithValue("@t", thumbRel);
+                upd.Parameters.ДобавитьWithValue("@id", actorId);
                 upd.ExecuteNonQuery();
             }
         }
@@ -2538,7 +2538,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         string? premiered, string? studio, string? status, string? imdbId, string? tmdbId,
         string? posterRel, string? fanartRel)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             UPDATE tv_shows SET
                 year         = COALESCE(year, @y),
@@ -2555,57 +2555,57 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 local_fanart = CASE WHEN local_fanart IS NULL OR local_fanart='' THEN @lf ELSE local_fanart END,
                 date_modified = strftime('%s','now')
             WHERE id=@id";
-        cmd.Parameters.AddWithValue("@id", id);
-        cmd.Parameters.AddWithValue("@y", (object?)year ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@ra", (object?)rating ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@vo", (object?)votes ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@pl", (object?)plot ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@mp", (object?)mpaa ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@pr", (object?)premiered ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@su", (object?)studio ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@st", (object?)status ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@im", (object?)imdbId ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@tm", (object?)tmdbId ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@lp", (object?)posterRel ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@lf", (object?)fanartRel ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@id", id);
+        cmd.Parameters.ДобавитьWithValue("@y", (object?)year ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@ra", (object?)rating ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@vo", (object?)votes ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@pl", (object?)plot ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@mp", (object?)mpaa ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@pr", (object?)premiered ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@su", (object?)studio ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@st", (object?)status ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@im", (object?)imdbId ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@tm", (object?)tmdbId ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@lp", (object?)posterRel ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@lf", (object?)fanartRel ?? DBNull.Value);
         return cmd.ExecuteNonQuery() > 0;
     }
 
     /// <summary>v3.10.0 — TMDB genres for a show that has none (fill-only).</summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void FillTvShowGenres(int showId, IReadOnlyList<string> genres)
+    public void FillTvShowЖанры(int showId, IReadВкл.lyList<string> genres)
     {
-        using (var ck = _conn.CreateCommand())
+        using (var ck = _conn.СоздатьCommand())
         {
             ck.CommandText = "SELECT EXISTS(SELECT 1 FROM tv_show_genres WHERE show_id=@s)";
-            ck.Parameters.AddWithValue("@s", showId);
+            ck.Parameters.ДобавитьWithValue("@s", showId);
             if (Convert.ToInt32(ck.ExecuteScalar()) == 1) return;
         }
         foreach (var raw in genres)
         {
             var name = (raw ?? "").Trim();
             if (name.Length == 0) continue;
-            using (var ins = _conn.CreateCommand())
+            using (var ins = _conn.СоздатьCommand())
             {
                 ins.CommandText = "INSERT OR IGNORE INTO genres(name) VALUES(@n)";
-                ins.Parameters.AddWithValue("@n", name);
+                ins.Parameters.ДобавитьWithValue("@n", name);
                 ins.ExecuteNonQuery();
             }
-            using var link = _conn.CreateCommand();
+            using var link = _conn.СоздатьCommand();
             link.CommandText = @"INSERT OR IGNORE INTO tv_show_genres(show_id, genre_id)
                                  SELECT @s, id FROM genres WHERE name=@n";
-            link.Parameters.AddWithValue("@s", showId);
-            link.Parameters.AddWithValue("@n", name);
+            link.Parameters.ДобавитьWithValue("@s", showId);
+            link.Parameters.ДобавитьWithValue("@n", name);
             link.ExecuteNonQuery();
         }
     }
 
     /// <summary>
-    /// v3.10.0 — TMDB cast for a show, like <see cref="AddManualActors"/>: new cast
+    /// v3.10.0 — TMDB cast for a show, like <see cref="ДобавитьManualActors"/>: new cast
     /// is added and weak thumbs are upgraded; existing roles and order are kept.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void AddManualShowActors(
+    public void ДобавитьManualShowActors(
         int showId,
         IEnumerable<(string Name, string? Role, int Order, string? ThumbRel)> actors)
     {
@@ -2615,13 +2615,13 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             if (name.Length == 0) continue;
 
             var actorId = UpsertManualActor(name, a.ThumbRel);
-            using var link = _conn.CreateCommand();
+            using var link = _conn.СоздатьCommand();
             link.CommandText = @"INSERT OR IGNORE INTO tv_show_actors(show_id, actor_id, role, sort_order)
                                  VALUES(@s, @a, @r, @o)";
-            link.Parameters.AddWithValue("@s", showId);
-            link.Parameters.AddWithValue("@a", actorId);
-            link.Parameters.AddWithValue("@r", (object?)a.Role ?? DBNull.Value);
-            link.Parameters.AddWithValue("@o", a.Order);
+            link.Parameters.ДобавитьWithValue("@s", showId);
+            link.Parameters.ДобавитьWithValue("@a", actorId);
+            link.Parameters.ДобавитьWithValue("@r", (object?)a.Role ?? DBNull.Value);
+            link.Parameters.ДобавитьWithValue("@o", a.Order);
             link.ExecuteNonQuery();
         }
     }
@@ -2630,20 +2630,20 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void RestoreArchivedMovie(int id)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "UPDATE movies SET archived_at=NULL WHERE id=@id";
-        cmd.Parameters.AddWithValue("@id", id);
+        cmd.Parameters.ДобавитьWithValue("@id", id);
         cmd.ExecuteNonQuery();
     }
 
     /// <summary>Permanently delete an archived record (row + cached artwork).</summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void DeleteArchivedRecord(int id)
+    public void УдалитьArchivedRecord(int id)
     {
-        using (var get = _conn.CreateCommand())
+        using (var get = _conn.СоздатьCommand())
         {
             get.CommandText = "SELECT local_poster, local_fanart, local_nfo FROM movies WHERE id=@id AND archived_at IS NOT NULL";
-            get.Parameters.AddWithValue("@id", id);
+            get.Parameters.ДобавитьWithValue("@id", id);
             using var r = get.ExecuteReader();
             if (!r.Read()) return;   // not archived — refuse to delete a live movie
             for (int i = 0; i < 3; i++)
@@ -2651,35 +2651,35 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 if (!r.IsDBNull(i))
                 {
                     var p = Path.Combine(_dataDir, r.GetString(i));
-                    if (File.Exists(p)) try { File.Delete(p); } catch { }
+                    if (File.Exists(p)) try { File.Удалить(p); } catch { }
                 }
             }
         }
-        using var del = _conn.CreateCommand();
+        using var del = _conn.СоздатьCommand();
         del.CommandText = "DELETE FROM movies WHERE id=@id AND archived_at IS NOT NULL";
-        del.Parameters.AddWithValue("@id", id);
+        del.Parameters.ДобавитьWithValue("@id", id);
         del.ExecuteNonQuery();
     }
 
-    /// <summary>A missing movie, for the Drives "Review missing" dialog.</summary>
-    public record MissingMovieRow(int Id, string Title, int? Year, string? LocalPoster, bool IsWatched, bool HasNote);
+    /// <summary>A missing movie, for the Диски "Review missing" dialog.</summary>
+    public record MissingMovieRow(int Id, string Название, int? Год, string? LocalPoster, bool IsПросмотрено, bool HasNote);
 
-    /// <summary>Movies on this drive flagged is_missing=1 (excluding records).
-    /// Watched / noted ones first, since those are the keep-as-record cases.</summary>
+    /// <summary>Фильмы on this drive flagged is_missing=1 (excluding records).
+    /// Просмотрено / noted ones first, since those are the keep-as-record cases.</summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<MissingMovieRow> GetMissingMovies(string serial)
+    public List<MissingMovieRow> GetMissingФильмы(string serial)
     {
         var list = new List<MissingMovieRow>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"SELECT id, title, year, local_poster, is_watched,
                                    (note IS NOT NULL AND TRIM(note) != '') AS has_note
                             FROM movies
                             WHERE volume_serial=@s AND is_missing=1 AND archived_at IS NULL
                             ORDER BY (is_watched OR (note IS NOT NULL AND TRIM(note) != '')) DESC, sort_title";
-        cmd.Parameters.AddWithValue("@s", serial);
+        cmd.Parameters.ДобавитьWithValue("@s", serial);
         using var r = cmd.ExecuteReader();
         while (r.Read())
-            list.Add(new MissingMovieRow(
+            list.Добавить(new MissingMovieRow(
                 r.GetInt32(0), r.GetString(1),
                 r.IsDBNull(2) ? null : r.GetInt32(2),
                 r.IsDBNull(3) ? null : r.GetString(3),
@@ -2688,14 +2688,14 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         return list;
     }
 
-    /// <summary>Delete specific missing movies by id (+ cached artwork). Used by
+    /// <summary>Удалить specific missing movies by id (+ cached artwork). Used by
     /// the Review-missing dialog for the rows the user chose not to keep.</summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public int DeleteMoviesByIds(IReadOnlyCollection<int> ids)
+    public int УдалитьФильмыByIds(IReadВкл.lyCollection<int> ids)
     {
         if (ids.Count == 0) return 0;
         var inList = string.Join(",", ids);
-        using (var get = _conn.CreateCommand())
+        using (var get = _conn.СоздатьCommand())
         {
             get.CommandText = $"SELECT local_poster, local_fanart, local_nfo FROM movies WHERE id IN ({inList}) AND archived_at IS NULL";
             using var r = get.ExecuteReader();
@@ -2704,29 +2704,29 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                     if (!r.IsDBNull(i))
                     {
                         var p = Path.Combine(_dataDir, r.GetString(i));
-                        if (File.Exists(p)) try { File.Delete(p); } catch { }
+                        if (File.Exists(p)) try { File.Удалить(p); } catch { }
                     }
         }
-        using var del = _conn.CreateCommand();
+        using var del = _conn.СоздатьCommand();
         del.CommandText = $"DELETE FROM movies WHERE id IN ({inList}) AND archived_at IS NULL";
         return del.ExecuteNonQuery();
     }
 
-    /// <summary>Number of Watched &amp; Gone records (sidebar count).</summary>
+    /// <summary>Number of Просмотрено и удалено records (sidebar count).</summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
     public int GetArchivedCount()
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT COUNT(*) FROM movies WHERE archived_at IS NOT NULL";
         return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
     }
 
-    // ── Collections ──────────────────────────────────────────────────────────
+    // ── Коллекции ──────────────────────────────────────────────────────────
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<Collection> GetCollections()
+    public List<Collection> GetКоллекции()
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT s.id, s.name, COUNT(ms.movie_id) as cnt
             FROM sets s JOIN movie_sets ms ON ms.set_id=s.id
@@ -2736,7 +2736,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
-            list.Add(new Collection
+            list.Добавить(new Collection
             {
                 Id = r.GetInt32(0),
                 Name = r.GetString(1),
@@ -2749,58 +2749,58 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     // ── Facets ───────────────────────────────────────────────────────────────
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<GenreFacet> GetTopGenres(int top = 8)
+    public List<GenreFacet> GetTopЖанры(int top = 8)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT g.name, COUNT(mg.movie_id) as cnt
             FROM genres g JOIN movie_genres mg ON mg.genre_id=g.id
             GROUP BY g.id ORDER BY cnt DESC LIMIT @top";
-        cmd.Parameters.AddWithValue("@top", top);
+        cmd.Parameters.ДобавитьWithValue("@top", top);
         var list = new List<GenreFacet>();
         using var r = cmd.ExecuteReader();
-        while (r.Read()) list.Add(new GenreFacet { Name = r.GetString(0), Count = (int)r.GetInt64(1) });
+        while (r.Read()) list.Добавить(new GenreFacet { Name = r.GetString(0), Count = (int)r.GetInt64(1) });
         return list;
     }
 
     // ── Stats ────────────────────────────────────────────────────────────────
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public LibraryStats GetStats()
+    public МедиатекаStats GetStats()
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT COUNT(*), SUM(is_missing), COALESCE(SUM(runtime),0), AVG(CASE WHEN rating IS NOT NULL THEN rating END),
                    (SELECT COUNT(*) FROM drives WHERE volume_serial != '__archive__')
             FROM movies WHERE archived_at IS NULL";
         using var r = cmd.ExecuteReader();
         r.Read();
-        return new LibraryStats
+        return new МедиатекаStats
         {
-            TotalMovies = (int)r.GetInt64(0),
+            TotalФильмы = (int)r.GetInt64(0),
             TotalMissing = r.IsDBNull(1) ? 0 : (int)r.GetInt64(1),
-            TotalRuntime = r.GetInt64(2),
-            AvgRating = r.IsDBNull(3) ? null : r.GetDouble(3),
-            TotalDrives = (int)r.GetInt64(4),
+            TotalПродолжительность = r.GetInt64(2),
+            AvgРейтинг = r.IsDBNull(3) ? null : r.GetDouble(3),
+            TotalДиски = (int)r.GetInt64(4),
         };
     }
 
-    /// <summary>v2.8.2 — TV-side counterpart to GetStats for the Statistics page.</summary>
+    /// <summary>v2.8.2 — TV-side counterpart to GetStats for the Статистика page.</summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
     public TvStats GetTvStats()
     {
         var s = new TvStats();
-        using (var cmd = _conn.CreateCommand())
+        using (var cmd = _conn.СоздатьCommand())
         {
             cmd.CommandText = "SELECT COUNT(*), AVG(CASE WHEN rating IS NOT NULL THEN rating END) FROM tv_shows";
             using var r = cmd.ExecuteReader();
             if (r.Read())
             {
                 s.TotalShows = (int)r.GetInt64(0);
-                s.AvgRating = r.IsDBNull(1) ? null : r.GetDouble(1);
+                s.AvgРейтинг = r.IsDBNull(1) ? null : r.GetDouble(1);
             }
         }
-        using (var cmd = _conn.CreateCommand())
+        using (var cmd = _conn.СоздатьCommand())
         {
             cmd.CommandText = @"SELECT COUNT(*),
                                        SUM(CASE WHEN is_watched=1 THEN 1 ELSE 0 END),
@@ -2809,9 +2809,9 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             using var r = cmd.ExecuteReader();
             if (r.Read())
             {
-                s.TotalEpisodes = (int)r.GetInt64(0);
-                s.WatchedEpisodes = r.IsDBNull(1) ? 0 : (int)r.GetInt64(1);
-                s.TotalRuntime = r.GetInt64(2);
+                s.TotalЭпизоды = (int)r.GetInt64(0);
+                s.ПросмотреноЭпизоды = r.IsDBNull(1) ? 0 : (int)r.GetInt64(1);
+                s.TotalПродолжительность = r.GetInt64(2);
             }
         }
         return s;
@@ -2822,19 +2822,19 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     [MethodImpl(MethodImplOptions.Synchronized)]
     public string? GetPref(string key)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT value FROM preferences WHERE key=@k";
-        cmd.Parameters.AddWithValue("@k", key);
+        cmd.Parameters.ДобавитьWithValue("@k", key);
         return cmd.ExecuteScalar() as string;
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void SetPref(string key, string value)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "INSERT OR REPLACE INTO preferences (key, value) VALUES (@k, @v)";
-        cmd.Parameters.AddWithValue("@k", key);
-        cmd.Parameters.AddWithValue("@v", value);
+        cmd.Parameters.ДобавитьWithValue("@k", key);
+        cmd.Parameters.ДобавитьWithValue("@v", value);
         cmd.ExecuteNonQuery();
     }
 
@@ -2844,7 +2844,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     public string? GetCachedImagePath(string? relPath)
     {
         if (relPath == null) return null;
-        var full = Path.Combine(_dataDir, relPath.Replace('/', Path.DirectorySeparatorChar));
+        var full = Path.Combine(_dataDir, relPath.Replace('/', Path.РежиссёрySeparatorChar));
         return File.Exists(full) ? full : null;
     }
 
@@ -2862,12 +2862,12 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     /// against it doesn't carry that same transaction reference.
     /// WAL mode (set on _conn) is per-DB, so a second connection is safe.
     /// </summary>
-    public SqliteConnection OpenNewConnection()
+    public SqliteConnection OpenНовыйConnection()
     {
         var dbPath = Path.Combine(_dataDir, "cinelibrary.db");
         var c = new SqliteConnection($"Data Source={dbPath}");
         c.Open();
-        using var pr = c.CreateCommand();
+        using var pr = c.СоздатьCommand();
         // v2.6 — same pragmas as the main connection so the scanner's
         // writer waits cooperatively when the UI thread also wants the
         // write lock (drive last-seen update, watched-toggle, etc).
@@ -2877,18 +2877,18 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     }
     public string DataDir => _dataDir;
 
-    // ── Statistics (v1.3) ───────────────────────────────────────────────────
+    // ── Статистика (v1.3) ───────────────────────────────────────────────────
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<(int decade, int count, double avgRating)> GetMoviesByDecade()
+    public List<(int decade, int count, double avgРейтинг)> GetФильмыByDecade()
     {
         var result = new List<(int, int, double)>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT 
                 (year / 10) * 10 as decade,
                 COUNT(*) as count,
-                AVG(CAST(rating AS FLOAT)) as avgRating
+                AVG(АКТЁРЫ(rating AS FLOAT)) as avgРейтинг
             FROM movies
             WHERE year IS NOT NULL AND is_missing = 0 AND archived_at IS NULL
             GROUP BY (year / 10) * 10
@@ -2897,7 +2897,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         using var reader = cmd.ExecuteReader();
         while (reader.Read())
         {
-            result.Add((
+            result.Добавить((
                 reader.GetInt32(0),
                 (int)reader.GetInt64(1),
                 reader.IsDBNull(2) ? 0 : reader.GetDouble(2)
@@ -2907,10 +2907,10 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<GenreFacet> GetTopDirectors(int limit = 10)
+    public List<GenreFacet> GetTopРежиссёрs(int limit = 10)
     {
         var result = new List<GenreFacet>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT d.name, COUNT(md.movie_id) as count
             FROM directors d
@@ -2918,12 +2918,12 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             GROUP BY d.id, d.name
             ORDER BY count DESC
             LIMIT @limit";
-        cmd.Parameters.AddWithValue("@limit", limit);
+        cmd.Parameters.ДобавитьWithValue("@limit", limit);
 
         using var reader = cmd.ExecuteReader();
         while (reader.Read())
         {
-            result.Add(new GenreFacet
+            result.Добавить(new GenreFacet
             {
                 Name = reader.GetString(0),
                 Count = (int)reader.GetInt64(1)
@@ -2936,7 +2936,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     public List<GenreFacet> GetTopActors(int limit = 10)
     {
         var result = new List<GenreFacet>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT a.name, COUNT(DISTINCT ma.movie_id) as count
             FROM actors a
@@ -2944,12 +2944,12 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             GROUP BY a.id, a.name
             ORDER BY count DESC
             LIMIT @limit";
-        cmd.Parameters.AddWithValue("@limit", limit);
+        cmd.Parameters.ДобавитьWithValue("@limit", limit);
 
         using var reader = cmd.ExecuteReader();
         while (reader.Read())
         {
-            result.Add(new GenreFacet
+            result.Добавить(new GenreFacet
             {
                 Name = reader.GetString(0),
                 Count = (int)reader.GetInt64(1)
@@ -2961,7 +2961,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     [MethodImpl(MethodImplOptions.Synchronized)]
     public (int watched, int total, double percent) GetWatchProgress()
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT
                 SUM(CASE WHEN is_watched = 1 THEN 1 ELSE 0 END) as watched,
@@ -2981,10 +2981,10 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public double GetTotalRuntimeHours()
+    public double GetTotalПродолжительностьHours()
     {
-        using var cmd = _conn.CreateCommand();
-        cmd.CommandText = "SELECT SUM(CAST(runtime AS FLOAT)) FROM movies WHERE runtime IS NOT NULL AND is_missing = 0 AND archived_at IS NULL";
+        using var cmd = _conn.СоздатьCommand();
+        cmd.CommandText = "SELECT SUM(АКТЁРЫ(runtime AS FLOAT)) FROM movies WHERE runtime IS NOT NULL AND is_missing = 0 AND archived_at IS NULL";
 
         var result = cmd.ExecuteScalar();
         if (result is not DBNull && result != null)
@@ -2995,47 +2995,47 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public int GetWatchlistCount()
+    public int GetСписок просмотраCount()
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT COUNT(*) FROM movies WHERE is_watchlist = 1 AND is_missing = 0 AND archived_at IS NULL";
         return (int)(long)cmd.ExecuteScalar()!;
     }
 
-    /// <summary>v2.8.2 — count of movies carrying a note (for the Notes pill badge).</summary>
+    /// <summary>v2.8.2 — count of movies carrying a note (for the Заметки pill badge).</summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public int GetNotesCount()
+    public int GetЗаметкиCount()
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT COUNT(*) FROM movies WHERE note IS NOT NULL AND TRIM(note) != '' AND archived_at IS NULL";
         return (int)(long)cmd.ExecuteScalar()!;
     }
 
-    // ── Browse pages (v2.1.0) ────────────────────────────────────────────────
+    // ── Обзор pages (v2.1.0) ────────────────────────────────────────────────
 
-    /// <summary>One entry in a browse-by-X grid: a category label, how
+    /// <summary>Вкл.e entry in a browse-by-X grid: a category label, how
     /// many movies it has, and a representative fanart for the banner.</summary>
-    public record BrowseEntry(string Key, string Label, int Count, string? SampleFanart, string? SamplePoster);
+    public record ОбзорEntry(string Key, string Label, int Count, string? SampleFanart, string? SamplePoster);
 
-    public enum BrowseFacet { Genre, Decade, Rating, Studio }
+    public enum ОбзорFacet { Genre, Decade, Рейтинг, Студия }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<BrowseEntry> GetBrowseEntries(BrowseFacet facet)
+    public List<ОбзорEntry> GetОбзорEntries(ОбзорFacet facet)
     {
         return facet switch
         {
-            BrowseFacet.Genre   => BrowseByGenre(),
-            BrowseFacet.Decade  => BrowseByDecade(),
-            BrowseFacet.Rating  => BrowseByRating(),
-            BrowseFacet.Studio  => BrowseByStudio(),
+            ОбзорFacet.Genre   => ОбзорByGenre(),
+            ОбзорFacet.Decade  => ОбзорByDecade(),
+            ОбзорFacet.Рейтинг  => ОбзорByРейтинг(),
+            ОбзорFacet.Студия  => ОбзорByСтудия(),
             _ => new()
         };
     }
 
-    private List<BrowseEntry> BrowseByGenre()
+    private List<ОбзорEntry> ОбзорByGenre()
     {
-        var list = new List<BrowseEntry>();
-        using var cmd = _conn.CreateCommand();
+        var list = new List<ОбзорEntry>();
+        using var cmd = _conn.СоздатьCommand();
         // For each genre: count + a representative fanart from a high-rated member.
         cmd.CommandText = @"
             SELECT g.name,
@@ -3057,7 +3057,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
-            list.Add(new BrowseEntry(
+            list.Добавить(new ОбзорEntry(
                 Key: r.GetString(0),
                 Label: r.GetString(0),
                 Count: r.GetInt32(1),
@@ -3067,10 +3067,10 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         return list;
     }
 
-    private List<BrowseEntry> BrowseByDecade()
+    private List<ОбзорEntry> ОбзорByDecade()
     {
-        var list = new List<BrowseEntry>();
-        using var cmd = _conn.CreateCommand();
+        var list = new List<ОбзорEntry>();
+        using var cmd = _conn.СоздатьCommand();
         // Group by decade = (year/10)*10 — e.g. 2024 → 2020
         cmd.CommandText = @"
             SELECT (m.year/10)*10 AS decade,
@@ -3089,7 +3089,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         while (r.Read())
         {
             var dec = r.GetInt32(0);
-            list.Add(new BrowseEntry(
+            list.Добавить(new ОбзорEntry(
                 Key: dec.ToString(),
                 Label: $"{dec}s",
                 Count: r.GetInt32(1),
@@ -3099,7 +3099,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         return list;
     }
 
-    private List<BrowseEntry> BrowseByRating()
+    private List<ОбзорEntry> ОбзорByРейтинг()
     {
         // Buckets: 9+, 8–9, 7–8, 6–7, 5–6, <5
         var bands = new (string key, string label, double lo, double hi)[]
@@ -3111,10 +3111,10 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             ("5",  "5–6 Stars",  5.0, 6.0),
             ("0",  "Under 5",    0.0, 5.0),
         };
-        var list = new List<BrowseEntry>();
+        var list = new List<ОбзорEntry>();
         foreach (var b in bands)
         {
-            using var cmd = _conn.CreateCommand();
+            using var cmd = _conn.СоздатьCommand();
             cmd.CommandText = @"
                 SELECT COUNT(*),
                        (SELECT local_fanart FROM movies WHERE rating >= @lo AND rating < @hi AND local_fanart IS NOT NULL AND is_missing=0 AND archived_at IS NULL
@@ -3122,13 +3122,13 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                        (SELECT local_poster FROM movies WHERE rating >= @lo AND rating < @hi AND local_poster IS NOT NULL AND is_missing=0 AND archived_at IS NULL
                         ORDER BY rating DESC LIMIT 1)
                 FROM movies WHERE rating >= @lo AND rating < @hi AND is_missing=0 AND archived_at IS NULL";
-            cmd.Parameters.AddWithValue("@lo", b.lo);
-            cmd.Parameters.AddWithValue("@hi", b.hi);
+            cmd.Parameters.ДобавитьWithValue("@lo", b.lo);
+            cmd.Parameters.ДобавитьWithValue("@hi", b.hi);
             using var r = cmd.ExecuteReader();
             if (!r.Read()) continue;
             var count = r.GetInt32(0);
             if (count == 0) continue;
-            list.Add(new BrowseEntry(
+            list.Добавить(new ОбзорEntry(
                 Key: b.key, Label: b.label, Count: count,
                 SampleFanart: r.IsDBNull(1) ? null : r.GetString(1),
                 SamplePoster: r.IsDBNull(2) ? null : r.GetString(2)));
@@ -3136,10 +3136,10 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         return list;
     }
 
-    private List<BrowseEntry> BrowseByStudio()
+    private List<ОбзорEntry> ОбзорByСтудия()
     {
-        var list = new List<BrowseEntry>();
-        using var cmd = _conn.CreateCommand();
+        var list = new List<ОбзорEntry>();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT studio,
                    COUNT(*),
@@ -3156,7 +3156,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
-            list.Add(new BrowseEntry(
+            list.Добавить(new ОбзорEntry(
                 Key: r.GetString(0),
                 Label: r.GetString(0),
                 Count: r.GetInt32(1),
@@ -3169,14 +3169,14 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     /// <summary>Collection grid entries — uses each set's highest-rated
     /// member's poster as the cover.</summary>
     public record CollectionEntry(int Id, string Name, int Count, string? CoverPoster,
-        int Watched, int? LatestYear, long LastAdded);
+        int Просмотрено, int? LatestГод, long LastДобавитьed);
 
     [MethodImpl(MethodImplOptions.Synchronized)]
     public List<CollectionEntry> GetCollectionGrid()
     {
         var list = new List<CollectionEntry>();
-        using var cmd = _conn.CreateCommand();
-        // Only real franchises: at least 2 online movies in the same set.
+        using var cmd = _conn.СоздатьCommand();
+        // Вкл.ly real franchises: at least 2 online movies in the same set.
         // (A "set" with one member is just MediaElch noise — TMDB sometimes
         // assigns single films to a one-entry collection.)
         cmd.CommandText = @"
@@ -3196,14 +3196,14 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
-            list.Add(new CollectionEntry(
+            list.Добавить(new CollectionEntry(
                 Id: r.GetInt32(0),
                 Name: r.GetString(1),
                 Count: r.GetInt32(2),
                 CoverPoster: r.IsDBNull(3) ? null : r.GetString(3),
-                Watched: r.GetInt32(4),
-                LatestYear: r.IsDBNull(5) ? null : r.GetInt32(5),
-                LastAdded: r.GetInt64(6)));
+                Просмотрено: r.GetInt32(4),
+                LatestГод: r.IsDBNull(5) ? null : r.GetInt32(5),
+                LastДобавитьed: r.GetInt64(6)));
         }
         return list;
     }
@@ -3216,7 +3216,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     public List<UserList> GetUserLists()
     {
         var list = new List<UserList>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         // v2.8.2 — count movies + shows so the badge reflects the whole list.
         cmd.CommandText = @"SELECT ul.id, ul.name,
                                    (SELECT COUNT(*) FROM user_list_movies lm
@@ -3227,19 +3227,19 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                             ORDER BY ul.sort_order, ul.name";
         using var r = cmd.ExecuteReader();
         while (r.Read())
-            list.Add(new UserList(r.GetInt32(0), r.GetString(1),
+            list.Добавить(new UserList(r.GetInt32(0), r.GetString(1),
                                   r.IsDBNull(2) ? 0 : r.GetInt32(2)));
         return list;
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public int CreateUserList(string name)
+    public int СоздатьUserList(string name)
     {
         var trimmed = (name ?? "").Trim();
         if (string.IsNullOrEmpty(trimmed)) throw new ArgumentException("List name is empty");
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "INSERT INTO user_lists (name) VALUES (@n); SELECT last_insert_rowid();";
-        cmd.Parameters.AddWithValue("@n", trimmed);
+        cmd.Parameters.ДобавитьWithValue("@n", trimmed);
         return Convert.ToInt32(cmd.ExecuteScalar());
     }
 
@@ -3248,29 +3248,29 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     {
         var trimmed = (newName ?? "").Trim();
         if (string.IsNullOrEmpty(trimmed)) return;
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "UPDATE user_lists SET name=@n WHERE id=@id";
-        cmd.Parameters.AddWithValue("@n", trimmed);
-        cmd.Parameters.AddWithValue("@id", listId);
+        cmd.Parameters.ДобавитьWithValue("@n", trimmed);
+        cmd.Parameters.ДобавитьWithValue("@id", listId);
         cmd.ExecuteNonQuery();
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void DeleteUserList(int listId)
+    public void УдалитьUserList(int listId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "DELETE FROM user_lists WHERE id=@id";
-        cmd.Parameters.AddWithValue("@id", listId);
+        cmd.Parameters.ДобавитьWithValue("@id", listId);
         cmd.ExecuteNonQuery();
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void AddMovieToUserList(int listId, int movieId)
+    public void ДобавитьMovieToUserList(int listId, int movieId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "INSERT OR IGNORE INTO user_list_movies (list_id, movie_id) VALUES (@l, @m)";
-        cmd.Parameters.AddWithValue("@l", listId);
-        cmd.Parameters.AddWithValue("@m", movieId);
+        cmd.Parameters.ДобавитьWithValue("@l", listId);
+        cmd.Parameters.ДобавитьWithValue("@m", movieId);
         cmd.ExecuteNonQuery();
         RaisePersonalStateChanged(movieId);
     }
@@ -3278,10 +3278,10 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void RemoveMovieFromUserList(int listId, int movieId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "DELETE FROM user_list_movies WHERE list_id=@l AND movie_id=@m";
-        cmd.Parameters.AddWithValue("@l", listId);
-        cmd.Parameters.AddWithValue("@m", movieId);
+        cmd.Parameters.ДобавитьWithValue("@l", listId);
+        cmd.Parameters.ДобавитьWithValue("@m", movieId);
         cmd.ExecuteNonQuery();
         RaisePersonalStateChanged(movieId);
     }
@@ -3290,28 +3290,28 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     /// Source-folder info for every movie in a user list. Used by the
     /// "Copy movies to folder" feature (#bucket-style export).
     /// </summary>
-    public record MovieCopySource(int Id, string Title, string VolumeSerial, string FolderRelPath, int? Year);
+    public record MovieCopySource(int Id, string Название, string VolumeSerial, string ПапкаRelPath, int? Год);
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<MovieCopySource> GetMoviesForCopy(int listId)
+    public List<MovieCopySource> GetФильмыForCopy(int listId)
     {
         var list = new List<MovieCopySource>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"SELECT m.id, m.title, m.volume_serial, m.folder_rel_path, m.year
                             FROM user_list_movies ulm
                             JOIN movies m ON m.id = ulm.movie_id
                             WHERE ulm.list_id = @id AND m.is_missing = 0 AND m.archived_at IS NULL
                             ORDER BY m.sort_title";
-        cmd.Parameters.AddWithValue("@id", listId);
+        cmd.Parameters.ДобавитьWithValue("@id", listId);
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
-            list.Add(new MovieCopySource(
+            list.Добавить(new MovieCopySource(
                 Id: r.GetInt32(0),
-                Title: r.GetString(1),
+                Название: r.GetString(1),
                 VolumeSerial: r.GetString(2),
-                FolderRelPath: r.GetString(3),
-                Year: r.IsDBNull(4) ? null : r.GetInt32(4)));
+                ПапкаRelPath: r.GetString(3),
+                Год: r.IsDBNull(4) ? null : r.GetInt32(4)));
         }
         return list;
     }
@@ -3321,11 +3321,11 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     public HashSet<int> GetUserListsForMovie(int movieId)
     {
         var set = new HashSet<int>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT list_id FROM user_list_movies WHERE movie_id=@m";
-        cmd.Parameters.AddWithValue("@m", movieId);
+        cmd.Parameters.ДобавитьWithValue("@m", movieId);
         using var r = cmd.ExecuteReader();
-        while (r.Read()) set.Add(r.GetInt32(0));
+        while (r.Read()) set.Добавить(r.GetInt32(0));
         return set;
     }
 
@@ -3337,28 +3337,28 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     public List<string> GetUserListNamesForMovie(int movieId)
     {
         var names = new List<string>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT ul.name FROM user_lists ul
               JOIN user_list_movies ulm ON ulm.list_id = ul.id
              WHERE ulm.movie_id = @m
              ORDER BY ul.name";
-        cmd.Parameters.AddWithValue("@m", movieId);
+        cmd.Parameters.ДобавитьWithValue("@m", movieId);
         using var r = cmd.ExecuteReader();
-        while (r.Read()) names.Add(r.GetString(0));
+        while (r.Read()) names.Добавить(r.GetString(0));
         return names;
     }
 
     /// <summary>
-    /// Movies with any non-default personal state — used by the v2.7
+    /// Фильмы with any non-default personal state — used by the v2.7
     /// sidecar sweep so we only touch folders that actually carry data
     /// worth exporting. Optionally restrict to a single drive serial.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<int> GetMoviesWithPersonalState(string? volumeSerial = null)
+    public List<int> GetФильмыWithPersonalState(string? volumeSerial = null)
     {
         var ids = new List<int>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         var where = @"
             archived_at IS NULL AND
             (is_watched=1 OR is_favorite=1 OR is_watchlist=1
@@ -3369,14 +3369,14 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         if (volumeSerial != null)
         {
             cmd.CommandText = $"SELECT id FROM movies WHERE volume_serial=@s AND {where}";
-            cmd.Parameters.AddWithValue("@s", volumeSerial);
+            cmd.Parameters.ДобавитьWithValue("@s", volumeSerial);
         }
         else
         {
             cmd.CommandText = $"SELECT id FROM movies WHERE {where}";
         }
         using var r = cmd.ExecuteReader();
-        while (r.Read()) ids.Add(r.GetInt32(0));
+        while (r.Read()) ids.Добавить(r.GetInt32(0));
         return ids;
     }
 
@@ -3389,12 +3389,12 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     // ── Show ↔ list membership (v2.8.2) ──────────────────────────────────
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void AddShowToUserList(int listId, int showId)
+    public void ДобавитьShowToUserList(int listId, int showId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "INSERT OR IGNORE INTO user_list_shows(list_id, show_id) VALUES(@l,@s)";
-        cmd.Parameters.AddWithValue("@l", listId);
-        cmd.Parameters.AddWithValue("@s", showId);
+        cmd.Parameters.ДобавитьWithValue("@l", listId);
+        cmd.Parameters.ДобавитьWithValue("@s", showId);
         cmd.ExecuteNonQuery();
         RaiseTvShowStateChanged(showId);
     }
@@ -3402,10 +3402,10 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void RemoveShowFromUserList(int listId, int showId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "DELETE FROM user_list_shows WHERE list_id=@l AND show_id=@s";
-        cmd.Parameters.AddWithValue("@l", listId);
-        cmd.Parameters.AddWithValue("@s", showId);
+        cmd.Parameters.ДобавитьWithValue("@l", listId);
+        cmd.Parameters.ДобавитьWithValue("@s", showId);
         cmd.ExecuteNonQuery();
         RaiseTvShowStateChanged(showId);
     }
@@ -3414,11 +3414,11 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     public HashSet<int> GetUserListsForShow(int showId)
     {
         var set = new HashSet<int>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT list_id FROM user_list_shows WHERE show_id=@s";
-        cmd.Parameters.AddWithValue("@s", showId);
+        cmd.Parameters.ДобавитьWithValue("@s", showId);
         using var r = cmd.ExecuteReader();
-        while (r.Read()) set.Add(r.GetInt32(0));
+        while (r.Read()) set.Добавить(r.GetInt32(0));
         return set;
     }
 
@@ -3426,21 +3426,21 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     public List<string> GetUserListNamesForShow(int showId)
     {
         var names = new List<string>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"SELECT ul.name FROM user_lists ul
               JOIN user_list_shows uls ON uls.list_id=ul.id
              WHERE uls.show_id=@s ORDER BY ul.name";
-        cmd.Parameters.AddWithValue("@s", showId);
+        cmd.Parameters.ДобавитьWithValue("@s", showId);
         using var r = cmd.ExecuteReader();
-        while (r.Read()) names.Add(r.GetString(0));
+        while (r.Read()) names.Добавить(r.GetString(0));
         return names;
     }
 
     /// <summary>Shows in a given user list — for the unified list view.</summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<Models.TvShowListItem> GetTvShowsInList(int listId, IReadOnlyDictionary<string, string> connected)
+    public List<Models.TvShowListItem> GetTvShowsInList(int listId, IReadВкл.lyDictionary<string, string> connected)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = $@"
             SELECT {ShowListItemColumns}
               FROM user_list_shows uls
@@ -3448,21 +3448,21 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
               LEFT JOIN drives d ON d.volume_serial = s.volume_serial
              WHERE uls.list_id=@l
              ORDER BY s.sort_title, s.title";
-        cmd.Parameters.AddWithValue("@l", listId);
+        cmd.Parameters.ДобавитьWithValue("@l", listId);
         return ReadShowListItems(cmd, connected);
     }
 
     /// <summary>
-    /// v4.0.0 — the shows behind the Favorites, To Watch and Continue Watching
+    /// v4.0.0 — the shows behind the Избранное, К просмотру and Продолжить просмотр
     /// pages, shown as a row above the movies. Shows could be marked favorite or
     /// watchlist before, but no page listed them.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<Models.TvShowListItem> GetTvShowsForPage(TvShowPage page, IReadOnlyDictionary<string, string> connected)
+    public List<Models.TvShowListItem> GetTvShowsForPage(TvShowPage page, IReadВкл.lyDictionary<string, string> connected)
     {
-        using var cmd = _conn.CreateCommand();
-        // v4.1.0: Continue Watching also gets the next episode, the first unwatched
-        // by season then episode, as ▶ Play next on the show page picks it.
+        using var cmd = _conn.СоздатьCommand();
+        // v4.1.0: Продолжить просмотр also gets the next episode, the first unwatched
+        // by season then episode, as ▶ Воспроизвести next on the show page picks it.
         cmd.CommandText = $@"
             SELECT {ShowListItemColumns}{(page == TvShowPage.ContinueWatching
                 ? @", (SELECT printf('S%02dE%02d', e.season, e.episode) FROM tv_episodes e
@@ -3481,7 +3481,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     [MethodImpl(MethodImplOptions.Synchronized)]
     public int GetTvShowPageCount(TvShowPage page)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = $"SELECT COUNT(*) FROM tv_shows s WHERE s.is_missing = 0 AND {TvShowPageWhere(page)}";
         return Convert.ToInt32(cmd.ExecuteScalar());
     }
@@ -3489,12 +3489,12 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     /// <summary>
     /// v4.1.0 — what a show card's hover panel shows: up to three genres, the
     /// number of seasons (Specials not counted) and the next episode, the first
-    /// unwatched by season then episode, as ▶ Play next on the show page picks it.
+    /// unwatched by season then episode, as ▶ Воспроизвести next on the show page picks it.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public (string Genres, int Seasons, int? NextId, string? NextCode, string? NextFile) GetShowHoverInfo(int showId)
+    public (string Жанры, int Seasons, int? NextId, string? NextCode, string? NextFile) GetShowHoverInfo(int showId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT (SELECT group_concat(name, ' · ') FROM (
                         SELECT g.name FROM tv_show_genres sg JOIN genres g ON g.id=sg.genre_id
@@ -3505,7 +3505,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
               LEFT JOIN (SELECT id, season, episode, video_file_rel_path FROM tv_episodes
                           WHERE show_id=@id AND is_watched=0
                           ORDER BY season, episode LIMIT 1) n";
-        cmd.Parameters.AddWithValue("@id", showId);
+        cmd.Parameters.ДобавитьWithValue("@id", showId);
         using var r = cmd.ExecuteReader();
         r.Read();
         var hasNext = !r.IsDBNull(2);
@@ -3515,14 +3515,14 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 hasNext && !r.IsDBNull(4) ? r.GetString(4) : null);
     }
 
-    public enum TvShowPage { Favorites, Watchlist, ContinueWatching, Notes }
+    public enum TvShowPage { Избранное, Список просмотра, ContinueWatching, Заметки }
 
-    // In progress = some episodes watched and some not, as on All TV Shows.
+    // In progress = some episodes watched and some not, as on Все сериалы.
     private static string TvShowPageWhere(TvShowPage page) => page switch
     {
-        TvShowPage.Favorites => "s.is_favorite = 1",
-        TvShowPage.Watchlist => "s.is_watchlist = 1",
-        TvShowPage.Notes => "s.note IS NOT NULL AND TRIM(s.note) != ''",   // v4.3.0
+        TvShowPage.Избранное => "s.is_favorite = 1",
+        TvShowPage.Список просмотра => "s.is_watchlist = 1",
+        TvShowPage.Заметки => "s.note IS NOT NULL AND TRIM(s.note) != ''",   // v4.3.0
         _ => @"EXISTS (SELECT 1 FROM tv_episodes e WHERE e.show_id=s.id AND e.is_watched=1)
                AND EXISTS (SELECT 1 FROM tv_episodes e WHERE e.show_id=s.id AND e.is_watched=0)",
     };
@@ -3532,28 +3532,28 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                    (SELECT COUNT(*) FROM tv_episodes e WHERE e.show_id=s.id),
                    (SELECT COUNT(*) FROM tv_episodes e WHERE e.show_id=s.id AND e.is_watched=1)";
 
-    private static List<Models.TvShowListItem> ReadShowListItems(SqliteCommand cmd, IReadOnlyDictionary<string, string> connected)
+    private static List<Models.TvShowListItem> ReadShowListItems(SqliteCommand cmd, IReadВкл.lyDictionary<string, string> connected)
     {
         var list = new List<Models.TvShowListItem>();
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
             var serial = r.GetString(6);
-            list.Add(new Models.TvShowListItem
+            list.Добавить(new Models.TvShowListItem
             {
-                Id = r.GetInt32(0), Title = r.GetString(1),
-                Year = r.IsDBNull(2) ? null : r.GetInt32(2),
-                Rating = r.IsDBNull(3) ? null : r.GetDouble(3),
+                Id = r.GetInt32(0), Название = r.GetString(1),
+                Год = r.IsDBNull(2) ? null : r.GetInt32(2),
+                Рейтинг = r.IsDBNull(3) ? null : r.GetDouble(3),
                 LocalPoster = r.IsDBNull(4) ? null : r.GetString(4),
                 IsMissing = r.GetInt32(5) == 1,
                 VolumeSerial = serial,
                 DriveLabel = r.IsDBNull(7) ? null : r.GetString(7),
-                IsFavorite = r.GetInt32(8) == 1,
-                IsWatchlist = r.GetInt32(9) == 1,
-                EpisodeCount = r.GetInt32(10),
-                WatchedCount = r.GetInt32(11),
-                IsOnline = connected.ContainsKey(serial),
-                NextEpisode = r.FieldCount > 12 && !r.IsDBNull(12) ? r.GetString(12) : null,
+                IsИзбранное = r.GetInt32(8) == 1,
+                IsСписок просмотра = r.GetInt32(9) == 1,
+                ЭпизодCount = r.GetInt32(10),
+                ПросмотреноCount = r.GetInt32(11),
+                IsВкл.line = connected.ContainsKey(serial),
+                NextЭпизод = r.FieldCount > 12 && !r.IsDBNull(12) ? r.GetString(12) : null,
             });
         }
         return list;
@@ -3561,9 +3561,9 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
 
     /// <summary>Full episode detail incl. stream/file info — for the episode dialog.</summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public Models.TvEpisodeDetail? GetEpisodeDetail(int episodeId)
+    public Models.TvЭпизодDetail? GetЭпизодDetail(int episodeId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT e.id, e.show_id, e.season, e.episode, e.title, e.plot, e.aired,
                    e.rating, e.runtime, e.video_file_rel_path, e.local_thumb,
@@ -3573,18 +3573,18 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                    s.title, s.volume_serial, e.is_favorite, e.note
               FROM tv_episodes e JOIN tv_shows s ON s.id=e.show_id
              WHERE e.id=@id";
-        cmd.Parameters.AddWithValue("@id", episodeId);
+        cmd.Parameters.ДобавитьWithValue("@id", episodeId);
         using var r = cmd.ExecuteReader();
         if (!r.Read()) return null;
-        return new Models.TvEpisodeDetail
+        return new Models.TvЭпизодDetail
         {
             Id = r.GetInt32(0), ShowId = r.GetInt32(1),
-            Season = r.GetInt32(2), Episode = r.GetInt32(3),
-            Title = r.IsDBNull(4) ? "" : r.GetString(4),
+            Season = r.GetInt32(2), Эпизод = r.GetInt32(3),
+            Название = r.IsDBNull(4) ? "" : r.GetString(4),
             Plot = r.IsDBNull(5) ? null : r.GetString(5),
             Aired = r.IsDBNull(6) ? null : r.GetString(6),
-            Rating = r.IsDBNull(7) ? null : r.GetDouble(7),
-            Runtime = r.IsDBNull(8) ? null : r.GetInt32(8),
+            Рейтинг = r.IsDBNull(7) ? null : r.GetDouble(7),
+            Продолжительность = r.IsDBNull(8) ? null : r.GetInt32(8),
             VideoFileRelPath = r.IsDBNull(9) ? null : r.GetString(9),
             LocalThumb = r.IsDBNull(10) ? null : r.GetString(10),
             SubtitleLanguages = r.IsDBNull(11) ? null : r.GetString(11),
@@ -3592,25 +3592,25 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             VideoHeight = r.IsDBNull(13) ? null : r.GetInt32(13),
             VideoCodec = r.IsDBNull(14) ? null : r.GetString(14),
             HdrType = r.IsDBNull(15) ? null : r.GetString(15),
-            AudioCodec = r.IsDBNull(16) ? null : r.GetString(16),
-            AudioChannels = r.IsDBNull(17) ? null : r.GetString(17),
-            AudioLanguages = r.IsDBNull(18) ? null : r.GetString(18),
+            АудиоCodec = r.IsDBNull(16) ? null : r.GetString(16),
+            АудиоChannels = r.IsDBNull(17) ? null : r.GetString(17),
+            АудиоLanguages = r.IsDBNull(18) ? null : r.GetString(18),
             DurationSeconds = r.IsDBNull(19) ? null : r.GetInt32(19),
             ContainerExt = r.IsDBNull(20) ? null : r.GetString(20),
             FileSizeBytes = r.IsDBNull(21) ? null : r.GetInt64(21),
-            IsWatched = r.GetInt32(22) == 1,
-            ShowTitle = r.IsDBNull(23) ? "" : r.GetString(23),
+            IsПросмотрено = r.GetInt32(22) == 1,
+            ShowНазвание = r.IsDBNull(23) ? "" : r.GetString(23),
             VolumeSerial = r.GetString(24),
-            IsFavorite = !r.IsDBNull(25) && r.GetInt32(25) == 1,
+            IsИзбранное = !r.IsDBNull(25) && r.GetInt32(25) == 1,
             Note = r.IsDBNull(26) ? null : r.GetString(26),
         };
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<Models.TvShowListItem> GetTvShows(IReadOnlyDictionary<string, string> connected)
+    public List<Models.TvShowListItem> GetTvShows(IReadВкл.lyDictionary<string, string> connected)
     {
         var list = new List<Models.TvShowListItem>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT s.id, s.title, s.year, s.rating, s.local_poster, s.is_missing,
                    s.volume_serial, d.label, s.is_favorite, s.is_watchlist,
@@ -3626,24 +3626,24 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         while (r.Read())
         {
             var serial = r.GetString(6);
-            list.Add(new Models.TvShowListItem
+            list.Добавить(new Models.TvShowListItem
             {
                 Id = r.GetInt32(0),
-                Title = r.GetString(1),
-                Year = r.IsDBNull(2) ? null : r.GetInt32(2),
-                Rating = r.IsDBNull(3) ? null : r.GetDouble(3),
+                Название = r.GetString(1),
+                Год = r.IsDBNull(2) ? null : r.GetInt32(2),
+                Рейтинг = r.IsDBNull(3) ? null : r.GetDouble(3),
                 LocalPoster = r.IsDBNull(4) ? null : r.GetString(4),
                 IsMissing = r.GetInt32(5) == 1,
                 VolumeSerial = serial,
                 DriveLabel = r.IsDBNull(7) ? null : r.GetString(7),
-                IsFavorite = r.GetInt32(8) == 1,
-                IsWatchlist = r.GetInt32(9) == 1,
-                EpisodeCount = r.GetInt32(10),
-                WatchedCount = r.GetInt32(11),
-                GenresCsv = r.IsDBNull(12) ? null : r.GetString(12),
-                DateAdded = r.GetInt64(13),
-                LastPlayed = r.GetInt64(14),
-                IsOnline = connected.ContainsKey(serial),
+                IsИзбранное = r.GetInt32(8) == 1,
+                IsСписок просмотра = r.GetInt32(9) == 1,
+                ЭпизодCount = r.GetInt32(10),
+                ПросмотреноCount = r.GetInt32(11),
+                ЖанрыCsv = r.IsDBNull(12) ? null : r.GetString(12),
+                DateДобавитьed = r.GetInt64(13),
+                LastВоспроизвестиed = r.GetInt64(14),
+                IsВкл.line = connected.ContainsKey(serial),
             });
         }
         return list;
@@ -3652,7 +3652,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     [MethodImpl(MethodImplOptions.Synchronized)]
     public int GetTvShowCount()
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT COUNT(*) FROM tv_shows WHERE is_missing=0";
         return Convert.ToInt32(cmd.ExecuteScalar());
     }
@@ -3661,73 +3661,73 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     public List<Models.TvSeason> GetSeasons(int showId)
     {
         var list = new List<Models.TvSeason>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT season, COUNT(*) AS ep, SUM(CASE WHEN is_watched=1 THEN 1 ELSE 0 END) AS watched
               FROM tv_episodes WHERE show_id=@id GROUP BY season ORDER BY season";
-        cmd.Parameters.AddWithValue("@id", showId);
+        cmd.Parameters.ДобавитьWithValue("@id", showId);
         string? poster = null;
-        using (var pc = _conn.CreateCommand())
+        using (var pc = _conn.СоздатьCommand())
         {
             pc.CommandText = "SELECT local_poster FROM tv_shows WHERE id=@id";
-            pc.Parameters.AddWithValue("@id", showId);
+            pc.Parameters.ДобавитьWithValue("@id", showId);
             var o = pc.ExecuteScalar();
             poster = o == null || o == DBNull.Value ? null : (string)o;
         }
         using var r = cmd.ExecuteReader();
         while (r.Read())
-            list.Add(new Models.TvSeason
+            list.Добавить(new Models.TvSeason
             {
                 ShowId = showId,
                 Season = r.GetInt32(0),
-                EpisodeCount = r.GetInt32(1),
-                WatchedCount = r.IsDBNull(2) ? 0 : r.GetInt32(2),
+                ЭпизодCount = r.GetInt32(1),
+                ПросмотреноCount = r.IsDBNull(2) ? 0 : r.GetInt32(2),
                 PosterPath = poster,
             });
         return list;
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<Models.TvEpisodeItem> GetEpisodes(int showId, int season, IReadOnlyDictionary<string, string> connected)
+    public List<Models.TvЭпизодItem> GetЭпизоды(int showId, int season, IReadВкл.lyDictionary<string, string> connected)
     {
-        var list = new List<Models.TvEpisodeItem>();
+        var list = new List<Models.TvЭпизодItem>();
         string serial = "";
-        using (var sc = _conn.CreateCommand())
+        using (var sc = _conn.СоздатьCommand())
         {
             sc.CommandText = "SELECT volume_serial FROM tv_shows WHERE id=@id";
-            sc.Parameters.AddWithValue("@id", showId);
+            sc.Parameters.ДобавитьWithValue("@id", showId);
             var o = sc.ExecuteScalar();
             serial = o == null || o == DBNull.Value ? "" : (string)o;
         }
         bool online = connected.ContainsKey(serial);
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT id, season, episode, title, plot, aired, runtime, rating,
                    local_thumb, video_file_rel_path, is_watched, is_favorite, note
               FROM tv_episodes WHERE show_id=@id AND season=@se ORDER BY episode";
-        cmd.Parameters.AddWithValue("@id", showId);
-        cmd.Parameters.AddWithValue("@se", season);
+        cmd.Parameters.ДобавитьWithValue("@id", showId);
+        cmd.Parameters.ДобавитьWithValue("@se", season);
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
-            list.Add(new Models.TvEpisodeItem
+            list.Добавить(new Models.TvЭпизодItem
             {
                 Id = r.GetInt32(0),
                 ShowId = showId,
                 Season = r.GetInt32(1),
-                Episode = r.GetInt32(2),
-                Title = r.IsDBNull(3) ? "" : r.GetString(3),
+                Эпизод = r.GetInt32(2),
+                Название = r.IsDBNull(3) ? "" : r.GetString(3),
                 Plot = r.IsDBNull(4) ? null : r.GetString(4),
                 Aired = r.IsDBNull(5) ? null : r.GetString(5),
-                Runtime = r.IsDBNull(6) ? null : r.GetInt32(6),
-                Rating = r.IsDBNull(7) ? null : r.GetDouble(7),
+                Продолжительность = r.IsDBNull(6) ? null : r.GetInt32(6),
+                Рейтинг = r.IsDBNull(7) ? null : r.GetDouble(7),
                 LocalThumb = r.IsDBNull(8) ? null : r.GetString(8),
                 VideoFileRelPath = r.IsDBNull(9) ? null : r.GetString(9),
-                IsWatched = r.GetInt32(10) == 1,
-                IsFavorite = !r.IsDBNull(11) && r.GetInt32(11) == 1,
+                IsПросмотрено = r.GetInt32(10) == 1,
+                IsИзбранное = !r.IsDBNull(11) && r.GetInt32(11) == 1,
                 Note = r.IsDBNull(12) ? null : r.GetString(12),
                 VolumeSerial = serial,
-                IsOnline = online,
+                IsВкл.line = online,
             });
         }
         return list;
@@ -3736,25 +3736,25 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     [MethodImpl(MethodImplOptions.Synchronized)]
     public Models.TvShowDetail? GetTvShowDetail(int showId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT s.id, s.title, s.year, s.rating, s.plot, s.mpaa, s.studio, s.status, s.premiered,
                    s.imdb_id, s.tmdb_id, s.local_poster, s.local_fanart, s.volume_serial,
                    s.folder_rel_path, s.is_favorite, s.is_watchlist, s.note, d.label
               FROM tv_shows s LEFT JOIN drives d ON d.volume_serial=s.volume_serial
              WHERE s.id=@id";
-        cmd.Parameters.AddWithValue("@id", showId);
+        cmd.Parameters.ДобавитьWithValue("@id", showId);
         using var r = cmd.ExecuteReader();
         if (!r.Read()) return null;
         var d = new Models.TvShowDetail
         {
             Id = r.GetInt32(0),
-            Title = r.GetString(1),
-            Year = r.IsDBNull(2) ? null : r.GetInt32(2),
-            Rating = r.IsDBNull(3) ? null : r.GetDouble(3),
+            Название = r.GetString(1),
+            Год = r.IsDBNull(2) ? null : r.GetInt32(2),
+            Рейтинг = r.IsDBNull(3) ? null : r.GetDouble(3),
             Plot = r.IsDBNull(4) ? null : r.GetString(4),
             Mpaa = r.IsDBNull(5) ? null : r.GetString(5),
-            Studio = r.IsDBNull(6) ? null : r.GetString(6),
+            Студия = r.IsDBNull(6) ? null : r.GetString(6),
             Status = r.IsDBNull(7) ? null : r.GetString(7),
             Premiered = r.IsDBNull(8) ? null : r.GetString(8),
             ImdbId = r.IsDBNull(9) ? null : r.GetString(9),
@@ -3762,59 +3762,59 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             LocalPoster = r.IsDBNull(11) ? null : r.GetString(11),
             LocalFanart = r.IsDBNull(12) ? null : r.GetString(12),
             VolumeSerial = r.GetString(13),
-            FolderRelPath = r.IsDBNull(14) ? null : r.GetString(14),
-            IsFavorite = r.GetInt32(15) == 1,
-            IsWatchlist = r.GetInt32(16) == 1,
+            ПапкаRelPath = r.IsDBNull(14) ? null : r.GetString(14),
+            IsИзбранное = r.GetInt32(15) == 1,
+            IsСписок просмотра = r.GetInt32(16) == 1,
             Note = r.IsDBNull(17) ? null : r.GetString(17),
             DriveLabel = r.IsDBNull(18) ? null : r.GetString(18),
         };
-        r.Close();
+        r.Закрыть();
         // genres
-        using (var g = _conn.CreateCommand())
+        using (var g = _conn.СоздатьCommand())
         {
             g.CommandText = "SELECT genre.name FROM tv_show_genres sg JOIN genres genre ON genre.id=sg.genre_id WHERE sg.show_id=@id ORDER BY genre.name";
-            g.Parameters.AddWithValue("@id", showId);
+            g.Parameters.ДобавитьWithValue("@id", showId);
             using var gr = g.ExecuteReader();
-            while (gr.Read()) d.Genres.Add(gr.GetString(0));
+            while (gr.Read()) d.Жанры.Добавить(gr.GetString(0));
         }
         // actors
-        using (var a = _conn.CreateCommand())
+        using (var a = _conn.СоздатьCommand())
         {
             a.CommandText = @"SELECT ac.name, sa.role, ac.thumb FROM tv_show_actors sa
                 JOIN actors ac ON ac.id=sa.actor_id WHERE sa.show_id=@id ORDER BY sa.sort_order LIMIT 30";
-            a.Parameters.AddWithValue("@id", showId);
+            a.Parameters.ДобавитьWithValue("@id", showId);
             using var ar = a.ExecuteReader();
             while (ar.Read())
-                d.Actors.Add(new Models.Actor
+                d.Actors.Добавить(new Models.Actor
                 {
                     Name = ar.GetString(0),
                     Role = ar.IsDBNull(1) ? null : ar.GetString(1),
                     Thumb = ar.IsDBNull(2) ? null : ar.GetString(2),
                 });
         }
-        using (var c = _conn.CreateCommand())
+        using (var c = _conn.СоздатьCommand())
         {
             c.CommandText = "SELECT COUNT(*), SUM(CASE WHEN is_watched=1 THEN 1 ELSE 0 END) FROM tv_episodes WHERE show_id=@id";
-            c.Parameters.AddWithValue("@id", showId);
+            c.Parameters.ДобавитьWithValue("@id", showId);
             using var cr = c.ExecuteReader();
-            if (cr.Read()) { d.EpisodeCount = cr.GetInt32(0); d.WatchedCount = cr.IsDBNull(1) ? 0 : cr.GetInt32(1); }
+            if (cr.Read()) { d.ЭпизодCount = cr.GetInt32(0); d.ПросмотреноCount = cr.IsDBNull(1) ? 0 : cr.GetInt32(1); }
         }
         d.Tags = GetTagNamesForShow(showId);
         return d;
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void SetEpisodeWatched(int episodeId, bool watched)
+    public void SetЭпизодПросмотрено(int episodeId, bool watched)
     {
         int showId = 0;
-        using (var cmd = _conn.CreateCommand())
+        using (var cmd = _conn.СоздатьCommand())
         {
             cmd.CommandText = @"UPDATE tv_episodes SET is_watched=@w,
                 last_played_at = CASE WHEN @w=1 AND (last_played_at IS NULL OR last_played_at=0)
                                        THEN strftime('%s','now') ELSE last_played_at END
                 WHERE id=@id RETURNING show_id";
-            cmd.Parameters.AddWithValue("@w", watched ? 1 : 0);
-            cmd.Parameters.AddWithValue("@id", episodeId);
+            cmd.Parameters.ДобавитьWithValue("@w", watched ? 1 : 0);
+            cmd.Parameters.ДобавитьWithValue("@id", episodeId);
             var o = cmd.ExecuteScalar();
             if (o != null && o != DBNull.Value) showId = Convert.ToInt32(o);
         }
@@ -3823,13 +3823,13 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void MarkEpisodePlayed(int episodeId)
+    public void MarkЭпизодВоспроизвестиed(int episodeId)
     {
         int showId = 0;
-        using (var cmd = _conn.CreateCommand())
+        using (var cmd = _conn.СоздатьCommand())
         {
             cmd.CommandText = "UPDATE tv_episodes SET last_played_at=strftime('%s','now') WHERE id=@id RETURNING show_id";
-            cmd.Parameters.AddWithValue("@id", episodeId);
+            cmd.Parameters.ДобавитьWithValue("@id", episodeId);
             var o = cmd.ExecuteScalar();
             if (o != null && o != DBNull.Value) showId = Convert.ToInt32(o);
         }
@@ -3838,37 +3838,37 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void SetTvShowFavorite(int showId, bool fav)
+    public void SetTvShowИзбранное(int showId, bool fav)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "UPDATE tv_shows SET is_favorite=@v WHERE id=@id";
-        cmd.Parameters.AddWithValue("@v", fav ? 1 : 0);
-        cmd.Parameters.AddWithValue("@id", showId);
+        cmd.Parameters.ДобавитьWithValue("@v", fav ? 1 : 0);
+        cmd.Parameters.ДобавитьWithValue("@id", showId);
         cmd.ExecuteNonQuery();
         RaiseTvShowStateChanged(showId);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void SetTvShowWatchlist(int showId, bool wl)
+    public void SetTvShowСписок просмотра(int showId, bool wl)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "UPDATE tv_shows SET is_watchlist=@v WHERE id=@id";
-        cmd.Parameters.AddWithValue("@v", wl ? 1 : 0);
-        cmd.Parameters.AddWithValue("@id", showId);
+        cmd.Parameters.ДобавитьWithValue("@v", wl ? 1 : 0);
+        cmd.Parameters.ДобавитьWithValue("@id", showId);
         cmd.ExecuteNonQuery();
         RaiseTvShowStateChanged(showId);
     }
 
     /// <summary>v4.3.0 (#17): the show's own note. The column, the show folder's
-    /// state file and Backup have carried it since 2.8; nothing wrote it until now.
+    /// state file and Резервная копия have carried it since 2.8; nothing wrote it until now.
     /// Blank clears it.</summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void SetTvShowNote(int showId, string? note)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "UPDATE tv_shows SET note=@n WHERE id=@id";
-        cmd.Parameters.AddWithValue("@n", string.IsNullOrWhiteSpace(note) ? (object)DBNull.Value : note.Trim());
-        cmd.Parameters.AddWithValue("@id", showId);
+        cmd.Parameters.ДобавитьWithValue("@n", string.IsNullOrWhiteSpace(note) ? (object)DBNull.Value : note.Trim());
+        cmd.Parameters.ДобавитьWithValue("@id", showId);
         cmd.ExecuteNonQuery();
         RaiseTvShowStateChanged(showId);
     }
@@ -3877,46 +3877,46 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     public List<int> GetTvShowsWithPersonalState(string? volumeSerial = null)
     {
         var ids = new List<int>();
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         var where = @"(is_favorite=1 OR is_watchlist=1 OR (note IS NOT NULL AND TRIM(note)!='')
                        OR EXISTS (SELECT 1 FROM tv_episodes e WHERE e.show_id=tv_shows.id
                                    AND (e.is_watched=1 OR e.last_played_at>0)))";
         if (volumeSerial != null)
         {
             cmd.CommandText = $"SELECT id FROM tv_shows WHERE volume_serial=@s AND {where}";
-            cmd.Parameters.AddWithValue("@s", volumeSerial);
+            cmd.Parameters.ДобавитьWithValue("@s", volumeSerial);
         }
         else cmd.CommandText = $"SELECT id FROM tv_shows WHERE {where}";
         using var r = cmd.ExecuteReader();
-        while (r.Read()) ids.Add(r.GetInt32(0));
+        while (r.Read()) ids.Добавить(r.GetInt32(0));
         return ids;
     }
 
     /// <summary>
-    /// Save user note to the row. Empty/null clears it.
+    /// Сохранить user note to the row. Empty/null clears it.
     /// Sidecar file write is handled by the caller (needs the drive letter).
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void SetNote(int movieId, string? note)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "UPDATE movies SET note=@n WHERE id=@id";
-        cmd.Parameters.AddWithValue("@n", string.IsNullOrWhiteSpace(note) ? (object)DBNull.Value : note);
-        cmd.Parameters.AddWithValue("@id", movieId);
+        cmd.Parameters.ДобавитьWithValue("@n", string.IsNullOrWhiteSpace(note) ? (object)DBNull.Value : note);
+        cmd.Parameters.ДобавитьWithValue("@id", movieId);
         cmd.ExecuteNonQuery();
         RaisePersonalStateChanged(movieId);
     }
 
     /// <summary>
-    /// Stamps last_played_at = now for "Continue Watching" tracking.
-    /// Called when the user hits Play in the detail dialog.
+    /// Stamps last_played_at = now for "Продолжить просмотр" tracking.
+    /// Called when the user hits Воспроизвести in the detail dialog.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void MarkPlayed(int movieId)
+    public void MarkВоспроизвестиed(int movieId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "UPDATE movies SET last_played_at = strftime('%s','now') WHERE id=@id";
-        cmd.Parameters.AddWithValue("@id", movieId);
+        cmd.Parameters.ДобавитьWithValue("@id", movieId);
         cmd.ExecuteNonQuery();
         LogWatchEvent("movie", movieId, "played");
         RaisePersonalStateChanged(movieId);
@@ -3933,12 +3933,12 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     {
         try
         {
-            using var cmd = _conn.CreateCommand();
+            using var cmd = _conn.СоздатьCommand();
             cmd.CommandText = @"INSERT INTO watch_events(item_kind, item_id, watched_at, action)
                                 VALUES(@k, @id, strftime('%s','now'), @a)";
-            cmd.Parameters.AddWithValue("@k", kind);
-            cmd.Parameters.AddWithValue("@id", itemId);
-            cmd.Parameters.AddWithValue("@a", action);
+            cmd.Parameters.ДобавитьWithValue("@k", kind);
+            cmd.Parameters.ДобавитьWithValue("@id", itemId);
+            cmd.Parameters.ДобавитьWithValue("@a", action);
             cmd.ExecuteNonQuery();
         }
         catch (Exception ex)
@@ -3948,16 +3948,16 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     }
 
     /// <summary>
-    /// Top-N most recently played movies for the "🕓 Recently Watched" row.
-    /// Uses movies.last_played_at, which we bump from both Play and
+    /// Top-N most recently played movies for the "🕓 Недавно просмотренные" row.
+    /// Uses movies.last_played_at, which we bump from both Воспроизвести and
     /// mark-watched. Items with last_played_at=0 (never touched) are
     /// excluded.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<MovieListItem> GetRecentlyWatchedMovies(
+    public List<MovieListItem> GetRecentlyПросмотреноФильмы(
         Dictionary<string, string> connected, int limit = 12)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT m.id, m.title, m.year, m.rating, m.runtime, m.local_poster,
                    m.is_missing, m.is_favorite, m.is_watched, m.volume_serial, d.label,
@@ -3969,57 +3969,57 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
              WHERE m.is_missing = 0 AND m.archived_at IS NULL AND m.last_played_at > 0
              ORDER BY m.last_played_at DESC
              LIMIT @lim";
-        cmd.Parameters.AddWithValue("@lim", limit);
+        cmd.Parameters.ДобавитьWithValue("@lim", limit);
         var list = new List<MovieListItem>();
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
             var serial = r.GetString(9);
-            list.Add(new MovieListItem
+            list.Добавить(new MovieListItem
             {
                 Id = r.GetInt32(0),
-                Title = r.GetString(1),
-                Year = r.IsDBNull(2) ? null : r.GetInt32(2),
-                Rating = r.IsDBNull(3) ? null : r.GetDouble(3),
-                Runtime = r.IsDBNull(4) ? null : r.GetInt32(4),
+                Название = r.GetString(1),
+                Год = r.IsDBNull(2) ? null : r.GetInt32(2),
+                Рейтинг = r.IsDBNull(3) ? null : r.GetDouble(3),
+                Продолжительность = r.IsDBNull(4) ? null : r.GetInt32(4),
                 LocalPoster = r.IsDBNull(5) ? null : r.GetString(5),
                 IsMissing = r.GetInt32(6) == 1,
-                IsFavorite = r.GetInt32(7) == 1,
-                IsWatched = r.GetInt32(8) == 1,
+                IsИзбранное = r.GetInt32(7) == 1,
+                IsПросмотрено = r.GetInt32(8) == 1,
                 VolumeSerial = serial,
                 DriveLabel = r.IsDBNull(10) ? null : r.GetString(10),
-                GenresCsv = r.IsDBNull(11) ? null : r.GetString(11),
-                IsWatchlist = !r.IsDBNull(12) && r.GetInt32(12) == 1,
-                IsOnline = connected.ContainsKey(serial),
+                ЖанрыCsv = r.IsDBNull(11) ? null : r.GetString(11),
+                IsСписок просмотра = !r.IsDBNull(12) && r.GetInt32(12) == 1,
+                IsВкл.line = connected.ContainsKey(serial),
             });
         }
         return list;
     }
 
-    public enum OnThisDayReason { Watched, Released }
-    public record OnThisDayMatch(MovieListItem Movie, OnThisDayReason Reason, int YearsAgo);
+    public enum Вкл.ThisDayReason { Просмотрено, Дата выхода }
+    public record Вкл.ThisDayMatch(MovieListItem Movie, Вкл.ThisDayReason Reason, int ГодsAgo);
 
     /// <summary>
-    /// Movies tied to today's calendar day — either you watched them on
-    /// this date in a past year (Reason=Watched), or they were released
-    /// on this date (Reason=Released). The Released branch turns the
+    /// Фильмы tied to today's calendar day — either you watched them on
+    /// this date in a past year (Reason=Просмотрено), or they were released
+    /// on this date (Reason=Дата выхода). The Дата выхода branch turns the
     /// banner into a small cinema-history calendar, so new users without
     /// much watch history still get something most days. A movie appearing
-    /// in both sources is returned once with Reason=Watched (more personal
+    /// in both sources is returned once with Reason=Просмотрено (more personal
     /// wins).
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<OnThisDayMatch> GetOnThisDayItems(
+    public List<Вкл.ThisDayMatch> GetВкл.ThisDayItems(
         Dictionary<string, string> connected, int limit = 12)
     {
-        var matches = new List<OnThisDayMatch>();
+        var matches = new List<Вкл.ThisDayMatch>();
         var seen = new HashSet<int>();
-        int nowYear = DateTime.Now.Year;
+        int nowГод = DateTime.Now.Год;
 
         // ── Source 1: you watched it on this date in a past year ─────────
         // Read events directly so we catch every historical touch, not
         // just the most recent last_played_at on each movie.
-        using (var cmd = _conn.CreateCommand())
+        using (var cmd = _conn.СоздатьCommand())
         {
             cmd.CommandText = @"
                 SELECT m.id, m.title, m.year, m.rating, m.runtime, m.local_poster,
@@ -4028,7 +4028,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                          JOIN genres g ON g.id=mg.genre_id WHERE mg.movie_id=m.id) AS genres_csv,
                        m.is_watchlist,
                        MAX(e.watched_at) AS most_recent_match,
-                       CAST(strftime('%Y', e.watched_at, 'unixepoch', 'localtime') AS INTEGER) AS match_year
+                       АКТЁРЫ(strftime('%Y', e.watched_at, 'unixepoch', 'localtime') AS INTEGER) AS match_year
                   FROM watch_events e
                   JOIN movies m ON m.id = e.item_id
                   LEFT JOIN drives d ON d.volume_serial = m.volume_serial
@@ -4042,14 +4042,14 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                  GROUP BY m.id
                  ORDER BY most_recent_match DESC
                  LIMIT @lim";
-            cmd.Parameters.AddWithValue("@lim", limit);
+            cmd.Parameters.ДобавитьWithValue("@lim", limit);
             using var r = cmd.ExecuteReader();
             while (r.Read())
             {
                 var movie = ReadMovieRow(r, connected);
-                var matchYear = r.IsDBNull(14) ? nowYear - 1 : r.GetInt32(14);
-                matches.Add(new OnThisDayMatch(movie, OnThisDayReason.Watched, nowYear - matchYear));
-                seen.Add(movie.Id);
+                var matchГод = r.IsDBNull(14) ? nowГод - 1 : r.GetInt32(14);
+                matches.Добавить(new Вкл.ThisDayMatch(movie, Вкл.ThisDayReason.Просмотрено, nowГод - matchГод));
+                seen.Добавить(movie.Id);
             }
         }
 
@@ -4059,7 +4059,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         int releasedBudget = limit - matches.Count;
         if (releasedBudget > 0)
         {
-            using var cmd = _conn.CreateCommand();
+            using var cmd = _conn.СоздатьCommand();
             cmd.CommandText = @"
                 SELECT m.id, m.title, m.year, m.rating, m.runtime, m.local_poster,
                        m.is_missing, m.is_favorite, m.is_watched, m.volume_serial, d.label,
@@ -4067,7 +4067,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                          JOIN genres g ON g.id=mg.genre_id WHERE mg.movie_id=m.id) AS genres_csv,
                        m.is_watchlist,
                        NULL AS most_recent_match,
-                       CAST(substr(m.premiered, 1, 4) AS INTEGER) AS prem_year
+                       АКТЁРЫ(substr(m.premiered, 1, 4) AS INTEGER) AS prem_year
                   FROM movies m
                   LEFT JOIN drives d ON d.volume_serial = m.volume_serial
                  WHERE m.is_missing = 0
@@ -4075,19 +4075,19 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                    AND m.premiered IS NOT NULL
                    AND length(m.premiered) >= 10
                    AND substr(m.premiered, 6, 5) = strftime('%m-%d', 'now', 'localtime')
-                   AND CAST(substr(m.premiered, 1, 4) AS INTEGER)
-                       < CAST(strftime('%Y', 'now', 'localtime') AS INTEGER)
+                   AND АКТЁРЫ(substr(m.premiered, 1, 4) AS INTEGER)
+                       < АКТЁРЫ(strftime('%Y', 'now', 'localtime') AS INTEGER)
                  ORDER BY prem_year DESC
                  LIMIT @lim";
-            cmd.Parameters.AddWithValue("@lim", releasedBudget + seen.Count);
+            cmd.Parameters.ДобавитьWithValue("@lim", releasedBudget + seen.Count);
             using var r = cmd.ExecuteReader();
             while (r.Read())
             {
                 var movie = ReadMovieRow(r, connected);
-                if (seen.Contains(movie.Id)) continue;  // already in Watched
-                var premYear = r.IsDBNull(14) ? nowYear - 1 : r.GetInt32(14);
-                matches.Add(new OnThisDayMatch(movie, OnThisDayReason.Released, nowYear - premYear));
-                seen.Add(movie.Id);
+                if (seen.Contains(movie.Id)) continue;  // already in Просмотрено
+                var premГод = r.IsDBNull(14) ? nowГод - 1 : r.GetInt32(14);
+                matches.Добавить(new Вкл.ThisDayMatch(movie, Вкл.ThisDayReason.Дата выхода, nowГод - premГод));
+                seen.Добавить(movie.Id);
                 if (matches.Count >= limit) break;
             }
         }
@@ -4096,13 +4096,13 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
 
     /// <summary>
     /// Cheap "is there anything today?" probe used by the sidebar to decide
-    /// whether to show the On This Day entry. Combines the two sources of
-    /// GetOnThisDayItems but bails as soon as a match is found.
+    /// whether to show the В этот день entry. Combines the two sources of
+    /// GetВкл.ThisDayItems but bails as soon as a match is found.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public bool HasOnThisDayMatches()
+    public bool HasВкл.ThisDayMatches()
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT 1 FROM watch_events
              WHERE item_kind='movie'
@@ -4112,7 +4112,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         var v = cmd.ExecuteScalar();
         if (v != null && v != DBNull.Value) return true;
 
-        using var cmd2 = _conn.CreateCommand();
+        using var cmd2 = _conn.СоздатьCommand();
         cmd2.CommandText = @"
             SELECT 1 FROM movies
              WHERE is_missing=0
@@ -4120,8 +4120,8 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                AND premiered IS NOT NULL
                AND length(premiered) >= 10
                AND substr(premiered, 6, 5) = strftime('%m-%d', 'now', 'localtime')
-               AND CAST(substr(premiered, 1, 4) AS INTEGER)
-                   < CAST(strftime('%Y', 'now', 'localtime') AS INTEGER)
+               AND АКТЁРЫ(substr(premiered, 1, 4) AS INTEGER)
+                   < АКТЁРЫ(strftime('%Y', 'now', 'localtime') AS INTEGER)
              LIMIT 1";
         var v2 = cmd2.ExecuteScalar();
         return v2 != null && v2 != DBNull.Value;
@@ -4129,42 +4129,42 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
 
     /// <summary>
     /// Shared MovieListItem mapping. Expects columns 0..12 in the same
-    /// shape as GetMovies. Used by GetOnThisDayItems' two branches so the
+    /// shape as GetФильмы. Used by GetВкл.ThisDayItems' two branches so the
     /// SELECT lists stay identical and easy to keep in sync.
     /// </summary>
     private static MovieListItem ReadMovieRow(
         Microsoft.Data.Sqlite.SqliteDataReader r,
-        IReadOnlyDictionary<string, string> connected)
+        IReadВкл.lyDictionary<string, string> connected)
     {
         var serial = r.GetString(9);
         return new MovieListItem
         {
             Id = r.GetInt32(0),
-            Title = r.GetString(1),
-            Year = r.IsDBNull(2) ? null : r.GetInt32(2),
-            Rating = r.IsDBNull(3) ? null : r.GetDouble(3),
-            Runtime = r.IsDBNull(4) ? null : r.GetInt32(4),
+            Название = r.GetString(1),
+            Год = r.IsDBNull(2) ? null : r.GetInt32(2),
+            Рейтинг = r.IsDBNull(3) ? null : r.GetDouble(3),
+            Продолжительность = r.IsDBNull(4) ? null : r.GetInt32(4),
             LocalPoster = r.IsDBNull(5) ? null : r.GetString(5),
             IsMissing = r.GetInt32(6) == 1,
-            IsFavorite = r.GetInt32(7) == 1,
-            IsWatched = r.GetInt32(8) == 1,
+            IsИзбранное = r.GetInt32(7) == 1,
+            IsПросмотрено = r.GetInt32(8) == 1,
             VolumeSerial = serial,
             DriveLabel = r.IsDBNull(10) ? null : r.GetString(10),
-            GenresCsv = r.IsDBNull(11) ? null : r.GetString(11),
-            IsWatchlist = !r.IsDBNull(12) && r.GetInt32(12) == 1,
-            IsOnline = connected.ContainsKey(serial),
+            ЖанрыCsv = r.IsDBNull(11) ? null : r.GetString(11),
+            IsСписок просмотра = !r.IsDBNull(12) && r.GetInt32(12) == 1,
+            IsВкл.line = connected.ContainsKey(serial),
         };
     }
 
     /// <summary>
     /// Count of distinct movies the user has played at least once. Cheaper
-    /// than re-querying the full Recently Watched list; used for the
+    /// than re-querying the full Недавно просмотренные list; used for the
     /// sidebar entry's badge.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public int GetRecentlyWatchedCount()
+    public int GetRecentlyПросмотреноCount()
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "SELECT COUNT(*) FROM movies WHERE last_played_at > 0 AND is_missing=0 AND archived_at IS NULL";
         return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
     }
@@ -4182,17 +4182,17 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         if (clean.Length == 0) throw new ArgumentException("Tag name is empty", nameof(name));
 
         // Lookup (NOCASE collation set on the column).
-        using (var sel = _conn.CreateCommand())
+        using (var sel = _conn.СоздатьCommand())
         {
             sel.CommandText = "SELECT id FROM tags WHERE name = @n";
-            sel.Parameters.AddWithValue("@n", clean);
+            sel.Parameters.ДобавитьWithValue("@n", clean);
             var existing = sel.ExecuteScalar();
             if (existing != null && existing != DBNull.Value) return Convert.ToInt32(existing);
         }
-        using (var ins = _conn.CreateCommand())
+        using (var ins = _conn.СоздатьCommand())
         {
             ins.CommandText = "INSERT INTO tags(name) VALUES(@n) RETURNING id";
-            ins.Parameters.AddWithValue("@n", clean);
+            ins.Parameters.ДобавитьWithValue("@n", clean);
             return Convert.ToInt32(ins.ExecuteScalar());
         }
     }
@@ -4201,11 +4201,11 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     /// Permanently remove a tag. Cascades to movie_tags / tv_show_tags via FK.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void DeleteTag(int tagId)
+    public void УдалитьTag(int tagId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "DELETE FROM tags WHERE id=@id";
-        cmd.Parameters.AddWithValue("@id", tagId);
+        cmd.Parameters.ДобавитьWithValue("@id", tagId);
         cmd.ExecuteNonQuery();
     }
 
@@ -4213,9 +4213,9 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
 
     /// <summary>Every tag with its current movie and show counts.</summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<TagSummary> GetAllTags()
+    public List<TagSummary> GetВсеTags()
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT t.id, t.name,
                    (SELECT COUNT(*) FROM movie_tags mt
@@ -4227,47 +4227,47 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         var list = new List<TagSummary>();
         using var r = cmd.ExecuteReader();
         while (r.Read())
-            list.Add(new TagSummary(r.GetInt32(0), r.GetString(1), r.GetInt32(2), r.GetInt32(3)));
+            list.Добавить(new TagSummary(r.GetInt32(0), r.GetString(1), r.GetInt32(2), r.GetInt32(3)));
         return list;
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
     public List<string> GetTagNamesForMovie(int movieId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"SELECT t.name FROM movie_tags mt
                             JOIN tags t ON t.id = mt.tag_id
                             WHERE mt.movie_id = @id
                             ORDER BY t.name COLLATE NOCASE";
-        cmd.Parameters.AddWithValue("@id", movieId);
+        cmd.Parameters.ДобавитьWithValue("@id", movieId);
         var list = new List<string>();
         using var r = cmd.ExecuteReader();
-        while (r.Read()) list.Add(r.GetString(0));
+        while (r.Read()) list.Добавить(r.GetString(0));
         return list;
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
     public List<string> GetTagNamesForShow(int showId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"SELECT t.name FROM tv_show_tags st
                             JOIN tags t ON t.id = st.tag_id
                             WHERE st.show_id = @id
                             ORDER BY t.name COLLATE NOCASE";
-        cmd.Parameters.AddWithValue("@id", showId);
+        cmd.Parameters.ДобавитьWithValue("@id", showId);
         var list = new List<string>();
         using var r = cmd.ExecuteReader();
-        while (r.Read()) list.Add(r.GetString(0));
+        while (r.Read()) list.Добавить(r.GetString(0));
         return list;
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void AddMovieTag(int movieId, int tagId)
+    public void ДобавитьMovieTag(int movieId, int tagId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "INSERT OR IGNORE INTO movie_tags(movie_id, tag_id) VALUES(@m, @t)";
-        cmd.Parameters.AddWithValue("@m", movieId);
-        cmd.Parameters.AddWithValue("@t", tagId);
+        cmd.Parameters.ДобавитьWithValue("@m", movieId);
+        cmd.Parameters.ДобавитьWithValue("@t", tagId);
         cmd.ExecuteNonQuery();
         RaisePersonalStateChanged(movieId);
     }
@@ -4275,21 +4275,21 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void RemoveMovieTag(int movieId, int tagId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "DELETE FROM movie_tags WHERE movie_id=@m AND tag_id=@t";
-        cmd.Parameters.AddWithValue("@m", movieId);
-        cmd.Parameters.AddWithValue("@t", tagId);
+        cmd.Parameters.ДобавитьWithValue("@m", movieId);
+        cmd.Parameters.ДобавитьWithValue("@t", tagId);
         cmd.ExecuteNonQuery();
         RaisePersonalStateChanged(movieId);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void AddShowTag(int showId, int tagId)
+    public void ДобавитьShowTag(int showId, int tagId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "INSERT OR IGNORE INTO tv_show_tags(show_id, tag_id) VALUES(@s, @t)";
-        cmd.Parameters.AddWithValue("@s", showId);
-        cmd.Parameters.AddWithValue("@t", tagId);
+        cmd.Parameters.ДобавитьWithValue("@s", showId);
+        cmd.Parameters.ДобавитьWithValue("@t", tagId);
         cmd.ExecuteNonQuery();
         RaiseTvShowStateChanged(showId);
     }
@@ -4297,10 +4297,10 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void RemoveShowTag(int showId, int tagId)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "DELETE FROM tv_show_tags WHERE show_id=@s AND tag_id=@t";
-        cmd.Parameters.AddWithValue("@s", showId);
-        cmd.Parameters.AddWithValue("@t", tagId);
+        cmd.Parameters.ДобавитьWithValue("@s", showId);
+        cmd.Parameters.ДобавитьWithValue("@t", tagId);
         cmd.ExecuteNonQuery();
         RaiseTvShowStateChanged(showId);
     }
@@ -4308,26 +4308,26 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     // ── v2.9 Per-episode favorite + note ─────────────────────────────────────
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void SetEpisodeFavorite(int episodeId, bool fav)
+    public void SetЭпизодИзбранное(int episodeId, bool fav)
     {
         int showId = 0;
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "UPDATE tv_episodes SET is_favorite=@v WHERE id=@id RETURNING show_id";
-        cmd.Parameters.AddWithValue("@v", fav ? 1 : 0);
-        cmd.Parameters.AddWithValue("@id", episodeId);
+        cmd.Parameters.ДобавитьWithValue("@v", fav ? 1 : 0);
+        cmd.Parameters.ДобавитьWithValue("@id", episodeId);
         var o = cmd.ExecuteScalar();
         if (o != null && o != DBNull.Value) showId = Convert.ToInt32(o);
         if (showId != 0) RaiseTvShowStateChanged(showId);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void SetEpisodeNote(int episodeId, string? note)
+    public void SetЭпизодNote(int episodeId, string? note)
     {
         int showId = 0;
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "UPDATE tv_episodes SET note=@n WHERE id=@id RETURNING show_id";
-        cmd.Parameters.AddWithValue("@n", string.IsNullOrWhiteSpace(note) ? (object)DBNull.Value : note);
-        cmd.Parameters.AddWithValue("@id", episodeId);
+        cmd.Parameters.ДобавитьWithValue("@n", string.IsNullOrWhiteSpace(note) ? (object)DBNull.Value : note);
+        cmd.Parameters.ДобавитьWithValue("@id", episodeId);
         var o = cmd.ExecuteScalar();
         if (o != null && o != DBNull.Value) showId = Convert.ToInt32(o);
         if (showId != 0) RaiseTvShowStateChanged(showId);
@@ -4335,12 +4335,12 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
 
     /// <summary>
     /// Count of "in progress" movies — played at least once and not yet watched.
-    /// Used to gate the sidebar Continue Watching shortcut visibility/badge.
+    /// Used to gate the sidebar Продолжить просмотр shortcut visibility/badge.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
     public int GetContinueWatchingCount()
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"SELECT COUNT(*) FROM movies
                             WHERE last_played_at > 0 AND is_watched = 0 AND is_missing = 0 AND archived_at IS NULL";
         return (int)(long)cmd.ExecuteScalar()!;
@@ -4351,11 +4351,11 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     /// Returns null if the library is empty or fully watched.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public int? GetRandomUnwatchedId(Dictionary<string, string> connected)
+    public int? GetRandomНе просмотреноId(Dictionary<string, string> connected)
     {
         if (connected.Count == 0)
         {
-            using var any = _conn.CreateCommand();
+            using var any = _conn.СоздатьCommand();
             any.CommandText = "SELECT id FROM movies WHERE is_watched=0 AND is_missing=0 AND archived_at IS NULL ORDER BY RANDOM() LIMIT 1";
             var v = any.ExecuteScalar();
             return v == null || v == DBNull.Value ? null : Convert.ToInt32(v);
@@ -4363,7 +4363,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
 
         // Restrict to drives that are currently online so the user can actually play it.
         var serials = string.Join(",", connected.Keys.Select(s => $"'{s.Replace("'", "''")}'"));
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = $@"SELECT id FROM movies
                               WHERE is_watched=0 AND is_missing=0 AND archived_at IS NULL
                                 AND volume_serial IN ({serials})
@@ -4372,7 +4372,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         if (val == null || val == DBNull.Value)
         {
             // Fall back to any unwatched (drive offline) so the user still gets a pick.
-            using var fb = _conn.CreateCommand();
+            using var fb = _conn.СоздатьCommand();
             fb.CommandText = "SELECT id FROM movies WHERE is_watched=0 AND is_missing=0 AND archived_at IS NULL ORDER BY RANDOM() LIMIT 1";
             val = fb.ExecuteScalar();
             if (val == null || val == DBNull.Value) return null;
@@ -4381,12 +4381,12 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void SetWatchlist(int movieId, bool isWatchlist)
+    public void SetСписок просмотра(int movieId, bool isСписок просмотра)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = "UPDATE movies SET is_watchlist = @val WHERE id = @id";
-        cmd.Parameters.AddWithValue("@val", isWatchlist ? 1 : 0);
-        cmd.Parameters.AddWithValue("@id", movieId);
+        cmd.Parameters.ДобавитьWithValue("@val", isСписок просмотра ? 1 : 0);
+        cmd.Parameters.ДобавитьWithValue("@id", movieId);
         cmd.ExecuteNonQuery();
         RaisePersonalStateChanged(movieId);
     }
@@ -4394,15 +4394,15 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     // ── Discovery (v2.9) ─────────────────────────────────────────────────────
 
     /// <summary>
-    /// v2.9 — Top N most recently added movies for the "Recently Added" row
-    /// on the Library home. Honours connected-drive availability so offline
-    /// rows still surface (badge says OFFLINE), but online comes first.
+    /// v2.9 — Top N most recently added movies for the "Недавно добавленные" row
+    /// on the Медиатека home. Honours connected-drive availability so offline
+    /// rows still surface (badge says НЕ В СЕТИ), but online comes first.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<MovieListItem> GetRecentlyAddedMovies(
+    public List<MovieListItem> GetRecentlyДобавитьedФильмы(
         Dictionary<string, string> connected, int limit = 12)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = @"
             SELECT m.id, m.title, m.year, m.rating, m.runtime, m.local_poster,
                    m.is_missing, m.is_favorite, m.is_watched, m.volume_serial, d.label,
@@ -4414,35 +4414,35 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
              WHERE m.is_missing = 0
              ORDER BY m.date_added DESC, m.id DESC
              LIMIT @lim";
-        cmd.Parameters.AddWithValue("@lim", limit);
+        cmd.Parameters.ДобавитьWithValue("@lim", limit);
         var list = new List<MovieListItem>();
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
             var serial = r.GetString(9);
-            list.Add(new MovieListItem
+            list.Добавить(new MovieListItem
             {
                 Id = r.GetInt32(0),
-                Title = r.GetString(1),
-                Year = r.IsDBNull(2) ? null : r.GetInt32(2),
-                Rating = r.IsDBNull(3) ? null : r.GetDouble(3),
-                Runtime = r.IsDBNull(4) ? null : r.GetInt32(4),
+                Название = r.GetString(1),
+                Год = r.IsDBNull(2) ? null : r.GetInt32(2),
+                Рейтинг = r.IsDBNull(3) ? null : r.GetDouble(3),
+                Продолжительность = r.IsDBNull(4) ? null : r.GetInt32(4),
                 LocalPoster = r.IsDBNull(5) ? null : r.GetString(5),
                 IsMissing = r.GetInt32(6) == 1,
-                IsFavorite = r.GetInt32(7) == 1,
-                IsWatched = r.GetInt32(8) == 1,
+                IsИзбранное = r.GetInt32(7) == 1,
+                IsПросмотрено = r.GetInt32(8) == 1,
                 VolumeSerial = serial,
                 DriveLabel = r.IsDBNull(10) ? null : r.GetString(10),
-                GenresCsv = r.IsDBNull(11) ? null : r.GetString(11),
-                IsWatchlist = !r.IsDBNull(12) && r.GetInt32(12) == 1,
-                IsOnline = connected.ContainsKey(serial),
+                ЖанрыCsv = r.IsDBNull(11) ? null : r.GetString(11),
+                IsСписок просмотра = !r.IsDBNull(12) && r.GetInt32(12) == 1,
+                IsВкл.line = connected.ContainsKey(serial),
             });
         }
         return list;
     }
 
     /// <summary>
-    /// v2.9 — Filter-aware "Surprise Me". Same WHERE as GetMovies for the
+    /// v2.9 — Filter-aware "Surprise Me". Same WHERE as GetФильмы for the
     /// supplied ListOptions, but ORDER BY RANDOM() LIMIT 1. Lets the toolbar
     /// dice button pick from whatever the user is currently viewing (e.g.
     /// random comedy from the 90s, random movie in a list). Returns null if
@@ -4461,14 +4461,14 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             var extraWhere = string.IsNullOrEmpty(whereStr)
                 ? $"WHERE m.volume_serial IN ({serials}) AND m.is_missing=0"
                 : whereStr + $" AND m.volume_serial IN ({serials}) AND m.is_missing=0";
-            using var cmd = _conn.CreateCommand();
+            using var cmd = _conn.СоздатьCommand();
             cmd.CommandText = $"SELECT m.id FROM movies m {extraWhere} ORDER BY RANDOM() LIMIT 1";
             BindMovieListParams(cmd, opts, includePaging: false);
             var v = cmd.ExecuteScalar();
             if (v != null && v != DBNull.Value) return Convert.ToInt32(v);
         }
         // Fallback — any matching movie regardless of online status.
-        using (var fb = _conn.CreateCommand())
+        using (var fb = _conn.СоздатьCommand())
         {
             var extraWhere = string.IsNullOrEmpty(whereStr) ? "WHERE m.is_missing=0" : whereStr + " AND m.is_missing=0";
             fb.CommandText = $"SELECT m.id FROM movies m {extraWhere} ORDER BY RANDOM() LIMIT 1";
@@ -4479,35 +4479,35 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     }
 
     /// <summary>
-    /// v2.9 — Title/original-title search across TV shows so the global
-    /// search box on the Library page also surfaces shows. Multi-token AND
+    /// v2.9 — Название/original-title search across Сериалы so the global
+    /// search box on the Медиатека page also surfaces shows. Multi-token AND
     /// (same shape as the movie search): each whitespace-separated word has
     /// to match somewhere. Returns at most `limit` items, ordered by
     /// sort_title for stable display.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<Models.TvShowListItem> SearchTvShows(
-        string query, IReadOnlyDictionary<string, string> connected, int limit = 24)
+    public List<Models.TvShowListItem> ПоискTvShows(
+        string query, IReadВкл.lyDictionary<string, string> connected, int limit = 24)
     {
         var list = new List<Models.TvShowListItem>();
         if (string.IsNullOrWhiteSpace(query)) return list;
-        var tokens = TokenizeSearch(query);
+        var tokens = TokenizeПоиск(query);
         if (tokens.Length == 0) return list;
 
         var clauses = new List<string>();
         for (int i = 0; i < tokens.Length; i++)
         {
             var p = $"@q{i}";
-            // Title / original title / year / cast — no plot (same reason as
+            // Название / original title / year / cast — no plot (same reason as
             // the movie search: short words flood the results via plot text).
-            clauses.Add($@"(s.title LIKE {p} ESCAPE '\' OR s.original_title LIKE {p} ESCAPE '\'
-                OR CAST(s.year AS TEXT) LIKE {p} ESCAPE '\'
+            clauses.Добавить($@"(s.title LIKE {p} ESCAPE '\' OR s.original_title LIKE {p} ESCAPE '\'
+                OR АКТЁРЫ(s.year AS TEXT) LIKE {p} ESCAPE '\'
                 OR EXISTS (SELECT 1 FROM tv_show_actors sa JOIN actors a ON a.id=sa.actor_id
                             WHERE sa.show_id=s.id AND a.name LIKE {p} ESCAPE '\'))");
         }
         var whereStr = "WHERE s.is_missing=0 AND " + string.Join(" AND ", clauses);
 
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = $@"
             SELECT s.id, s.title, s.year, s.rating, s.local_poster, s.is_missing,
                    s.volume_serial, d.label, s.is_favorite, s.is_watchlist,
@@ -4521,29 +4521,29 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
              ORDER BY s.sort_title, s.title
              LIMIT @lim";
         for (int i = 0; i < tokens.Length; i++)
-            cmd.Parameters.AddWithValue($"@q{i}", $"%{EscapeLike(tokens[i])}%");
-        cmd.Parameters.AddWithValue("@lim", limit);
+            cmd.Parameters.ДобавитьWithValue($"@q{i}", $"%{EscapeLike(tokens[i])}%");
+        cmd.Parameters.ДобавитьWithValue("@lim", limit);
 
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
             var serial = r.GetString(6);
-            list.Add(new Models.TvShowListItem
+            list.Добавить(new Models.TvShowListItem
             {
                 Id = r.GetInt32(0),
-                Title = r.GetString(1),
-                Year = r.IsDBNull(2) ? null : r.GetInt32(2),
-                Rating = r.IsDBNull(3) ? null : r.GetDouble(3),
+                Название = r.GetString(1),
+                Год = r.IsDBNull(2) ? null : r.GetInt32(2),
+                Рейтинг = r.IsDBNull(3) ? null : r.GetDouble(3),
                 LocalPoster = r.IsDBNull(4) ? null : r.GetString(4),
                 IsMissing = r.GetInt32(5) == 1,
                 VolumeSerial = serial,
                 DriveLabel = r.IsDBNull(7) ? null : r.GetString(7),
-                IsFavorite = r.GetInt32(8) == 1,
-                IsWatchlist = r.GetInt32(9) == 1,
-                EpisodeCount = r.GetInt32(10),
-                WatchedCount = r.GetInt32(11),
-                GenresCsv = r.IsDBNull(12) ? null : r.GetString(12),
-                IsOnline = connected.ContainsKey(serial),
+                IsИзбранное = r.GetInt32(8) == 1,
+                IsСписок просмотра = r.GetInt32(9) == 1,
+                ЭпизодCount = r.GetInt32(10),
+                ПросмотреноCount = r.GetInt32(11),
+                ЖанрыCsv = r.IsDBNull(12) ? null : r.GetString(12),
+                IsВкл.line = connected.ContainsKey(serial),
             });
         }
         return list;
@@ -4553,7 +4553,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
 
     private void Exec(string sql)
     {
-        using var cmd = _conn.CreateCommand();
+        using var cmd = _conn.СоздатьCommand();
         cmd.CommandText = sql;
         cmd.ExecuteNonQuery();
     }

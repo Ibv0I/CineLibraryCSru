@@ -2,7 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Foundation;
 
-namespace CineLibraryCS.Controls;
+namespace CineМедиатекаCS.Controls;
 
 /// <summary>
 /// A page header on one row: [title + count] [filter pills] ... [tools]. When

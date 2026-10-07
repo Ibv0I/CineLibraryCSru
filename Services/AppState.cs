@@ -1,6 +1,6 @@
-using CineLibraryCS.Models;
+using CineМедиатекаCS.Models;
 
-namespace CineLibraryCS.Services;
+namespace CineМедиатекаCS.Services;
 
 /// <summary>
 /// Singleton app-wide state and service locator.
@@ -25,28 +25,28 @@ public class AppState
         // v2.7 — mirror every personal-state change into the per-movie
         // sidecar (cinelibrary-state.json) so the state travels with the
         // drive. Best-effort; the sidecar helper swallows I/O errors.
-        Db.PersonalStateChanged += OnPersonalStateChanged;
-        // v2.8 — same for TV shows (show favorite/watchlist + per-episode watched).
-        Db.TvShowStateChanged += OnTvShowStateChanged;
+        Db.PersonalStateChanged += Вкл.PersonalStateChanged;
+        // v2.8 — same for Сериалы (show favorite/watchlist + per-episode watched).
+        Db.TvShowStateChanged += Вкл.TvShowStateChanged;
     }
 
-    private void OnTvShowStateChanged(int showId)
+    private void Вкл.TvShowStateChanged(int showId)
     {
         var composed = TvStateSidecar.Compose(Db, showId, _connected);
         if (composed.HasValue)
-            TvStateSidecar.TryWrite(composed.Value.FolderAbs, composed.Value.State);
+            TvStateSidecar.TryWrite(composed.Value.ПапкаAbs, composed.Value.State);
     }
 
     /// <summary>
-    /// Fires after Toggle/Set Watched | Favorite | Watchlist, MarkPlayed,
-    /// SetNote, and list add/remove. Off the SQL thread is preferable but
+    /// Fires after Toggle/Set Просмотрено | Избранное | Список просмотра, MarkВоспроизвестиed,
+    /// SetNote, and list add/remove. Выкл. the SQL thread is preferable but
     /// the operation is cheap, so we just run it inline.
     /// </summary>
-    private void OnPersonalStateChanged(int movieId)
+    private void Вкл.PersonalStateChanged(int movieId)
     {
         var composed = MovieStateSidecar.Compose(Db, movieId, _connected);
         if (composed.HasValue)
-            MovieStateSidecar.TryWrite(composed.Value.FolderAbs, composed.Value.State);
+            MovieStateSidecar.TryWrite(composed.Value.ПапкаAbs, composed.Value.State);
     }
 
     /// <summary>
@@ -54,7 +54,7 @@ public class AppState
     /// the per-folder sidecar. Used by:
     ///   • App startup (catches state edited before this feature, or while
     ///     drives were offline).
-    ///   • The Drives page "Sync personal state" button.
+    ///   • The Диски page "Sync personal state" button.
     ///   • The pre-remove confirmation when a user removes a drive.
     /// Returns (written, skipped) counts. Skipped = drive offline or path
     /// unreachable. Runs on the caller's thread — call from a Task.Run.
@@ -64,11 +64,11 @@ public class AppState
     {
         int written = 0, skipped = 0;
 
-        var stateIds = Db.GetMoviesWithPersonalState(onlyVolumeSerial);
-        // v3.4 — only the manual "Sync to drive" pass also writes fetched
+        var stateIds = Db.GetФильмыWithPersonalState(onlyVolumeSerial);
+        // v3.4 — only the manual "Синхронизировать с диском" pass also writes fetched
         // metadata + art; the automatic startup sweep stays personal-state only.
         var fetchedSet = includeFetchedArt
-            ? new HashSet<int>(Db.GetMoviesWithFetchedData(onlyVolumeSerial))
+            ? new HashSet<int>(Db.GetФильмыWithFetchedData(onlyVolumeSerial))
             : new HashSet<int>();
         var allIds = new HashSet<int>(stateIds);
         allIds.UnionWith(fetchedSet);
@@ -77,23 +77,23 @@ public class AppState
         {
             var composed = MovieStateSidecar.Compose(Db, id, _connected);
             if (composed == null) { skipped++; continue; }
-            var folderAbs = composed.Value.FolderAbs;
+            var folderAbs = composed.Value.ПапкаAbs;
             var state = composed.Value.State;
             if (fetchedSet.Contains(id))
             {
                 state.Meta = MovieStateSidecar.ComposeMeta(Db, id);
-                CopyFetchedArtToFolder(id, folderAbs);
+                CopyFetchedArtToПапка(id, folderAbs);
             }
             MovieStateSidecar.TryWrite(folderAbs, state);
             written++;
         }
 
-        // v2.8 — also sweep TV shows (personal state only).
+        // v2.8 — also sweep Сериалы (personal state only).
         foreach (var id in Db.GetTvShowsWithPersonalState(onlyVolumeSerial))
         {
             var composed = TvStateSidecar.Compose(Db, id, _connected);
             if (composed == null) { skipped++; continue; }
-            TvStateSidecar.TryWrite(composed.Value.FolderAbs, composed.Value.State);
+            TvStateSidecar.TryWrite(composed.Value.ПапкаAbs, composed.Value.State);
             written++;
         }
         return (written, skipped);
@@ -104,11 +104,11 @@ public class AppState
     /// data cache into its drive folder, only where the file is absent. A later
     /// rescan then discovers them like any MediaElch artwork. Best-effort.
     /// </summary>
-    private void CopyFetchedArtToFolder(int movieId, string folderAbs)
+    private void CopyFetchedArtToПапка(int movieId, string folderAbs)
     {
         try
         {
-            if (!Directory.Exists(folderAbs)) return;
+            if (!Режиссёрy.Exists(folderAbs)) return;
             var (posterRel, fanartRel, actors) = Db.GetMovieArtForSync(movieId);
 
             if (posterRel != null && posterRel.StartsWith("manual_posters/", StringComparison.Ordinal))
@@ -133,7 +133,7 @@ public class AppState
             if (File.Exists(destAbs)) return;
             var src = Db.GetCachedImagePath(cacheRel);
             if (src == null) return;
-            Directory.CreateDirectory(Path.GetDirectoryName(destAbs)!);
+            Режиссёрy.СоздатьРежиссёрy(Path.GetРежиссёрyName(destAbs)!);
             File.Copy(src, destAbs, overwrite: false);
         }
         catch { /* best-effort */ }
@@ -142,8 +142,8 @@ public class AppState
     private static string GetDataDir()
     {
         // Walk up from bin/x64/Debug/net8.0-windows... to project root during dev
-        var exeDir = AppContext.BaseDirectory;
-        var dir = new DirectoryInfo(exeDir);
+        var exeDir = AppContext.BaseРежиссёрy;
+        var dir = new РежиссёрyInfo(exeDir);
         // In VS, output is typically: ProjectDir\bin\x64\Debug\net8.0-windows...\
         // Walk up until we find a .csproj or we've gone up 5 levels
         for (int i = 0; i < 5; i++)
@@ -152,15 +152,15 @@ public class AppState
             if (dir.GetFiles("*.csproj").Length > 0)
             {
                 // In dev: put data next to the .csproj
-                var devData = Path.Combine(dir.FullName, "CineLibrary-Data");
-                Directory.CreateDirectory(devData);
+                var devData = Path.Combine(dir.FullName, "CineМедиатека-Data");
+                Режиссёрy.СоздатьРежиссёрy(devData);
                 return devData;
             }
             dir = dir.Parent;
         }
         // In production: put data next to the exe
-        var prodData = Path.Combine(exeDir, "CineLibrary-Data");
-        Directory.CreateDirectory(prodData);
+        var prodData = Path.Combine(exeDir, "CineМедиатека-Data");
+        Режиссёрy.СоздатьРежиссёрy(prodData);
         return prodData;
     }
 
@@ -172,9 +172,9 @@ public class AppState
 
     public void RefreshConnected()
     {
-        _connected = Db.GetConnectedDrives();
+        _connected = Db.GetConnectedДиски();
         foreach (var kv in _connected)
-            Db.UpdateDriveLastSeen(kv.Key, kv.Value);
+            Db.ОбновитьDriveLastSeen(kv.Key, kv.Value);
     }
 
     // ── Preferences ──────────────────────────────────────────────────────────

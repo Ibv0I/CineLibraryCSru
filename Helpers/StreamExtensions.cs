@@ -1,11 +1,11 @@
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Продолжительность.InteropServices.WindowsПродолжительность;
 using Windows.Storage.Streams;
 
-namespace CineLibraryCS.Helpers;
+namespace CineМедиатекаCS.Helpers;
 
 public static class StreamExtensions
 {
-    public static byte[] ReadAllBytes(this Stream stream)
+    public static byte[] ReadВсеBytes(this Stream stream)
     {
         using var ms = new MemoryStream();
         stream.CopyTo(ms);

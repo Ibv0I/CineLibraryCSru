@@ -1,6 +1,6 @@
 using System.Xml;
 
-namespace CineLibraryCS.Services;
+namespace CineМедиатекаCS.Services;
 
 public record ParsedActor(string Name, string? Role, string? Thumb, int Order);
 
@@ -14,23 +14,23 @@ public record ParsedStreamDetails(
     string? VideoCodec,
     string? VideoAspect,
     string? HdrType,
-    string? AudioCodec,
-    string? AudioChannels,
-    string? AudioLanguages,
+    string? АудиоCodec,
+    string? АудиоChannels,
+    string? АудиоLanguages,
     string? SubtitleLanguages,
     int? DurationSeconds
 );
 
-public record ParsedRating(string Source, double Value, int? Votes);
+public record ParsedРейтинг(string Source, double Value, int? Votes);
 
 public record ParsedMovie(
-    string Title,
-    string? OriginalTitle,
-    string? SortTitle,
-    int? Year,
-    double? Rating,
+    string Название,
+    string? OriginalНазвание,
+    string? SortНазвание,
+    int? Год,
+    double? Рейтинг,
     int? Votes,
-    int? Runtime,
+    int? Продолжительность,
     string? Plot,
     string? Outline,
     string? Tagline,
@@ -38,15 +38,15 @@ public record ParsedMovie(
     string? ImdbId,
     string? TmdbId,
     string? Premiered,
-    string? Studio,
-    string? Country,
+    string? Студия,
+    string? Страна,
     string? Trailer,
-    List<string> Genres,
-    List<string> Directors,
+    List<string> Жанры,
+    List<string> Режиссёрs,
     List<string> Writers,
     List<ParsedActor> Actors,
     List<string> Sets,
-    List<ParsedRating> Ratings,
+    List<ParsedРейтинг> Рейтингs,
     ParsedStreamDetails? Stream
 );
 
@@ -54,33 +54,33 @@ public record ParsedMovie(
 
 /// <summary>Parsed `<tvshow>` root from a tvshow.nfo.</summary>
 public record ParsedTvShow(
-    string Title,
-    string? OriginalTitle,
-    string? SortTitle,
-    int? Year,
-    double? Rating,
+    string Название,
+    string? OriginalНазвание,
+    string? SortНазвание,
+    int? Год,
+    double? Рейтинг,
     int? Votes,
     string? Plot,
     string? Mpaa,
     string? Premiered,
-    string? Studio,
+    string? Студия,
     string? Status,
     string? ImdbId,
     string? TmdbId,
     string? TvdbId,
-    List<string> Genres,
+    List<string> Жанры,
     List<ParsedActor> Actors
 );
 
 /// <summary>Parsed `<episodedetails>` root from an episode .nfo.</summary>
-public record ParsedEpisode(
+public record ParsedЭпизод(
     int Season,
-    int Episode,
-    string Title,
+    int Эпизод,
+    string Название,
     string? Plot,
     string? Aired,
-    double? Rating,
-    int? Runtime,
+    double? Рейтинг,
+    int? Продолжительность,
     ParsedStreamDetails? Stream
 );
 
@@ -109,35 +109,35 @@ public static class NfoParser
             {
                 var name = GetChild(a, "name");
                 if (string.IsNullOrEmpty(name)) continue;
-                actors.Add(new ParsedActor(name, GetChild(a, "role"), GetChild(a, "thumb"), order++));
+                actors.Добавить(new ParsedActor(name, GetChild(a, "role"), GetChild(a, "thumb"), order++));
             }
 
-            var ratings = new List<ParsedRating>();
+            var ratings = new List<ParsedРейтинг>();
             foreach (XmlElement rt in SelectElements(root, "ratings/rating"))
             {
                 var v = TryDouble(GetChild(rt, "value") ?? rt.InnerText);
                 if (v == null) continue;
-                ratings.Add(new ParsedRating(rt.GetAttribute("name"), v.Value, TryInt(GetChild(rt, "votes"))));
+                ratings.Добавить(new ParsedРейтинг(rt.GetAttribute("name"), v.Value, TryInt(GetChild(rt, "votes"))));
             }
-            double? primaryRating = ratings.Count > 0 ? ratings[0].Value : TryDouble(Get(root, "rating"));
+            double? primaryРейтинг = ratings.Count > 0 ? ratings[0].Value : TryDouble(Get(root, "rating"));
             int? primaryVotes = ratings.Count > 0 ? ratings[0].Votes : TryInt(Get(root, "votes"));
 
             return new ParsedTvShow(
-                Title: title,
-                OriginalTitle: Get(root, "originaltitle"),
-                SortTitle: Get(root, "sorttitle"),
-                Year: TryInt(Get(root, "year")) ?? YearFromDate(Get(root, "premiered")),
-                Rating: primaryRating,
+                Название: title,
+                OriginalНазвание: Get(root, "originaltitle"),
+                SortНазвание: Get(root, "sorttitle"),
+                Год: TryInt(Get(root, "year")) ?? ГодFromDate(Get(root, "premiered")),
+                Рейтинг: primaryРейтинг,
                 Votes: primaryVotes,
                 Plot: Get(root, "plot"),
                 Mpaa: Get(root, "mpaa"),
                 Premiered: Get(root, "premiered") ?? Get(root, "aired"),
-                Studio: Get(root, "studio"),
+                Студия: Get(root, "studio"),
                 Status: Get(root, "status"),
                 ImdbId: Get(root, "imdbid") ?? Get(root, "uniqueid[@type='imdb']"),
                 TmdbId: Get(root, "tmdbid") ?? Get(root, "uniqueid[@type='tmdb']"),
                 TvdbId: Get(root, "tvdbid") ?? Get(root, "uniqueid[@type='tvdb']") ?? Get(root, "id"),
-                Genres: genres,
+                Жанры: genres,
                 Actors: actors
             );
         }
@@ -148,7 +148,7 @@ public static class NfoParser
     /// Parse an episode .nfo (`<episodedetails>`). Season/episode also come
     /// from the filename when the nfo omits them (see overload below).
     /// </summary>
-    public static ParsedEpisode? ParseEpisode(string nfoPath, int? fallbackSeason = null, int? fallbackEpisode = null)
+    public static ParsedЭпизод? ParseЭпизод(string nfoPath, int? fallbackSeason = null, int? fallbackЭпизод = null)
     {
         try
         {
@@ -158,27 +158,27 @@ public static class NfoParser
             if (root == null) return null;
 
             var season = TryInt(Get(root, "season")) ?? fallbackSeason;
-            var episode = TryInt(Get(root, "episode")) ?? fallbackEpisode;
+            var episode = TryInt(Get(root, "episode")) ?? fallbackЭпизод;
             if (season == null || episode == null) return null;
 
-            var title = Get(root, "title") ?? $"Episode {episode}";
+            var title = Get(root, "title") ?? $"Эпизод {episode}";
 
-            var ratings = new List<ParsedRating>();
+            var ratings = new List<ParsedРейтинг>();
             foreach (XmlElement rt in SelectElements(root, "ratings/rating"))
             {
                 var v = TryDouble(GetChild(rt, "value") ?? rt.InnerText);
-                if (v != null) ratings.Add(new ParsedRating(rt.GetAttribute("name"), v.Value, TryInt(GetChild(rt, "votes"))));
+                if (v != null) ratings.Добавить(new ParsedРейтинг(rt.GetAttribute("name"), v.Value, TryInt(GetChild(rt, "votes"))));
             }
             double? rating = ratings.Count > 0 ? ratings[0].Value : TryDouble(Get(root, "rating"));
 
-            return new ParsedEpisode(
+            return new ParsedЭпизод(
                 Season: season.Value,
-                Episode: episode.Value,
-                Title: title,
+                Эпизод: episode.Value,
+                Название: title,
                 Plot: Get(root, "plot"),
                 Aired: Get(root, "aired") ?? Get(root, "premiered"),
-                Rating: rating,
-                Runtime: TryInt(Get(root, "runtime")),
+                Рейтинг: rating,
+                Продолжительность: TryInt(Get(root, "runtime")),
                 Stream: ParseStreamDetails(root)
             );
         }
@@ -186,7 +186,7 @@ public static class NfoParser
     }
 
     /// <summary>Pull a 4-digit year from a yyyy-MM-dd date string.</summary>
-    private static int? YearFromDate(string? date)
+    private static int? ГодFromDate(string? date)
     {
         if (string.IsNullOrEmpty(date) || date.Length < 4) return null;
         return int.TryParse(date[..4], out var y) ? y : null;
@@ -215,7 +215,7 @@ public static class NfoParser
             {
                 var name = GetChild(a, "name");
                 if (string.IsNullOrEmpty(name)) continue;
-                actors.Add(new ParsedActor(
+                actors.Добавить(new ParsedActor(
                     Name: name,
                     Role: GetChild(a, "role"),
                     Thumb: GetChild(a, "thumb"),
@@ -241,7 +241,7 @@ public static class NfoParser
                             if (c is XmlElement) { hasChildren = true; break; }
                         if (!hasChildren) name = el.InnerText?.Trim();
                     }
-                    if (!string.IsNullOrWhiteSpace(name)) sets.Add(name);
+                    if (!string.IsNullOrWhiteSpace(name)) sets.Добавить(name);
                 }
             }
             CollectSetsFromXPath("set");
@@ -249,10 +249,10 @@ public static class NfoParser
             CollectSetsFromXPath("collection");
             CollectSetsFromXPath("collections/collection");
             var setname = Get(root, "setname");
-            if (!string.IsNullOrWhiteSpace(setname)) sets.Add(setname!);
+            if (!string.IsNullOrWhiteSpace(setname)) sets.Добавить(setname!);
 
             // Multiple ratings: <ratings><rating name="imdb" default="true">value/votes</rating>…
-            var ratings = new List<ParsedRating>();
+            var ratings = new List<ParsedРейтинг>();
             foreach (XmlElement rt in SelectElements(root, "ratings/rating"))
             {
                 var src = rt.GetAttribute("name");
@@ -261,13 +261,13 @@ public static class NfoParser
                 var v = TryDouble(GetChild(rt, "value") ?? rt.InnerText);
                 if (v == null) continue;
                 var votes = TryInt(GetChild(rt, "votes"));
-                ratings.Add(new ParsedRating(src, v.Value, votes));
+                ratings.Добавить(new ParsedРейтинг(src, v.Value, votes));
             }
 
             var streamDetails = ParseStreamDetails(root);
 
             // Primary rating: first from <ratings> if present, else <rating>.
-            double? primaryRating = ratings.Count > 0
+            double? primaryРейтинг = ratings.Count > 0
                 ? ratings[0].Value
                 : TryDouble(Get(root, "rating"));
             int? primaryVotes = ratings.Count > 0
@@ -275,13 +275,13 @@ public static class NfoParser
                 : TryInt(Get(root, "votes"));
 
             return new ParsedMovie(
-                Title: title,
-                OriginalTitle: Get(root, "originaltitle"),
-                SortTitle: Get(root, "sorttitle"),
-                Year: TryInt(Get(root, "year")),
-                Rating: primaryRating,
+                Название: title,
+                OriginalНазвание: Get(root, "originaltitle"),
+                SortНазвание: Get(root, "sorttitle"),
+                Год: TryInt(Get(root, "year")),
+                Рейтинг: primaryРейтинг,
                 Votes: primaryVotes,
-                Runtime: TryInt(Get(root, "runtime")),
+                Продолжительность: TryInt(Get(root, "runtime")),
                 Plot: Get(root, "plot"),
                 Outline: Get(root, "outline"),
                 Tagline: Get(root, "tagline"),
@@ -289,15 +289,15 @@ public static class NfoParser
                 ImdbId: Get(root, "imdbid") ?? Get(root, "uniqueid[@type='imdb']") ?? Get(root, "id"),
                 TmdbId: Get(root, "tmdbid") ?? Get(root, "uniqueid[@type='tmdb']"),
                 Premiered: Get(root, "premiered") ?? Get(root, "releasedate"),
-                Studio: Get(root, "studio"),
-                Country: Get(root, "country"),
+                Студия: Get(root, "studio"),
+                Страна: Get(root, "country"),
                 Trailer: Get(root, "trailer"),
-                Genres: genres,
-                Directors: directors,
+                Жанры: genres,
+                Режиссёрs: directors,
                 Writers: writers,
                 Actors: actors,
                 Sets: sets,
-                Ratings: ratings,
+                Рейтингs: ratings,
                 Stream: streamDetails
             );
         }
@@ -342,7 +342,7 @@ public static class NfoParser
                 if (acodec == null) acodec = GetChild(au, "codec");
                 if (achan == null) achan = GetChild(au, "channels");
                 var lang = GetChild(au, "language");
-                if (!string.IsNullOrEmpty(lang)) audioLangs.Add(lang);
+                if (!string.IsNullOrEmpty(lang)) audioLangs.Добавить(lang);
             }
         }
 
@@ -352,7 +352,7 @@ public static class NfoParser
             foreach (XmlElement sub in subNodes)
             {
                 var lang = GetChild(sub, "language");
-                if (!string.IsNullOrEmpty(lang)) subLangs.Add(lang);
+                if (!string.IsNullOrEmpty(lang)) subLangs.Добавить(lang);
             }
         }
 
@@ -362,9 +362,9 @@ public static class NfoParser
             VideoCodec: vcodec,
             VideoAspect: vaspect,
             HdrType: hdr,
-            AudioCodec: acodec,
-            AudioChannels: achan,
-            AudioLanguages: audioLangs.Count > 0 ? string.Join(",", audioLangs.Distinct()) : null,
+            АудиоCodec: acodec,
+            АудиоChannels: achan,
+            АудиоLanguages: audioLangs.Count > 0 ? string.Join(",", audioLangs.Distinct()) : null,
             SubtitleLanguages: subLangs.Count > 0 ? string.Join(",", subLangs.Distinct()) : null,
             DurationSeconds: dur
         );
@@ -376,7 +376,7 @@ public static class NfoParser
         foreach (XmlElement el in SelectElements(root, xpath))
         {
             var t = el.InnerText.Trim();
-            if (!string.IsNullOrEmpty(t)) list.Add(t);
+            if (!string.IsNullOrEmpty(t)) list.Добавить(t);
         }
         return list;
     }
@@ -387,7 +387,7 @@ public static class NfoParser
         var result = new List<string>();
         foreach (var l in lists)
             foreach (var s in l)
-                if (seen.Add(s)) result.Add(s);
+                if (seen.Добавить(s)) result.Добавить(s);
         return result;
     }
 

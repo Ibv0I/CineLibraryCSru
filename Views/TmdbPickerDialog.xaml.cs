@@ -1,9 +1,9 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using CineLibraryCS.Services.Tmdb;
+using CineМедиатекаCS.Services.Tmdb;
 
-namespace CineLibraryCS.Views;
+namespace CineМедиатекаCS.Views;
 
 /// <summary>
 /// v3.4 — lightweight TMDb match picker used by "Fetch missing info" when a
@@ -19,44 +19,44 @@ public sealed partial class TmdbPickerDialog : ContentDialog
     /// cancelled. A show comes back movie-shaped; its TmdbId is the show's id.</summary>
     public TmdbMovie? Picked { get; private set; }
 
-    public TmdbPickerDialog(TmdbClient client, string? initialTitle, int? year, bool tvShows = false)
+    public TmdbPickerDialog(TmdbClient client, string? initialНазвание, int? year, bool tvShows = false)
     {
         InitializeComponent();
         _client = client;
         _tvShows = tvShows;
         if (tvShows)
         {
-            Title = "Match this show on TMDb";
+            Название = "Match this show on TMDb";
             HintText.Text = "Pick the correct show so the missing details are filled from the right entry.";
-            TitleBox.PlaceholderText = "Show title…";
+            НазваниеBox.PlaceholderText = "Show title…";
         }
-        TitleBox.Text = initialTitle ?? "";
-        if (year is int y && y > 0) YearBox.Text = y.ToString();
-        Loaded += async (_, _) => { if (!string.IsNullOrWhiteSpace(TitleBox.Text)) await DoSearchAsync(); };
+        НазваниеBox.Text = initialНазвание ?? "";
+        if (year is int y && y > 0) ГодBox.Text = y.ToString();
+        Loaded += async (_, _) => { if (!string.IsNullOrWhiteSpace(НазваниеBox.Text)) await DoПоискAsync(); };
     }
 
-    private void OnTitleKeyDown(object sender, KeyRoutedEventArgs e)
+    private void Вкл.НазваниеKeyDown(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Key == Windows.System.VirtualKey.Enter) { e.Handled = true; _ = DoSearchAsync(); }
+        if (e.Key == Windows.System.VirtualKey.Enter) { e.Handled = true; _ = DoПоискAsync(); }
     }
 
-    private void OnSearch(object sender, RoutedEventArgs e) => _ = DoSearchAsync();
+    private void Вкл.Поиск(object sender, RoutedEventArgs e) => _ = DoПоискAsync();
 
-    private async Task DoSearchAsync()
+    private async Task DoПоискAsync()
     {
-        var title = (TitleBox.Text ?? "").Trim();
+        var title = (НазваниеBox.Text ?? "").Trim();
         if (title.Length == 0) return;
-        int? year = int.TryParse((YearBox.Text ?? "").Trim(), out var y) && y > 1800 ? y : null;
+        int? year = int.TryParse((ГодBox.Text ?? "").Trim(), out var y) && y > 1800 ? y : null;
 
-        SearchBtn.IsEnabled = false;
+        ПоискBtn.IsEnabled = false;
         Busy.IsActive = true;
         StatusText.Visibility = Visibility.Collapsed;
         IsPrimaryButtonEnabled = false;
         try
         {
             var results = _tvShows
-                ? (await _client.SearchTvAsync(title, year)).Select(t => t.AsSearchHit()).ToList()
-                : await _client.SearchMovieAsync(title, year);
+                ? (await _client.ПоискTvAsync(title, year)).Select(t => t.AsПоискHit()).ToList()
+                : await _client.ПоискMovieAsync(title, year);
             if (results.Count == 0)
             {
                 StatusText.Text = $"No TMDb matches for “{title}”.";
@@ -66,7 +66,7 @@ public sealed partial class TmdbPickerDialog : ContentDialog
             }
             var items = new List<TmdbResultItem>();
             foreach (var m in results)
-                items.Add(new TmdbResultItem(m, _client.GetImageUrl(m.PosterPath, "w154")));
+                items.Добавить(new TmdbResultItem(m, _client.GetImageUrl(m.PosterPath, "w154")));
             ResultsList.ItemsSource = items;
         }
         catch (Exception ex)
@@ -78,11 +78,11 @@ public sealed partial class TmdbPickerDialog : ContentDialog
         finally
         {
             Busy.IsActive = false;
-            SearchBtn.IsEnabled = true;
+            ПоискBtn.IsEnabled = true;
         }
     }
 
-    private void OnResultSelected(object sender, SelectionChangedEventArgs e)
+    private void Вкл.ResultSelected(object sender, SelectionChangedEventArgs e)
     {
         Picked = (ResultsList.SelectedItem as TmdbResultItem)?.Source;
         IsPrimaryButtonEnabled = Picked != null;

@@ -2,9 +2,9 @@ using Microsoft.Data.Sqlite;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace CineLibraryCS.Services;
+namespace CineМедиатекаCS.Services;
 
-public record ScanProgress(int Found, int Inserted, int Updated, int Skipped, string CurrentFolder, bool Done);
+public record ScanProgress(int Found, int Inserted, int Обновитьd, int Skipped, string CurrentПапка, bool Done);
 
 public class ScannerService
 {
@@ -19,21 +19,21 @@ public class ScannerService
 
     public ScannerService(DatabaseService db) => _db = db;
 
-    /// <param name="scanFolder">Optional: scan only this subfolder. Paths are still stored relative to driveRoot.</param>
+    /// <param name="scanПапка">Optional: scan only this subfolder. Paths are still stored relative to driveRoot.</param>
     /// <param name="incremental">When true, skip movies whose .nfo mtime is older than the row's date_modified —
     /// MediaElch hasn't touched them since we last scanned, so re-parsing would be wasted work.</param>
-    public async Task ScanAsync(string volumeSerial, string driveRoot, IProgress<ScanProgress>? progress = null, CancellationToken ct = default, string? scanFolder = null, bool incremental = false)
+    public async Task ScanAsync(string volumeSerial, string driveRoot, IProgress<ScanProgress>? progress = null, ОтменаlationToken ct = default, string? scanПапка = null, bool incremental = false)
     {
         await Task.Run(() =>
         {
-            ScanSync(volumeSerial, driveRoot, progress, ct, scanFolder, incremental);
-            // v2.8 — second pass for TV shows. Separate transaction so a
+            ScanSync(volumeSerial, driveRoot, progress, ct, scanПапка, incremental);
+            // v2.8 — second pass for Сериалы. Separate transaction so a
             // failure in one domain can't roll back the other.
-            ScanTvSync(volumeSerial, driveRoot, progress, ct, scanFolder);
+            ScanTvSync(volumeSerial, driveRoot, progress, ct, scanПапка);
         }, ct);
     }
 
-    private void ScanSync(string volumeSerial, string driveRoot, IProgress<ScanProgress>? progress, CancellationToken ct, string? scanFolder, bool incremental)
+    private void ScanSync(string volumeSerial, string driveRoot, IProgress<ScanProgress>? progress, ОтменаlationToken ct, string? scanПапка, bool incremental)
     {
         // Use a dedicated connection so our long-lived scan transaction
         // doesn't taint the main DB connection used by sidebar refresh and
@@ -41,48 +41,48 @@ public class ScannerService
         // ("Execute requires the command to have a transaction object…") if any
         // command runs against a connection with a pending tx and that command
         // doesn't carry the tx reference — easy to hit on rescans.
-        using var conn = _db.OpenNewConnection();
+        using var conn = _db.OpenНовыйConnection();
         var dataDir = _db.DataDir;
-        var walkFrom = scanFolder ?? driveRoot;
+        var walkFrom = scanПапка ?? driveRoot;
 
         int found = 0, inserted = 0, updated = 0, skipped = 0;
 
         // Mark movies in the scanned scope as potentially missing
-        using (var cmd = conn.CreateCommand())
+        using (var cmd = conn.СоздатьCommand())
         {
-            if (scanFolder != null)
+            if (scanПапка != null)
             {
-                // Only mark movies under the chosen subfolder
-                var subRel = Path.GetRelativePath(driveRoot, scanFolder).Replace('\\', '/');
+                // Вкл.ly mark movies under the chosen subfolder
+                var subRel = Path.GetRelativePath(driveRoot, scanПапка).Replace('\\', '/');
                 cmd.CommandText = "UPDATE movies SET is_missing=1 WHERE volume_serial=@s AND (folder_rel_path=@r OR folder_rel_path LIKE @p)";
-                cmd.Parameters.AddWithValue("@s", volumeSerial);
-                cmd.Parameters.AddWithValue("@r", subRel);
-                cmd.Parameters.AddWithValue("@p", subRel + "/%");
+                cmd.Parameters.ДобавитьWithValue("@s", volumeSerial);
+                cmd.Parameters.ДобавитьWithValue("@r", subRel);
+                cmd.Parameters.ДобавитьWithValue("@p", subRel + "/%");
             }
             else
             {
                 cmd.CommandText = "UPDATE movies SET is_missing=1 WHERE volume_serial=@s";
-                cmd.Parameters.AddWithValue("@s", volumeSerial);
+                cmd.Parameters.ДобавитьWithValue("@s", volumeSerial);
             }
             cmd.ExecuteNonQuery();
         }
 
-        var movieFolders = FindMovieFolders(walkFrom);
+        var movieПапкаs = FindMovieПапкаs(walkFrom);
 
         // Prepare statements — disposed in finally block below
-        using var stmtGetId = conn.CreateCommand();
+        using var stmtGetId = conn.СоздатьCommand();
         stmtGetId.CommandText = "SELECT id, date_modified FROM movies WHERE volume_serial=@s AND folder_rel_path=@f";
-        stmtGetId.Parameters.AddWithValue("@s", volumeSerial);
-        stmtGetId.Parameters.Add("@f", SqliteType.Text);
+        stmtGetId.Parameters.ДобавитьWithValue("@s", volumeSerial);
+        stmtGetId.Parameters.Добавить("@f", SqliteType.Text);
 
         // For incremental rescan: a quick "just clear is_missing" statement
         // we use when the nfo hasn't been touched since last scan.
-        using var stmtTouch = conn.CreateCommand();
+        using var stmtTouch = conn.СоздатьCommand();
         stmtTouch.CommandText = "UPDATE movies SET is_missing=0 WHERE id=@id";
-        stmtTouch.Parameters.Add("@id", SqliteType.Integer);
+        stmtTouch.Parameters.Добавить("@id", SqliteType.Integer);
 
-        using var stmtUpdate = conn.CreateCommand();
-        stmtUpdate.CommandText = @"UPDATE movies SET
+        using var stmtОбновить = conn.СоздатьCommand();
+        stmtОбновить.CommandText = @"UPDATE movies SET
             video_file_rel_path=@vfr, title=@t, original_title=@ot, sort_title=@st,
             year=@y, rating=@ra, votes=@vo, runtime=@ru, plot=@pl, outline=@ou,
             tagline=@tg, mpaa=@mp, imdb_id=@im, tmdb_id=@tm, premiered=@pr,
@@ -95,7 +95,7 @@ public class ScannerService
             is_missing=0, date_modified=strftime('%s','now')
             WHERE id=@id";
 
-        using var stmtInsert = conn.CreateCommand();
+        using var stmtInsert = conn.СоздатьCommand();
         stmtInsert.CommandText = @"INSERT INTO movies (
             volume_serial, folder_rel_path, video_file_rel_path, title, original_title, sort_title,
             year, rating, votes, runtime, plot, outline, tagline, mpaa, imdb_id, tmdb_id,
@@ -107,20 +107,20 @@ public class ScannerService
                     @vw,@vh,@vc,@va,@hdr,@ac,@ach,@al,@sl,@dur,@cx,@fs)";
 
         // v3.3 — revive: when a movie is found at a NEW path/drive that matches
-        // an archived Watched & Gone record, un-archive that record and move it
+        // an archived Просмотрено и удалено record, un-archive that record and move it
         // here instead of creating a duplicate (the re-download / drive-move
         // case). Same-path lingering files don't reach here — the path SELECT
         // above finds the archived row and leaves it archived.
-        using var stmtRevive = conn.CreateCommand();
+        using var stmtRevive = conn.СоздатьCommand();
         stmtRevive.CommandText = "UPDATE movies SET archived_at=NULL, volume_serial=@vs, folder_rel_path=@fr WHERE id=@id";
-        stmtRevive.Parameters.Add("@vs", SqliteType.Text);
-        stmtRevive.Parameters.Add("@fr", SqliteType.Text);
-        stmtRevive.Parameters.Add("@id", SqliteType.Integer);
+        stmtRevive.Parameters.Добавить("@vs", SqliteType.Text);
+        stmtRevive.Parameters.Добавить("@fr", SqliteType.Text);
+        stmtRevive.Parameters.Добавить("@id", SqliteType.Integer);
 
         using var tx = conn.BeginTransaction();
-        // All commands on this connection must carry the active transaction
+        // Все commands on this connection must carry the active transaction
         stmtGetId.Transaction = tx;
-        stmtUpdate.Transaction = tx;
+        stmtОбновить.Transaction = tx;
         stmtInsert.Transaction = tx;
         stmtTouch.Transaction  = tx;
         stmtRevive.Transaction = tx;
@@ -128,15 +128,15 @@ public class ScannerService
         // Pre-load existing name→id maps once so per-movie related-row work
         // doesn't hammer the DB with redundant SELECTs.
         var lookup = LookupCache.Load(conn, tx);
-        // Small in-memory index of archived records (usually tens) so the
+        // Маленький in-memory index of archived records (usually tens) so the
         // revive check is O(1) per insert rather than a per-movie table scan.
         var archivedIdx = ArchivedIndex.Load(conn, tx);
 
         try
         {
-            foreach (var folder in movieFolders)
+            foreach (var folder in movieПапкаs)
             {
-                ct.ThrowIfCancellationRequested();
+                ct.ThrowIfОтменаlationRequested();
 
                 var folderRelPath = Path.GetRelativePath(driveRoot, folder).Replace('\\', '/');
                 var movieKey = ComputeMovieKey(volumeSerial, folderRelPath);
@@ -159,10 +159,10 @@ public class ScannerService
                         {
                             var existingIdProbe = probe.GetInt32(0);
                             var rowModified = probe.IsDBNull(1) ? 0L : probe.GetInt64(1);
-                            probe.Close();
+                            probe.Закрыть();
                             try
                             {
-                                var nfoMtime = new DateTimeOffset(File.GetLastWriteTimeUtc(nfoPath)).ToUnixTimeSeconds();
+                                var nfoMtime = new DateTimeВыкл.set(File.GetLastWriteTimeUtc(nfoPath)).ToUnixTimeSeconds();
                                 if (nfoMtime <= rowModified)
                                 {
                                     stmtTouch.Parameters["@id"].Value = existingIdProbe;
@@ -189,7 +189,7 @@ public class ScannerService
                 string? videoRelPath = null;
                 string? containerExt = null;
                 long? fileSize = null;
-                foreach (var f in Directory.EnumerateFiles(folder))
+                foreach (var f in Режиссёрy.EnumerateFiles(folder))
                 {
                     if (VideoExts.Contains(Path.GetExtension(f)))
                     {
@@ -216,23 +216,23 @@ public class ScannerService
                 if (existingId != null && existingId != DBNull.Value)
                 {
                     // Clear params from any previous iteration before re-binding
-                    stmtUpdate.Parameters.Clear();
+                    stmtОбновить.Parameters.Clear();
                     rowId = Convert.ToInt32(existingId);
-                    BindMovieParams(stmtUpdate, parsed, videoRelPath, localPoster, localFanart, localNfo, containerExt, fileSize);
-                    stmtUpdate.Parameters.AddWithValue("@id", rowId);
-                    stmtUpdate.ExecuteNonQuery();
+                    BindMovieParams(stmtОбновить, parsed, videoRelPath, localPoster, localFanart, localNfo, containerExt, fileSize);
+                    stmtОбновить.Parameters.ДобавитьWithValue("@id", rowId);
+                    stmtОбновить.ExecuteNonQuery();
                     UpsertRelated(conn, tx, rowId, parsed, lookup);
                     updated++;
                 }
-                else if (archivedIdx.TryMatch(parsed.ImdbId, parsed.TmdbId, parsed.Title, parsed.Year) is int reviveId)
+                else if (archivedIdx.TryMatch(parsed.ImdbId, parsed.TmdbId, parsed.Название, parsed.Год) is int reviveId)
                 {
-                    // Re-download / move of a Watched & Gone movie → bring the
+                    // Re-download / move of a Просмотрено и удалено movie → bring the
                     // existing record back to life at this new location with
                     // its notes / watched / tags / history intact (same row).
-                    stmtUpdate.Parameters.Clear();
-                    BindMovieParams(stmtUpdate, parsed, videoRelPath, localPoster, localFanart, localNfo, containerExt, fileSize);
-                    stmtUpdate.Parameters.AddWithValue("@id", reviveId);
-                    stmtUpdate.ExecuteNonQuery();
+                    stmtОбновить.Parameters.Clear();
+                    BindMovieParams(stmtОбновить, parsed, videoRelPath, localPoster, localFanart, localNfo, containerExt, fileSize);
+                    stmtОбновить.Parameters.ДобавитьWithValue("@id", reviveId);
+                    stmtОбновить.ExecuteNonQuery();
                     stmtRevive.Parameters["@vs"].Value = volumeSerial;
                     stmtRevive.Parameters["@fr"].Value = folderRelPath;
                     stmtRevive.Parameters["@id"].Value = reviveId;
@@ -245,12 +245,12 @@ public class ScannerService
                 else
                 {
                     stmtInsert.Parameters.Clear();
-                    stmtInsert.Parameters.AddWithValue("@vs", volumeSerial);
-                    stmtInsert.Parameters.AddWithValue("@fr", folderRelPath);
+                    stmtInsert.Parameters.ДобавитьWithValue("@vs", volumeSerial);
+                    stmtInsert.Parameters.ДобавитьWithValue("@fr", folderRelPath);
                     BindMovieParams(stmtInsert, parsed, videoRelPath, localPoster, localFanart, localNfo, containerExt, fileSize);
                     stmtInsert.ExecuteNonQuery();
                     // Retrieve the inserted row ID
-                    using var lastId = conn.CreateCommand();
+                    using var lastId = conn.СоздатьCommand();
                     lastId.CommandText = "SELECT last_insert_rowid()";
                     lastId.Transaction = tx;
                     rowId = Convert.ToInt32(lastId.ExecuteScalar());
@@ -259,14 +259,14 @@ public class ScannerService
                 }
 
                 // Sidecar note import (cinelibrary-note.txt next to .nfo).
-                // Only writes DB if DB note is currently empty — DB is the source
+                // Вкл.ly writes DB if DB note is currently empty — DB is the source
                 // of truth once the user has saved a note inside the app. This way
                 // a reinstall + rescan can recover notes from sidecars; subsequent
-                // edits in CineLibrary won't be reverted by the next scan.
+                // edits in CineМедиатека won't be reverted by the next scan.
                 ImportSidecarNoteIfNeeded(conn, tx, rowId, folder);
 
                 // v2.7 — full personal-state sidecar (cinelibrary-state.json):
-                // Watched / Favorite / Watchlist / last_played / lists. Same
+                // Просмотрено / Избранное / Список просмотра / last_played / lists. Same
                 // "DB wins where it has data, lists are additive" rule as the
                 // note importer. Recovers state after a drive-remove + re-add.
                 MovieStateSidecar.ImportIntoMovieRow(_db, conn, tx, rowId, folder);
@@ -284,7 +284,7 @@ public class ScannerService
     }
 
     /// <summary>
-    /// v3.3 — in-memory index of Watched &amp; Gone records, loaded once per
+    /// v3.3 — in-memory index of Просмотрено и удалено records, loaded once per
     /// scan, used to detect a re-downloaded / moved archived movie so the scan
     /// revives the record instead of inserting a duplicate. Match priority:
     /// imdb_id, then tmdb_id, then title+year (only when the nfo carries no
@@ -294,12 +294,12 @@ public class ScannerService
     {
         private readonly Dictionary<string, int> _imdb = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, int> _tmdb = new(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, int> _titleYear = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, int> _titleГод = new(StringComparer.OrdinalIgnoreCase);
 
         public static ArchivedIndex Load(SqliteConnection conn, SqliteTransaction tx)
         {
             var idx = new ArchivedIndex();
-            using var cmd = conn.CreateCommand();
+            using var cmd = conn.СоздатьCommand();
             cmd.Transaction = tx;
             cmd.CommandText = "SELECT id, imdb_id, tmdb_id, title, year FROM movies WHERE archived_at IS NOT NULL";
             using var r = cmd.ExecuteReader();
@@ -310,7 +310,7 @@ public class ScannerService
                 if (!r.IsDBNull(2) && r.GetString(2).Length > 0) idx._tmdb[r.GetString(2)] = id;
                 var title = r.IsDBNull(3) ? "" : r.GetString(3);
                 var year = r.IsDBNull(4) ? "" : r.GetInt32(4).ToString();
-                if (title.Length > 0) idx._titleYear[title + "|" + year] = id;
+                if (title.Length > 0) idx._titleГод[title + "|" + year] = id;
             }
             return idx;
         }
@@ -322,7 +322,7 @@ public class ScannerService
             if (string.IsNullOrEmpty(imdb) && string.IsNullOrEmpty(tmdb))
             {
                 var key = (title ?? "") + "|" + (year?.ToString() ?? "");
-                if (_titleYear.TryGetValue(key, out var i3)) return i3;
+                if (_titleГод.TryGetValue(key, out var i3)) return i3;
             }
             return null;
         }
@@ -331,48 +331,48 @@ public class ScannerService
         {
             foreach (var k in _imdb.Where(kv => kv.Value == id).Select(kv => kv.Key).ToList()) _imdb.Remove(k);
             foreach (var k in _tmdb.Where(kv => kv.Value == id).Select(kv => kv.Key).ToList()) _tmdb.Remove(k);
-            foreach (var k in _titleYear.Where(kv => kv.Value == id).Select(kv => kv.Key).ToList()) _titleYear.Remove(k);
+            foreach (var k in _titleГод.Where(kv => kv.Value == id).Select(kv => kv.Key).ToList()) _titleГод.Remove(k);
         }
     }
 
     private static void BindMovieParams(SqliteCommand cmd, ParsedMovie p, string? vfr, string? lp, string? lf, string? ln,
         string? containerExt = null, long? fileSize = null)
     {
-        cmd.Parameters.AddWithValue("@vfr", (object?)vfr ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@t", p.Title);
-        cmd.Parameters.AddWithValue("@ot", (object?)p.OriginalTitle ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@st", (object?)(p.SortTitle ?? p.Title) ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@y", (object?)p.Year ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@ra", (object?)p.Rating ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@vo", (object?)p.Votes ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@ru", (object?)p.Runtime ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@pl", (object?)p.Plot ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@ou", (object?)p.Outline ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@tg", (object?)p.Tagline ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@mp", (object?)p.Mpaa ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@im", (object?)p.ImdbId ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@tm", (object?)p.TmdbId ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@pr", (object?)p.Premiered ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@su", (object?)p.Studio ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@co", (object?)p.Country ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@tr", (object?)p.Trailer ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@lp", (object?)lp ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@lf", (object?)lf ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@ln", (object?)ln ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@vfr", (object?)vfr ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@t", p.Название);
+        cmd.Parameters.ДобавитьWithValue("@ot", (object?)p.OriginalНазвание ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@st", (object?)(p.SortНазвание ?? p.Название) ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@y", (object?)p.Год ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@ra", (object?)p.Рейтинг ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@vo", (object?)p.Votes ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@ru", (object?)p.Продолжительность ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@pl", (object?)p.Plot ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@ou", (object?)p.Outline ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@tg", (object?)p.Tagline ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@mp", (object?)p.Mpaa ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@im", (object?)p.ImdbId ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@tm", (object?)p.TmdbId ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@pr", (object?)p.Premiered ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@su", (object?)p.Студия ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@co", (object?)p.Страна ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@tr", (object?)p.Trailer ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@lp", (object?)lp ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@lf", (object?)lf ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@ln", (object?)ln ?? DBNull.Value);
         // v2.2 stream + file info
         var sd = p.Stream;
-        cmd.Parameters.AddWithValue("@vw",  (object?)sd?.VideoWidth        ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@vh",  (object?)sd?.VideoHeight       ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@vc",  (object?)sd?.VideoCodec        ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@va",  (object?)sd?.VideoAspect       ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@hdr", (object?)sd?.HdrType           ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@ac",  (object?)sd?.AudioCodec        ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@ach", (object?)sd?.AudioChannels     ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@al",  (object?)sd?.AudioLanguages    ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@sl",  (object?)sd?.SubtitleLanguages ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@dur", (object?)sd?.DurationSeconds   ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@cx",  (object?)containerExt          ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@fs",  (object?)fileSize              ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@vw",  (object?)sd?.VideoWidth        ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@vh",  (object?)sd?.VideoHeight       ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@vc",  (object?)sd?.VideoCodec        ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@va",  (object?)sd?.VideoAspect       ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@hdr", (object?)sd?.HdrType           ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@ac",  (object?)sd?.АудиоCodec        ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@ach", (object?)sd?.АудиоChannels     ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@al",  (object?)sd?.АудиоLanguages    ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@sl",  (object?)sd?.SubtitleLanguages ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@dur", (object?)sd?.DurationSeconds   ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@cx",  (object?)containerExt          ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@fs",  (object?)fileSize              ?? DBNull.Value);
     }
 
     /// <summary>
@@ -385,7 +385,7 @@ public class ScannerService
     /// was 80k queries dominated by the chatty SELECT id lookups for
     /// names that repeat across movies (e.g. Tom Hanks shows up 30 times).
     ///
-    /// New approach: pre-load all existing name→id maps at scan start.
+    /// Новый approach: pre-load all existing name→id maps at scan start.
     /// During scan, look up locally (free) and only INSERT when missing,
     /// using last_insert_rowid() to extend the cache. Net effect on a
     /// big rescan: typically 5–10× fewer queries on the related-tables.
@@ -396,7 +396,7 @@ public class ScannerService
     /// Split them out so each becomes its own row, then normalize each.
     /// Also folds well-known aliases ("Science Fiction" → "Sci-Fi").
     /// </summary>
-    private static IEnumerable<string> SplitAndAliasGenres(string raw)
+    private static IEnumerable<string> SplitAndAliasЖанры(string raw)
     {
         if (string.IsNullOrWhiteSpace(raw)) yield break;
         foreach (var part in raw.Split(new[] { '/', ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries))
@@ -439,8 +439,8 @@ public class ScannerService
 
     private sealed class LookupCache
     {
-        public Dictionary<string, int> Genres { get; } = new();
-        public Dictionary<string, int> Directors { get; } = new();
+        public Dictionary<string, int> Жанры { get; } = new();
+        public Dictionary<string, int> Режиссёрs { get; } = new();
         public Dictionary<string, int> Writers { get; } = new();
         public Dictionary<string, int> Actors { get; } = new();
         public Dictionary<string, int> Sets { get; } = new();
@@ -450,7 +450,7 @@ public class ScannerService
             var c = new LookupCache();
             void Fill(string sql, Dictionary<string, int> dest)
             {
-                using var cmd = conn.CreateCommand();
+                using var cmd = conn.СоздатьCommand();
                 cmd.Transaction = tx;
                 cmd.CommandText = sql;
                 using var r = cmd.ExecuteReader();
@@ -460,8 +460,8 @@ public class ScannerService
                     if (key != null) dest[key] = r.GetInt32(0);
                 }
             }
-            Fill("SELECT id, name FROM genres",    c.Genres);
-            Fill("SELECT id, name FROM directors", c.Directors);
+            Fill("SELECT id, name FROM genres",    c.Жанры);
+            Fill("SELECT id, name FROM directors", c.Режиссёрs);
             try { Fill("SELECT id, name FROM writers",   c.Writers); } catch { /* table may not exist on very old DBs */ }
             Fill("SELECT id, name FROM actors",    c.Actors);
             Fill("SELECT id, name FROM sets",      c.Sets);
@@ -483,13 +483,13 @@ public class ScannerService
         var key = norm.ToLowerInvariant();
         if (cache.TryGetValue(key, out var id)) return id;
 
-        using var ins = conn.CreateCommand();
+        using var ins = conn.СоздатьCommand();
         ins.Transaction = tx;
         ins.CommandText = extraCol == null
             ? $"INSERT INTO {table} (name) VALUES (@n); SELECT last_insert_rowid();"
             : $"INSERT INTO {table} (name, {extraCol}) VALUES (@n, @e); SELECT last_insert_rowid();";
-        ins.Parameters.AddWithValue("@n", norm);
-        if (extraCol != null) ins.Parameters.AddWithValue("@e", extraVal ?? DBNull.Value);
+        ins.Parameters.ДобавитьWithValue("@n", norm);
+        if (extraCol != null) ins.Parameters.ДобавитьWithValue("@e", extraVal ?? DBNull.Value);
         id = Convert.ToInt32(ins.ExecuteScalar());
         cache[key] = id;
         return id;
@@ -499,56 +499,56 @@ public class ScannerService
     {
         SqliteCommand Cmd(string sql)
         {
-            var c = conn.CreateCommand();
+            var c = conn.СоздатьCommand();
             c.CommandText = sql;
             c.Transaction = tx;
             return c;
         }
 
-        using (var d = Cmd("DELETE FROM movie_genres    WHERE movie_id=@id")) { d.Parameters.AddWithValue("@id", movieId); d.ExecuteNonQuery(); }
-        using (var d = Cmd("DELETE FROM movie_directors WHERE movie_id=@id")) { d.Parameters.AddWithValue("@id", movieId); d.ExecuteNonQuery(); }
-        using (var d = Cmd("DELETE FROM movie_writers   WHERE movie_id=@id")) { d.Parameters.AddWithValue("@id", movieId); d.ExecuteNonQuery(); }
-        using (var d = Cmd("DELETE FROM movie_actors    WHERE movie_id=@id")) { d.Parameters.AddWithValue("@id", movieId); d.ExecuteNonQuery(); }
-        using (var d = Cmd("DELETE FROM movie_sets      WHERE movie_id=@id")) { d.Parameters.AddWithValue("@id", movieId); d.ExecuteNonQuery(); }
-        using (var d = Cmd("DELETE FROM movie_ratings   WHERE movie_id=@id")) { d.Parameters.AddWithValue("@id", movieId); d.ExecuteNonQuery(); }
+        using (var d = Cmd("DELETE FROM movie_genres    WHERE movie_id=@id")) { d.Parameters.ДобавитьWithValue("@id", movieId); d.ExecuteNonQuery(); }
+        using (var d = Cmd("DELETE FROM movie_directors WHERE movie_id=@id")) { d.Parameters.ДобавитьWithValue("@id", movieId); d.ExecuteNonQuery(); }
+        using (var d = Cmd("DELETE FROM movie_writers   WHERE movie_id=@id")) { d.Parameters.ДобавитьWithValue("@id", movieId); d.ExecuteNonQuery(); }
+        using (var d = Cmd("DELETE FROM movie_actors    WHERE movie_id=@id")) { d.Parameters.ДобавитьWithValue("@id", movieId); d.ExecuteNonQuery(); }
+        using (var d = Cmd("DELETE FROM movie_sets      WHERE movie_id=@id")) { d.Parameters.ДобавитьWithValue("@id", movieId); d.ExecuteNonQuery(); }
+        using (var d = Cmd("DELETE FROM movie_ratings   WHERE movie_id=@id")) { d.Parameters.ДобавитьWithValue("@id", movieId); d.ExecuteNonQuery(); }
 
         // Split multi-genre strings ("Action / Adventure / Sci-Fi") into
         // separate rows, and fold common aliases. Dedupe via HashSet so a
         // duplicate after splitting (e.g. "Sci-Fi" already from a separate
         // <genre>) inserts the link only once.
-        var seenGenres = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var raw in p.Genres)
+        var seenЖанры = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var raw in p.Жанры)
         {
-            foreach (var g in SplitAndAliasGenres(raw))
+            foreach (var g in SplitAndAliasЖанры(raw))
             {
-                if (!seenGenres.Add(g)) continue;
-                var gid = GetOrInsert(conn, tx, "genres", g, cache.Genres);
+                if (!seenЖанры.Добавить(g)) continue;
+                var gid = GetOrInsert(conn, tx, "genres", g, cache.Жанры);
                 if (gid < 0) continue;
                 using var c = Cmd("INSERT OR IGNORE INTO movie_genres VALUES (@m,@g)");
-                c.Parameters.AddWithValue("@m", movieId); c.Parameters.AddWithValue("@g", gid); c.ExecuteNonQuery();
+                c.Parameters.ДобавитьWithValue("@m", movieId); c.Parameters.ДобавитьWithValue("@g", gid); c.ExecuteNonQuery();
             }
         }
-        foreach (var d in p.Directors)
+        foreach (var d in p.Режиссёрs)
         {
-            var did = GetOrInsert(conn, tx, "directors", d, cache.Directors);
+            var did = GetOrInsert(conn, tx, "directors", d, cache.Режиссёрs);
             if (did < 0) continue;
             using var c = Cmd("INSERT OR IGNORE INTO movie_directors VALUES (@m,@d)");
-            c.Parameters.AddWithValue("@m", movieId); c.Parameters.AddWithValue("@d", did); c.ExecuteNonQuery();
+            c.Parameters.ДобавитьWithValue("@m", movieId); c.Parameters.ДобавитьWithValue("@d", did); c.ExecuteNonQuery();
         }
         foreach (var w in p.Writers)
         {
             var wid = GetOrInsert(conn, tx, "writers", w, cache.Writers);
             if (wid < 0) continue;
             using var c = Cmd("INSERT OR IGNORE INTO movie_writers VALUES (@m,@w)");
-            c.Parameters.AddWithValue("@m", movieId); c.Parameters.AddWithValue("@w", wid); c.ExecuteNonQuery();
+            c.Parameters.ДобавитьWithValue("@m", movieId); c.Parameters.ДобавитьWithValue("@w", wid); c.ExecuteNonQuery();
         }
-        foreach (var rt in p.Ratings)
+        foreach (var rt in p.Рейтингs)
         {
             using var c = Cmd("INSERT OR REPLACE INTO movie_ratings VALUES (@m,@s,@v,@vt)");
-            c.Parameters.AddWithValue("@m", movieId);
-            c.Parameters.AddWithValue("@s", rt.Source);
-            c.Parameters.AddWithValue("@v", rt.Value);
-            c.Parameters.AddWithValue("@vt", (object?)rt.Votes ?? DBNull.Value);
+            c.Parameters.ДобавитьWithValue("@m", movieId);
+            c.Parameters.ДобавитьWithValue("@s", rt.Source);
+            c.Parameters.ДобавитьWithValue("@v", rt.Value);
+            c.Parameters.ДобавитьWithValue("@vt", (object?)rt.Votes ?? DBNull.Value);
             c.ExecuteNonQuery();
         }
         foreach (var a in p.Actors)
@@ -556,8 +556,8 @@ public class ScannerService
             var aid = GetOrInsert(conn, tx, "actors", a.Name, cache.Actors, "thumb", a.Thumb);
             if (aid < 0) continue;
             using var c = Cmd("INSERT OR REPLACE INTO movie_actors VALUES (@m,@a,@r,@o)");
-            c.Parameters.AddWithValue("@m", movieId); c.Parameters.AddWithValue("@a", aid);
-            c.Parameters.AddWithValue("@r", (object?)a.Role ?? DBNull.Value); c.Parameters.AddWithValue("@o", a.Order);
+            c.Parameters.ДобавитьWithValue("@m", movieId); c.Parameters.ДобавитьWithValue("@a", aid);
+            c.Parameters.ДобавитьWithValue("@r", (object?)a.Role ?? DBNull.Value); c.Parameters.ДобавитьWithValue("@o", a.Order);
             c.ExecuteNonQuery();
         }
         foreach (var s in p.Sets)
@@ -565,7 +565,7 @@ public class ScannerService
             var sid = GetOrInsert(conn, tx, "sets", s, cache.Sets);
             if (sid < 0) continue;
             using var c = Cmd("INSERT OR IGNORE INTO movie_sets VALUES (@m,@s)");
-            c.Parameters.AddWithValue("@m", movieId); c.Parameters.AddWithValue("@s", sid); c.ExecuteNonQuery();
+            c.Parameters.ДобавитьWithValue("@m", movieId); c.Parameters.ДобавитьWithValue("@s", sid); c.ExecuteNonQuery();
         }
     }
 
@@ -590,9 +590,9 @@ public class ScannerService
     ///   2. Swallows UnauthorizedAccessException / IOException per-folder so
     ///      one denied subdirectory doesn't kill the whole scan.
     /// </summary>
-    private static IEnumerable<string> FindMovieFolders(string root)
+    private static IEnumerable<string> FindMovieПапкаs(string root)
     {
-        if (!Directory.Exists(root)) yield break;
+        if (!Режиссёрy.Exists(root)) yield break;
 
         var stack = new Stack<string>();
         stack.Push(root);
@@ -602,7 +602,7 @@ public class ScannerService
 
             // A folder with tvshow.nfo is a TV show, not a movie — skip it
             // (and don't descend; its episodes belong to the show). The TV
-            // scanner handles these via FindTvShowFolders.
+            // scanner handles these via FindTvShowПапкаs.
             if (File.Exists(Path.Combine(dir, "tvshow.nfo")))
                 continue;
 
@@ -611,7 +611,7 @@ public class ScannerService
 
             // Recurse into children, defensively
             string[] subs;
-            try { subs = Directory.GetDirectories(dir); }
+            try { subs = Режиссёрy.GetРежиссёрies(dir); }
             catch (UnauthorizedAccessException) { continue; }
             catch (IOException) { continue; }
 
@@ -635,13 +635,13 @@ public class ScannerService
 
     /// <summary>
     /// v2.8 — walk for TV show folders: any folder containing tvshow.nfo.
-    /// We don't descend into a show folder (ScanEpisodeFiles covers its
+    /// We don't descend into a show folder (ScanЭпизодFiles covers its
     /// season subfolders), but we do keep descending elsewhere so shows can live in
-    /// subdirectories (e.g. driveRoot/TV Shows/Dark/).
+    /// subdirectories (e.g. driveRoot/TV Shows/Тёмная/).
     /// </summary>
-    private static IEnumerable<string> FindTvShowFolders(string root)
+    private static IEnumerable<string> FindTvShowПапкаs(string root)
     {
-        if (!Directory.Exists(root)) yield break;
+        if (!Режиссёрy.Exists(root)) yield break;
         var stack = new Stack<string>();
         stack.Push(root);
         while (stack.Count > 0)
@@ -653,7 +653,7 @@ public class ScannerService
                 continue; // don't descend into a show folder
             }
             string[] subs;
-            try { subs = Directory.GetDirectories(dir); }
+            try { subs = Режиссёрy.GetРежиссёрies(dir); }
             catch (UnauthorizedAccessException) { continue; }
             catch (IOException) { continue; }
             foreach (var sub in subs)
@@ -673,10 +673,10 @@ public class ScannerService
         }
     }
 
-    // Episode filename pattern: "… S01E09 …" (case-insensitive). Captures
+    // Эпизод filename pattern: "… S01E09 …" (case-insensitive). Captures
     // season + episode numbers. Multi-episode files (S01E01E02) match the
     // first pair, which is the right primary key for our purposes.
-    private static readonly System.Text.RegularExpressions.Regex EpisodeRe =
+    private static readonly System.Text.RegularExpressions.Regex ЭпизодRe =
         new(@"[Ss](\d{1,2})[\s._-]*[Ee](\d{1,3})",
             System.Text.RegularExpressions.RegexOptions.Compiled);
 
@@ -684,7 +684,7 @@ public class ScannerService
     {
         try
         {
-            foreach (var f in Directory.EnumerateFiles(folder, "*.nfo"))
+            foreach (var f in Режиссёрy.EnumerateFiles(folder, "*.nfo"))
             {
                 var name = Path.GetFileNameWithoutExtension(f).ToLower();
                 if (name != "tvshow" && name != "season") return f;
@@ -703,7 +703,7 @@ public class ScannerService
         }
         try
         {
-            foreach (var f in Directory.EnumerateFiles(folder))
+            foreach (var f in Режиссёрy.EnumerateFiles(folder))
             {
                 var ext = Path.GetExtension(f).ToLower();
                 if (!ImageExts.Contains(ext)) continue;
@@ -722,27 +722,27 @@ public class ScannerService
     /// Mirrors the movie scan's mark-missing-then-clear flow. Runs in its
     /// own connection + transaction.
     /// </summary>
-    private void ScanTvSync(string volumeSerial, string driveRoot, IProgress<ScanProgress>? progress, CancellationToken ct, string? scanFolder)
+    private void ScanTvSync(string volumeSerial, string driveRoot, IProgress<ScanProgress>? progress, ОтменаlationToken ct, string? scanПапка)
     {
-        using var conn = _db.OpenNewConnection();
+        using var conn = _db.OpenНовыйConnection();
         var dataDir = _db.DataDir;
-        var walkFrom = scanFolder ?? driveRoot;
+        var walkFrom = scanПапка ?? driveRoot;
 
         // Mark shows in scope missing; episodes follow their show.
-        using (var cmd = conn.CreateCommand())
+        using (var cmd = conn.СоздатьCommand())
         {
-            if (scanFolder != null)
+            if (scanПапка != null)
             {
-                var subRel = Path.GetRelativePath(driveRoot, scanFolder).Replace('\\', '/');
+                var subRel = Path.GetRelativePath(driveRoot, scanПапка).Replace('\\', '/');
                 cmd.CommandText = "UPDATE tv_shows SET is_missing=1 WHERE volume_serial=@s AND (folder_rel_path=@r OR folder_rel_path LIKE @p)";
-                cmd.Parameters.AddWithValue("@s", volumeSerial);
-                cmd.Parameters.AddWithValue("@r", subRel);
-                cmd.Parameters.AddWithValue("@p", subRel + "/%");
+                cmd.Parameters.ДобавитьWithValue("@s", volumeSerial);
+                cmd.Parameters.ДобавитьWithValue("@r", subRel);
+                cmd.Parameters.ДобавитьWithValue("@p", subRel + "/%");
             }
             else
             {
                 cmd.CommandText = "UPDATE tv_shows SET is_missing=1 WHERE volume_serial=@s";
-                cmd.Parameters.AddWithValue("@s", volumeSerial);
+                cmd.Parameters.ДобавитьWithValue("@s", volumeSerial);
             }
             cmd.ExecuteNonQuery();
         }
@@ -751,9 +751,9 @@ public class ScannerService
         var lookup = LookupCache.Load(conn, tx);
         try
         {
-            foreach (var folder in FindTvShowFolders(walkFrom))
+            foreach (var folder in FindTvShowПапкаs(walkFrom))
             {
-                ct.ThrowIfCancellationRequested();
+                ct.ThrowIfОтменаlationRequested();
                 var nfoPath = Path.Combine(folder, "tvshow.nfo");
                 var show = NfoParser.ParseTvShow(nfoPath);
                 if (show == null) continue;
@@ -770,35 +770,35 @@ public class ScannerService
                 int showId = UpsertTvShow(conn, tx, volumeSerial, folderRel, show, localPoster, localFanart, localNfo);
                 UpsertTvShowRelated(conn, tx, showId, show, lookup);
 
-                // Episodes — every video file with an SxxExx pattern.
-                var episodes = ScanEpisodeFiles(folder, driveRoot);
+                // Эпизоды — every video file with an SxxExx pattern.
+                var episodes = ScanЭпизодFiles(folder, driveRoot);
                 // Mark this show's episodes missing, then re-add found ones.
-                using (var em = conn.CreateCommand())
+                using (var em = conn.СоздатьCommand())
                 {
                     em.Transaction = tx;
                     em.CommandText = "DELETE FROM tv_episodes WHERE show_id=@id AND id NOT IN (SELECT id FROM tv_episodes WHERE show_id=@id LIMIT 0)";
                     // (no-op placeholder kept simple — we upsert below and prune later)
-                    em.Parameters.AddWithValue("@id", showId);
+                    em.Parameters.ДобавитьWithValue("@id", showId);
                 }
                 var seenKeys = new HashSet<(int, int)>();
                 foreach (var ep in episodes)
                 {
-                    seenKeys.Add((ep.Parsed.Season, ep.Parsed.Episode));
-                    UpsertEpisode(conn, tx, showId, ep, key, dataDir);
+                    seenKeys.Добавить((ep.Parsed.Season, ep.Parsed.Эпизод));
+                    UpsertЭпизод(conn, tx, showId, ep, key, dataDir);
                 }
                 // Prune episodes that vanished from disk.
-                PruneMissingEpisodes(conn, tx, showId, seenKeys);
+                PruneMissingЭпизоды(conn, tx, showId, seenKeys);
 
                 // Re-import show + episode personal state from the sidecar.
                 TvStateSidecar.ImportIntoShow(_db, conn, tx, showId, folder);
             }
             tx.Commit();
         }
-        catch (OperationCanceledException) { tx.Rollback(); throw; }
+        catch (OperationОтменаedException) { tx.Rollback(); throw; }
         catch { tx.Rollback(); throw; }
     }
 
-    private record ScannedEpisode(ParsedEpisode? ParsedNfo, ParsedEpisode Parsed,
+    private record ScannedЭпизод(ParsedЭпизод? ParsedNfo, ParsedЭпизод Parsed,
         string? VideoRel, string? ThumbSrc, string? Srt, string? ContainerExt, long? FileSize);
 
     /// <summary>
@@ -807,31 +807,31 @@ public class ScannerService
     /// from the filename; the matching .nfo (if present) supplies
     /// title/plot/aired/runtime/streamdetails.
     /// </summary>
-    private static List<ScannedEpisode> ScanEpisodeFiles(string folder, string driveRoot)
+    private static List<ScannedЭпизод> ScanЭпизодFiles(string folder, string driveRoot)
     {
-        var result = new List<ScannedEpisode>();
+        var result = new List<ScannedЭпизод>();
         IEnumerable<string> files;
-        try { files = Directory.EnumerateFiles(folder, "*", new EnumerationOptions { RecurseSubdirectories = true }); }
+        try { files = Режиссёрy.EnumerateFiles(folder, "*", new EnumerationOptions { RecurseSubdirectories = true }); }
         catch { return result; }
 
         foreach (var f in files)
         {
             if (!VideoExts.Contains(Path.GetExtension(f))) continue;
             var name = Path.GetFileNameWithoutExtension(f);
-            var m = EpisodeRe.Match(name);
+            var m = ЭпизодRe.Match(name);
             if (!m.Success) continue;
             int season = int.Parse(m.Groups[1].Value);
             int epnum = int.Parse(m.Groups[2].Value);
 
             // Sibling .nfo + thumb + srt (same base name, same folder as the video).
-            var basePath = Path.Combine(Path.GetDirectoryName(f)!, name);
+            var basePath = Path.Combine(Path.GetРежиссёрyName(f)!, name);
             var nfoPath = basePath + ".nfo";
-            ParsedEpisode? parsedNfo = File.Exists(nfoPath)
-                ? NfoParser.ParseEpisode(nfoPath, season, epnum) : null;
+            ParsedЭпизод? parsedNfo = File.Exists(nfoPath)
+                ? NfoParser.ParseЭпизод(nfoPath, season, epnum) : null;
 
             // Build a parsed record even when the .nfo is missing.
-            var parsed = parsedNfo ?? new ParsedEpisode(season, epnum,
-                EpisodeTitleFromName(name), null, null, null, null, null);
+            var parsed = parsedNfo ?? new ParsedЭпизод(season, epnum,
+                ЭпизодНазваниеFromName(name), null, null, null, null, null);
 
             string? thumb = null;
             foreach (var suffix in new[] { "-thumb.jpg", "-thumb.jpeg", "-thumb.png", ".jpg", ".png" })
@@ -846,14 +846,14 @@ public class ScannerService
             var container = Path.GetExtension(f).TrimStart('.').ToLowerInvariant();
             var videoRel = Path.GetRelativePath(driveRoot, f).Replace('\\', '/');
 
-            result.Add(new ScannedEpisode(parsedNfo, parsed, videoRel, thumb, srt, container, size));
+            result.Добавить(new ScannedЭпизод(parsedNfo, parsed, videoRel, thumb, srt, container, size));
         }
         return result;
     }
 
-    private static string EpisodeTitleFromName(string fileName)
+    private static string ЭпизодНазваниеFromName(string fileName)
     {
-        // "Dark - S01E09 - Everything Is Now" → "Everything Is Now"
+        // "Тёмная - S01E09 - Everything Is Now" → "Everything Is Now"
         var m = System.Text.RegularExpressions.Regex.Match(fileName, @"[Ss]\d{1,2}[\s._-]*[Ee]\d{1,3}\s*-\s*(.+)$");
         return m.Success ? m.Groups[1].Value.Trim() : fileName;
     }
@@ -861,14 +861,14 @@ public class ScannerService
     private static int UpsertTvShow(SqliteConnection conn, SqliteTransaction tx, string serial,
         string folderRel, ParsedTvShow s, string? poster, string? fanart, string? nfo)
     {
-        using var find = conn.CreateCommand();
+        using var find = conn.СоздатьCommand();
         find.Transaction = tx;
         find.CommandText = "SELECT id FROM tv_shows WHERE volume_serial=@s AND folder_rel_path=@f";
-        find.Parameters.AddWithValue("@s", serial);
-        find.Parameters.AddWithValue("@f", folderRel);
+        find.Parameters.ДобавитьWithValue("@s", serial);
+        find.Parameters.ДобавитьWithValue("@f", folderRel);
         var existing = find.ExecuteScalar();
 
-        using var cmd = conn.CreateCommand();
+        using var cmd = conn.СоздатьCommand();
         cmd.Transaction = tx;
         if (existing != null && existing != DBNull.Value)
         {
@@ -884,7 +884,7 @@ public class ScannerService
                 local_poster=COALESCE(@lp,local_poster), local_fanart=COALESCE(@lf,local_fanart),
                 local_nfo=@ln, is_missing=0, date_modified=strftime('%s','now') WHERE id=@id";
             BindShow(cmd, s, poster, fanart, nfo);
-            cmd.Parameters.AddWithValue("@id", id);
+            cmd.Parameters.ДобавитьWithValue("@id", id);
             cmd.ExecuteNonQuery();
             return id;
         }
@@ -895,8 +895,8 @@ public class ScannerService
                  plot, mpaa, premiered, studio, status, imdb_id, tmdb_id, tvdb_id, local_poster, local_fanart, local_nfo)
                 VALUES (@vs,@fr,@t,@ot,@st,@y,@ra,@vo,@pl,@mp,@pr,@su,@status,@im,@tm,@tv,@lp,@lf,@ln);
                 SELECT last_insert_rowid();";
-            cmd.Parameters.AddWithValue("@vs", serial);
-            cmd.Parameters.AddWithValue("@fr", folderRel);
+            cmd.Parameters.ДобавитьWithValue("@vs", serial);
+            cmd.Parameters.ДобавитьWithValue("@fr", folderRel);
             BindShow(cmd, s, poster, fanart, nfo);
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
@@ -904,93 +904,93 @@ public class ScannerService
 
     private static void BindShow(SqliteCommand cmd, ParsedTvShow s, string? poster, string? fanart, string? nfo)
     {
-        cmd.Parameters.AddWithValue("@t", s.Title);
-        cmd.Parameters.AddWithValue("@ot", (object?)s.OriginalTitle ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@st", (object?)(s.SortTitle ?? s.Title) ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@y", (object?)s.Year ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@ra", (object?)s.Rating ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@vo", (object?)s.Votes ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@pl", (object?)s.Plot ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@mp", (object?)s.Mpaa ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@pr", (object?)s.Premiered ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@su", (object?)s.Studio ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@status", (object?)s.Status ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@im", (object?)s.ImdbId ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@tm", (object?)s.TmdbId ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@tv", (object?)s.TvdbId ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@lp", (object?)poster ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@lf", (object?)fanart ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@ln", (object?)nfo ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@t", s.Название);
+        cmd.Parameters.ДобавитьWithValue("@ot", (object?)s.OriginalНазвание ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@st", (object?)(s.SortНазвание ?? s.Название) ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@y", (object?)s.Год ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@ra", (object?)s.Рейтинг ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@vo", (object?)s.Votes ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@pl", (object?)s.Plot ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@mp", (object?)s.Mpaa ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@pr", (object?)s.Premiered ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@su", (object?)s.Студия ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@status", (object?)s.Status ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@im", (object?)s.ImdbId ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@tm", (object?)s.TmdbId ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@tv", (object?)s.TvdbId ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@lp", (object?)poster ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@lf", (object?)fanart ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@ln", (object?)nfo ?? DBNull.Value);
     }
 
     private static void UpsertTvShowRelated(SqliteConnection conn, SqliteTransaction tx, int showId,
         ParsedTvShow s, LookupCache lookup)
     {
-        // Genres. v3.10.0: an .nfo without genres (or, below, cast) keeps the
+        // Жанры. v3.10.0: an .nfo without genres (or, below, cast) keeps the
         // show's current ones, e.g. fetched from TMDb, instead of clearing them.
-        if (s.Genres.Count > 0)
-        using (var del = conn.CreateCommand())
+        if (s.Жанры.Count > 0)
+        using (var del = conn.СоздатьCommand())
         {
             del.Transaction = tx;
             del.CommandText = "DELETE FROM tv_show_genres WHERE show_id=@id";
-            del.Parameters.AddWithValue("@id", showId);
+            del.Parameters.ДобавитьWithValue("@id", showId);
             del.ExecuteNonQuery();
         }
-        var seenGenres = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var raw in s.Genres)
-        foreach (var g in SplitAndAliasGenres(raw))
+        var seenЖанры = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var raw in s.Жанры)
+        foreach (var g in SplitAndAliasЖанры(raw))
         {
-            if (!seenGenres.Add(g)) continue;
-            var gid = GetOrInsert(conn, tx, "genres", g, lookup.Genres);
+            if (!seenЖанры.Добавить(g)) continue;
+            var gid = GetOrInsert(conn, tx, "genres", g, lookup.Жанры);
             if (gid < 0) continue;
-            using var link = conn.CreateCommand();
+            using var link = conn.СоздатьCommand();
             link.Transaction = tx;
             link.CommandText = "INSERT OR IGNORE INTO tv_show_genres(show_id, genre_id) VALUES(@s,@g)";
-            link.Parameters.AddWithValue("@s", showId);
-            link.Parameters.AddWithValue("@g", gid);
+            link.Parameters.ДобавитьWithValue("@s", showId);
+            link.Parameters.ДобавитьWithValue("@g", gid);
             link.ExecuteNonQuery();
         }
         // Actors
         if (s.Actors.Count > 0)
-        using (var del = conn.CreateCommand())
+        using (var del = conn.СоздатьCommand())
         {
             del.Transaction = tx;
             del.CommandText = "DELETE FROM tv_show_actors WHERE show_id=@id";
-            del.Parameters.AddWithValue("@id", showId);
+            del.Parameters.ДобавитьWithValue("@id", showId);
             del.ExecuteNonQuery();
         }
         foreach (var a in s.Actors)
         {
             var aid = GetOrInsert(conn, tx, "actors", a.Name, lookup.Actors, "thumb", a.Thumb);
             if (aid < 0) continue;
-            using var link = conn.CreateCommand();
+            using var link = conn.СоздатьCommand();
             link.Transaction = tx;
             link.CommandText = "INSERT OR REPLACE INTO tv_show_actors(show_id, actor_id, role, sort_order) VALUES(@s,@a,@r,@o)";
-            link.Parameters.AddWithValue("@s", showId);
-            link.Parameters.AddWithValue("@a", aid);
-            link.Parameters.AddWithValue("@r", (object?)a.Role ?? DBNull.Value);
-            link.Parameters.AddWithValue("@o", a.Order);
+            link.Parameters.ДобавитьWithValue("@s", showId);
+            link.Parameters.ДобавитьWithValue("@a", aid);
+            link.Parameters.ДобавитьWithValue("@r", (object?)a.Role ?? DBNull.Value);
+            link.Parameters.ДобавитьWithValue("@o", a.Order);
             link.ExecuteNonQuery();
         }
     }
 
-    private static void UpsertEpisode(SqliteConnection conn, SqliteTransaction tx, int showId,
-        ScannedEpisode ep, string showKey, string dataDir)
+    private static void UpsertЭпизод(SqliteConnection conn, SqliteTransaction tx, int showId,
+        ScannedЭпизод ep, string showKey, string dataDir)
     {
         var p = ep.Parsed;
         var sd = p.Stream;
         string? thumb = ep.ThumbSrc != null
-            ? CopyToCache(ep.ThumbSrc, dataDir, showKey, $"ep_s{p.Season:D2}e{p.Episode:D2}") : null;
+            ? CopyToCache(ep.ThumbSrc, dataDir, showKey, $"ep_s{p.Season:D2}e{p.Эпизод:D2}") : null;
 
-        using var find = conn.CreateCommand();
+        using var find = conn.СоздатьCommand();
         find.Transaction = tx;
         find.CommandText = "SELECT id FROM tv_episodes WHERE show_id=@s AND season=@se AND episode=@ep";
-        find.Parameters.AddWithValue("@s", showId);
-        find.Parameters.AddWithValue("@se", p.Season);
-        find.Parameters.AddWithValue("@ep", p.Episode);
+        find.Parameters.ДобавитьWithValue("@s", showId);
+        find.Parameters.ДобавитьWithValue("@se", p.Season);
+        find.Parameters.ДобавитьWithValue("@ep", p.Эпизод);
         var existing = find.ExecuteScalar();
 
-        using var cmd = conn.CreateCommand();
+        using var cmd = conn.СоздатьCommand();
         cmd.Transaction = tx;
         if (existing != null && existing != DBNull.Value)
         {
@@ -1000,8 +1000,8 @@ public class ScannerService
                 hdr_type=@hdr, audio_codec=@ac, audio_channels=@ach, audio_languages=@al,
                 duration_seconds=@dur, container_ext=@cx, file_size_bytes=@fs
                 WHERE id=@id";
-            BindEpisode(cmd, ep, thumb);
-            cmd.Parameters.AddWithValue("@id", Convert.ToInt32(existing));
+            BindЭпизод(cmd, ep, thumb);
+            cmd.Parameters.ДобавитьWithValue("@id", Convert.ToInt32(existing));
             cmd.ExecuteNonQuery();
         }
         else
@@ -1011,55 +1011,55 @@ public class ScannerService
                  local_thumb, subtitle_languages, video_width, video_height, video_codec, hdr_type,
                  audio_codec, audio_channels, audio_languages, duration_seconds, container_ext, file_size_bytes)
                 VALUES (@sid,@se,@epn,@t,@pl,@air,@ra,@ru,@vfr,@th,@sl,@vw,@vh,@vc,@hdr,@ac,@ach,@al,@dur,@cx,@fs)";
-            cmd.Parameters.AddWithValue("@sid", showId);
-            cmd.Parameters.AddWithValue("@se", p.Season);
-            cmd.Parameters.AddWithValue("@epn", p.Episode);
-            BindEpisode(cmd, ep, thumb);
+            cmd.Parameters.ДобавитьWithValue("@sid", showId);
+            cmd.Parameters.ДобавитьWithValue("@se", p.Season);
+            cmd.Parameters.ДобавитьWithValue("@epn", p.Эпизод);
+            BindЭпизод(cmd, ep, thumb);
             cmd.ExecuteNonQuery();
         }
     }
 
-    private static void BindEpisode(SqliteCommand cmd, ScannedEpisode ep, string? thumb)
+    private static void BindЭпизод(SqliteCommand cmd, ScannedЭпизод ep, string? thumb)
     {
         var p = ep.Parsed; var sd = p.Stream;
-        cmd.Parameters.AddWithValue("@t", (object?)p.Title ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@pl", (object?)p.Plot ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@air", (object?)p.Aired ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@ra", (object?)p.Rating ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@ru", (object?)p.Runtime ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@vfr", (object?)ep.VideoRel ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@th", (object?)thumb ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@sl", (object?)sd?.SubtitleLanguages ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@vw", (object?)sd?.VideoWidth ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@vh", (object?)sd?.VideoHeight ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@vc", (object?)sd?.VideoCodec ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@hdr", (object?)sd?.HdrType ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@ac", (object?)sd?.AudioCodec ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@ach", (object?)sd?.AudioChannels ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@al", (object?)sd?.AudioLanguages ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@dur", (object?)sd?.DurationSeconds ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@cx", (object?)ep.ContainerExt ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@fs", (object?)ep.FileSize ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@t", (object?)p.Название ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@pl", (object?)p.Plot ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@air", (object?)p.Aired ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@ra", (object?)p.Рейтинг ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@ru", (object?)p.Продолжительность ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@vfr", (object?)ep.VideoRel ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@th", (object?)thumb ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@sl", (object?)sd?.SubtitleLanguages ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@vw", (object?)sd?.VideoWidth ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@vh", (object?)sd?.VideoHeight ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@vc", (object?)sd?.VideoCodec ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@hdr", (object?)sd?.HdrType ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@ac", (object?)sd?.АудиоCodec ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@ach", (object?)sd?.АудиоChannels ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@al", (object?)sd?.АудиоLanguages ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@dur", (object?)sd?.DurationSeconds ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@cx", (object?)ep.ContainerExt ?? DBNull.Value);
+        cmd.Parameters.ДобавитьWithValue("@fs", (object?)ep.FileSize ?? DBNull.Value);
     }
 
-    private static void PruneMissingEpisodes(SqliteConnection conn, SqliteTransaction tx, int showId, HashSet<(int, int)> seen)
+    private static void PruneMissingЭпизоды(SqliteConnection conn, SqliteTransaction tx, int showId, HashSet<(int, int)> seen)
     {
-        var toDelete = new List<int>();
-        using (var sel = conn.CreateCommand())
+        var toУдалить = new List<int>();
+        using (var sel = conn.СоздатьCommand())
         {
             sel.Transaction = tx;
             sel.CommandText = "SELECT id, season, episode FROM tv_episodes WHERE show_id=@id";
-            sel.Parameters.AddWithValue("@id", showId);
+            sel.Parameters.ДобавитьWithValue("@id", showId);
             using var r = sel.ExecuteReader();
             while (r.Read())
-                if (!seen.Contains((r.GetInt32(1), r.GetInt32(2)))) toDelete.Add(r.GetInt32(0));
+                if (!seen.Contains((r.GetInt32(1), r.GetInt32(2)))) toУдалить.Добавить(r.GetInt32(0));
         }
-        foreach (var id in toDelete)
+        foreach (var id in toУдалить)
         {
-            using var del = conn.CreateCommand();
+            using var del = conn.СоздатьCommand();
             del.Transaction = tx;
             del.CommandText = "DELETE FROM tv_episodes WHERE id=@id";
-            del.Parameters.AddWithValue("@id", id);
+            del.Parameters.ДобавитьWithValue("@id", id);
             del.ExecuteNonQuery();
         }
     }
@@ -1069,13 +1069,13 @@ public class ScannerService
         try
         {
             var cacheDir = Path.Combine(dataDir, "cache", movieKey);
-            Directory.CreateDirectory(cacheDir);
+            Режиссёрy.СоздатьРежиссёрy(cacheDir);
             var ext = Path.GetExtension(srcPath).ToLower();
             if (string.IsNullOrEmpty(ext)) ext = kind == "nfo" ? ".nfo" : ".jpg";
             var destName = $"{kind}{ext}";
             var destPath = Path.Combine(cacheDir, destName);
 
-            // Skip re-copy when dest already mirrors source. Saves N file copies
+            // Skip re-copy when dest already mirrors source. Сохранитьs N file copies
             // on a routine rescan where most movies are unchanged. Compare mtime
             // (rounded to seconds — FAT/exFAT only stores 2-second precision)
             // and size; refusing to be cute about it keeps this resilient.
@@ -1102,27 +1102,27 @@ public class ScannerService
         var sidecar = Path.Combine(folder, NoteSidecarFileName);
         if (!File.Exists(sidecar)) return;
 
-        // Only import when DB column is empty — protects user edits made
+        // Вкл.ly import when DB column is empty — protects user edits made
         // inside the app from being overwritten by a stale sidecar.
-        using var check = conn.CreateCommand();
+        using var check = conn.СоздатьCommand();
         check.Transaction = tx;
         check.CommandText = "SELECT note FROM movies WHERE id=@id";
-        check.Parameters.AddWithValue("@id", movieId);
+        check.Parameters.ДобавитьWithValue("@id", movieId);
         var existing = check.ExecuteScalar();
         var hasDbNote = existing != null && existing != DBNull.Value &&
                         !string.IsNullOrWhiteSpace(existing.ToString());
         if (hasDbNote) return;
 
         string text;
-        try { text = File.ReadAllText(sidecar); }
+        try { text = File.ReadВсеText(sidecar); }
         catch { return; }
         if (string.IsNullOrWhiteSpace(text)) return;
 
-        using var upd = conn.CreateCommand();
+        using var upd = conn.СоздатьCommand();
         upd.Transaction = tx;
         upd.CommandText = "UPDATE movies SET note=@n WHERE id=@id";
-        upd.Parameters.AddWithValue("@n", text);
-        upd.Parameters.AddWithValue("@id", movieId);
+        upd.Parameters.ДобавитьWithValue("@n", text);
+        upd.Parameters.ДобавитьWithValue("@id", movieId);
         upd.ExecuteNonQuery();
     }
 

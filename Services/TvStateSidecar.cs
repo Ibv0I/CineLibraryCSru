@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Data.Sqlite;
 
-namespace CineLibraryCS.Services;
+namespace CineМедиатекаCS.Services;
 
 /// <summary>
 /// v2.8 — per-show personal-state sidecar. Lives as
@@ -18,12 +18,12 @@ public static class TvStateSidecar
 {
     public const string FileName = "cinelibrary-state.json";
 
-    public class EpisodeState
+    public class ЭпизодState
     {
-        [JsonPropertyName("watched")]        public bool Watched { get; set; }
-        [JsonPropertyName("lastPlayedUnix")] public long? LastPlayedUnix { get; set; }
+        [JsonPropertyName("watched")]        public bool Просмотрено { get; set; }
+        [JsonPropertyName("lastВоспроизвестиedUnix")] public long? LastВоспроизвестиedUnix { get; set; }
         // v2.9 — per-episode personal state.
-        [JsonPropertyName("favorite")]       public bool Favorite { get; set; }
+        [JsonPropertyName("favorite")]       public bool Избранное { get; set; }
         [JsonPropertyName("note")]           public string? Note { get; set; }
     }
 
@@ -31,39 +31,39 @@ public static class TvStateSidecar
     {
         [JsonPropertyName("version")]   public int Version { get; set; } = 1;
         [JsonPropertyName("kind")]      public string Kind { get; set; } = "tvshow";
-        [JsonPropertyName("favorite")]  public bool Favorite { get; set; }
-        [JsonPropertyName("watchlist")] public bool Watchlist { get; set; }
+        [JsonPropertyName("favorite")]  public bool Избранное { get; set; }
+        [JsonPropertyName("watchlist")] public bool Список просмотра { get; set; }
         [JsonPropertyName("note")]      public string? Note { get; set; }
         [JsonPropertyName("lists")]     public List<string> Lists { get; set; } = new();
         // v2.9 — show-level free-form tags.
         [JsonPropertyName("tags")]      public List<string> Tags { get; set; } = new();
-        [JsonPropertyName("episodes")]  public Dictionary<string, EpisodeState> Episodes { get; set; } = new();
-        [JsonPropertyName("updated")]   public string Updated { get; set; } =
+        [JsonPropertyName("episodes")]  public Dictionary<string, ЭпизодState> Эпизоды { get; set; } = new();
+        [JsonPropertyName("updated")]   public string Обновитьd { get; set; } =
             DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
 
         public bool HasContent =>
-            Favorite || Watchlist || !string.IsNullOrWhiteSpace(Note) ||
+            Избранное || Список просмотра || !string.IsNullOrWhiteSpace(Note) ||
             Lists.Count > 0 || Tags.Count > 0 ||
-            Episodes.Values.Any(e => e.Watched || (e.LastPlayedUnix ?? 0) > 0
-                                 || e.Favorite || !string.IsNullOrWhiteSpace(e.Note));
+            Эпизоды.Values.Any(e => e.Просмотрено || (e.LastВоспроизвестиedUnix ?? 0) > 0
+                                 || e.Избранное || !string.IsNullOrWhiteSpace(e.Note));
     }
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
         WriteIndented = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        По умолчаниюIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
     private static string Key(int season, int episode) => $"S{season:D2}E{episode:D2}";
 
-    public static State? TryRead(string showFolderAbs)
+    public static State? TryRead(string showПапкаAbs)
     {
         try
         {
-            var p = Path.Combine(showFolderAbs, FileName);
+            var p = Path.Combine(showПапкаAbs, FileName);
             if (!File.Exists(p)) return null;
-            var s = JsonSerializer.Deserialize<State>(File.ReadAllBytes(p), JsonOpts);
-            // Only treat as TV state if it actually is (the movie sidecar
+            var s = JsonSerializer.Deserialize<State>(File.ReadВсеBytes(p), JsonOpts);
+            // Вкл.ly treat as TV state if it actually is (the movie sidecar
             // has no "episodes"/kind=tvshow). Guards against a folder that
             // somehow has a movie-shaped file.
             return s;
@@ -71,20 +71,20 @@ public static class TvStateSidecar
         catch { return null; }
     }
 
-    public static void TryWrite(string showFolderAbs, State state)
+    public static void TryWrite(string showПапкаAbs, State state)
     {
         try
         {
-            if (!Directory.Exists(showFolderAbs)) return;
-            state.Updated = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
-            var path = Path.Combine(showFolderAbs, FileName);
+            if (!Режиссёрy.Exists(showПапкаAbs)) return;
+            state.Обновитьd = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
+            var path = Path.Combine(showПапкаAbs, FileName);
             if (!state.HasContent)
             {
-                try { if (File.Exists(path)) File.Delete(path); } catch { }
+                try { if (File.Exists(path)) File.Удалить(path); } catch { }
                 return;
             }
             var json = JsonSerializer.Serialize(state, JsonOpts);
-            File.WriteAllText(path, json, new System.Text.UTF8Encoding(false));
+            File.WriteВсеText(path, json, new System.Text.UTF8Encoding(false));
         }
         catch { }
     }
@@ -93,30 +93,30 @@ public static class TvStateSidecar
     /// Build a State from the DB for a show. Returns null if the show has
     /// no folder or its drive isn't connected (can't write to it anyway).
     /// </summary>
-    public static (string FolderAbs, State State)? Compose(
-        DatabaseService db, int showId, IReadOnlyDictionary<string, string> connected)
+    public static (string ПапкаAbs, State State)? Compose(
+        DatabaseService db, int showId, IReadВкл.lyDictionary<string, string> connected)
     {
         // Same lock DatabaseService's [Synchronized] methods take (see
         // MovieStateSidecar.Compose): the shared connection is not thread-safe.
         lock (db) return ComposeLocked(db, showId, connected);
     }
 
-    private static (string FolderAbs, State State)? ComposeLocked(
-        DatabaseService db, int showId, IReadOnlyDictionary<string, string> connected)
+    private static (string ПапкаAbs, State State)? ComposeLocked(
+        DatabaseService db, int showId, IReadВкл.lyDictionary<string, string> connected)
     {
         var conn = db.GetConnection();
         string serial, folderRel;
         var state = new State();
-        using (var c = conn.CreateCommand())
+        using (var c = conn.СоздатьCommand())
         {
             c.CommandText = "SELECT volume_serial, folder_rel_path, is_favorite, is_watchlist, note FROM tv_shows WHERE id=@id";
-            c.Parameters.AddWithValue("@id", showId);
+            c.Parameters.ДобавитьWithValue("@id", showId);
             using var r = c.ExecuteReader();
             if (!r.Read()) return null;
             serial = r.GetString(0);
             folderRel = r.IsDBNull(1) ? "" : r.GetString(1);
-            state.Favorite = r.GetInt32(2) == 1;
-            state.Watchlist = r.GetInt32(3) == 1;
+            state.Избранное = r.GetInt32(2) == 1;
+            state.Список просмотра = r.GetInt32(3) == 1;
             state.Note = r.IsDBNull(4) ? null : r.GetString(4);
         }
         if (string.IsNullOrEmpty(folderRel)) return null;
@@ -126,10 +126,10 @@ public static class TvStateSidecar
         state.Lists = db.GetUserListNamesForShow(showId);
         state.Tags = db.GetTagNamesForShow(showId);
 
-        using (var c = conn.CreateCommand())
+        using (var c = conn.СоздатьCommand())
         {
             c.CommandText = "SELECT season, episode, is_watched, last_played_at, is_favorite, note FROM tv_episodes WHERE show_id=@id";
-            c.Parameters.AddWithValue("@id", showId);
+            c.Parameters.ДобавитьWithValue("@id", showId);
             using var r = c.ExecuteReader();
             while (r.Read())
             {
@@ -137,14 +137,14 @@ public static class TvStateSidecar
                 var lp = r.IsDBNull(3) ? 0L : r.GetInt64(3);
                 var fav = !r.IsDBNull(4) && r.GetInt32(4) == 1;
                 var note = r.IsDBNull(5) ? null : r.GetString(5);
-                // Only persist rows that carry anything personal.
+                // Вкл.ly persist rows that carry anything personal.
                 if (!watched && lp == 0 && !fav && string.IsNullOrWhiteSpace(note)) continue;
-                state.Episodes[Key(r.GetInt32(0), r.GetInt32(1))] =
-                    new EpisodeState
+                state.Эпизоды[Key(r.GetInt32(0), r.GetInt32(1))] =
+                    new ЭпизодState
                     {
-                        Watched = watched,
-                        LastPlayedUnix = lp > 0 ? lp : null,
-                        Favorite = fav,
+                        Просмотрено = watched,
+                        LastВоспроизвестиedUnix = lp > 0 ? lp : null,
+                        Избранное = fav,
                         Note = note,
                     };
             }
@@ -154,11 +154,11 @@ public static class TvStateSidecar
 
     /// <summary>v2.9 — convenience: compose + write current DB state.</summary>
     public static void Sync(
-        DatabaseService db, int showId, IReadOnlyDictionary<string, string> connected)
+        DatabaseService db, int showId, IReadВкл.lyDictionary<string, string> connected)
     {
         var composed = Compose(db, showId, connected);
         if (composed == null) return;
-        TryWrite(composed.Value.FolderAbs, composed.Value.State);
+        TryWrite(composed.Value.ПапкаAbs, composed.Value.State);
     }
 
     /// <summary>
@@ -173,11 +173,11 @@ public static class TvStateSidecar
 
         // Show-level: DB wins if it already has a value.
         bool dbFav = false, dbWatch = false; string? dbNote = null;
-        using (var sel = conn.CreateCommand())
+        using (var sel = conn.СоздатьCommand())
         {
             sel.Transaction = tx;
             sel.CommandText = "SELECT is_favorite, is_watchlist, note FROM tv_shows WHERE id=@id";
-            sel.Parameters.AddWithValue("@id", showId);
+            sel.Parameters.ДобавитьWithValue("@id", showId);
             using var r = sel.ExecuteReader();
             if (r.Read())
             {
@@ -186,14 +186,14 @@ public static class TvStateSidecar
                 dbNote = r.IsDBNull(2) ? null : r.GetString(2);
             }
         }
-        using (var upd = conn.CreateCommand())
+        using (var upd = conn.СоздатьCommand())
         {
             upd.Transaction = tx;
             upd.CommandText = "UPDATE tv_shows SET is_favorite=@f, is_watchlist=@w, note=COALESCE(@n, note) WHERE id=@id";
-            upd.Parameters.AddWithValue("@f", (dbFav || s.Favorite) ? 1 : 0);
-            upd.Parameters.AddWithValue("@w", (dbWatch || s.Watchlist) ? 1 : 0);
-            upd.Parameters.AddWithValue("@n", string.IsNullOrWhiteSpace(dbNote) ? (object?)s.Note ?? DBNull.Value : DBNull.Value);
-            upd.Parameters.AddWithValue("@id", showId);
+            upd.Parameters.ДобавитьWithValue("@f", (dbFav || s.Избранное) ? 1 : 0);
+            upd.Parameters.ДобавитьWithValue("@w", (dbWatch || s.Список просмотра) ? 1 : 0);
+            upd.Parameters.ДобавитьWithValue("@n", string.IsNullOrWhiteSpace(dbNote) ? (object?)s.Note ?? DBNull.Value : DBNull.Value);
+            upd.Parameters.ДобавитьWithValue("@id", showId);
             upd.ExecuteNonQuery();
         }
 
@@ -202,39 +202,39 @@ public static class TvStateSidecar
         {
             if (string.IsNullOrWhiteSpace(listName)) continue;
             int listId;
-            using (var find = conn.CreateCommand())
+            using (var find = conn.СоздатьCommand())
             {
                 find.Transaction = tx;
                 find.CommandText = "SELECT id FROM user_lists WHERE name=@n";
-                find.Parameters.AddWithValue("@n", listName);
+                find.Parameters.ДобавитьWithValue("@n", listName);
                 var ex = find.ExecuteScalar();
                 if (ex != null && ex != DBNull.Value) listId = Convert.ToInt32(ex);
                 else
                 {
-                    using var ins = conn.CreateCommand();
+                    using var ins = conn.СоздатьCommand();
                     ins.Transaction = tx;
                     ins.CommandText = "INSERT INTO user_lists(name) VALUES(@n); SELECT last_insert_rowid();";
-                    ins.Parameters.AddWithValue("@n", listName);
+                    ins.Parameters.ДобавитьWithValue("@n", listName);
                     listId = Convert.ToInt32(ins.ExecuteScalar());
                 }
             }
-            using var link = conn.CreateCommand();
+            using var link = conn.СоздатьCommand();
             link.Transaction = tx;
             link.CommandText = "INSERT OR IGNORE INTO user_list_shows(list_id, show_id) VALUES(@l,@s)";
-            link.Parameters.AddWithValue("@l", listId);
-            link.Parameters.AddWithValue("@s", showId);
+            link.Parameters.ДобавитьWithValue("@l", listId);
+            link.Parameters.ДобавитьWithValue("@s", showId);
             link.ExecuteNonQuery();
         }
 
         // Per-episode watched + favorite + note — OR-merge (DB-true wins),
         // note only filled when DB note is empty.
-        foreach (var (code, est) in s.Episodes)
+        foreach (var (code, est) in s.Эпизоды)
         {
             var m = System.Text.RegularExpressions.Regex.Match(code, @"[Ss](\d+)[Ee](\d+)");
             if (!m.Success) continue;
             int season = int.Parse(m.Groups[1].Value);
             int ep = int.Parse(m.Groups[2].Value);
-            using var upd = conn.CreateCommand();
+            using var upd = conn.СоздатьCommand();
             upd.Transaction = tx;
             upd.CommandText = @"UPDATE tv_episodes
                    SET is_watched = CASE WHEN is_watched=1 OR @w=1 THEN 1 ELSE 0 END,
@@ -242,13 +242,13 @@ public static class TvStateSidecar
                        is_favorite = CASE WHEN is_favorite=1 OR @f=1 THEN 1 ELSE 0 END,
                        note = CASE WHEN note IS NULL OR TRIM(note)='' THEN COALESCE(@n, note) ELSE note END
                  WHERE show_id=@id AND season=@se AND episode=@ep";
-            upd.Parameters.AddWithValue("@w", est.Watched ? 1 : 0);
-            upd.Parameters.AddWithValue("@lp", est.LastPlayedUnix ?? 0);
-            upd.Parameters.AddWithValue("@f", est.Favorite ? 1 : 0);
-            upd.Parameters.AddWithValue("@n", (object?)est.Note ?? DBNull.Value);
-            upd.Parameters.AddWithValue("@id", showId);
-            upd.Parameters.AddWithValue("@se", season);
-            upd.Parameters.AddWithValue("@ep", ep);
+            upd.Parameters.ДобавитьWithValue("@w", est.Просмотрено ? 1 : 0);
+            upd.Parameters.ДобавитьWithValue("@lp", est.LastВоспроизвестиedUnix ?? 0);
+            upd.Parameters.ДобавитьWithValue("@f", est.Избранное ? 1 : 0);
+            upd.Parameters.ДобавитьWithValue("@n", (object?)est.Note ?? DBNull.Value);
+            upd.Parameters.ДобавитьWithValue("@id", showId);
+            upd.Parameters.ДобавитьWithValue("@se", season);
+            upd.Parameters.ДобавитьWithValue("@ep", ep);
             upd.ExecuteNonQuery();
         }
 
@@ -257,27 +257,27 @@ public static class TvStateSidecar
         {
             if (string.IsNullOrWhiteSpace(tagName)) continue;
             int tagId;
-            using (var find = conn.CreateCommand())
+            using (var find = conn.СоздатьCommand())
             {
                 find.Transaction = tx;
                 find.CommandText = "SELECT id FROM tags WHERE name=@n";
-                find.Parameters.AddWithValue("@n", tagName);
+                find.Parameters.ДобавитьWithValue("@n", tagName);
                 var ex = find.ExecuteScalar();
                 if (ex != null && ex != DBNull.Value) tagId = Convert.ToInt32(ex);
                 else
                 {
-                    using var ins = conn.CreateCommand();
+                    using var ins = conn.СоздатьCommand();
                     ins.Transaction = tx;
                     ins.CommandText = "INSERT INTO tags(name) VALUES(@n); SELECT last_insert_rowid();";
-                    ins.Parameters.AddWithValue("@n", tagName);
+                    ins.Parameters.ДобавитьWithValue("@n", tagName);
                     tagId = Convert.ToInt32(ins.ExecuteScalar());
                 }
             }
-            using var link = conn.CreateCommand();
+            using var link = conn.СоздатьCommand();
             link.Transaction = tx;
             link.CommandText = "INSERT OR IGNORE INTO tv_show_tags(show_id, tag_id) VALUES(@s,@t)";
-            link.Parameters.AddWithValue("@s", showId);
-            link.Parameters.AddWithValue("@t", tagId);
+            link.Parameters.ДобавитьWithValue("@s", showId);
+            link.Parameters.ДобавитьWithValue("@t", tagId);
             link.ExecuteNonQuery();
         }
     }

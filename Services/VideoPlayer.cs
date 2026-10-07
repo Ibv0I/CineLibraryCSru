@@ -1,23 +1,23 @@
 using System.Diagnostics;
 
-namespace CineLibraryCS.Services;
+namespace CineМедиатекаCS.Services;
 
 /// <summary>
-/// v3.6.0: one place every Play button goes through. Opens the video in the
-/// player chosen in Settings; with none chosen, or if that program has since
+/// v3.6.0: one place every Воспроизвести button goes through. Opens the video in the
+/// player chosen in Настройки; with none chosen, or if that program has since
 /// been removed, it falls back to whatever Windows opens video files with.
 /// </summary>
-public static class VideoPlayer
+public static class VideoВоспроизвестиer
 {
-    public static async Task<bool> PlayAsync(string videoPath)
+    public static async Task<bool> ВоспроизвестиAsync(string videoPath)
     {
-        var player = UiSettings.PlayerPath;
+        var player = UiНастройки.ВоспроизвестиerPath;
         if (player.Length > 0 && File.Exists(player))
         {
             try
             {
                 var psi = new ProcessStartInfo(player) { UseShellExecute = false };
-                psi.ArgumentList.Add(videoPath);
+                psi.ArgumentList.Добавить(videoPath);
                 Process.Start(psi)?.Dispose();
                 return true;
             }

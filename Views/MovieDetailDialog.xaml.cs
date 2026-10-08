@@ -449,8 +449,10 @@ public sealed partial class MovieDetailDialog : Window
     /// </summary>
     private void FitCastCardHeight(IReadOnlyList<Models.Actor> actors)
     {
-        // Compact vertical cast cards used in the wide details layout.
-        CastGridLayout.MinItemHeight = 72;
+        // Larger poster-shaped vertical cast cards in the wide details layout.
+        // Keep the layout cell taller than the portrait itself so the image and
+        // name/role text are never clipped by UniformGridLayout.
+        CastGridLayout.MinItemHeight = 152;
     }
 
     private static readonly string[] ActorThumbExts = { ".jpg", ".jpeg", ".png", ".tbn", ".webp" };
@@ -914,7 +916,9 @@ public sealed partial class MovieDetailDialog : Window
         DetailTitle.LineHeight = narrow ? 32 : 40;
 
         // Wide layout: poster + genres/director/studio on the left, title/actions/plot
-        // in the center, and a compact vertical cast list on the right.
+        // in the center, and a poster-shaped vertical cast list on the right.
+        // Tags are intentionally hidden in the redesigned details view.
+        TagsRow.Visibility = Visibility.Collapsed;
         foreach (var block in new FrameworkElement[] { ActionsBlock, FileInfoPanel, PlotBlock, NotesCard, FieldsBlock, CastSection })
             Detach(block);
         if (wide)
@@ -922,6 +926,9 @@ public sealed partial class MovieDetailDialog : Window
             MetaStack.Children.Add(ActionsBlock);
             MetaStack.Children.Add(FileInfoPanel);
             MetaStack.Children.Add(PlotBlock);
+            FileInfoPanel.Margin = new Thickness(0, 4, 0, 0);
+            PlotDivider.Margin = new Thickness(0, 14, 0, 0);
+            PlotSection.Margin = new Thickness(0, 12, 0, 0);
             // Notes are intentionally hidden in the redesigned movie details view.
 
             PosterStack.Children.Add(FieldsBlock);

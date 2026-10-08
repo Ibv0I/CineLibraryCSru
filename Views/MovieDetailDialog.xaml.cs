@@ -796,9 +796,9 @@ public sealed partial class MovieDetailDialog : Window
         // below-poster column so the row stays compact (v2.3.x).
         if (m.Runtime.HasValue && m.Runtime.Value > 0)
         {
+            // Runtime is intentionally omitted from the compact file-info row.
             FiRuntime.Text = $"{m.Runtime.Value} min";
-            FiRuntimeBlock.Visibility = Visibility.Visible;
-            any = true;
+            FiRuntimeBlock.Visibility = Visibility.Collapsed;
         }
         if (!string.IsNullOrWhiteSpace(m.Premiered))
         {
@@ -922,7 +922,7 @@ public sealed partial class MovieDetailDialog : Window
             MetaStack.Children.Add(ActionsBlock);
             MetaStack.Children.Add(FileInfoPanel);
             MetaStack.Children.Add(PlotBlock);
-            MetaStack.Children.Add(NotesCard);
+            // Notes are intentionally hidden in the redesigned movie details view.
 
             PosterStack.Children.Add(FieldsBlock);
             SideStack.Children.Add(CastSection);
@@ -933,7 +933,6 @@ public sealed partial class MovieDetailDialog : Window
             ContentStack.Children.Insert(ContentStack.Children.IndexOf(TopGrid) + 1, ActionsBlock);
             BodyStack.Children.Add(FileInfoPanel);
             BodyStack.Children.Add(PlotBlock);
-            BodyStack.Children.Add(NotesCard);
             BodyStack.Children.Add(FieldsBlock);
             ContentStack.Children.Add(CastSection);
         }

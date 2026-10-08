@@ -35,17 +35,8 @@
                         HorizontalAlignment="Stretch">
                     <Grid>
                         <Image x:Name="HeroImage" Stretch="UniformToFill"/>
-                        <!-- Vertical gradient — strong on the bottom so titles stay readable -->
-                        <Border>
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Offset="0"    Color="#18000000"/>
-                                    <GradientStop Offset="0.52" Color="#22000000"/>
-                                    <GradientStop Offset="0.78" Color="#66081018"/>
-                                    <GradientStop Offset="1"    Color="#F20B1320"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
+                        <!-- Vertical gradient: cinematic darkening plus a long fade into the page background. -->
+                        <Border Background="{ThemeResource HeroFadeBrush}"/>
                         <!-- Horizontal vignette — subtle edge darkening -->
                         <Border>
                             <Border.Background>
@@ -144,7 +135,7 @@
 
                     <!-- v4.2.0 (#14): genres, director, studio and file info, beside the
                          plot in a wide window -->
-                    <StackPanel x:Name="SideStack" Grid.Column="2" Margin="40,140,0,0"
+                    <StackPanel x:Name="SideStack" Grid.Column="2" Margin="40,90,0,0"
                                 VerticalAlignment="Top"/>
                 </Grid>
 
@@ -366,7 +357,7 @@
                     </StackPanel>
 
                     <!-- Notes (v1.9) -->
-                    <Border x:Name="NotesCard" Margin="0,20,0,0" Padding="14,12"
+                    <Border x:Name="NotesCard" Visibility="Collapsed" Margin="0,20,0,0" Padding="14,12"
                             Background="{ThemeResource CardBrush}"
                             BorderBrush="{ThemeResource BorderBrush}"
                             BorderThickness="1" CornerRadius="8">
@@ -472,13 +463,13 @@
                             <ItemsRepeater.Layout>
                                 <!-- Portrait 2:3 cards: image 140×210 + name/role. The height is
                                      set in code to fit the longest name and role (v3.8.0). -->
-                                <UniformGridLayout x:Name="CastGridLayout" MinItemWidth="290" MinItemHeight="72"
+                                <UniformGridLayout x:Name="CastGridLayout" MinItemWidth="320" MinItemHeight="92"
                                                    MinColumnSpacing="0" MinRowSpacing="8"
                                                    ItemsStretch="Fill" Orientation="Vertical"/>
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="models:Actor">
-                                    <Button Width="300"
+                                    <Button Width="320"
                                             Background="Transparent"
                                             BorderThickness="0" Padding="0"
                                             CornerRadius="8"
@@ -488,10 +479,10 @@
                                             Click="OnActorClick">
                                         <Grid ColumnSpacing="12">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="58"/>
+                                                <ColumnDefinition Width="78"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <Border Width="58" Height="58" CornerRadius="29"
+                                            <Border Width="78" Height="78" CornerRadius="39"
                                                     Background="{ThemeResource PlaceholderBgBrush}"
                                                     BorderBrush="{ThemeResource BorderBrush}"
                                                     BorderThickness="1">
@@ -504,10 +495,10 @@
                                                 </Grid>
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock Text="{x:Bind Name}" FontSize="13" FontWeight="SemiBold"
+                                                <TextBlock Text="{x:Bind Name}" FontSize="14" FontWeight="SemiBold"
                                                            Foreground="{ThemeResource TextBrush}"
                                                            TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{x:Bind Role, TargetNullValue=''}" FontSize="11"
+                                                <TextBlock Text="{x:Bind Role, TargetNullValue=''}" FontSize="12"
                                                            Foreground="{ThemeResource MutedBrush}"
                                                            TextTrimming="CharacterEllipsis"/>
                                             </StackPanel>

@@ -295,12 +295,12 @@ public sealed partial class MovieDetailDialog : Window
     /// </summary>
     private void UpdateTmdbActions(MovieDetail m)
     {
-        FetchTmdbBtn.Visibility = Visibility.Visible;
+        FetchTmdbBtn.Visibility = Visibility.Collapsed;
         // Persisting fetched data to the drive is handled by the Drives page's
         // existing "Sync state to drive" action, so there's no per-movie Sync
         // button here (avoids a third button for the same kind of action).
         SyncDriveBtn.Visibility = Visibility.Collapsed;
-        TmdbActionsRow.Visibility = Visibility.Visible;
+        TmdbActionsRow.Visibility = Visibility.Collapsed;
         TmdbStatus.Visibility = Visibility.Collapsed;
     }
 
@@ -449,22 +449,8 @@ public sealed partial class MovieDetailDialog : Window
     /// </summary>
     private void FitCastCardHeight(IReadOnlyList<Models.Actor> actors)
     {
-        var font = (FontFamily)Application.Current.Resources["ContentControlThemeFontFamily"];
-        double TextHeight(string? text, double size, Windows.UI.Text.FontWeight weight)
-        {
-            if (string.IsNullOrEmpty(text)) return 0;
-            var probe = new TextBlock
-            {
-                Text = text, FontFamily = font, FontSize = size, FontWeight = weight,
-                TextWrapping = TextWrapping.WrapWholeWords, MaxLines = 2,
-            };
-            probe.Measure(new Windows.Foundation.Size(140, double.PositiveInfinity));
-            return probe.DesiredSize.Height;
-        }
-        var name = actors.Max(a => TextHeight(a.Name, 13, Microsoft.UI.Text.FontWeights.SemiBold));
-        var role = actors.Max(a => TextHeight(a.Role, 11, Microsoft.UI.Text.FontWeights.Normal));
-        // 210 headshot + two 8 px gaps, plus a little slack for rounding.
-        CastGridLayout.MinItemHeight = Math.Max(280, Math.Ceiling(210 + 8 + name + 8 + role + 4));
+        // Compact vertical cast cards used in the wide details layout.
+        CastGridLayout.MinItemHeight = 72;
     }
 
     private static readonly string[] ActorThumbExts = { ".jpg", ".jpeg", ".png", ".tbn", ".webp" };
@@ -922,23 +908,25 @@ public sealed partial class MovieDetailDialog : Window
         _layout = layout;
         bool narrow = layout == DetailLayout.Narrow, wide = layout == DetailLayout.Wide;
 
-        PosterFrame.Width  = narrow ? 150 : wide ? 260 : 200;
-        PosterFrame.Height = narrow ? 218 : wide ? 377 : 290;
+        PosterFrame.Width  = narrow ? 150 : wide ? 270 : 220;
+        PosterFrame.Height = narrow ? 218 : wide ? 405 : 330;
         DetailTitle.FontSize   = narrow ? 26 : 34;
         DetailTitle.LineHeight = narrow ? 32 : 40;
 
-        // Wide: everything up to the cast sits beside the poster. Buttons and plot
-        // go under the title; genres, director, studio, file info and notes get a
-        // column of their own. Otherwise they stack under the poster as before.
-        foreach (var block in new FrameworkElement[] { ActionsBlock, FileInfoPanel, PlotBlock, NotesCard, FieldsBlock })
+        // Wide layout: poster + genres/director/studio on the left, title/actions/plot
+        // in the center, and a compact vertical cast list on the right.
+        foreach (var block in new FrameworkElement[] { ActionsBlock, FileInfoPanel, PlotBlock, NotesCard, FieldsBlock, CastSection })
             Detach(block);
         if (wide)
         {
             MetaStack.Children.Add(ActionsBlock);
+            MetaStack.Children.Add(FileInfoPanel);
             MetaStack.Children.Add(PlotBlock);
-            SideStack.Children.Add(FieldsBlock);
-            SideStack.Children.Add(FileInfoPanel);
-            SideStack.Children.Add(NotesCard);
+            MetaStack.Children.Add(NotesCard);
+
+            PosterStack.Children.Add(FieldsBlock);
+            SideStack.Children.Add(CastSection);
+            CastDivider.Visibility = Visibility.Collapsed;
         }
         else
         {
@@ -947,17 +935,18 @@ public sealed partial class MovieDetailDialog : Window
             BodyStack.Children.Add(PlotBlock);
             BodyStack.Children.Add(NotesCard);
             BodyStack.Children.Add(FieldsBlock);
+            ContentStack.Children.Add(CastSection);
         }
         // The title column stops at a readable width; the details column takes the rest.
         var main = TopGrid.ColumnDefinitions[1];
         var side = TopGrid.ColumnDefinitions[2];
-        main.Width = new GridLength(wide ? 3 : 1, GridUnitType.Star);
-        main.MaxWidth = wide ? 900 : double.PositiveInfinity;
-        side.Width = wide ? new GridLength(2, GridUnitType.Star) : new GridLength(0);
-        side.MinWidth = wide ? 340 : 0;
+        main.Width = new GridLength(wide ? 1 : 1, GridUnitType.Star);
+        main.MaxWidth = wide ? double.PositiveInfinity : double.PositiveInfinity;
+        side.Width = wide ? new GridLength(330) : new GridLength(0);
+        side.MinWidth = wide ? 300 : 0;
         // At the top of the details column the divider has nothing to divide
         FieldsDivider.Visibility = wide ? Visibility.Collapsed : Visibility.Visible;
-        FieldsGrid.Margin = new Thickness(0, wide ? 0 : 20, 0, 0);
+        FieldsGrid.Margin = new Thickness(0, wide ? 10 : 20, 0, 0);
     }
 
     private static void Detach(FrameworkElement element)
@@ -969,7 +958,7 @@ public sealed partial class MovieDetailDialog : Window
     // when the grid is narrow (a small window, or the wide layout's side column).
     private void OnFieldsGridSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        bool stack = e.NewSize.Width < 600;
+        bool stack = e.NewSize.Width < 600 || _layout == DetailLayout.Wide;
         FieldsGrid.ColumnDefinitions[1].Width = stack ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
         FieldsGrid.ColumnDefinitions[2].Width = stack ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
         for (int i = 0; i < FieldsGrid.Children.Count; i++)

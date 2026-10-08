@@ -39,9 +39,10 @@
                         <Border>
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Offset="0"    Color="#33000000"/>
-                                    <GradientStop Offset="0.55" Color="#22000000"/>
-                                    <GradientStop Offset="1"    Color="#E6000000"/>
+                                    <GradientStop Offset="0"    Color="#18000000"/>
+                                    <GradientStop Offset="0.52" Color="#22000000"/>
+                                    <GradientStop Offset="0.78" Color="#66081018"/>
+                                    <GradientStop Offset="1"    Color="#F20B1320"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                         </Border>
@@ -84,10 +85,10 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Poster column: poster card + below-poster info card -->
-                    <StackPanel Grid.Column="0" Margin="16,0,24,0" VerticalAlignment="Top"
+                    <StackPanel x:Name="PosterStack" Grid.Column="0" Margin="16,0,24,0" VerticalAlignment="Top"
                                 Spacing="12">
                         <!-- Poster — drop shadow + thin border for depth -->
-                        <Border x:Name="PosterFrame" Width="200" Height="290" CornerRadius="12"
+                        <Border x:Name="PosterFrame" Width="220" Height="330" CornerRadius="12"
                                 BorderBrush="#33FFFFFF" BorderThickness="1"
                                 Background="{ThemeResource PlaceholderBgBrush}">
                             <Border.Shadow>
@@ -172,22 +173,22 @@
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
                                 CornerRadius="8" Padding="12,8"/>
-                        <Button x:Name="FavBtn" Click="OnToggleFav"
+                        <Button x:Name="FavBtn" Visibility="Collapsed" Click="OnToggleFav"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
                                 CornerRadius="8" Padding="12,8"/>
-                        <Button x:Name="WatchedBtn" Click="OnToggleWatched"
+                        <Button x:Name="WatchedBtn" Visibility="Collapsed" Click="OnToggleWatched"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
                                 CornerRadius="8" Padding="12,8"/>
-                        <Button x:Name="WatchlistBtn" Click="OnToggleWatchlist"
+                        <Button x:Name="WatchlistBtn" Visibility="Collapsed" Click="OnToggleWatchlist"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
                                 CornerRadius="8" Padding="12,8"/>
-                        <Button x:Name="ListsBtn" Content="📑 Add to list"
+                        <Button x:Name="ListsBtn" Visibility="Collapsed" Content="📑 Add to list"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
@@ -464,65 +465,53 @@
                         Height="1" Background="{ThemeResource BorderBrush}"
                         Margin="0,24,0,0" Opacity="0.5"/>
                 <!-- Cast — wraps to multiple rows, no side-scroll -->
-                <StackPanel x:Name="CastSection" Margin="0,20,0,0" Visibility="Collapsed">
+                <StackPanel x:Name="CastSection" Margin="0,0,0,0" Visibility="Collapsed">
                     <TextBlock Text="Cast" FontSize="16" FontWeight="SemiBold"
                                Foreground="{ThemeResource TextBrush}" Margin="0,0,0,10"/>
                         <ItemsRepeater x:Name="CastRepeater">
                             <ItemsRepeater.Layout>
                                 <!-- Portrait 2:3 cards: image 140×210 + name/role. The height is
                                      set in code to fit the longest name and role (v3.8.0). -->
-                                <UniformGridLayout x:Name="CastGridLayout" MinItemWidth="150" MinItemHeight="280"
-                                                   MinColumnSpacing="14" MinRowSpacing="18"
-                                                   ItemsStretch="None"
-                                                   Orientation="Horizontal"/>
+                                <UniformGridLayout x:Name="CastGridLayout" MinItemWidth="290" MinItemHeight="72"
+                                                   MinColumnSpacing="0" MinRowSpacing="8"
+                                                   ItemsStretch="Fill" Orientation="Vertical"/>
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="models:Actor">
-                                    <Button Width="140"
+                                    <Button Width="300"
                                             Background="Transparent"
                                             BorderThickness="0" Padding="0"
-                                            CornerRadius="10"
+                                            CornerRadius="8"
                                             HorizontalContentAlignment="Stretch"
                                             VerticalAlignment="Top"
                                             Tag="{x:Bind Name}"
                                             Click="OnActorClick">
-                                        <StackPanel Spacing="8" HorizontalAlignment="Stretch">
-                                            <!-- 2:3 portrait headshot (140 × 210, rounded) -->
-                                            <Border Width="140" Height="210"
-                                                    CornerRadius="10"
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="58"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Width="58" Height="58" CornerRadius="29"
                                                     Background="{ThemeResource PlaceholderBgBrush}"
                                                     BorderBrush="{ThemeResource BorderBrush}"
                                                     BorderThickness="1">
                                                 <Grid>
-                                                    <!-- Initials sit behind the image and show
-                                                         through when the thumbnail is missing
-                                                         or fails to load. -->
-                                                    <TextBlock Text="{x:Bind Initials}"
-                                                               FontSize="34" FontWeight="SemiBold"
+                                                    <TextBlock Text="{x:Bind Initials}" FontSize="18" FontWeight="SemiBold"
                                                                Foreground="{ThemeResource MutedBrush}"
-                                                               HorizontalAlignment="Center"
-                                                               VerticalAlignment="Center"/>
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     <Image Stretch="UniformToFill"
                                                            Source="{x:Bind ThumbBitmap, Mode=OneWay}"/>
                                                 </Grid>
                                             </Border>
-                                            <TextBlock Text="{x:Bind Name}"
-                                                       FontSize="13" FontWeight="SemiBold"
-                                                       Foreground="{ThemeResource TextBrush}"
-                                                       HorizontalAlignment="Center"
-                                                       TextAlignment="Center"
-                                                       TextWrapping="WrapWholeWords"
-                                                       TextTrimming="CharacterEllipsis"
-                                                       MaxLines="2"/>
-                                            <TextBlock Text="{x:Bind Role, TargetNullValue=''}"
-                                                       FontSize="11"
-                                                       Foreground="{ThemeResource MutedBrush}"
-                                                       HorizontalAlignment="Center"
-                                                       TextAlignment="Center"
-                                                       TextWrapping="WrapWholeWords"
-                                                       TextTrimming="CharacterEllipsis"
-                                                       MaxLines="2"/>
-                                        </StackPanel>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                                <TextBlock Text="{x:Bind Name}" FontSize="13" FontWeight="SemiBold"
+                                                           Foreground="{ThemeResource TextBrush}"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{x:Bind Role, TargetNullValue=''}" FontSize="11"
+                                                           Foreground="{ThemeResource MutedBrush}"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                        </Grid>
                                     </Button>
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>

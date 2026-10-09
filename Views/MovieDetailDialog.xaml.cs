@@ -230,17 +230,11 @@ public sealed partial class MovieDetailDialog : Window
         // Tech badges + ratings + file info (v2.2)
         PopulateTechBadges(m);
         PopulateRatingsPanel(m);
-        // Move the primary actions only after PopulateRatingsPanel has cleared and rebuilt its children.
-        MoveToRatingsRow(PlayBtn);
-        MoveToRatingsRow(FolderBtn);
-        RatingsPanel.Visibility = Visibility.Visible;
         PopulateFileInfo(m);
         // Lists this movie is on (v2.5) — chip row with per-list ✕.
         RefreshListChips();
         // v2.9 — Free-form tags chip row + autocomplete.
         RefreshTagChips();
-        TagsRow.Visibility = Visibility.Collapsed;
-        NotesCard.Visibility = Visibility.Collapsed;
 
         // Studio — clickable HyperlinkButton (was a plain TextBlock)
         if (m.Studio != null)
@@ -456,7 +450,7 @@ public sealed partial class MovieDetailDialog : Window
     private void FitCastCardHeight(IReadOnlyList<Models.Actor> actors)
     {
         // Compact vertical cast cards used in the wide details layout.
-        CastGridLayout.MinItemHeight = 96;
+        CastGridLayout.MinItemHeight = 78;
     }
 
     private static readonly string[] ActorThumbExts = { ".jpg", ".jpeg", ".png", ".tbn", ".webp" };
@@ -736,15 +730,6 @@ public sealed partial class MovieDetailDialog : Window
             parts.Add(lbl);
         }
         return parts.Count == 0 ? null : string.Join(" ", parts);
-    }
-
-    private void MoveToRatingsRow(FrameworkElement element)
-    {
-        if (element.Parent is Panel oldParent)
-            oldParent.Children.Remove(element);
-        element.Margin = new Thickness(0);
-        element.VerticalAlignment = VerticalAlignment.Center;
-        RatingsPanel.Children.Add(element);
     }
 
     private void PopulateRatingsPanel(MovieDetail m)

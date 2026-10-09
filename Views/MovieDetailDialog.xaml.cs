@@ -256,6 +256,7 @@ public sealed partial class MovieDetailDialog : Window
         {
             CastSection.Visibility = Visibility.Visible;
             CastDivider.Visibility = Visibility.Visible;
+            CastRepeater.ItemsSource = null;
             CastRepeater.ItemsSource = m.Actors;
             FitCastCardHeight(m.Actors);
             string? movieFolderAbs = null;

@@ -467,9 +467,7 @@
                         Margin="0,24,0,0" Opacity="0.5"/>
                 <!-- Cast — wraps to multiple rows, no side-scroll -->
                 <StackPanel x:Name="CastSection" Margin="0,0,0,0" Visibility="Collapsed">
-                    <TextBlock Text="Cast" FontSize="16" FontWeight="SemiBold"
-                               Foreground="{ThemeResource TextBrush}" Margin="0,0,0,8"/>
-                        <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                        <ScrollViewer x:Name="CastScrollViewer" HorizontalScrollBarVisibility="Auto"
                                       VerticalScrollBarVisibility="Disabled"
                                       HorizontalScrollMode="Enabled"
                                       VerticalScrollMode="Disabled"
@@ -492,7 +490,7 @@
                                                     <TextBlock Text="{x:Bind Initials}" FontSize="18" FontWeight="SemiBold"
                                                                Foreground="{ThemeResource MutedBrush}"
                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    <Image Stretch="UniformToFill" Source="{x:Bind ThumbBitmap, Mode=OneWay}"/>
+                                                    <Image Width="104" Height="156" Stretch="UniformToFill" Source="{x:Bind ThumbBitmap, Mode=OneWay}"/>
                                                 </Grid>
                                             </Border>
                                             <TextBlock Text="{x:Bind Name}" FontSize="12" FontWeight="SemiBold"

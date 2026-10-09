@@ -929,7 +929,7 @@ public sealed partial class MovieDetailDialog : Window
             PosterStack.Children.Add(FieldsBlock);
             ContentStack.Children.Add(CastSection);
             CastDivider.Visibility = Visibility.Collapsed;
-            ContentScroller.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
+            ContentScroller.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
         }
         else
         {

@@ -41,8 +41,9 @@
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                                     <GradientStop Offset="0"    Color="#18000000"/>
                                     <GradientStop Offset="0.52" Color="#22000000"/>
-                                    <GradientStop Offset="0.78" Color="#66081018"/>
-                                    <GradientStop Offset="1"    Color="#F20B1320"/>
+                                    <GradientStop Offset="0.72" Color="#55081018"/>
+                                    <GradientStop Offset="0.88" Color="#C90B1320"/>
+                                    <GradientStop Offset="1"    Color="#FF0B1320"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                         </Border>
@@ -359,7 +360,7 @@
                             <TextBlock Text="PLOT" FontSize="10" FontWeight="SemiBold"
                                        CharacterSpacing="150" Opacity="0.65"
                                        Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock x:Name="PlotText" FontSize="14" Foreground="{ThemeResource TextBrush}"
+                            <TextBlock x:Name="PlotText" FontSize="15" Foreground="{ThemeResource TextBrush}"
                                        TextWrapping="Wrap" LineHeight="22" MaxWidth="780"
                                        HorizontalAlignment="Left"/>
                         </StackPanel>
@@ -468,10 +469,15 @@
                 <StackPanel x:Name="CastSection" Margin="0,0,0,0" Visibility="Collapsed">
                     <TextBlock Text="Cast" FontSize="16" FontWeight="SemiBold"
                                Foreground="{ThemeResource TextBrush}" Margin="0,0,0,8"/>
-                        <ItemsRepeater x:Name="CastRepeater">
-                            <ItemsRepeater.Layout>
-                                <StackLayout Orientation="Horizontal" Spacing="14"/>
-                            </ItemsRepeater.Layout>
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Disabled"
+                                      HorizontalScrollMode="Enabled"
+                                      VerticalScrollMode="Disabled"
+                                      Padding="0,0,0,12">
+                            <ItemsRepeater x:Name="CastRepeater">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Orientation="Horizontal" Spacing="14"/>
+                                </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="models:Actor">
                                     <Button Width="116" Background="Transparent" BorderThickness="0" Padding="0"
@@ -499,7 +505,8 @@
                                     </Button>
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
-                        </ItemsRepeater>
+                            </ItemsRepeater>
+                        </ScrollViewer>
                 </StackPanel>
 
             </StackPanel>

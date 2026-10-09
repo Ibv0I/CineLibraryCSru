@@ -461,20 +461,15 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Divider above Cast -->
+                <!-- Divider above cast; the cast cards wrap to additional rows when needed. -->
                 <Border x:Name="CastDivider" Visibility="Collapsed"
                         Height="1" Background="{ThemeResource BorderBrush}"
-                        Margin="0,24,0,0" Opacity="0.5"/>
-                <!-- Cast — wraps to multiple rows, no side-scroll -->
-                <StackPanel x:Name="CastSection" Margin="0,0,0,0" Visibility="Collapsed">
-                        <ScrollViewer x:Name="CastScrollViewer" HorizontalScrollBarVisibility="Auto"
-                                      VerticalScrollBarVisibility="Disabled"
-                                      HorizontalScrollMode="Enabled"
-                                      VerticalScrollMode="Disabled"
-                                      Padding="0,0,0,12">
+                        Margin="0,28,0,0" Opacity="0.5"/>
+                <StackPanel x:Name="CastSection" Margin="0,28,0,0" Visibility="Collapsed">
                             <ItemsRepeater x:Name="CastRepeater">
                                 <ItemsRepeater.Layout>
-                                    <StackLayout Orientation="Horizontal" Spacing="14"/>
+                                    <UniformGridLayout Orientation="Horizontal" MinItemWidth="116" MinItemHeight="220"
+                                                       ItemsJustification="Start"/>
                                 </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="models:Actor">
@@ -504,7 +499,6 @@
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                             </ItemsRepeater>
-                        </ScrollViewer>
                 </StackPanel>
 
             </StackPanel>

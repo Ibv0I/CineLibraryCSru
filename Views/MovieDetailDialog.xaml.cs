@@ -449,8 +449,8 @@ public sealed partial class MovieDetailDialog : Window
     /// </summary>
     private void FitCastCardHeight(IReadOnlyList<Models.Actor> actors)
     {
-        // Compact vertical cast cards used in the wide details layout.
-        CastGridLayout.MinItemHeight = 148;
+        // Cast cards use fixed poster-proportioned portraits in a single horizontal row.
+        // Keep this hook because the loading pipeline calls it for each movie.
     }
 
     private static readonly string[] ActorThumbExts = { ".jpg", ".jpeg", ".png", ".tbn", ".webp" };
@@ -528,8 +528,8 @@ public sealed partial class MovieDetailDialog : Window
 
     private static void ApplyBitmap(Models.Actor a, Uri uri)
     {
-        // Decode at 2× the enlarged 144px actor portrait for crisp rendering.
-        var bmp = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage { DecodePixelWidth = 288 };
+        // 280 px decode = ~2× the 140-wide rendered slot for HiDPI crispness
+        var bmp = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage { DecodePixelWidth = 280 };
         bmp.UriSource = uri;
         a.ThumbBitmap = bmp;
     }
@@ -908,45 +908,51 @@ public sealed partial class MovieDetailDialog : Window
         _layout = layout;
         bool narrow = layout == DetailLayout.Narrow, wide = layout == DetailLayout.Wide;
 
-        PosterFrame.Width  = narrow ? 150 : wide ? 270 : 220;
-        PosterFrame.Height = narrow ? 218 : wide ? 405 : 330;
-        DetailTitle.FontSize   = narrow ? 26 : 34;
-        DetailTitle.LineHeight = narrow ? 32 : 40;
+        PosterFrame.Width  = narrow ? 150 : wide ? 240 : 220;
+        PosterFrame.Height = narrow ? 218 : wide ? 360 : 330;
+        DetailTitle.FontSize   = narrow ? 26 : wide ? 38 : 34;
+        DetailTitle.LineHeight = narrow ? 32 : wide ? 44 : 40;
 
-        // Wide layout: poster + genres/director/studio on the left, title/actions/plot
-        // in the center, and a compact vertical cast list on the right.
-        foreach (var block in new FrameworkElement[] { ActionsBlock, FileInfoPanel, PlotBlock, NotesCard, FieldsBlock, CastSection })
+        // Desktop layout: poster on the left, synopsis in the middle, technical data
+        // and ratings on the right; cast remains a single horizontal strip at the bottom.
+        foreach (var block in new FrameworkElement[] { ActionsBlock, FileInfoPanel, PlotBlock, NotesCard, FieldsBlock, CastSection, RatingsAndTechRow })
             Detach(block);
+
         if (wide)
         {
+            // Synopsis directly follows the tagline; technical badges and ratings live in the right column.
+            MetaStack.Children.Insert(Math.Min(3, MetaStack.Children.Count), PlotBlock);
             MetaStack.Children.Add(ActionsBlock);
-            MetaStack.Children.Add(PlotBlock);
-            MetaStack.Children.Add(FileInfoPanel);
-            MetaStack.Children.Add(NotesCard);
-
+            SideStack.Children.Add(RatingsAndTechRow);
+            SideStack.Children.Add(FileInfoPanel);
+            SideStack.Children.Add(NotesCard);
             PosterStack.Children.Add(FieldsBlock);
-            SideStack.Children.Add(CastSection);
+            ContentStack.Children.Add(CastSection);
             CastDivider.Visibility = Visibility.Collapsed;
+            ContentScroller.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
         }
         else
         {
             ContentStack.Children.Insert(ContentStack.Children.IndexOf(TopGrid) + 1, ActionsBlock);
-            BodyStack.Children.Add(PlotBlock);
             BodyStack.Children.Add(FileInfoPanel);
+            BodyStack.Children.Add(PlotBlock);
             BodyStack.Children.Add(NotesCard);
             BodyStack.Children.Add(FieldsBlock);
             ContentStack.Children.Add(CastSection);
+            CastDivider.Visibility = Visibility.Visible;
+            ContentScroller.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
         }
-        // The title column stops at a readable width; the details column takes the rest.
+
         var main = TopGrid.ColumnDefinitions[1];
         var side = TopGrid.ColumnDefinitions[2];
-        main.Width = new GridLength(wide ? 1 : 1, GridUnitType.Star);
-        main.MaxWidth = wide ? double.PositiveInfinity : double.PositiveInfinity;
-        side.Width = wide ? new GridLength(330) : new GridLength(0);
-        side.MinWidth = wide ? 300 : 0;
-        // At the top of the details column the divider has nothing to divide
+        main.Width = new GridLength(1, GridUnitType.Star);
+        side.Width = wide ? new GridLength(360) : new GridLength(0);
+        side.MinWidth = wide ? 330 : 0;
         FieldsDivider.Visibility = wide ? Visibility.Collapsed : Visibility.Visible;
         FieldsGrid.Margin = new Thickness(0, wide ? 10 : 20, 0, 0);
+
+        // At 2560×1440 and 4K the details use the full width; on smaller windows keep scrolling.
+        ContentStack.Width = double.NaN;
     }
 
     private static void Detach(FrameworkElement element)

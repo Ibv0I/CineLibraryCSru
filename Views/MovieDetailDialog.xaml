@@ -102,23 +102,6 @@
                             </Grid>
                         </Border>
 
-                        <!-- Playback actions directly below the poster -->
-                        <StackPanel x:Name="PosterActionsBlock" Orientation="Vertical" Spacing="8"
-                                    Margin="0,0,0,2">
-                            <Button x:Name="PlayBtn" Click="OnPlay"
-                                    Background="#A78BFA" Foreground="White"
-                                    BorderThickness="0" CornerRadius="8" Padding="16,8"
-                                    HorizontalAlignment="Stretch">
-                                <TextBlock Text="▶ Play" HorizontalAlignment="Center"/>
-                            </Button>
-                            <Button x:Name="FolderBtn" Content="📂 Open Folder" Click="OnOpenFolder"
-                                    Background="{ThemeResource CardBrush}"
-                                    Foreground="{ThemeResource TextBrush}"
-                                    BorderBrush="{ThemeResource BorderBrush}"
-                                    CornerRadius="8" Padding="12,8"
-                                    HorizontalAlignment="Stretch"/>
-                        </StackPanel>
-
                     </StackPanel>
 
                     <!-- Meta -->
@@ -145,8 +128,8 @@
                         </Grid>
                         <StackPanel x:Name="ChipsPanel" Orientation="Horizontal" Spacing="6" Margin="0,4,0,0"/>
                         <!-- Tech badges + ratings on the same row to save vertical space -->
-                        <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,4,0,0"
-                                    VerticalAlignment="Center">
+                        <StackPanel x:Name="RatingsAndTechRow" Orientation="Vertical" Spacing="10" Margin="0,4,0,0"
+                                    VerticalAlignment="Top">
                             <ItemsControl x:Name="TechBadges" VerticalAlignment="Center">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
@@ -180,6 +163,16 @@
 
                     <!-- Actions (wrap onto a second line in narrow windows) -->
                     <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8" Margin="0,12,0,0">
+                        <Button x:Name="PlayBtn" Click="OnPlay"
+                                Background="#A78BFA" Foreground="White"
+                                BorderThickness="0" CornerRadius="8" Padding="16,8">
+                            <TextBlock Text="▶ Play"/>
+                        </Button>
+                        <Button x:Name="FolderBtn" Content="📂 Open Folder" Click="OnOpenFolder"
+                                Background="{ThemeResource CardBrush}"
+                                Foreground="{ThemeResource TextBrush}"
+                                BorderBrush="{ThemeResource BorderBrush}"
+                                CornerRadius="8" Padding="12,8"/>
                         <Button x:Name="FavBtn" Visibility="Collapsed" Click="OnToggleFav"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
@@ -366,7 +359,7 @@
                             <TextBlock Text="PLOT" FontSize="10" FontWeight="SemiBold"
                                        CharacterSpacing="150" Opacity="0.65"
                                        Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock x:Name="PlotText" FontSize="15" Foreground="{ThemeResource TextBrush}"
+                            <TextBlock x:Name="PlotText" FontSize="14" Foreground="{ThemeResource TextBrush}"
                                        TextWrapping="Wrap" LineHeight="22" MaxWidth="780"
                                        HorizontalAlignment="Left"/>
                         </StackPanel>
@@ -474,51 +467,35 @@
                 <!-- Cast — wraps to multiple rows, no side-scroll -->
                 <StackPanel x:Name="CastSection" Margin="0,0,0,0" Visibility="Collapsed">
                     <TextBlock Text="Cast" FontSize="16" FontWeight="SemiBold"
-                               Foreground="{ThemeResource TextBrush}" Margin="0,0,0,10"/>
+                               Foreground="{ThemeResource TextBrush}" Margin="0,0,0,8"/>
                         <ItemsRepeater x:Name="CastRepeater">
                             <ItemsRepeater.Layout>
-                                <!-- Portrait 2:3 cards: image 140×210 + name/role. The height is
-                                     set in code to fit the longest name and role (v3.8.0). -->
-                                <UniformGridLayout x:Name="CastGridLayout" MinItemWidth="300" MinItemHeight="146"
-                                                   MinColumnSpacing="0" MinRowSpacing="3"
-                                                   ItemsStretch="Fill" Orientation="Vertical"/>
+                                <StackLayout Orientation="Horizontal" Spacing="14"/>
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="models:Actor">
-                                    <Button Width="300"
-                                            Background="Transparent"
-                                            BorderThickness="0" Padding="0"
-                                            CornerRadius="8"
-                                            HorizontalContentAlignment="Stretch"
-                                            VerticalAlignment="Top"
-                                            Tag="{x:Bind Name}"
-                                            Click="OnActorClick">
-                                        <Grid ColumnSpacing="12">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="144"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Width="144" Height="144" CornerRadius="72"
+                                    <Button Width="116" Background="Transparent" BorderThickness="0" Padding="0"
+                                            CornerRadius="8" HorizontalContentAlignment="Stretch"
+                                            VerticalAlignment="Top" Tag="{x:Bind Name}" Click="OnActorClick">
+                                        <StackPanel Spacing="6">
+                                            <Border Width="104" Height="156" CornerRadius="8"
                                                     Background="{ThemeResource PlaceholderBgBrush}"
-                                                    BorderBrush="{ThemeResource BorderBrush}"
-                                                    BorderThickness="1">
+                                                    BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1"
+                                                    HorizontalAlignment="Center">
                                                 <Grid>
                                                     <TextBlock Text="{x:Bind Initials}" FontSize="18" FontWeight="SemiBold"
                                                                Foreground="{ThemeResource MutedBrush}"
                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    <Image Stretch="UniformToFill"
-                                                           Source="{x:Bind ThumbBitmap, Mode=OneWay}"/>
+                                                    <Image Stretch="UniformToFill" Source="{x:Bind ThumbBitmap, Mode=OneWay}"/>
                                                 </Grid>
                                             </Border>
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock Text="{x:Bind Name}" FontSize="13" FontWeight="SemiBold"
-                                                           Foreground="{ThemeResource TextBrush}"
-                                                           TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{x:Bind Role, TargetNullValue=''}" FontSize="11"
-                                                           Foreground="{ThemeResource MutedBrush}"
-                                                           TextTrimming="CharacterEllipsis"/>
-                                            </StackPanel>
-                                        </Grid>
+                                            <TextBlock Text="{x:Bind Name}" FontSize="12" FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource TextBrush}" TextWrapping="Wrap"
+                                                       TextAlignment="Center" MaxLines="2"/>
+                                            <TextBlock Text="{x:Bind Role, TargetNullValue=''}" FontSize="10"
+                                                       Foreground="{ThemeResource MutedBrush}" TextWrapping="Wrap"
+                                                       TextAlignment="Center" MaxLines="2"/>
+                                        </StackPanel>
                                     </Button>
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>

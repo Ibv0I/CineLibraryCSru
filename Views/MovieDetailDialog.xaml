@@ -356,11 +356,11 @@
                                 Height="1" Background="{ThemeResource BorderBrush}"
                                 Margin="0,24,0,0" Opacity="0.5"/>
                         <StackPanel x:Name="PlotSection" Visibility="Collapsed" Margin="0,20,0,0" Spacing="8">
-                            <TextBlock Text="PLOT" FontSize="11" FontWeight="SemiBold"
+                            <TextBlock Text="PLOT" FontSize="10" FontWeight="SemiBold"
                                        CharacterSpacing="150" Opacity="0.65"
                                        Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock x:Name="PlotText" FontSize="17" Foreground="{ThemeResource TextBrush}"
-                                       TextWrapping="Wrap" LineHeight="27" MaxWidth="900"
+                            <TextBlock x:Name="PlotText" FontSize="16" Foreground="{ThemeResource TextBrush}"
+                                       TextWrapping="Wrap" LineHeight="22" MaxWidth="780"
                                        HorizontalAlignment="Left"/>
                         </StackPanel>
                     </StackPanel>

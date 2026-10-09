@@ -356,11 +356,11 @@
                                 Height="1" Background="{ThemeResource BorderBrush}"
                                 Margin="0,24,0,0" Opacity="0.5"/>
                         <StackPanel x:Name="PlotSection" Visibility="Collapsed" Margin="0,20,0,0" Spacing="8">
-                            <TextBlock Text="PLOT" FontSize="10" FontWeight="SemiBold"
+                            <TextBlock Text="PLOT" FontSize="11" FontWeight="SemiBold"
                                        CharacterSpacing="150" Opacity="0.65"
                                        Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock x:Name="PlotText" FontSize="14" Foreground="{ThemeResource TextBrush}"
-                                       TextWrapping="Wrap" LineHeight="22" MaxWidth="780"
+                            <TextBlock x:Name="PlotText" FontSize="17" Foreground="{ThemeResource TextBrush}"
+                                       TextWrapping="Wrap" LineHeight="27" MaxWidth="900"
                                        HorizontalAlignment="Left"/>
                         </StackPanel>
                     </StackPanel>
@@ -472,8 +472,8 @@
                             <ItemsRepeater.Layout>
                                 <!-- Portrait 2:3 cards: image 140×210 + name/role. The height is
                                      set in code to fit the longest name and role (v3.8.0). -->
-                                <UniformGridLayout x:Name="CastGridLayout" MinItemWidth="290" MinItemHeight="72"
-                                                   MinColumnSpacing="0" MinRowSpacing="8"
+                                <UniformGridLayout x:Name="CastGridLayout" MinItemWidth="310" MinItemHeight="96"
+                                                   MinColumnSpacing="0" MinRowSpacing="3"
                                                    ItemsStretch="Fill" Orientation="Vertical"/>
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
@@ -488,10 +488,10 @@
                                             Click="OnActorClick">
                                         <Grid ColumnSpacing="12">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="72"/>
+                                                <ColumnDefinition Width="92"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <Border Width="72" Height="72" CornerRadius="36"
+                                            <Border Width="92" Height="92" CornerRadius="46"
                                                     Background="{ThemeResource PlaceholderBgBrush}"
                                                     BorderBrush="{ThemeResource BorderBrush}"
                                                     BorderThickness="1">

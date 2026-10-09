@@ -230,11 +230,17 @@ public sealed partial class MovieDetailDialog : Window
         // Tech badges + ratings + file info (v2.2)
         PopulateTechBadges(m);
         PopulateRatingsPanel(m);
+        // Keep Play and Open Folder on the same horizontal row as IMDb/TMDb ratings.
+        MoveToRatingsRow(PlayBtn);
+        MoveToRatingsRow(FolderBtn);
+        RatingsPanel.Visibility = Visibility.Visible;
         PopulateFileInfo(m);
         // Lists this movie is on (v2.5) — chip row with per-list ✕.
         RefreshListChips();
         // v2.9 — Free-form tags chip row + autocomplete.
         RefreshTagChips();
+        TagsRow.Visibility = Visibility.Collapsed;
+        NotesCard.Visibility = Visibility.Collapsed;
 
         // Studio — clickable HyperlinkButton (was a plain TextBlock)
         if (m.Studio != null)
@@ -450,7 +456,7 @@ public sealed partial class MovieDetailDialog : Window
     private void FitCastCardHeight(IReadOnlyList<Models.Actor> actors)
     {
         // Compact vertical cast cards used in the wide details layout.
-        CastGridLayout.MinItemHeight = 78;
+        CastGridLayout.MinItemHeight = 96;
     }
 
     private static readonly string[] ActorThumbExts = { ".jpg", ".jpeg", ".png", ".tbn", ".webp" };
@@ -732,6 +738,14 @@ public sealed partial class MovieDetailDialog : Window
         return parts.Count == 0 ? null : string.Join(" ", parts);
     }
 
+    private void MoveToRatingsRow(FrameworkElement element)
+    {
+        if (element.Parent is Panel oldParent)
+            oldParent.Children.Remove(element);
+        element.Margin = new Thickness(0, 0, 0, 0);
+        RatingsPanel.Children.Add(element);
+    }
+
     private void PopulateRatingsPanel(MovieDetail m)
     {
         RatingsPanel.Children.Clear();
@@ -920,8 +934,8 @@ public sealed partial class MovieDetailDialog : Window
         if (wide)
         {
             MetaStack.Children.Add(ActionsBlock);
-            MetaStack.Children.Add(FileInfoPanel);
             MetaStack.Children.Add(PlotBlock);
+            MetaStack.Children.Add(FileInfoPanel);
             MetaStack.Children.Add(NotesCard);
 
             PosterStack.Children.Add(FieldsBlock);
@@ -931,8 +945,8 @@ public sealed partial class MovieDetailDialog : Window
         else
         {
             ContentStack.Children.Insert(ContentStack.Children.IndexOf(TopGrid) + 1, ActionsBlock);
-            BodyStack.Children.Add(FileInfoPanel);
             BodyStack.Children.Add(PlotBlock);
+            BodyStack.Children.Add(FileInfoPanel);
             BodyStack.Children.Add(NotesCard);
             BodyStack.Children.Add(FieldsBlock);
             ContentStack.Children.Add(CastSection);
@@ -1178,6 +1192,8 @@ public sealed partial class MovieDetailDialog : Window
                 // auto-writes the movie sidecar with current tags.
                 AppState.Instance.Db.RemoveMovieTag(_movie.Id, tagId);
                 RefreshTagChips();
+        TagsRow.Visibility = Visibility.Collapsed;
+        NotesCard.Visibility = Visibility.Collapsed;
                 WatchlistChanged?.Invoke(this, EventArgs.Empty);
             };
             sp.Children.Add(x);
@@ -1233,6 +1249,8 @@ public sealed partial class MovieDetailDialog : Window
                 // writes the movie sidecar with the new tag set.
                 AppState.Instance.Db.AddMovieTag(_movie.Id, tagId);
                 RefreshTagChips();
+        TagsRow.Visibility = Visibility.Collapsed;
+        NotesCard.Visibility = Visibility.Collapsed;
                 WatchlistChanged?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)

@@ -28,12 +28,6 @@
             <SolidColorBrush x:Key="ChipBrush"       Color="#1E1E2E"/>
             <SolidColorBrush x:Key="HeroBgBrush"     Color="#990A0A1C"/>
             <SolidColorBrush x:Key="OverlayBrush"    Color="#CC0A0A1C"/>
-            <LinearGradientBrush x:Key="HeroFadeBrush" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Offset="0" Color="#10000000"/>
-                <GradientStop Offset="0.58" Color="#300A0A0C"/>
-                <GradientStop Offset="0.82" Color="#C40F0F18"/>
-                <GradientStop Offset="1" Color="#FF0F0F18"/>
-            </LinearGradientBrush>
             <SolidColorBrush x:Key="PlaceholderBgBrush" Color="#1A1A2E"/>
             <!-- v2.6 — poster-placeholder gradient stops for depth -->
             <Color x:Key="PlaceholderTopColor">#1F1A2E</Color>
@@ -78,12 +72,6 @@
             <SolidColorBrush x:Key="ChipBrush"       Color="#E5E5F2"/>
             <SolidColorBrush x:Key="HeroBgBrush"     Color="#99F0F0FF"/>
             <SolidColorBrush x:Key="OverlayBrush"    Color="#CCF0F0FF"/>
-            <LinearGradientBrush x:Key="HeroFadeBrush" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Offset="0" Color="#10000000"/>
-                <GradientStop Offset="0.58" Color="#30F6F6FA"/>
-                <GradientStop Offset="0.82" Color="#C4E3E3EE"/>
-                <GradientStop Offset="1" Color="#FFE3E3EE"/>
-            </LinearGradientBrush>
             <SolidColorBrush x:Key="PlaceholderBgBrush" Color="#EEEEFF"/>
             <Color x:Key="PlaceholderTopColor">#F0EEFB</Color>
             <Color x:Key="PlaceholderBottomColor">#DCD8EE</Color>
@@ -128,12 +116,6 @@
             <SolidColorBrush x:Key="ChipBrush"       Color="#1E1E2E"/>
             <SolidColorBrush x:Key="HeroBgBrush"     Color="#990A0A1C"/>
             <SolidColorBrush x:Key="OverlayBrush"    Color="#CC0A0A1C"/>
-            <LinearGradientBrush x:Key="HeroFadeBrush" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Offset="0" Color="#10000000"/>
-                <GradientStop Offset="0.58" Color="#300A0A0C"/>
-                <GradientStop Offset="0.82" Color="#C40F0F18"/>
-                <GradientStop Offset="1" Color="#FF0F0F18"/>
-            </LinearGradientBrush>
             <SolidColorBrush x:Key="PlaceholderBgBrush" Color="#1A1A2E"/>
             <Color x:Key="PlaceholderTopColor">#1F1A2E</Color>
             <Color x:Key="PlaceholderBottomColor">#0F0A1F</Color>

@@ -450,7 +450,7 @@ public sealed partial class MovieDetailDialog : Window
     private void FitCastCardHeight(IReadOnlyList<Models.Actor> actors)
     {
         // Compact vertical cast cards used in the wide details layout.
-        CastGridLayout.MinItemHeight = 78;
+        CastGridLayout.MinItemHeight = 148;
     }
 
     private static readonly string[] ActorThumbExts = { ".jpg", ".jpeg", ".png", ".tbn", ".webp" };
@@ -528,8 +528,8 @@ public sealed partial class MovieDetailDialog : Window
 
     private static void ApplyBitmap(Models.Actor a, Uri uri)
     {
-        // 280 px decode = ~2× the 140-wide rendered slot for HiDPI crispness
-        var bmp = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage { DecodePixelWidth = 280 };
+        // Decode at 2× the enlarged 144px actor portrait for crisp rendering.
+        var bmp = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage { DecodePixelWidth = 288 };
         bmp.UriSource = uri;
         a.ThumbBitmap = bmp;
     }
@@ -920,8 +920,8 @@ public sealed partial class MovieDetailDialog : Window
         if (wide)
         {
             MetaStack.Children.Add(ActionsBlock);
-            MetaStack.Children.Add(FileInfoPanel);
             MetaStack.Children.Add(PlotBlock);
+            MetaStack.Children.Add(FileInfoPanel);
             MetaStack.Children.Add(NotesCard);
 
             PosterStack.Children.Add(FieldsBlock);
@@ -931,8 +931,8 @@ public sealed partial class MovieDetailDialog : Window
         else
         {
             ContentStack.Children.Insert(ContentStack.Children.IndexOf(TopGrid) + 1, ActionsBlock);
-            BodyStack.Children.Add(FileInfoPanel);
             BodyStack.Children.Add(PlotBlock);
+            BodyStack.Children.Add(FileInfoPanel);
             BodyStack.Children.Add(NotesCard);
             BodyStack.Children.Add(FieldsBlock);
             ContentStack.Children.Add(CastSection);

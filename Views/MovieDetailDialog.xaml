@@ -102,6 +102,23 @@
                             </Grid>
                         </Border>
 
+                        <!-- Playback actions directly below the poster -->
+                        <StackPanel x:Name="PosterActionsBlock" Orientation="Vertical" Spacing="8"
+                                    Margin="0,0,0,2">
+                            <Button x:Name="PlayBtn" Click="OnPlay"
+                                    Background="#A78BFA" Foreground="White"
+                                    BorderThickness="0" CornerRadius="8" Padding="16,8"
+                                    HorizontalAlignment="Stretch">
+                                <TextBlock Text="▶ Play" HorizontalAlignment="Center"/>
+                            </Button>
+                            <Button x:Name="FolderBtn" Content="📂 Open Folder" Click="OnOpenFolder"
+                                    Background="{ThemeResource CardBrush}"
+                                    Foreground="{ThemeResource TextBrush}"
+                                    BorderBrush="{ThemeResource BorderBrush}"
+                                    CornerRadius="8" Padding="12,8"
+                                    HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
                     </StackPanel>
 
                     <!-- Meta -->
@@ -163,16 +180,6 @@
 
                     <!-- Actions (wrap onto a second line in narrow windows) -->
                     <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8" Margin="0,12,0,0">
-                        <Button x:Name="PlayBtn" Click="OnPlay"
-                                Background="#A78BFA" Foreground="White"
-                                BorderThickness="0" CornerRadius="8" Padding="16,8">
-                            <TextBlock Text="▶ Play"/>
-                        </Button>
-                        <Button x:Name="FolderBtn" Content="📂 Open Folder" Click="OnOpenFolder"
-                                Background="{ThemeResource CardBrush}"
-                                Foreground="{ThemeResource TextBrush}"
-                                BorderBrush="{ThemeResource BorderBrush}"
-                                CornerRadius="8" Padding="12,8"/>
                         <Button x:Name="FavBtn" Visibility="Collapsed" Click="OnToggleFav"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
@@ -472,8 +479,8 @@
                             <ItemsRepeater.Layout>
                                 <!-- Portrait 2:3 cards: image 140×210 + name/role. The height is
                                      set in code to fit the longest name and role (v3.8.0). -->
-                                <UniformGridLayout x:Name="CastGridLayout" MinItemWidth="290" MinItemHeight="110"
-                                                   MinColumnSpacing="0" MinRowSpacing="2"
+                                <UniformGridLayout x:Name="CastGridLayout" MinItemWidth="300" MinItemHeight="146"
+                                                   MinColumnSpacing="0" MinRowSpacing="3"
                                                    ItemsStretch="Fill" Orientation="Vertical"/>
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
@@ -488,10 +495,10 @@
                                             Click="OnActorClick">
                                         <Grid ColumnSpacing="12">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="110"/>
+                                                <ColumnDefinition Width="144"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <Border Width="72" Height="96" CornerRadius="56"
+                                            <Border Width="144" Height="144" CornerRadius="72"
                                                     Background="{ThemeResource PlaceholderBgBrush}"
                                                     BorderBrush="{ThemeResource BorderBrush}"
                                                     BorderThickness="1">

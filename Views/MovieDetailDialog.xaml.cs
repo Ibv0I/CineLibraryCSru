@@ -894,7 +894,7 @@ public sealed partial class MovieDetailDialog : Window
     {
         var inner = e.NewSize.Width - ContentScroller.Padding.Left - ContentScroller.Padding.Right;
         ContentStack.Width = Math.Max(0, inner);
-        HeroBorder.Height = Math.Clamp(inner / 5.0, 210, 300);   // compact cinematic banner on desktop and 4K
+        HeroBorder.Height = Math.Clamp(inner / 4.0, 340, 480);   // taller cinematic banner, scales for desktop and 4K
         ApplyLayout(e.NewSize.Width < 900 ? DetailLayout.Narrow
                   : e.NewSize.Width >= 1600 ? DetailLayout.Wide
                   : DetailLayout.Standard);

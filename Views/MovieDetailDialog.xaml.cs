@@ -894,7 +894,7 @@ public sealed partial class MovieDetailDialog : Window
     {
         var inner = e.NewSize.Width - ContentScroller.Padding.Left - ContentScroller.Padding.Right;
         ContentStack.Width = Math.Max(0, inner);
-        HeroBorder.Height = Math.Clamp(inner / 3.2, 220, 460);   // 1100 wide = the old 340
+        HeroBorder.Height = Math.Clamp(inner / 5.0, 210, 300);   // compact cinematic banner on desktop and 4K
         ApplyLayout(e.NewSize.Width < 900 ? DetailLayout.Narrow
                   : e.NewSize.Width >= 1600 ? DetailLayout.Wide
                   : DetailLayout.Standard);
@@ -909,10 +909,10 @@ public sealed partial class MovieDetailDialog : Window
         _layout = layout;
         bool narrow = layout == DetailLayout.Narrow, wide = layout == DetailLayout.Wide;
 
-        PosterFrame.Width  = narrow ? 150 : wide ? 240 : 220;
-        PosterFrame.Height = narrow ? 218 : wide ? 360 : 330;
-        DetailTitle.FontSize   = narrow ? 26 : wide ? 38 : 34;
-        DetailTitle.LineHeight = narrow ? 32 : wide ? 44 : 40;
+        PosterFrame.Width  = narrow ? 150 : wide ? 224 : 220;
+        PosterFrame.Height = narrow ? 218 : wide ? 336 : 330;
+        DetailTitle.FontSize   = narrow ? 26 : wide ? 36 : 34;
+        DetailTitle.LineHeight = narrow ? 32 : wide ? 42 : 40;
 
         // Desktop layout: poster on the left, synopsis in the middle, technical data
         // and ratings on the right; cast remains a single horizontal strip at the bottom.

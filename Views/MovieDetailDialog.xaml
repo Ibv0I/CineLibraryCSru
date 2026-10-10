@@ -39,10 +39,11 @@
                         <Border>
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Offset="0"    Color="#18000000"/>
-                                    <GradientStop Offset="0.52" Color="#22000000"/>
-                                    <GradientStop Offset="0.72" Color="#55081018"/>
-                                    <GradientStop Offset="0.88" Color="#C90B1320"/>
+                                    <GradientStop Offset="0"    Color="#000B1320"/>
+                                    <GradientStop Offset="0.52" Color="#000B1320"/>
+                                    <GradientStop Offset="0.68" Color="#220B1320"/>
+                                    <GradientStop Offset="0.82" Color="#660B1320"/>
+                                    <GradientStop Offset="0.94" Color="#B80B1320"/>
                                     <GradientStop Offset="1"    Color="#FF0B1320"/>
                                 </LinearGradientBrush>
                             </Border.Background>

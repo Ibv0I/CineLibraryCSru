@@ -6,7 +6,7 @@
     xmlns:controls="using:CineLibraryCS.Controls"
     Title="Movie Details">
 
-    <Grid x:Name="RootGrid" Background="{ThemeResource SidebarBrush}">
+    <Grid x:Name="RootGrid" Background="{ThemeResource BgBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="36"/>
             <RowDefinition Height="*"/>
@@ -30,7 +30,7 @@
             <StackPanel x:Name="ContentStack" HorizontalAlignment="Stretch" Spacing="16">
 
                 <!-- Hero fanart (v2.3 — taller, layered gradient, vignette, IMDb/TMDb pills) -->
-                <Border x:Name="HeroBorder" Height="300" CornerRadius="14"
+                <Border x:Name="HeroBorder" Height="360" CornerRadius="0"
                         Background="{ThemeResource HeroBgBrush}"
                         HorizontalAlignment="Stretch" Margin="0,0,0,0">
                     <Grid>
@@ -59,7 +59,7 @@
                 </Border>
 
                 <!-- Poster + Meta row -->
-                <Grid x:Name="TopGrid" Margin="0,-104,0,0">
+                <Grid x:Name="TopGrid" Margin="0,-128,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
@@ -88,7 +88,7 @@
 
                     <!-- Meta -->
                     <StackPanel x:Name="MetaStack" Grid.Column="1" Spacing="9" VerticalAlignment="Top"
-                                Margin="0,116,0,0">
+                                Margin="0,146,0,0">
                         <TextBlock x:Name="DetailTitle" FontSize="36" FontWeight="Bold"
                                    Foreground="{ThemeResource TextBrush}"
                                    TextWrapping="Wrap" LineHeight="42"/>

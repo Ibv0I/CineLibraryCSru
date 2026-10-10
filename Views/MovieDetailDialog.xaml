@@ -35,29 +35,9 @@
                         HorizontalAlignment="Stretch">
                     <Grid>
                         <Image x:Name="HeroImage" Stretch="UniformToFill"/>
-                        <!-- Vertical gradient — strong on the bottom so titles stay readable -->
-                        <Border>
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Offset="0"    Color="#000B1320"/>
-                                    <GradientStop Offset="0.52" Color="#000B1320"/>
-                                    <GradientStop Offset="0.68" Color="#220B1320"/>
-                                    <GradientStop Offset="0.82" Color="#660B1320"/>
-                                    <GradientStop Offset="0.94" Color="#B80B1320"/>
-                                    <GradientStop Offset="1"    Color="#FF0B1320"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
-                        <!-- Horizontal vignette — subtle edge darkening -->
-                        <Border>
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                                    <GradientStop Offset="0"    Color="#55000000"/>
-                                    <GradientStop Offset="0.5"  Color="#00000000"/>
-                                    <GradientStop Offset="1"    Color="#55000000"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
+                        <!-- Theme-aware fade, matching the TV-show banner: transparent at the top,
+                             smoothly blending into the page background at the bottom. -->
+                        <Border Background="{ThemeResource HeroFadeBrush}"/>
                         <!-- IMDb / TMDb badge pills, top-right -->
                         <StackPanel x:Name="ExternalLinksPanel" Orientation="Horizontal"
                                     Spacing="6" Margin="14"

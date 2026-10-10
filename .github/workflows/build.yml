@@ -3,7 +3,7 @@ name: Build CineLibrary RU
 on:
   push:
     branches:
-      - ru
+      - v4
   workflow_dispatch:
 
 jobs:

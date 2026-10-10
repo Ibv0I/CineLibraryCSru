@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using CineLibraryCS.Models;
 using CineLibraryCS.Services;
 using Windows.Graphics;
+using Windows.UI;
 using Windows.System;
 using System.Runtime.InteropServices.WindowsRuntime;
 
@@ -24,6 +25,19 @@ public sealed partial class MovieDetailDialog : Window
     {
         _movieId = movieId;
         InitializeComponent();
+
+        // Apply the app-selected theme before the native window is activated.
+        // Windows may be in Light mode while CineLibrary itself is Dark; setting
+        // this late can briefly expose the system-light surface during creation.
+        if (RootGrid is FrameworkElement rootElement)
+            rootElement.RequestedTheme = MainWindow.CurrentTheme;
+
+        // Give the first frame an opaque surface matching the selected app theme,
+        // rather than allowing the system theme/Mica to show through as white.
+        RootGrid.Background = new SolidColorBrush(
+            MainWindow.CurrentTheme == ElementTheme.Light
+                ? Color.FromArgb(255, 246, 246, 250)
+                : Color.FromArgb(255, 10, 10, 12));
 
         // Custom titlebar drag region + Mica
         ExtendsContentIntoTitleBar = true;
@@ -76,9 +90,6 @@ public sealed partial class MovieDetailDialog : Window
             catch { }
         };
 
-        // Inherit theme from main window
-        if (RootGrid is FrameworkElement fe)
-            fe.RequestedTheme = MainWindow.CurrentTheme;
 
         // Track close so async load that finishes after Esc doesn't try to
         // touch the destroyed window (COMException "operation identifier is

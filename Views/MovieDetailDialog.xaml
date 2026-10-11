@@ -30,7 +30,7 @@
             <StackPanel x:Name="ContentStack" HorizontalAlignment="Stretch" Spacing="16">
 
                 <!-- Hero fanart (v2.3 — taller, layered gradient, vignette, IMDb/TMDb pills) -->
-                <Border x:Name="HeroBorder" Height="360" CornerRadius="18,18,0,0"
+                <Border x:Name="HeroBorder" Height="360" CornerRadius="0"
                         Background="{ThemeResource HeroBgBrush}"
                         HorizontalAlignment="Stretch" Margin="0,0,0,0">
                     <Grid>

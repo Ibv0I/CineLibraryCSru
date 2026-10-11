@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -992,8 +992,8 @@ public sealed partial class LibraryPage : Page
                 mw.ShowToast("No movies match the current filter — try clearing some filters");
             return;
         }
-        if (App.MainWindow is MainWindow mw)
-            await mw.ShowMovieDetailsAsync(id.Value,
+        if (App.MainWindow is MainWindow mainWindow)
+            await mainWindow.ShowMovieDetailsAsync(id.Value,
                 (_, _) => SidebarRefreshRequested?.Invoke(this, EventArgs.Empty));
     }
 

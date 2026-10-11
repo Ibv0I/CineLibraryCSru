@@ -1,18 +1,19 @@
-﻿using Microsoft.UI;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using CineLibraryCS.Models;
 using CineLibraryCS.Services;
+using Windows.Graphics;
 using Windows.UI;
 using Windows.System;
 using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace CineLibraryCS.Views;
 
-// Full-size in-window movie detail dialog, hosted by the main window.
-public sealed partial class MovieDetailDialog : ContentDialog
+// A resizable Window-based detail view (replaces the old fixed ContentDialog).
+public sealed partial class MovieDetailDialog : Window
 {
     private readonly int _movieId;
     private MovieDetail? _movie;
@@ -38,18 +39,57 @@ public sealed partial class MovieDetailDialog : ContentDialog
                 ? Color.FromArgb(255, 246, 246, 250)
                 : Color.FromArgb(255, 10, 10, 12));
 
-        // This dialog is hosted by the main window; sizing and title-bar
-        // management are handled by the main window, not a separate HWND.
+        // Custom titlebar drag region + Mica
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+        SystemBackdrop = new MicaBackdrop();
+
+        // Window size — restore the last user-resized size if we have one,
+        // otherwise fall back to a comfortable default (1100×800). Saved on
+        // SizeChanged into prefs so resize sticks across sessions.
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
+        var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+
+        int width = 1100, height = 800;
+        var savedW = AppState.Instance.GetPref("detailDialogW", "");
+        var savedH = AppState.Instance.GetPref("detailDialogH", "");
+        if (int.TryParse(savedW, out var w) && w >= 700) width = w;
+        if (int.TryParse(savedH, out var h) && h >= 500) height = h;
+        appWindow.Resize(new SizeInt32(width, height));
+        appWindow.Title = "Movie Details";
+
+        // Ensure window is resizable and maximizable, then open maximized
+        if (appWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+        {
+            presenter.IsResizable = true;
+            presenter.IsMaximizable = true;
+            presenter.Maximize();
+        }
 
         // Esc closes the dialog
         var escAcc = new Microsoft.UI.Xaml.Input.KeyboardAccelerator
         {
             Key = Windows.System.VirtualKey.Escape
         };
-        escAcc.Invoked += (_, a) => { a.Handled = true; Hide(); };
+        escAcc.Invoked += (_, a) => { a.Handled = true; Close(); };
         RootGrid.KeyboardAccelerators.Add(escAcc);
         // No floating "Esc" key tip following the pointer (same as MainWindow).
         RootGrid.KeyboardAcceleratorPlacementMode = Microsoft.UI.Xaml.Input.KeyboardAcceleratorPlacementMode.Hidden;
+
+        // Persist size on close — using AppWindow.Changed catches the final
+        // resized state regardless of how the window was dismissed.
+        appWindow.Changed += (s, args) =>
+        {
+            if (!args.DidSizeChange) return;
+            try
+            {
+                AppState.Instance.SetPref("detailDialogW", s.Size.Width.ToString());
+                AppState.Instance.SetPref("detailDialogH", s.Size.Height.ToString());
+            }
+            catch { }
+        };
+
 
         // Track close so async load that finishes after Esc doesn't try to
         // touch the destroyed window (COMException "operation identifier is
@@ -77,7 +117,7 @@ public sealed partial class MovieDetailDialog : ContentDialog
 
     private void PopulateUi(MovieDetail m)
     {
-        // The title is shown inside the dialog; do not change the main window title.
+        Title = m.Title;
         TitleBarText.Text = m.Title;
         DetailTitle.Text = m.Title;
 
@@ -241,7 +281,7 @@ public sealed partial class MovieDetailDialog : ContentDialog
         // v4.2.0: decoded for the bigger poster and the full-width banner (the
         // window opens maximised, so its width is about the banner's in pixels)
         LoadImageAsync(m.LocalPoster, PosterImage, PosterPlaceholder, 520);
-        LoadImageAsync(m.LocalFanart, HeroImage, null, Math.Clamp((int)Math.Max(ActualWidth, 1920), 1920, 3840));
+        LoadImageAsync(m.LocalFanart, HeroImage, null, Math.Clamp(AppWindow.Size.Width, 1920, 3840));
 
         // v3.4 — "Fetch missing info from TMDB" (and, later, Sync to drive).
         UpdateTmdbActions(m);
@@ -564,7 +604,7 @@ public sealed partial class MovieDetailDialog : ContentDialog
     private void NavigateAndClose(Action<MainWindow> nav)
     {
         if (App.MainWindow is MainWindow mw) nav(mw);
-        Hide();
+        Close();
     }
 
     // ── Tech badges, ratings, trailer, file info (v2.2) ──────────────────────
@@ -958,7 +998,7 @@ public sealed partial class MovieDetailDialog : ContentDialog
             : Visibility.Collapsed;
     }
 
-    private void OnStickyClose(object sender, RoutedEventArgs e) => Hide();
+    private void OnStickyClose(object sender, RoutedEventArgs e) => Close();
 
     private async void OnOpenImdb(object sender, RoutedEventArgs e)
     {

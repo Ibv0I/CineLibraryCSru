@@ -387,8 +387,8 @@ public sealed partial class MovieRowControl : UserControl
     private void OpenDetail()
     {
         if (Movie == null) return;
-        if (App.MainWindow is MainWindow mw)
-            _ = mw.ShowMovieDetailsAsync(Movie.Id,
-                (s, e) => SidebarRefreshRequested?.Invoke(this, EventArgs.Empty));
+        var win = new MovieDetailDialog(Movie.Id);
+        win.WatchlistChanged += (s, e) => SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
+        win.Activate();
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -982,7 +982,7 @@ public sealed partial class LibraryPage : Page
     /// 90s comedy, random movie in this list, random favorite, etc. Falls
     /// back to an unfiltered random unwatched if the filter set is empty.
     /// </summary>
-    private async void OnSurpriseMeClick(object sender, RoutedEventArgs e)
+    private void OnSurpriseMeClick(object sender, RoutedEventArgs e)
     {
         var opts = _vm.BuildOptsForPick();
         var id = AppState.Instance.Db.GetRandomMovieIdMatching(opts, AppState.Instance.Connected);
@@ -992,9 +992,9 @@ public sealed partial class LibraryPage : Page
                 mw.ShowToast("No movies match the current filter — try clearing some filters");
             return;
         }
-        if (App.MainWindow is MainWindow mainWindow)
-            await mainWindow.ShowMovieDetailsAsync(id.Value,
-                (_, _) => SidebarRefreshRequested?.Invoke(this, EventArgs.Empty));
+        var dialog = new MovieDetailDialog(id.Value);
+        dialog.WatchlistChanged += (_, _) => SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
+        dialog.Activate();
     }
 
     private string? _shownRowKey = "";   // "" = not run yet, so the first call always queries

@@ -1,13 +1,10 @@
-<ContentDialog
+<Window
     x:Class="CineLibraryCS.Views.MovieDetailDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="using:CineLibraryCS.Models"
     xmlns:controls="using:CineLibraryCS.Controls"
-    FullSizeDesired="True"
-    Background="{ThemeResource BgBrush}"
-    BorderThickness="0"
-    Padding="0">
+    Title="Movie Details">
 
     <Grid x:Name="RootGrid" Background="{ThemeResource BgBrush}">
         <Grid.RowDefinitions>
@@ -520,4 +517,4 @@
         </Border>
         </Grid>
     </Grid>
-</ContentDialog>
+</Window>

@@ -410,38 +410,7 @@ public sealed partial class MainWindow : Window
         await _vm.InitializeAsync();
         RefreshSidebarImmediate();
 
-        // Fire-and-forget update check. Silent on no-network. Skipped versions
-        // are remembered via the prefs table so the user isn't nagged.
-        // Automatic update checks are disabled by user request.
-    }
-
-    /// <summary>
-    /// Shows movie details as a full-size ContentDialog over this window,
-    /// instead of creating a separate native window.
-    /// </summary>
-    public async Task ShowMovieDetailsAsync(int movieId, EventHandler? watchlistChanged = null)
-    {
-        // ContentDialog is constrained to a compact width by its default style.
-        // Make the movie details occupy the available main-window surface instead.
-        var availableWidth = Math.Max(1, RootGrid.ActualWidth);
-        var availableHeight = Math.Max(1, RootGrid.ActualHeight);
-        var dialog = new MovieDetailDialog(movieId)
-        {
-            XamlRoot = RootGrid.XamlRoot,
-            RequestedTheme = CurrentTheme,
-            FullSizeDesired = true,
-            Width = availableWidth,
-            Height = availableHeight,
-            MaxWidth = availableWidth,
-            MaxHeight = availableHeight,
-            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch,
-            VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Stretch
-        };
-        if (watchlistChanged != null)
-            dialog.WatchlistChanged += watchlistChanged;
-
-        try { await dialog.ShowAsync(); }
-        catch (InvalidOperationException) { /* another dialog may already be open */ }
+        // Automatic update checks are disabled.
     }
 
     // ── Update check ──────────────────────────────────────────────────────
@@ -1824,7 +1793,9 @@ public sealed partial class MainWindow : Window
             ShowToast("Nothing unwatched left — fully caught up 🎉");
             return;
         }
-        await ShowMovieDetailsAsync(id.Value, (_, _) => { _ = RefreshSidebarAsync(); });
+        var dialog = new MovieDetailDialog(id.Value);
+        dialog.WatchlistChanged += (_, _) => { _ = RefreshSidebarAsync(); };
+        dialog.Activate();
     }
 
     /// <summary>

@@ -421,10 +421,21 @@ public sealed partial class MainWindow : Window
     /// </summary>
     public async Task ShowMovieDetailsAsync(int movieId, EventHandler? watchlistChanged = null)
     {
+        // ContentDialog is constrained to a compact width by its default style.
+        // Make the movie details occupy the available main-window surface instead.
+        var availableWidth = Math.Max(1, RootGrid.ActualWidth);
+        var availableHeight = Math.Max(1, RootGrid.ActualHeight);
         var dialog = new MovieDetailDialog(movieId)
         {
             XamlRoot = RootGrid.XamlRoot,
-            RequestedTheme = CurrentTheme
+            RequestedTheme = CurrentTheme,
+            FullSizeDesired = true,
+            Width = availableWidth,
+            Height = availableHeight,
+            MaxWidth = availableWidth,
+            MaxHeight = availableHeight,
+            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch,
+            VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Stretch
         };
         if (watchlistChanged != null)
             dialog.WatchlistChanged += watchlistChanged;

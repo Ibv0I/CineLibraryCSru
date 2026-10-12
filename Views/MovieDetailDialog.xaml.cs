@@ -189,7 +189,6 @@ public sealed partial class MovieDetailDialog : Window
             ChipsPanel.Children.Add(border);
         }
 
-        if (m.Mpaa != null) AddChip(m.Mpaa);
         if (m.IsMissing) AddChip("MISSING", "#3A1010");
 
         // Drive
@@ -222,7 +221,7 @@ public sealed partial class MovieDetailDialog : Window
         // under the rating / year / runtime line, where TMDb shows them too.
         GenreChips.Children.Clear();
         GenreChips.Visibility = m.Genres.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        foreach (var g in m.Genres)
+        foreach (var g in m.Genres.Take(3))
         {
             var captured = g;
             var chip = new Button
@@ -757,16 +756,9 @@ public sealed partial class MovieDetailDialog : Window
         // Films already in the collection strip aren't repeated here
         var more = byDirector.Where(x => !inCollection.Contains(x.Id)).ToList();
         _stripDirector = m.Directors.FirstOrDefault();
-        DirectorSection.Visibility = more.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        if (more.Count > 0)
-        {
-            DirectorHeader.Text = $"More by {_stripDirector}";
-            var shown = more.Take(RelatedMax).ToList();
-            DirectorRepeater.ItemsSource = shown;
-            DirectorSeeAllBtn.Content = "See all";
-            DirectorSeeAllBtn.Visibility = more.Count > shown.Count ? Visibility.Visible : Visibility.Collapsed;
-            LoadRelatedPosters(shown);
-        }
+        // Hide the "More by" director strip; keep the collection strip intact.
+        DirectorSection.Visibility = Visibility.Collapsed;
+        DirectorRepeater.ItemsSource = null;
     }
 
     private async void LoadRelatedPosters(IReadOnlyList<RelatedMovie> movies)
@@ -1076,6 +1068,24 @@ public sealed partial class MovieDetailDialog : Window
             };
             FiSubsBlock.Visibility = Visibility.Visible;
             any = true;
+        }
+        // Four compact metadata fields per row: Released, Rated, Country, File size first.
+        var infoFields = new FrameworkElement[]
+        {
+            FiReleaseBlock, FiMpaaBlock, FiCountryBlock, FiSizeBlock,
+            FiDurBlock, FiContainerBlock, FiLangBlock, FiSubsBlock
+        }.Where(e => e.Visibility == Visibility.Visible).ToList();
+        FileInfoGrid.Children.Clear();
+        FileInfoGrid.RowDefinitions.Clear();
+        int rowCount = Math.Max(1, (int)Math.Ceiling(infoFields.Count / 4.0));
+        for (int r = 0; r < rowCount; r++)
+            FileInfoGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        for (int i = 0; i < infoFields.Count; i++)
+        {
+            var field = infoFields[i];
+            Grid.SetRow(field, i / 4);
+            Grid.SetColumn(field, i % 4);
+            FileInfoGrid.Children.Add(field);
         }
         FileInfoPanel.Visibility = any ? Visibility.Visible : Visibility.Collapsed;
     }

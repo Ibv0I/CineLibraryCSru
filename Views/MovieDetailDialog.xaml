@@ -331,7 +331,12 @@
                             Background="{ThemeResource CardBrush}"
                             BorderBrush="{ThemeResource BorderBrush}"
                             BorderThickness="1" CornerRadius="8">
-                        <controls:WrapPanel HorizontalSpacing="24" VerticalSpacing="8">
+                        <Grid x:Name="FileInfoGrid" ColumnSpacing="12" RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                             <StackPanel x:Name="FiRuntimeBlock" Visibility="Collapsed">
                                 <TextBlock Text="RUNTIME" FontSize="9" FontWeight="SemiBold"
                                            CharacterSpacing="150" Opacity="0.65"
@@ -395,7 +400,7 @@
                                 <TextBlock x:Name="FiSubs" FontSize="13" FontWeight="SemiBold"
                                            Foreground="{ThemeResource TextBrush}"/>
                             </StackPanel>
-                        </controls:WrapPanel>
+                        </Grid>
                     </Border>
 
                     <!-- Plot — with section header + capped width for readability -->

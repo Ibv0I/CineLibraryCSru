@@ -1,4 +1,4 @@
-﻿using Microsoft.UI;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -1073,7 +1073,7 @@ public sealed partial class MovieDetailDialog : Window
             FiSubsBlock.Visibility = Visibility.Visible;
             any = true;
         }
-        // Four compact metadata fields per row: Released, Rated, Country, File size first.
+        // Two columns keep the technical-information card compact in width and taller vertically; first row starts Released, Rated.
         var infoFields = new FrameworkElement[]
         {
             FiReleaseBlock, FiMpaaBlock, FiCountryBlock, FiSizeBlock,
@@ -1081,14 +1081,14 @@ public sealed partial class MovieDetailDialog : Window
         }.Where(e => e.Visibility == Visibility.Visible).ToList();
         FileInfoGrid.Children.Clear();
         FileInfoGrid.RowDefinitions.Clear();
-        int rowCount = Math.Max(1, (int)Math.Ceiling(infoFields.Count / 4.0));
+        int rowCount = Math.Max(1, (int)Math.Ceiling(infoFields.Count / 2.0));
         for (int r = 0; r < rowCount; r++)
             FileInfoGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         for (int i = 0; i < infoFields.Count; i++)
         {
             var field = infoFields[i];
-            Grid.SetRow(field, i / 4);
-            Grid.SetColumn(field, i % 4);
+            Grid.SetRow(field, i / 2);
+            Grid.SetColumn(field, i % 2);
             FileInfoGrid.Children.Add(field);
         }
         FileInfoPanel.Visibility = any ? Visibility.Visible : Visibility.Collapsed;

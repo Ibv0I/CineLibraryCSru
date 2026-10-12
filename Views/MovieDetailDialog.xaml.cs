@@ -189,26 +189,6 @@ public sealed partial class MovieDetailDialog : Window
             ChipsPanel.Children.Add(border);
         }
 
-        if (m.Rating.HasValue)
-        {
-            // Prominent bright-yellow IMDB rating chip (first, before year/runtime)
-            var ratingBorder = new Border
-            {
-                Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xFA, 0xCC, 0x15)),
-                CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(10, 3, 10, 3),
-            };
-            ratingBorder.Child = new TextBlock
-            {
-                Text = $"★ {m.Rating:F1}",
-                FontSize = 13,
-                FontWeight = Microsoft.UI.Text.FontWeights.Bold,
-                Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x1F, 0x14, 0x00))
-            };
-            ChipsPanel.Children.Add(ratingBorder);
-        }
-        if (m.Year.HasValue) AddChip(m.Year.ToString()!);
-        if (m.Runtime.HasValue) AddChip($"{m.Runtime} min");
         if (m.Mpaa != null) AddChip(m.Mpaa);
         if (m.IsMissing) AddChip("MISSING", "#3A1010");
 
@@ -274,13 +254,7 @@ public sealed partial class MovieDetailDialog : Window
         }
 
         // v4.5.0 (#24): writers, the first four; all of them on hover when there are more
-        if (m.Writers.Count > 0)
-        {
-            WriterField.Visibility = Visibility.Visible;
-            WriterText.Text = string.Join(", ", m.Writers.Take(4))
-                + (m.Writers.Count > 4 ? $" +{m.Writers.Count - 4} more" : "");
-            ToolTipService.SetToolTip(WriterText, m.Writers.Count > 4 ? string.Join(", ", m.Writers) : null);
-        }
+        WriterField.Visibility = Visibility.Collapsed;
 
         // Tech badges + ratings + file info (v2.2)
         PopulateTechBadges(m);
@@ -1039,12 +1013,7 @@ public sealed partial class MovieDetailDialog : Window
         bool any = false;
         // Runtime / Released / Rated / Country — folded in from the old
         // below-poster column so the row stays compact (v2.3.x).
-        if (m.Runtime.HasValue && m.Runtime.Value > 0)
-        {
-            FiRuntime.Text = $"{m.Runtime.Value} min";
-            FiRuntimeBlock.Visibility = Visibility.Visible;
-            any = true;
-        }
+        FiRuntimeBlock.Visibility = Visibility.Collapsed;
         if (!string.IsNullOrWhiteSpace(m.Premiered))
         {
             FiRelease.Text = DateTime.TryParse(m.Premiered, out var dt)
@@ -1154,7 +1123,7 @@ public sealed partial class MovieDetailDialog : Window
         bool narrow = layout == DetailLayout.Narrow, wide = layout == DetailLayout.Wide;
 
         PosterFrame.Width  = narrow ? 150 : wide ? 260 : 200;
-        PosterFrame.Height = narrow ? 218 : wide ? 377 : 290;
+        PosterFrame.Height = PosterFrame.Width * 1.5;
         DetailTitle.FontSize   = narrow ? 26 : 34;
         DetailTitle.LineHeight = narrow ? 32 : 40;
 
@@ -1164,12 +1133,13 @@ public sealed partial class MovieDetailDialog : Window
         foreach (var block in new FrameworkElement[] { ActionsBlock, FileInfoPanel, PlotBlock, NotesCard, FieldsBlock, TechRatingsRow })
             Detach(block);
 
-        // Credits stay directly beneath the poster; technical badges, ratings and
-        // file metadata share the right-hand technical column in wide layouts.
+        // Credits stay directly beneath the poster; genres are already in PosterColumn.
+        // The overview is promoted into the title column immediately after title/original title/tagline.
         PosterColumn.Children.Add(FieldsBlock);
+        var overviewIndex = Math.Min(3, MetaStack.Children.Count);
+        MetaStack.Children.Insert(overviewIndex, PlotBlock);
         if (wide)
         {
-            MetaStack.Children.Add(PlotBlock);
             MetaStack.Children.Add(ActionsBlock);
             SideStack.Children.Add(TechRatingsRow);
             SideStack.Children.Add(FileInfoPanel);
@@ -1179,7 +1149,6 @@ public sealed partial class MovieDetailDialog : Window
             ContentStack.Children.Insert(ContentStack.Children.IndexOf(TopGrid) + 1, ActionsBlock);
             BodyStack.Children.Add(TechRatingsRow);
             BodyStack.Children.Add(FileInfoPanel);
-            BodyStack.Children.Add(PlotBlock);
         }
         // The title column stops at a readable width; the details column takes the rest.
         var main = TopGrid.ColumnDefinitions[1];

@@ -142,9 +142,11 @@
                             <Grid>
                                 <TextBlock x:Name="PosterPlaceholder" Text="🎬" FontSize="56"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <Image x:Name="PosterImage" Stretch="Uniform"/>
+                                <Image x:Name="PosterImage" Stretch="UniformToFill"/>
                             </Grid>
                         </Border>
+                        <controls:WrapPanel x:Name="GenreChips" HorizontalSpacing="6" VerticalSpacing="6"
+                                            Visibility="Collapsed"/>
 
                     </StackPanel>
 
@@ -172,11 +174,12 @@
                         </Grid>
                         <StackPanel x:Name="ChipsPanel" Orientation="Horizontal" Spacing="6" Margin="0,4,0,0"/>
                         <!-- v4.5.0 (#24): genres right under the rating / year / runtime line -->
-                        <controls:WrapPanel x:Name="GenreChips" HorizontalSpacing="6" VerticalSpacing="6"
-                                            Visibility="Collapsed"/>
-                        <!-- Tech badges + ratings on the same row to save vertical space -->
-                        <StackPanel x:Name="TechRatingsRow" Orientation="Horizontal" Spacing="16" Margin="0,4,0,0"
+                        <!-- Genre chips live directly below the poster. -->
+                        <!-- Tech badges and ratings are placed in the right-hand technical column. -->
+                        <StackPanel x:Name="TechRatingsRow" Orientation="Vertical" Spacing="12" Margin="0,4,0,0"
                                     VerticalAlignment="Center">
+                            <StackPanel x:Name="RatingsPanel" Orientation="Horizontal" Spacing="18"
+                                        VerticalAlignment="Center" Visibility="Collapsed"/>
                             <ItemsControl x:Name="TechBadges" VerticalAlignment="Center">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
@@ -184,8 +187,6 @@
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                             </ItemsControl>
-                            <StackPanel x:Name="RatingsPanel" Orientation="Horizontal" Spacing="18"
-                                        VerticalAlignment="Center" Visibility="Collapsed"/>
                         </StackPanel>
                     </StackPanel>
 

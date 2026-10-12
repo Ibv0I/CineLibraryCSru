@@ -48,6 +48,15 @@ public sealed partial class MovieDetailDialog : Window
         }
         InitializeComponent();
 
+        // Apply the app's chosen theme before the new window can render its first frame.
+        // Otherwise Windows' light theme may briefly paint the detail window white.
+        RequestedTheme = MainWindow.CurrentTheme;
+        RootGrid.RequestedTheme = MainWindow.CurrentTheme;
+        RootGrid.Background = new SolidColorBrush(
+            MainWindow.CurrentTheme == ElementTheme.Light
+                ? Windows.UI.Color.FromArgb(255, 250, 250, 252)
+                : Windows.UI.Color.FromArgb(255, 10, 10, 12));
+
         // Custom titlebar drag region + Mica
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
@@ -101,10 +110,6 @@ public sealed partial class MovieDetailDialog : Window
             }
             catch { }
         };
-
-        // Inherit theme from main window
-        if (RootGrid is FrameworkElement fe)
-            fe.RequestedTheme = MainWindow.CurrentTheme;
 
         // Track close so async load that finishes after Esc doesn't try to
         // touch the destroyed window (COMException "operation identifier is

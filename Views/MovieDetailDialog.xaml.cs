@@ -1166,8 +1166,9 @@ public sealed partial class MovieDetailDialog : Window
             Detach(block);
         if (wide)
         {
-            MetaStack.Children.Add(ActionsBlock);
+            // Put the overview directly beneath the title/meta, before the remaining actions.
             MetaStack.Children.Add(PlotBlock);
+            MetaStack.Children.Add(ActionsBlock);
             SideStack.Children.Add(FieldsBlock);
             SideStack.Children.Add(FileInfoPanel);
             SideStack.Children.Add(NotesCard);

@@ -23,7 +23,7 @@
             </Border.Shadow>
             <Grid>
                 <!-- Poster image -->
-                <Image x:Name="PosterImage" Stretch="Uniform"
+                <Image x:Name="PosterImage" Stretch="Fill"
                        VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
 
                 <!-- Placeholder — v2.6 subtle gradient + reel emoji for depth -->

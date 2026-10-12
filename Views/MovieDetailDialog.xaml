@@ -224,22 +224,22 @@
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
-                                CornerRadius="8" Padding="12,8"/>
+                                CornerRadius="8" Padding="12,8" Visibility="Collapsed"/>
                         <Button x:Name="WatchedBtn" Click="OnToggleWatched"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
-                                CornerRadius="8" Padding="12,8"/>
+                                CornerRadius="8" Padding="12,8" Visibility="Collapsed"/>
                         <Button x:Name="WatchlistBtn" Click="OnToggleWatchlist"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
-                                CornerRadius="8" Padding="12,8"/>
+                                CornerRadius="8" Padding="12,8" Visibility="Collapsed"/>
                         <Button x:Name="ListsBtn" Content="📑 Add to list"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
-                                CornerRadius="8" Padding="12,8">
+                                CornerRadius="8" Padding="12,8" Visibility="Collapsed">
                             <Button.Flyout>
                                 <MenuFlyout x:Name="ListsFlyout" Placement="Bottom" Opening="OnListsFlyoutOpening"/>
                             </Button.Flyout>
@@ -293,7 +293,7 @@
                          whole row hides when there are no tags AND the input
                          is collapsed. -->
                     <StackPanel x:Name="TagsRow" Orientation="Horizontal" Spacing="6"
-                                Margin="0,10,0,0">
+                                Margin="0,10,0,0" Visibility="Collapsed">
                         <TextBlock Text="🏷" FontSize="14" VerticalAlignment="Center" Opacity="0.7"/>
                         <ItemsControl x:Name="TagChipsRepeater">
                             <ItemsControl.ItemsPanel>
@@ -413,7 +413,7 @@
                     </StackPanel>
 
                     <!-- Notes (v1.9) -->
-                    <Border x:Name="NotesCard" Margin="0,20,0,0" Padding="14,12"
+                    <Border x:Name="NotesCard" Visibility="Collapsed" Margin="0,20,0,0" Padding="14,12"
                             Background="{ThemeResource CardBrush}"
                             BorderBrush="{ThemeResource BorderBrush}"
                             BorderThickness="1" CornerRadius="8">

@@ -1,4 +1,4 @@
-using Microsoft.UI;
+﻿using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -50,7 +50,6 @@ public sealed partial class MovieDetailDialog : Window
 
         // Apply the app's chosen theme before the new window can render its first frame.
         // Otherwise Windows' light theme may briefly paint the detail window white.
-        RequestedTheme = MainWindow.CurrentTheme;
         RootGrid.RequestedTheme = MainWindow.CurrentTheme;
         RootGrid.Background = new SolidColorBrush(
             MainWindow.CurrentTheme == ElementTheme.Light

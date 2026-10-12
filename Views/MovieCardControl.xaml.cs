@@ -453,7 +453,7 @@ public sealed partial class MovieCardControl : UserControl
     {
         if (Movie is not { } m) return;
         bool connected = !ArchiveMode && AppState.Instance.Connected.ContainsKey(m.VolumeSerial);
-        HoverPlayBtn.Visibility = connected && !m.IsMissing ? Visibility.Visible : Visibility.Collapsed;
+        HoverPlayBtn.Visibility = Visibility.Collapsed; // Playback remains available in Movie Details.
         var where = !ArchiveMode && !connected && m.DriveLabel != null ? $"On {m.DriveLabel}" : null;
         HoverDriveText.Text = where ?? "";
         HoverDriveText.Visibility = where != null ? Visibility.Visible : Visibility.Collapsed;

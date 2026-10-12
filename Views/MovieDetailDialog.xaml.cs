@@ -357,12 +357,11 @@ public sealed partial class MovieDetailDialog : Window
     /// </summary>
     private void UpdateTmdbActions(MovieDetail m)
     {
-        FetchTmdbBtn.Visibility = Visibility.Visible;
-        // Persisting fetched data to the drive is handled by the Drives page's
-        // existing "Sync state to drive" action, so there's no per-movie Sync
-        // button here (avoids a third button for the same kind of action).
+        FetchTmdbBtn.Visibility = Visibility.Collapsed;
+        // The per-movie fetch action is intentionally hidden; keep the underlying
+        // implementation intact so other metadata workflows are unaffected.
         SyncDriveBtn.Visibility = Visibility.Collapsed;
-        TmdbActionsRow.Visibility = Visibility.Visible;
+        TmdbActionsRow.Visibility = Visibility.Collapsed;
         TmdbStatus.Visibility = Visibility.Collapsed;
     }
 
@@ -1162,24 +1161,25 @@ public sealed partial class MovieDetailDialog : Window
         // Wide: everything up to the cast sits beside the poster. Buttons and plot
         // go under the title; genres, director, studio, file info and notes get a
         // column of their own. Otherwise they stack under the poster as before.
-        foreach (var block in new FrameworkElement[] { ActionsBlock, FileInfoPanel, PlotBlock, NotesCard, FieldsBlock })
+        foreach (var block in new FrameworkElement[] { ActionsBlock, FileInfoPanel, PlotBlock, NotesCard, FieldsBlock, TechRatingsRow })
             Detach(block);
+
+        // Credits stay directly beneath the poster; technical badges, ratings and
+        // file metadata share the right-hand technical column in wide layouts.
+        PosterColumn.Children.Add(FieldsBlock);
         if (wide)
         {
-            // Put the overview directly beneath the title/meta, before the remaining actions.
             MetaStack.Children.Add(PlotBlock);
             MetaStack.Children.Add(ActionsBlock);
-            SideStack.Children.Add(FieldsBlock);
+            SideStack.Children.Add(TechRatingsRow);
             SideStack.Children.Add(FileInfoPanel);
-            SideStack.Children.Add(NotesCard);
         }
         else
         {
             ContentStack.Children.Insert(ContentStack.Children.IndexOf(TopGrid) + 1, ActionsBlock);
+            BodyStack.Children.Add(TechRatingsRow);
             BodyStack.Children.Add(FileInfoPanel);
             BodyStack.Children.Add(PlotBlock);
-            BodyStack.Children.Add(NotesCard);
-            BodyStack.Children.Add(FieldsBlock);
         }
         // The title column stops at a readable width; the details column takes the rest.
         var main = TopGrid.ColumnDefinitions[1];

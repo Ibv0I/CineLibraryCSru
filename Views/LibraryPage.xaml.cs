@@ -815,10 +815,10 @@ public sealed partial class LibraryPage : Page
     {
         var (w, h) = tag switch
         {
-            "S"  => (120.0, 220.0),
-            "L"  => (190.0, 340.0),
-            "XL" => (240.0, 420.0),
-            _    => (150.0, 280.0),   // M
+            "S"  => (120.0, 180.0),
+            "L"  => (190.0, 285.0),
+            "XL" => (240.0, 360.0),
+            _    => (150.0, 225.0),   // M — 2:3 poster ratio
         };
 
         MovieCardControl.SetGlobalSize(w, h);

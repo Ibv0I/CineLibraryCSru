@@ -322,7 +322,7 @@
                     <ItemsRepeater x:Name="GridRepeater">
                         <ItemsRepeater.Layout>
                             <UniformGridLayout x:Name="GridLayout"
-                                               MinItemWidth="160" MinItemHeight="240"
+                                               MinItemWidth="150" MinItemHeight="280"
                                                MinColumnSpacing="12" MinRowSpacing="12"
                                                ItemsStretch="Fill"/>
                         </ItemsRepeater.Layout>
@@ -405,7 +405,7 @@
                         BorderBrush="{ThemeResource BorderBrush}"
                         CornerRadius="8" Padding="10,6" FontSize="12"/>
                 <Button x:Name="SelFavBtn" Click="OnSelToggleFav"
-                        Content="★ Favorite"
+                        Content="♥ Favorite"
                         Background="{ThemeResource CardBrush}"
                         Foreground="{ThemeResource TextBrush}"
                         BorderBrush="{ThemeResource BorderBrush}"

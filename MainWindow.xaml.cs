@@ -410,9 +410,7 @@ public sealed partial class MainWindow : Window
         await _vm.InitializeAsync();
         RefreshSidebarImmediate();
 
-        // Fire-and-forget update check. Silent on no-network. Skipped versions
-        // are remembered via the prefs table so the user isn't nagged.
-        _ = CheckForUpdatesAsync();
+        // Automatic update checks are disabled by user preference.
     }
 
     // ── Update check ──────────────────────────────────────────────────────

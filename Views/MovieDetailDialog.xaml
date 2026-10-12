@@ -176,11 +176,11 @@
                         <!-- v4.5.0 (#24): genres right under the rating / year / runtime line -->
                         <!-- Genre chips live directly below the poster. -->
                         <!-- Tech badges and ratings are placed in the right-hand technical column. -->
-                        <StackPanel x:Name="TechRatingsRow" Orientation="Vertical" Spacing="12" Margin="0,4,0,0"
+                        <StackPanel x:Name="TechRatingsRow" Orientation="Vertical" Spacing="6" Margin="0,2,0,0"
                                     VerticalAlignment="Center">
-                            <StackPanel x:Name="RatingsPanel" Orientation="Horizontal" Spacing="18"
-                                        VerticalAlignment="Center" Visibility="Collapsed"/>
-                            <ItemsControl x:Name="TechBadges" VerticalAlignment="Center">
+                            <StackPanel x:Name="RatingsPanel" Orientation="Horizontal" Spacing="8"
+                                        HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed"/>
+                            <ItemsControl x:Name="TechBadges" VerticalAlignment="Center" HorizontalAlignment="Right">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <StackPanel Orientation="Horizontal" Spacing="4"/>
@@ -327,13 +327,13 @@
                 <StackPanel x:Name="BodyStack">
                     <!-- File info panel (v2.2.2) — sits right under the action row -->
                     <Border x:Name="FileInfoPanel" Visibility="Collapsed"
-                            HorizontalAlignment="Left" MaxWidth="560"
-                            Margin="0,12,0,0" Padding="12,10"
+                            Margin="0,12,0,0" Padding="12,8"
                             Background="{ThemeResource CardBrush}"
                             BorderBrush="{ThemeResource BorderBrush}"
                             BorderThickness="1" CornerRadius="8">
-                        <Grid x:Name="FileInfoGrid" ColumnSpacing="10" RowSpacing="10">
+                        <Grid x:Name="FileInfoGrid" ColumnSpacing="4" RowSpacing="4">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>

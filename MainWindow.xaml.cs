@@ -50,6 +50,7 @@ public sealed partial class MainWindow : Window
         LocalizationService.ApplyLanguage(UiSettings.Language);
 
         InitializeComponent();
+        LocalizationService.TranslateTree(RootGrid);
 
         // Extend content into titlebar for Mica effect + use our custom drag region
         ExtendsContentIntoTitleBar = true;

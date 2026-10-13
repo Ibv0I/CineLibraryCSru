@@ -6,6 +6,80 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > Per-release notes for the 2.x and early-3.x versions between the two
 > entries below live on the [Releases](https://github.com/aungkokomm/CineLibraryCS/releases) page.
 
+## [4.5.0] - 2026-10-12
+
+Favorite and Play from the card, and a movie window you can browse.
+
+### Added
+- **Favorite, Watched and Watchlist from the movie card.** Point at a
+  card and three round icons appear in its top corner (📌 ✓ ♥), dim when
+  off and bright when on; a click switches them. A favorite keeps its ♥
+  on the card. TV show cards get the same 📌 and ♥. The hover panel keeps
+  the genres and View Details (or ▶ the next episode).
+- **▶ Play from the movie card.** Pointing at a movie whose drive is
+  connected shows a Play button (before, only a double-click played it);
+  when the drive isn't connected, the card says which drive it's on.
+- **Previous / next in the movie window.** The ← and → keys, or the
+  arrows at the top left of the banner, step through the movies of the
+  grid or list you opened it from, in the same order and filter, without
+  closing the window. It shows where you are ("12 of 340").
+- **The rest of the collection.** Under the cast, "Part of the James
+  Bond Collection" shows every film of it you own, in order, with a ✓ on
+  the ones you've watched. Click one to see it in the same window.
+- **More by the director.** Then "More by Steven Spielberg": up to 12 of
+  their other films you own, newest first, with See all for the rest.
+- **Writer in the movie window**, beside Director and Studio. Writers
+  were already read from your `.nfo` files; a long list shows the first
+  four, with the rest when you point at it.
+
+### Changed
+- **A heart for Favorites everywhere** (cards, sidebar, list view, the
+  movie, show and episode windows). The star is for ratings only.
+- **Movie window: genres sit under the rating, year and runtime**, as
+  chips you can click, where TMDb shows them too. Director takes their
+  old spot, then Writer and Studio.
+- **Plainer labels**: Overview (was Plot), Language (was Audio) and
+  File type (was Container).
+
+### Fixed
+- **Some short titles sat a line too high on cards**, with a blank line
+  under them. The card worked out where the title wraps at its basic
+  width, then drew it on the wider card the grid stretches it to, so a
+  title that fit on one line still took two. Movie, TV show and
+  collection cards.
+
+## [4.4.1] - 2026-10-10
+
+### Fixed
+- **The movie window shows the whole cast**, so every actor photo you
+  have appears. It stopped at the first 12 actors, which hid the photos
+  of everyone after them (about half of a typical library has a bigger
+  cast). A very big cast shows its first 24 with a **Show all** button.
+
+### Changed
+- **Show page: genres sit under the info line**, above the plot and your
+  note, so a note no longer pushes them down.
+- **Show page: your tags sit beside Add note and Fetch missing info**,
+  and wrap in their own space, so adding several no longer pushes those
+  buttons away from the row above.
+
+## [4.4.0] - 2026-10-09
+
+Collections that show your progress, and an easier-to-read episode window.
+
+### Changed
+- **Collection cards are the size of TV show cards** and fill their spot
+  in the grid. They were narrower than a poster (at size M, 150 by 280),
+  so the posters were cut at the sides, and they sat a little to the
+  right of the page title.
+- **Collection cards show how far you are**: "3 movies" on the left,
+  "1/3" in purple on the right, and a purple progress bar, as on show
+  cards. The green ✓ still marks a collection you've finished.
+- **The episode window is easier to read**, from the sofa too. It's dark
+  like the show page's header (in both themes) with a thin frame, its
+  text is larger and brighter, the show's name sits on a small first line
+  with the episode's name under it, and it's wider (up to 720 pixels).
+
 ## [4.3.0] - 2026-10-06
 
 Notes for TV shows.

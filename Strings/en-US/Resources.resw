@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Done" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>APPEARANCE</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="Light" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Dark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="BackgroundMaterial" xml:space="preserve">
+    <value>Background material (Mica)</value>
+  </data>
+  <data name="MicaDescription" xml:space="preserve">
+    <value>How much of the Windows Mica material — your wallpaper, softly tinted — shows behind the sidebar. Off is a flat, solid look and is the lightest on the GPU. The poster area always stays solid for smooth scrolling.</value>
+  </data>
+  <data name="Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Subtle" xml:space="preserve">
+    <value>Subtle</value>
+  </data>
+  <data name="Strong" xml:space="preserve">
+    <value>Strong</value>
+  </data>
+  <data name="CardBorders" xml:space="preserve">
+    <value>Card borders</value>
+  </data>
+  <data name="On" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="CardBordersDescription" xml:space="preserve">
+    <value>A thin outline around each movie card. Helps the cards stand out, especially in light theme.</value>
+  </data>
+  <data name="CardShadows" xml:space="preserve">
+    <value>Card drop shadows</value>
+  </data>
+  <data name="CardShadowsDescription" xml:space="preserve">
+    <value>A subtle shadow that lifts each movie card. Off by default for the smoothest scrolling.</value>
+  </data>
+  <data name="ReduceMotion" xml:space="preserve">
+    <value>Reduce motion</value>
+  </data>
+  <data name="ReduceMotionDescription" xml:space="preserve">
+    <value>Turns off the zoom/lift animation when you hover a card. Easier on the eyes and on low-end GPUs.</value>
+  </data>
+  <data name="Playback" xml:space="preserve">
+    <value>PLAYBACK</value>
+  </data>
+  <data name="VideoPlayer" xml:space="preserve">
+    <value>Video player</value>
+  </data>
+  <data name="WindowsDefaultPlayer" xml:space="preserve">
+    <value>Windows default player</value>
+  </data>
+  <data name="Choose" xml:space="preserve">
+    <value>Choose…</value>
+  </data>
+  <data name="UseWindowsDefault" xml:space="preserve">
+    <value>Use Windows default</value>
+  </data>
+  <data name="PlayerDescription" xml:space="preserve">
+    <value>Play opens videos in this program, for example VLC, MPC-HC, PotPlayer or mpv. With none chosen, Play uses whatever Windows opens video files with.</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Interface language</value>
+  </data>
+  <data name="LanguageDescription" xml:space="preserve">
+    <value>Choose the app language. Changes take effect after restarting.</value>
+  </data>
+  <data name="ApplyLanguageRestart" xml:space="preserve">
+    <value>Apply language and restart</value>
+  </data>
+  <data name="LanguageRestartTitle" xml:space="preserve">
+    <value>Restart CineLibrary?</value>
+  </data>
+  <data name="LanguageRestartMessage" xml:space="preserve">
+    <value>The app must restart to apply the selected language throughout the interface.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Restart" xml:space="preserve">
+    <value>Restart</value>
+  </data>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>Unexpected Error</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+</root>

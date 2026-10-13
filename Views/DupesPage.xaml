@@ -87,7 +87,7 @@
                                                        FontWeight="SemiBold"
                                                        Foreground="{ThemeResource MutedBrush}"
                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            <Image Source="{x:Bind Poster, Mode=OneWay}" Stretch="UniformToFill"/>
+                                            <Image Source="{x:Bind Poster, Mode=OneWay}" Stretch="Uniform"/>
                                         </Grid>
                                     </Border>
 

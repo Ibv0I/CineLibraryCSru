@@ -27,6 +27,15 @@
             <SolidColorBrush x:Key="InputBorderBrush" Color="#2A2A3A"/>
             <SolidColorBrush x:Key="ChipBrush"       Color="#1E1E2E"/>
             <SolidColorBrush x:Key="HeroBgBrush"     Color="#990A0A1C"/>
+            <LinearGradientBrush x:Key="HeroFadeBrush" StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Offset="0.00" Color="#000A0A0C"/>
+                            <GradientStop Offset="0.48" Color="#000A0A0C"/>
+                            <GradientStop Offset="0.62" Color="#080A0A0C"/>
+                            <GradientStop Offset="0.73" Color="#220A0A0C"/>
+                            <GradientStop Offset="0.83" Color="#660A0A0C"/>
+                            <GradientStop Offset="0.92" Color="#CC0A0A0C"/>
+                            <GradientStop Offset="1.00" Color="#FF0A0A0C"/>
+                        </LinearGradientBrush>
             <SolidColorBrush x:Key="OverlayBrush"    Color="#CC0A0A1C"/>
             <SolidColorBrush x:Key="PlaceholderBgBrush" Color="#1A1A2E"/>
             <!-- v2.6 — poster-placeholder gradient stops for depth -->
@@ -71,6 +80,16 @@
             <SolidColorBrush x:Key="InputBorderBrush" Color="#BDBDD2"/>
             <SolidColorBrush x:Key="ChipBrush"       Color="#E5E5F2"/>
             <SolidColorBrush x:Key="HeroBgBrush"     Color="#99F0F0FF"/>
+            <LinearGradientBrush x:Key="HeroFadeBrush" StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Offset="0.00" Color="#00F6F6FA"/>
+                            <GradientStop Offset="0.48" Color="#00F6F6FA"/>
+                            <GradientStop Offset="0.60" Color="#08F6F6FA"/>
+                            <GradientStop Offset="0.70" Color="#22F6F6FA"/>
+                            <GradientStop Offset="0.79" Color="#55F6F6FA"/>
+                            <GradientStop Offset="0.87" Color="#99F6F6FA"/>
+                            <GradientStop Offset="0.94" Color="#DDF6F6FA"/>
+                            <GradientStop Offset="1.00" Color="#FFF6F6FA"/>
+                        </LinearGradientBrush>
             <SolidColorBrush x:Key="OverlayBrush"    Color="#CCF0F0FF"/>
             <SolidColorBrush x:Key="PlaceholderBgBrush" Color="#EEEEFF"/>
             <Color x:Key="PlaceholderTopColor">#F0EEFB</Color>
@@ -115,6 +134,15 @@
             <SolidColorBrush x:Key="InputBorderBrush" Color="#2A2A3A"/>
             <SolidColorBrush x:Key="ChipBrush"       Color="#1E1E2E"/>
             <SolidColorBrush x:Key="HeroBgBrush"     Color="#990A0A1C"/>
+            <LinearGradientBrush x:Key="HeroFadeBrush" StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Offset="0.00" Color="#000A0A0C"/>
+                            <GradientStop Offset="0.48" Color="#000A0A0C"/>
+                            <GradientStop Offset="0.62" Color="#080A0A0C"/>
+                            <GradientStop Offset="0.73" Color="#220A0A0C"/>
+                            <GradientStop Offset="0.83" Color="#660A0A0C"/>
+                            <GradientStop Offset="0.92" Color="#CC0A0A0C"/>
+                            <GradientStop Offset="1.00" Color="#FF0A0A0C"/>
+                        </LinearGradientBrush>
             <SolidColorBrush x:Key="OverlayBrush"    Color="#CC0A0A1C"/>
             <SolidColorBrush x:Key="PlaceholderBgBrush" Color="#1A1A2E"/>
             <Color x:Key="PlaceholderTopColor">#1F1A2E</Color>

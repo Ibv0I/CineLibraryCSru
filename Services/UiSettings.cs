@@ -19,6 +19,7 @@ public static class UiSettings
     private const string KeyMica = "ui_mica";              // legacy bool
     private const string KeyMicaLevel = "ui_micaLevel";   // v3.3.2 — off|subtle|strong
     private const string KeyPlayerPath = "ui_playerPath"; // v3.6.0: "" = Windows default
+    private const string KeyLanguage = "ui_language"; // ru-RU | en-US
 
     /// <summary>How much Windows Mica material shows behind the window.
     /// Off = flat solid (also best on weak GPUs); Subtle / Strong control how
@@ -44,6 +45,9 @@ public static class UiSettings
     /// Empty = whatever Windows opens video files with. See VideoPlayer.</summary>
     public static string PlayerPath { get; private set; } = "";
 
+    /// <summary>Interface language. Russian is the default for new installs.</summary>
+    public static string Language { get; private set; } = "ru-RU";
+
     /// <summary>Raised after any setting changes so live UI can re-apply it.</summary>
     public static event Action? Changed;
 
@@ -54,6 +58,7 @@ public static class UiSettings
         CardShadows  = AppState.Instance.GetPref(KeyCardShadows,  "false") == "true";
         ReduceMotion = AppState.Instance.GetPref(KeyReduceMotion, "false") == "true";
         PlayerPath   = AppState.Instance.GetPref(KeyPlayerPath,   "");
+        Language     = NormalizeLanguage(AppState.Instance.GetPref(KeyLanguage, "ru-RU"));
 
         var lvl = AppState.Instance.GetPref(KeyMicaLevel, "");
         Mica = lvl switch
@@ -64,6 +69,17 @@ public static class UiSettings
             // Migrate the old on/off pref for existing users.
             _ => AppState.Instance.GetPref(KeyMica, "true") == "true" ? MicaLevel.Subtle : MicaLevel.Off,
         };
+    }
+
+    private static string NormalizeLanguage(string value)
+        => value.Equals("en-US", StringComparison.OrdinalIgnoreCase) ? "en-US" : "ru-RU";
+
+    public static void SetLanguage(string value)
+    {
+        value = NormalizeLanguage(value);
+        if (Language == value) return;
+        Language = value;
+        AppState.Instance.SetPref(KeyLanguage, value);
     }
 
     public static void SetMica(MicaLevel value)

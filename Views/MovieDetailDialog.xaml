@@ -6,7 +6,45 @@
     xmlns:controls="using:CineLibraryCS.Controls"
     Title="Movie Details">
 
-    <Grid x:Name="RootGrid" Background="{ThemeResource SidebarBrush}">
+    <Grid x:Name="RootGrid" Background="{ThemeResource BgBrush}">
+        <Grid.Resources>
+            <!-- v4.5.0: a film in the collection and "More by" strips. The title
+                 keeps room for two lines, so every tile is the same height. -->
+            <DataTemplate x:Key="RelatedMovieTemplate" x:DataType="models:RelatedMovie">
+                <Button Width="120" Background="Transparent" BorderThickness="0" Padding="0"
+                        CornerRadius="8" HorizontalContentAlignment="Stretch" VerticalAlignment="Top"
+                        Tag="{x:Bind Id}" Click="OnRelatedClick"
+                        AutomationProperties.Name="{x:Bind Title}">
+                    <StackPanel Spacing="6">
+                        <Grid Width="120" Height="180">
+                            <Border CornerRadius="8" Background="{ThemeResource PlaceholderBgBrush}"
+                                    BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1">
+                                <Grid>
+                                    <TextBlock Text="🎬" FontSize="30" Opacity="0.7"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Image Stretch="Uniform" Source="{x:Bind PosterBitmap, Mode=OneWay}"/>
+                                </Grid>
+                            </Border>
+                            <Border Background="#CC22C55E" CornerRadius="10" Width="20" Height="20"
+                                    HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6"
+                                    Visibility="{x:Bind IsWatched}">
+                                <TextBlock Text="✓" FontSize="11" FontWeight="Bold" Foreground="White"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <!-- the film this window shows, in its collection -->
+                            <Border CornerRadius="8" BorderThickness="2"
+                                    BorderBrush="{StaticResource BrandPurpleBrush}"
+                                    Visibility="{x:Bind IsCurrent}"/>
+                        </Grid>
+                        <TextBlock Text="{x:Bind Title}" Height="32" FontSize="12" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextBrush}" TextWrapping="WrapWholeWords"
+                                   TextTrimming="CharacterEllipsis" MaxLines="2"/>
+                        <TextBlock Text="{x:Bind YearText}" FontSize="11" Margin="0,-4,0,0"
+                                   Foreground="{ThemeResource MutedBrush}"/>
+                    </StackPanel>
+                </Button>
+            </DataTemplate>
+        </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="36"/>
             <RowDefinition Height="*"/>
@@ -27,36 +65,16 @@
                           ViewChanged="OnContentScrolled" SizeChanged="OnContentScrollerSizeChanged">
             <!-- v4.2.0 (#14): fills the window. The code picks a narrow, standard
                  or wide arrangement from the width (OnContentScrollerSizeChanged). -->
-            <StackPanel x:Name="ContentStack" HorizontalAlignment="Stretch">
+            <StackPanel x:Name="ContentStack" HorizontalAlignment="Stretch" Spacing="16">
 
                 <!-- Hero fanart (v2.3 — taller, layered gradient, vignette, IMDb/TMDb pills) -->
-                <Border x:Name="HeroBorder" Height="340" CornerRadius="12"
+                <Border x:Name="HeroBorder" Height="360" CornerRadius="12,12,0,0"
                         Background="{ThemeResource HeroBgBrush}"
                         HorizontalAlignment="Stretch">
                     <Grid>
                         <Image x:Name="HeroImage" Stretch="UniformToFill"/>
-                        <!-- Vertical gradient — strong on the bottom so titles stay readable -->
-                        <Border>
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Offset="0"    Color="#18000000"/>
-                                    <GradientStop Offset="0.52" Color="#22000000"/>
-                                    <GradientStop Offset="0.72" Color="#55081018"/>
-                                    <GradientStop Offset="0.88" Color="#C90B1320"/>
-                                    <GradientStop Offset="1"    Color="#FF0B1320"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
-                        <!-- Horizontal vignette — subtle edge darkening -->
-                        <Border>
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                                    <GradientStop Offset="0"    Color="#55000000"/>
-                                    <GradientStop Offset="0.5"  Color="#00000000"/>
-                                    <GradientStop Offset="1"    Color="#55000000"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
+                        <!-- Theme-aware fade, smoothly blending the banner into the page background. -->
+                        <Border Background="{ThemeResource HeroFadeBrush}"/>
                         <!-- IMDb / TMDb badge pills, top-right -->
                         <StackPanel x:Name="ExternalLinksPanel" Orientation="Horizontal"
                                     Spacing="6" Margin="14"
@@ -74,6 +92,31 @@
                                     Padding="8,3" FontSize="11" FontWeight="Bold"
                                     Content="TMDb"/>
                         </StackPanel>
+                        <!-- v4.5.0: the previous / next movie of the grid this window
+                             was opened from (also the ← and → keys) -->
+                        <StackPanel x:Name="BrowseNav" Orientation="Horizontal" Spacing="6"
+                                    Margin="14" Visibility="Collapsed"
+                                    HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <Button x:Name="PrevMovieBtn" Click="OnPrevMovie"
+                                    Style="{StaticResource CardIconToggleStyle}"
+                                    AutomationProperties.Name="Previous movie"
+                                    ToolTipService.ToolTip="Previous movie (←)">
+                                <FontIcon Glyph="&#xE76B;" FontSize="12" Foreground="White"
+                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                            </Button>
+                            <Border x:Name="BrowsePosPill" Height="30" Padding="12,0" CornerRadius="15"
+                                    Background="#99000000" BorderBrush="#40FFFFFF" BorderThickness="1">
+                                <TextBlock x:Name="BrowsePos" FontSize="12" Foreground="White"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+                            <Button x:Name="NextMovieBtn" Click="OnNextMovie"
+                                    Style="{StaticResource CardIconToggleStyle}"
+                                    AutomationProperties.Name="Next movie"
+                                    ToolTipService.ToolTip="Next movie (→)">
+                                <FontIcon Glyph="&#xE76C;" FontSize="12" Foreground="White"
+                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                            </Button>
+                        </StackPanel>
                     </Grid>
                 </Border>
 
@@ -86,7 +129,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Poster column: poster card + below-poster info card -->
-                    <StackPanel x:Name="PosterStack" Grid.Column="0" Margin="16,0,24,0" VerticalAlignment="Top"
+                    <StackPanel x:Name="PosterColumn" Grid.Column="0" Margin="16,0,24,0" VerticalAlignment="Top"
                                 Spacing="12">
                         <!-- Poster — drop shadow + thin border for depth -->
                         <Border x:Name="PosterFrame" Width="220" Height="330" CornerRadius="12"
@@ -102,6 +145,8 @@
                                 <Image x:Name="PosterImage" Stretch="UniformToFill"/>
                             </Grid>
                         </Border>
+                        <controls:WrapPanel x:Name="GenreChips" HorizontalSpacing="6" VerticalSpacing="6"
+                                            Visibility="Collapsed"/>
 
                     </StackPanel>
 
@@ -128,9 +173,13 @@
                                        TextWrapping="Wrap"/>
                         </Grid>
                         <StackPanel x:Name="ChipsPanel" Orientation="Horizontal" Spacing="6" Margin="0,4,0,0"/>
-                        <!-- Tech badges + ratings on the same row to save vertical space -->
-                        <StackPanel x:Name="RatingsAndTechRow" Orientation="Vertical" Spacing="10" Margin="0,4,0,0"
-                                    VerticalAlignment="Top">
+                        <!-- v4.5.0 (#24): genres right under the rating / year / runtime line -->
+                        <!-- Genre chips live directly below the poster. -->
+                        <!-- Tech badges and ratings are placed in the right-hand technical column. -->
+                        <StackPanel x:Name="TechRatingsRow" Orientation="Vertical" Spacing="12" Margin="0,4,0,0"
+                                    VerticalAlignment="Center">
+                            <StackPanel x:Name="RatingsPanel" Orientation="Horizontal" Spacing="18"
+                                        VerticalAlignment="Center" Visibility="Collapsed"/>
                             <ItemsControl x:Name="TechBadges" VerticalAlignment="Center">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
@@ -138,14 +187,13 @@
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                             </ItemsControl>
-                            <StackPanel x:Name="RatingsPanel" Orientation="Horizontal" Spacing="18"
-                                        VerticalAlignment="Center" Visibility="Collapsed"/>
                         </StackPanel>
                     </StackPanel>
 
                     <!-- v4.2.0 (#14): genres, director, studio and file info, beside the
                          plot in a wide window -->
-                    <StackPanel x:Name="SideStack" Grid.Column="2" Margin="40,140,0,0"
+                    <StackPanel x:Name="SideStack" Grid.Column="2" Margin="0,140,88,0"
+                                Width="520" MaxWidth="520" HorizontalAlignment="Right"
                                 VerticalAlignment="Top"/>
                 </Grid>
 
@@ -174,26 +222,26 @@
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
                                 CornerRadius="8" Padding="12,8"/>
-                        <Button x:Name="FavBtn" Visibility="Collapsed" Click="OnToggleFav"
+                        <Button x:Name="FavBtn" Click="OnToggleFav"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
-                                CornerRadius="8" Padding="12,8"/>
-                        <Button x:Name="WatchedBtn" Visibility="Collapsed" Click="OnToggleWatched"
+                                CornerRadius="8" Padding="12,8" Visibility="Collapsed"/>
+                        <Button x:Name="WatchedBtn" Click="OnToggleWatched"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
-                                CornerRadius="8" Padding="12,8"/>
-                        <Button x:Name="WatchlistBtn" Visibility="Collapsed" Click="OnToggleWatchlist"
+                                CornerRadius="8" Padding="12,8" Visibility="Collapsed"/>
+                        <Button x:Name="WatchlistBtn" Click="OnToggleWatchlist"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
-                                CornerRadius="8" Padding="12,8"/>
-                        <Button x:Name="ListsBtn" Visibility="Collapsed" Content="📑 Add to list"
+                                CornerRadius="8" Padding="12,8" Visibility="Collapsed"/>
+                        <Button x:Name="ListsBtn" Content="📑 Add to list"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
-                                CornerRadius="8" Padding="12,8">
+                                CornerRadius="8" Padding="12,8" Visibility="Collapsed">
                             <Button.Flyout>
                                 <MenuFlyout x:Name="ListsFlyout" Placement="Bottom" Opening="OnListsFlyoutOpening"/>
                             </Button.Flyout>
@@ -204,7 +252,7 @@
                          library movies on an online drive) sync the result home. -->
                     <StackPanel x:Name="TmdbActionsRow" Orientation="Horizontal" Spacing="8"
                                 Margin="0,8,0,0" Visibility="Collapsed">
-                        <Button x:Name="FetchTmdbBtn" Click="OnFetchMissing"
+                        <Button x:Name="FetchTmdbBtn" Visibility="Collapsed" Click="OnFetchMissing"
                                 Style="{ThemeResource AccentButtonStyle}"
                                 CornerRadius="8" Padding="12,8"
                                 ToolTipService.ToolTip="Look this movie up on TMDb and fill in only the details it's missing">
@@ -246,8 +294,8 @@
                          suggests existing tags and accepts new names. The
                          whole row hides when there are no tags AND the input
                          is collapsed. -->
-                    <StackPanel x:Name="TagsRow" Visibility="Collapsed" Orientation="Horizontal" Spacing="6"
-                                Margin="0,10,0,0">
+                    <StackPanel x:Name="TagsRow" Orientation="Horizontal" Spacing="6"
+                                Margin="0,10,0,0" Visibility="Collapsed">
                         <TextBlock Text="🏷" FontSize="14" VerticalAlignment="Center" Opacity="0.7"/>
                         <ItemsControl x:Name="TagChipsRepeater">
                             <ItemsControl.ItemsPanel>
@@ -280,11 +328,16 @@
                 <StackPanel x:Name="BodyStack">
                     <!-- File info panel (v2.2.2) — sits right under the action row -->
                     <Border x:Name="FileInfoPanel" Visibility="Collapsed"
-                            Margin="0,12,0,0" Padding="12,8"
+                            HorizontalAlignment="Left" MaxWidth="560"
+                            Margin="0,12,0,0" Padding="12,10"
                             Background="{ThemeResource CardBrush}"
                             BorderBrush="{ThemeResource BorderBrush}"
                             BorderThickness="1" CornerRadius="8">
-                        <controls:WrapPanel HorizontalSpacing="24" VerticalSpacing="8">
+                        <Grid x:Name="FileInfoGrid" ColumnSpacing="10" RowSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                             <StackPanel x:Name="FiRuntimeBlock" Visibility="Collapsed">
                                 <TextBlock Text="RUNTIME" FontSize="9" FontWeight="SemiBold"
                                            CharacterSpacing="150" Opacity="0.65"
@@ -328,14 +381,14 @@
                                            Foreground="{ThemeResource TextBrush}"/>
                             </StackPanel>
                             <StackPanel x:Name="FiContainerBlock" Visibility="Collapsed">
-                                <TextBlock Text="CONTAINER" FontSize="9" FontWeight="SemiBold"
+                                <TextBlock Text="FILE TYPE" FontSize="9" FontWeight="SemiBold"
                                            CharacterSpacing="150" Opacity="0.65"
                                            Foreground="{ThemeResource MutedBrush}"/>
                                 <TextBlock x:Name="FiContainer" FontSize="13" FontWeight="SemiBold"
                                            Foreground="{ThemeResource TextBrush}"/>
                             </StackPanel>
                             <StackPanel x:Name="FiLangBlock" Visibility="Collapsed">
-                                <TextBlock Text="AUDIO" FontSize="9" FontWeight="SemiBold"
+                                <TextBlock Text="LANGUAGE" FontSize="9" FontWeight="SemiBold"
                                            CharacterSpacing="150" Opacity="0.65"
                                            Foreground="{ThemeResource MutedBrush}"/>
                                 <TextBlock x:Name="FiLangs" FontSize="13" FontWeight="SemiBold"
@@ -348,7 +401,7 @@
                                 <TextBlock x:Name="FiSubs" FontSize="13" FontWeight="SemiBold"
                                            Foreground="{ThemeResource TextBrush}"/>
                             </StackPanel>
-                        </controls:WrapPanel>
+                        </Grid>
                     </Border>
 
                     <!-- Plot — with section header + capped width for readability -->
@@ -357,7 +410,7 @@
                                 Height="1" Background="{ThemeResource BorderBrush}"
                                 Margin="0,24,0,0" Opacity="0.5"/>
                         <StackPanel x:Name="PlotSection" Visibility="Collapsed" Margin="0,20,0,0" Spacing="8">
-                            <TextBlock Text="PLOT" FontSize="10" FontWeight="SemiBold"
+                            <TextBlock Text="OVERVIEW" FontSize="10" FontWeight="SemiBold"
                                        CharacterSpacing="150" Opacity="0.65"
                                        Foreground="{ThemeResource MutedBrush}"/>
                             <TextBlock x:Name="PlotText" FontSize="15" Foreground="{ThemeResource TextBrush}"
@@ -440,13 +493,15 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <StackPanel Grid.Column="0" x:Name="GenresField" Visibility="Collapsed" Spacing="4">
-                                <TextBlock Text="Genres" FontSize="11" Foreground="{ThemeResource MutedBrush}"/>
-                                <controls:WrapPanel x:Name="GenreLinks" HorizontalSpacing="4" VerticalSpacing="2"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" x:Name="DirectorField" Visibility="Collapsed" Spacing="4">
+                            <!-- v4.5.0 (#24): Director where Genres was (they moved up), then Writer -->
+                            <StackPanel Grid.Column="0" x:Name="DirectorField" Visibility="Collapsed" Spacing="4">
                                 <TextBlock Text="Director" FontSize="11" Foreground="{ThemeResource MutedBrush}"/>
                                 <controls:WrapPanel x:Name="DirectorLinks" HorizontalSpacing="4" VerticalSpacing="2"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" x:Name="WriterField" Visibility="Collapsed" Spacing="4">
+                                <TextBlock Text="Writer" FontSize="11" Foreground="{ThemeResource MutedBrush}"/>
+                                <TextBlock x:Name="WriterText" FontSize="13" Foreground="{ThemeResource TextBrush}"
+                                           TextWrapping="Wrap" Margin="0,1,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Spacing="4">
                                 <TextBlock x:Name="StudioLabel" Visibility="Collapsed"
@@ -461,44 +516,114 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Divider above cast; the cast cards wrap to additional rows when needed. -->
+                <!-- Divider above Cast -->
                 <Border x:Name="CastDivider" Visibility="Collapsed"
                         Height="1" Background="{ThemeResource BorderBrush}"
-                        Margin="0,28,0,0" Opacity="0.5"/>
-                <StackPanel x:Name="CastSection" Margin="0,28,0,0" Visibility="Collapsed">
-                            <ItemsRepeater x:Name="CastRepeater">
-                                <ItemsRepeater.Layout>
-                                    <UniformGridLayout Orientation="Horizontal" MinItemWidth="116" MinItemHeight="220"
-                                                       ItemsJustification="Start"/>
-                                </ItemsRepeater.Layout>
+                        Margin="0,24,0,0" Opacity="0.5"/>
+                <!-- Cast — wraps to multiple rows, no side-scroll -->
+                <StackPanel x:Name="CastSection" Margin="0,20,0,0" Visibility="Collapsed">
+                    <TextBlock Text="Cast" FontSize="16" FontWeight="SemiBold"
+                               Foreground="{ThemeResource TextBrush}" Margin="0,0,0,10"/>
+                        <ItemsRepeater x:Name="CastRepeater">
+                            <ItemsRepeater.Layout>
+                                <!-- Portrait 2:3 cards: image 140×210 + name/role. The height is
+                                     set in code to fit the longest name and role (v3.8.0). -->
+                                <UniformGridLayout x:Name="CastGridLayout" MinItemWidth="150" MinItemHeight="280"
+                                                   MinColumnSpacing="14" MinRowSpacing="18"
+                                                   ItemsStretch="None"
+                                                   Orientation="Horizontal"/>
+                            </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="models:Actor">
-                                    <Button Width="116" Background="Transparent" BorderThickness="0" Padding="0"
-                                            CornerRadius="8" HorizontalContentAlignment="Stretch"
-                                            VerticalAlignment="Top" Tag="{x:Bind Name}" Click="OnActorClick">
-                                        <StackPanel Spacing="6">
-                                            <Border Width="104" Height="156" CornerRadius="8"
+                                    <Button Width="140"
+                                            Background="Transparent"
+                                            BorderThickness="0" Padding="0"
+                                            CornerRadius="10"
+                                            HorizontalContentAlignment="Stretch"
+                                            VerticalAlignment="Top"
+                                            Tag="{x:Bind Name}"
+                                            Click="OnActorClick">
+                                        <StackPanel Spacing="8" HorizontalAlignment="Stretch">
+                                            <!-- 2:3 portrait headshot (140 × 210, rounded) -->
+                                            <Border Width="140" Height="210"
+                                                    CornerRadius="10"
                                                     Background="{ThemeResource PlaceholderBgBrush}"
-                                                    BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1"
-                                                    HorizontalAlignment="Center">
+                                                    BorderBrush="{ThemeResource BorderBrush}"
+                                                    BorderThickness="1">
                                                 <Grid>
-                                                    <TextBlock Text="{x:Bind Initials}" FontSize="18" FontWeight="SemiBold"
+                                                    <!-- Initials sit behind the image and show
+                                                         through when the thumbnail is missing
+                                                         or fails to load. -->
+                                                    <TextBlock Text="{x:Bind Initials}"
+                                                               FontSize="34" FontWeight="SemiBold"
                                                                Foreground="{ThemeResource MutedBrush}"
-                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    <Image Width="104" Height="156" Stretch="UniformToFill" Source="{x:Bind ThumbBitmap, Mode=OneWay}"/>
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"/>
+                                                    <Image Stretch="UniformToFill"
+                                                           Source="{x:Bind ThumbBitmap, Mode=OneWay}"/>
                                                 </Grid>
                                             </Border>
-                                            <TextBlock Text="{x:Bind Name}" FontSize="12" FontWeight="SemiBold"
-                                                       Foreground="{ThemeResource TextBrush}" TextWrapping="Wrap"
-                                                       TextAlignment="Center" MaxLines="2"/>
-                                            <TextBlock Text="{x:Bind Role, TargetNullValue=''}" FontSize="10"
-                                                       Foreground="{ThemeResource MutedBrush}" TextWrapping="Wrap"
-                                                       TextAlignment="Center" MaxLines="2"/>
+                                            <TextBlock Text="{x:Bind Name}"
+                                                       FontSize="13" FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource TextBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       TextAlignment="Center"
+                                                       TextWrapping="WrapWholeWords"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       MaxLines="2"/>
+                                            <TextBlock Text="{x:Bind Role, TargetNullValue=''}"
+                                                       FontSize="11"
+                                                       Foreground="{ThemeResource MutedBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       TextAlignment="Center"
+                                                       TextWrapping="WrapWholeWords"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       MaxLines="2"/>
                                         </StackPanel>
                                     </Button>
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
-                            </ItemsRepeater>
+                        </ItemsRepeater>
+                    <!-- v4.4.1: a very big cast shows its first 24 until this is clicked -->
+                    <Button x:Name="CastShowAllBtn" Visibility="Collapsed" Click="OnCastShowAll"
+                            Margin="0,14,0,0"
+                            Background="{ThemeResource CardBrush}"
+                            Foreground="{ThemeResource TextBrush}"
+                            BorderBrush="{ThemeResource BorderBrush}"
+                            CornerRadius="8" Padding="14,7"/>
+                </StackPanel>
+
+                <!-- v4.5.0: the rest of its collection, then more by its director,
+                     from the films you own. A click shows that film here. -->
+                <StackPanel x:Name="CollectionSection" Visibility="Collapsed">
+                    <Border Height="1" Background="{ThemeResource BorderBrush}"
+                            Margin="0,24,0,0" Opacity="0.5"/>
+                    <TextBlock x:Name="CollectionHeader" FontSize="16" FontWeight="SemiBold"
+                               Foreground="{ThemeResource TextBrush}" Margin="0,20,0,10"
+                               TextWrapping="Wrap"/>
+                    <ItemsRepeater x:Name="CollectionRepeater" ItemTemplate="{StaticResource RelatedMovieTemplate}">
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout MinItemWidth="120" MinColumnSpacing="14" MinRowSpacing="16"
+                                               ItemsStretch="None" Orientation="Horizontal"/>
+                        </ItemsRepeater.Layout>
+                    </ItemsRepeater>
+                </StackPanel>
+                <StackPanel x:Name="DirectorSection" Visibility="Collapsed">
+                    <Border Height="1" Background="{ThemeResource BorderBrush}"
+                            Margin="0,24,0,0" Opacity="0.5"/>
+                    <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,20,0,10">
+                        <TextBlock x:Name="DirectorHeader" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextBrush}" VerticalAlignment="Center"/>
+                        <HyperlinkButton x:Name="DirectorSeeAllBtn" Click="OnDirectorSeeAll"
+                                         Padding="0" FontSize="13" VerticalAlignment="Center"
+                                         Visibility="Collapsed"/>
+                    </StackPanel>
+                    <ItemsRepeater x:Name="DirectorRepeater" ItemTemplate="{StaticResource RelatedMovieTemplate}">
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout MinItemWidth="120" MinColumnSpacing="14" MinRowSpacing="16"
+                                               ItemsStretch="None" Orientation="Horizontal"/>
+                        </ItemsRepeater.Layout>
+                    </ItemsRepeater>
                 </StackPanel>
 
             </StackPanel>
@@ -521,6 +646,23 @@
                            Foreground="{ThemeResource TextBrush}"
                            TextTrimming="CharacterEllipsis"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <!-- v4.5.0: previous / next, as on the banner -->
+                    <StackPanel x:Name="StickyBrowseNav" Orientation="Horizontal" Visibility="Collapsed">
+                        <Button x:Name="StickyPrevBtn" Click="OnPrevMovie"
+                                Background="Transparent" BorderThickness="0" CornerRadius="6" Padding="10,7"
+                                AutomationProperties.Name="Previous movie"
+                                ToolTipService.ToolTip="Previous movie (←)">
+                            <FontIcon Glyph="&#xE76B;" FontSize="12"
+                                      FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                        </Button>
+                        <Button x:Name="StickyNextBtn" Click="OnNextMovie"
+                                Background="Transparent" BorderThickness="0" CornerRadius="6" Padding="10,7"
+                                AutomationProperties.Name="Next movie"
+                                ToolTipService.ToolTip="Next movie (→)">
+                            <FontIcon Glyph="&#xE76C;" FontSize="12"
+                                      FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
+                        </Button>
+                    </StackPanel>
                     <Button x:Name="StickyPlayBtn" Click="OnPlay"
                             Background="#A78BFA" Foreground="White"
                             BorderThickness="0" CornerRadius="6" Padding="14,5">

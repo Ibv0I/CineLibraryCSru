@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Settings" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="Done" xml:space="preserve">
+    <value>Готово</value>
+  </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>ВНЕШНИЙ ВИД</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="Light" xml:space="preserve">
+    <value>Светлая</value>
+  </data>
+  <data name="Dark" xml:space="preserve">
+    <value>Тёмная</value>
+  </data>
+  <data name="System" xml:space="preserve">
+    <value>Системная</value>
+  </data>
+  <data name="BackgroundMaterial" xml:space="preserve">
+    <value>Материал фона (Mica)</value>
+  </data>
+  <data name="MicaDescription" xml:space="preserve">
+    <value>Насколько заметен материал Windows Mica — обои рабочего стола с мягким оттенком — за боковой панелью. «Выкл.» задаёт сплошной фон и снижает нагрузку на видеокарту. Область постеров всегда остаётся непрозрачной для плавной прокрутки.</value>
+  </data>
+  <data name="Off" xml:space="preserve">
+    <value>Выкл.</value>
+  </data>
+  <data name="Subtle" xml:space="preserve">
+    <value>Лёгкий</value>
+  </data>
+  <data name="Strong" xml:space="preserve">
+    <value>Выраженный</value>
+  </data>
+  <data name="CardBorders" xml:space="preserve">
+    <value>Рамки карточек</value>
+  </data>
+  <data name="On" xml:space="preserve">
+    <value>Вкл.</value>
+  </data>
+  <data name="CardBordersDescription" xml:space="preserve">
+    <value>Тонкая рамка вокруг каждой карточки фильма. Особенно полезна в светлой теме.</value>
+  </data>
+  <data name="CardShadows" xml:space="preserve">
+    <value>Тени карточек</value>
+  </data>
+  <data name="CardShadowsDescription" xml:space="preserve">
+    <value>Лёгкая тень поднимает карточки над фоном. По умолчанию выключена для максимально плавной прокрутки.</value>
+  </data>
+  <data name="ReduceMotion" xml:space="preserve">
+    <value>Уменьшить анимацию</value>
+  </data>
+  <data name="ReduceMotionDescription" xml:space="preserve">
+    <value>Отключает увеличение и приподнимание карточки при наведении. Удобнее для глаз и слабых видеокарт.</value>
+  </data>
+  <data name="Playback" xml:space="preserve">
+    <value>ВОСПРОИЗВЕДЕНИЕ</value>
+  </data>
+  <data name="VideoPlayer" xml:space="preserve">
+    <value>Видеоплеер</value>
+  </data>
+  <data name="WindowsDefaultPlayer" xml:space="preserve">
+    <value>Плеер Windows по умолчанию</value>
+  </data>
+  <data name="Choose" xml:space="preserve">
+    <value>Выбрать…</value>
+  </data>
+  <data name="UseWindowsDefault" xml:space="preserve">
+    <value>Использовать плеер Windows по умолчанию</value>
+  </data>
+  <data name="PlayerDescription" xml:space="preserve">
+    <value>Кнопка воспроизведения открывает видео в выбранной программе, например VLC, MPC-HC, PotPlayer или mpv. Если программа не выбрана, используется приложение Windows по умолчанию.</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Язык интерфейса</value>
+  </data>
+  <data name="LanguageDescription" xml:space="preserve">
+    <value>Выберите язык приложения. Изменение вступит в силу после перезапуска.</value>
+  </data>
+  <data name="ApplyLanguageRestart" xml:space="preserve">
+    <value>Применить язык и перезапустить</value>
+  </data>
+  <data name="LanguageRestartTitle" xml:space="preserve">
+    <value>Перезапустить CineLibrary?</value>
+  </data>
+  <data name="LanguageRestartMessage" xml:space="preserve">
+    <value>Чтобы применить выбранный язык ко всему интерфейсу, приложение нужно перезапустить.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Restart" xml:space="preserve">
+    <value>Перезапустить</value>
+  </data>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>Непредвиденная ошибка</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>ОК</value>
+  </data>
+</root>

@@ -47,6 +47,7 @@ public sealed partial class MainWindow : Window
         // v3.0.0 — load UI preferences (card shadows, reduce motion) before any
         // card is built so they paint with the right look on first render.
         UiSettings.Load();
+        LocalizationService.ApplyLanguage(UiSettings.Language);
 
         InitializeComponent();
 
@@ -199,6 +200,7 @@ public sealed partial class MainWindow : Window
     private async void OnSettingsClick(object sender, RoutedEventArgs e)
     {
         var muted = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush");
+        string L(string key) => LocalizationService.Get(key);
 
         TextBlock Header(string t) => new()
         {
@@ -210,7 +212,7 @@ public sealed partial class MainWindow : Window
         var panel = new StackPanel { Spacing = 6, MinWidth = 360 };
 
         // ── Appearance ──
-        panel.Children.Add(Header("APPEARANCE"));
+        panel.Children.Add(Header(L("Appearance")));
 
         // Theme — three-way segmented choice that mirrors the quick toggle.
         var themeRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 0 };
@@ -227,22 +229,22 @@ public sealed partial class MainWindow : Window
             rb.Checked += (_, _) => ApplyTheme(value);
             return rb;
         }
-        themeRow.Children.Add(ThemeChip("Light",  ElementTheme.Light));
-        themeRow.Children.Add(ThemeChip("Dark",   ElementTheme.Dark));
-        themeRow.Children.Add(ThemeChip("System", ElementTheme.Default));
-        panel.Children.Add(new TextBlock { Text = "Theme", FontSize = 13 });
+        themeRow.Children.Add(ThemeChip(L("Light"),  ElementTheme.Light));
+        themeRow.Children.Add(ThemeChip(L("Dark"),   ElementTheme.Dark));
+        themeRow.Children.Add(ThemeChip(L("System"), ElementTheme.Default));
+        panel.Children.Add(new TextBlock { Text = L("Theme"), FontSize = 13 });
         panel.Children.Add(themeRow);
 
         // Background material (Mica) — Off / Subtle / Strong
         var micaChoice = new RadioButtons
         {
-            Header = "Background material (Mica)",
+            Header = L("BackgroundMaterial"),
             MaxColumns = 3,
             Margin = new Thickness(0, 12, 0, 0),
         };
-        micaChoice.Items.Add("Off");
-        micaChoice.Items.Add("Subtle");
-        micaChoice.Items.Add("Strong");
+        micaChoice.Items.Add(L("Off"));
+        micaChoice.Items.Add(L("Subtle"));
+        micaChoice.Items.Add(L("Strong"));
         micaChoice.SelectedIndex = (int)UiSettings.Mica;   // Off=0, Subtle=1, Strong=2
         micaChoice.SelectionChanged += (_, _) =>
         {
@@ -252,71 +254,71 @@ public sealed partial class MainWindow : Window
         panel.Children.Add(micaChoice);
         panel.Children.Add(new TextBlock
         {
-            Text = "How much of the Windows Mica material — your wallpaper, softly tinted — shows behind the sidebar. Off is a flat, solid look, and the lightest on the GPU. (The scrolling poster area always stays solid for speed.)",
+            Text = L("MicaDescription"),
             FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
 
         // Card borders
         var borderToggle = new ToggleSwitch
         {
-            Header = "Card borders",
+            Header = L("CardBorders"),
             IsOn = UiSettings.CardBorders,
-            OffContent = "Off", OnContent = "On",
+            OffContent = L("Off"), OnContent = L("On"),
             Margin = new Thickness(0, 10, 0, 0),
         };
         borderToggle.Toggled += (_, _) => UiSettings.SetCardBorders(borderToggle.IsOn);
         panel.Children.Add(borderToggle);
         panel.Children.Add(new TextBlock
         {
-            Text = "A thin outline around each movie card. Helps the cards stand out, especially in light theme.",
+            Text = L("CardBordersDescription"),
             FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
 
         // Card shadows
         var shadowToggle = new ToggleSwitch
         {
-            Header = "Card drop shadows",
+            Header = L("CardShadows"),
             IsOn = UiSettings.CardShadows,
-            OffContent = "Off", OnContent = "On",
+            OffContent = L("Off"), OnContent = L("On"),
             Margin = new Thickness(0, 10, 0, 0),
         };
         shadowToggle.Toggled += (_, _) => UiSettings.SetCardShadows(shadowToggle.IsOn);
         panel.Children.Add(shadowToggle);
         panel.Children.Add(new TextBlock
         {
-            Text = "A subtle shadow that lifts each movie card. Off by default for the smoothest scrolling.",
+            Text = L("CardShadowsDescription"),
             FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
 
         // Reduce motion
         var motionToggle = new ToggleSwitch
         {
-            Header = "Reduce motion",
+            Header = L("ReduceMotion"),
             IsOn = UiSettings.ReduceMotion,
-            OffContent = "Off", OnContent = "On",
+            OffContent = L("Off"), OnContent = L("On"),
             Margin = new Thickness(0, 10, 0, 0),
         };
         motionToggle.Toggled += (_, _) => UiSettings.SetReduceMotion(motionToggle.IsOn);
         panel.Children.Add(motionToggle);
         panel.Children.Add(new TextBlock
         {
-            Text = "Turns off the zoom/lift animation when you hover a card. Easier on the eyes and on low-end GPUs.",
+            Text = L("ReduceMotionDescription"),
             FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
 
         // ── Playback (v3.6.0) ──
-        panel.Children.Add(Header("PLAYBACK"));
-        panel.Children.Add(new TextBlock { Text = "Video player", FontSize = 13 });
+        panel.Children.Add(Header(L("Playback")));
+        panel.Children.Add(new TextBlock { Text = L("VideoPlayer"), FontSize = 13 });
         var playerBox = new TextBox
         {
             IsReadOnly = true,
             Text = UiSettings.PlayerPath,
-            PlaceholderText = "Windows default player",
+            PlaceholderText = L("WindowsDefaultPlayer"),
         };
-        var choosePlayer = new Button { Content = "Choose…" };
+        var choosePlayer = new Button { Content = L("Choose") };
         var defaultPlayer = new Button
         {
-            Content = "Use Windows default",
+            Content = L("UseWindowsDefault"),
             IsEnabled = UiSettings.PlayerPath.Length > 0,
             Margin = new Thickness(0, 4, 0, 0),
         };
@@ -355,13 +357,60 @@ public sealed partial class MainWindow : Window
         panel.Children.Add(defaultPlayer);
         panel.Children.Add(new TextBlock
         {
-            Text = "Play opens videos in this program, for example VLC, MPC-HC, PotPlayer or mpv. With none chosen, Play uses whatever Windows opens video files with.",
+            Text = L("PlayerDescription"),
             FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
 
+        // ── Localization ──
+        panel.Children.Add(Header(L("Language")));
+        var languageChoice = new ComboBox
+        {
+            MinWidth = 220,
+            SelectedValuePath = "Tag",
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+        languageChoice.Items.Add(new ComboBoxItem { Content = "Русский", Tag = "ru-RU" });
+        languageChoice.Items.Add(new ComboBoxItem { Content = "English", Tag = "en-US" });
+        languageChoice.SelectedValue = UiSettings.Language;
+        panel.Children.Add(languageChoice);
+        panel.Children.Add(new TextBlock
+        {
+            Text = L("LanguageDescription"),
+            FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
+        });
+        var applyLanguage = new Button
+        {
+            Content = L("ApplyLanguageRestart"),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Margin = new Thickness(0, 4, 0, 0),
+        };
+        applyLanguage.Click += (_, _) =>
+        {
+            var selected = languageChoice.SelectedValue?.ToString() ?? "ru-RU";
+            UiSettings.SetLanguage(selected);
+            try
+            {
+                var executable = Environment.ProcessPath;
+                if (!string.IsNullOrWhiteSpace(executable))
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = executable,
+                        UseShellExecute = true,
+                    });
+                    Application.Current.Exit();
+                }
+            }
+            catch (Exception ex)
+            {
+                App.LogStartupCrashStatic(ex, "LanguageRestart");
+            }
+        };
+        panel.Children.Add(applyLanguage);
+
         var dialog = new ContentDialog
         {
-            Title = "Settings",
+            Title = L("Settings"),
             Content = new ScrollViewer
             {
                 Content = panel,
@@ -370,7 +419,7 @@ public sealed partial class MainWindow : Window
                 // Keep text and buttons clear of the scrollbar (v3.7.2).
                 Padding = new Thickness(0, 0, 16, 0),
             },
-            CloseButtonText = "Done",
+            CloseButtonText = L("Done"),
             XamlRoot = Content.XamlRoot,
             RequestedTheme = CurrentTheme,
         };
@@ -410,9 +459,7 @@ public sealed partial class MainWindow : Window
         await _vm.InitializeAsync();
         RefreshSidebarImmediate();
 
-        // Fire-and-forget update check. Silent on no-network. Skipped versions
-        // are remembered via the prefs table so the user isn't nagged.
-        _ = CheckForUpdatesAsync();
+        // Automatic update checks are disabled by user preference.
     }
 
     // ── Update check ──────────────────────────────────────────────────────
@@ -928,7 +975,7 @@ public sealed partial class MainWindow : Window
             {
                 Title = "Can't copy yet",
                 Content = detail,
-                CloseButtonText = "OK",
+                CloseButtonText = Services.LocalizationService.Get("OK"),
                 XamlRoot = Content.XamlRoot,
                 RequestedTheme = CurrentTheme,
             };
@@ -968,7 +1015,7 @@ public sealed partial class MainWindow : Window
             {
                 Title = "Not enough free space",
                 Content = $"Need {FormatBytes(plan.TotalBytes)}, only {FormatBytes(free)} free at the destination.",
-                CloseButtonText = "OK",
+                CloseButtonText = Services.LocalizationService.Get("OK"),
                 XamlRoot = Content.XamlRoot,
                 RequestedTheme = CurrentTheme,
             };
@@ -2029,7 +2076,7 @@ public sealed partial class MainWindow : Window
         {
             Title = $"CineLibrary v{versionText}",
             Content = panel,
-            CloseButtonText = "OK",
+            CloseButtonText = Services.LocalizationService.Get("OK"),
             XamlRoot = Content.XamlRoot,
             RequestedTheme = CurrentTheme,
         };

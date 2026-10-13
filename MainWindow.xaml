@@ -19,7 +19,7 @@
         <!-- Solid opaque window fill, shown only when Mica is turned OFF in
              Settings. Theme-bound so it's always the right base colour. -->
         <Rectangle x:Name="MicaOffBackdrop" Grid.Row="0" Grid.RowSpan="2"
-                   Fill="{ThemeResource BgBrush}" Visibility="Collapsed"/>
+                   Fill="{ThemeResource BgBrush}" Visibility="Visible"/>
 
         <!-- ═══ CUSTOM TITLEBAR (drag region) ═══ -->
         <Grid x:Name="AppTitleBar" Grid.Row="0" Background="Transparent">
@@ -225,7 +225,7 @@
                         <!-- Favorites -->
                         <Button x:Name="BtnFavorites" Style="{StaticResource NavItemStyle}" Click="OnNavFavorites">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE734;" FontSize="15"
+                                <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xEB51;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
                                 <TextBlock Text="Favorites" VerticalAlignment="Center"/>

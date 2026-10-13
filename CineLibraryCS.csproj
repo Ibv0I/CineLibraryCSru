@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
@@ -16,9 +16,9 @@
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <Platforms>x64</Platforms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>4.3.0</Version>
-    <AssemblyVersion>4.3.0.0</AssemblyVersion>
-    <FileVersion>4.3.0.0</FileVersion>
+    <Version>4.5.0</Version>
+    <AssemblyVersion>4.5.0.0</AssemblyVersion>
+    <FileVersion>4.5.0.0</FileVersion>
 
     <!--
       v2.9.2 — faster cold start. ReadyToRun precompiles the app's IL to
@@ -57,6 +57,7 @@
   </Target>
 
   <ItemGroup>
+    <PRIResource Include="Strings\**\*.resw" />
     <Content Include="Assets\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

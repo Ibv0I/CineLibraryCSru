@@ -1,4 +1,4 @@
-using Microsoft.UI;
+﻿using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -47,7 +47,7 @@ public sealed partial class MovieDetailDialog : Window
             if (WholeGrid?.Invoke(grid!) is { } whole) _ = UseWholeGridAsync(whole);
         }
         InitializeComponent();
-        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
+        RootGrid.Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
 
         // Apply the app's chosen theme before the new window can render its first frame.
         // Otherwise Windows' light theme may briefly paint the detail window white.

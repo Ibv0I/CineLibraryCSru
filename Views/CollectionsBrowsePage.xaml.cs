@@ -43,6 +43,7 @@ public sealed partial class CollectionsBrowsePage : Page
     public CollectionsBrowsePage()
     {
         InitializeComponent();
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         _noCollectionsHint = EmptyHint.Text;
         _sort = AppState.Instance.GetPref("collSort", "name:asc");
         _filter = AppState.Instance.GetPref("collFilter", "all");

@@ -24,6 +24,7 @@ public sealed partial class OnThisDayPage : Page
     public OnThisDayPage()
     {
         InitializeComponent();
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
     }
 
     /// <summary>(Re)query today's matches and bind the two sections.</summary>

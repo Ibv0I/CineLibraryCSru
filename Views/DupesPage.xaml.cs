@@ -25,6 +25,7 @@ public sealed partial class DupesPage : Page
     public DupesPage()
     {
         InitializeComponent();
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         Loaded += (_, _) => _isLoaded = true;
         Unloaded += (_, _) => _isLoaded = false;
         // When the user comes back from Explorer (e.g. after deleting a copy),

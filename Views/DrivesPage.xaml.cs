@@ -19,6 +19,7 @@ public sealed partial class DrivesPage : Page
     public DrivesPage()
     {
         InitializeComponent();
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         Refresh();
     }
 

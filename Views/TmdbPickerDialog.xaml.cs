@@ -22,6 +22,7 @@ public sealed partial class TmdbPickerDialog : ContentDialog
     public TmdbPickerDialog(TmdbClient client, string? initialTitle, int? year, bool tvShows = false)
     {
         InitializeComponent();
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         _client = client;
         _tvShows = tvShows;
         if (tvShows)

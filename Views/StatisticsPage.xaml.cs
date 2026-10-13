@@ -11,6 +11,7 @@ public sealed partial class StatisticsPage : Page
     public StatisticsPage()
     {
         InitializeComponent();
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         Loaded += (_, _) => Refresh();
     }
 

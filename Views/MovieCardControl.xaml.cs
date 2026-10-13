@@ -92,6 +92,7 @@ public sealed partial class MovieCardControl : UserControl
     public MovieCardControl()
     {
         InitializeComponent();
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         ApplySize();
         // v2.5.1 — subscribe on Loaded / unsubscribe on Unloaded so a
         // recycled card (UniformGridLayout reuses controls aggressively)

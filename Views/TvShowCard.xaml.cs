@@ -47,6 +47,7 @@ public sealed partial class TvShowCard : UserControl
     public TvShowCard()
     {
         InitializeComponent();
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         PointerEntered += (_, _) =>
         {
             CardLift.Y = -4; CardBorder.Translation = new System.Numerics.Vector3(0, 0, 24);

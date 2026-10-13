@@ -34,6 +34,7 @@ public sealed partial class MovieRowControl : UserControl
     public MovieRowControl()
     {
         InitializeComponent();
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         var flyout = new MenuFlyout();
         flyout.Opening += (_, _) => RebuildContextFlyout(flyout);
         ContextFlyout = flyout;

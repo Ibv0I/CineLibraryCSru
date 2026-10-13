@@ -35,6 +35,7 @@ public sealed partial class TvShowsPage : Page
     public TvShowsPage()
     {
         InitializeComponent();
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         ShowsRepeater.ItemsSource = _shows;
         ShowsRepeater.Tapped += OnShowsTapped;
 

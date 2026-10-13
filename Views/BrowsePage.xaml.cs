@@ -17,6 +17,7 @@ public sealed partial class BrowsePage : Page
     public BrowsePage()
     {
         InitializeComponent();
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
     }
 
     public DatabaseService.BrowseFacet Facet { get; private set; } = DatabaseService.BrowseFacet.Genre;

@@ -23,6 +23,7 @@ public sealed partial class AddWatchedMovieDialog : ContentDialog
     public AddWatchedMovieDialog()
     {
         InitializeComponent();
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         WatchedDate.Date = DateTimeOffset.Now;   // default: watched today
     }
 

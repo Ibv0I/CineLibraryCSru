@@ -37,6 +37,7 @@ public sealed partial class LibraryPage : Page
 
         InitializeComponent();
         LocalizationService.TranslateTree(this);
+        Loaded += (_, _) => LocalizationService.TranslateTree(this);
 
         // Assign ItemsSource once — ObservableCollection handles all future updates
         GridRepeater.ItemsSource = _vm.Movies;

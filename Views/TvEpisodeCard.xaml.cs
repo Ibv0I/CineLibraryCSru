@@ -27,6 +27,7 @@ public sealed partial class TvEpisodeCard : UserControl
     public TvEpisodeCard()
     {
         InitializeComponent();
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         PointerEntered += (_, _) => { HoverOverlay.Visibility = Visibility.Visible; HoverOverlay.Opacity = 1; };
         PointerExited  += (_, _) => { HoverOverlay.Opacity = 0; HoverOverlay.Visibility = Visibility.Collapsed; };
         DoubleTapped   += (_, _) => { if (Episode != null) AnyPlay?.Invoke(Episode); };

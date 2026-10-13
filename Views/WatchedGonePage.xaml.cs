@@ -27,6 +27,7 @@ public sealed partial class WatchedGonePage : Page
     public WatchedGonePage()
     {
         InitializeComponent();
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         // Restore / Delete record actions raise this; reload so the card
         // disappears (or the count updates) immediately. Re-subscribed on
         // every Loaded because this page instance is cached and re-shown —

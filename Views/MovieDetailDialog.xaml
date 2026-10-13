@@ -192,8 +192,8 @@
 
                     <!-- v4.2.0 (#14): genres, director, studio and file info, beside the
                          plot in a wide window -->
-                    <StackPanel x:Name="SideStack" Grid.Column="2" Margin="0,140,0,0"
-                                Width="560" MaxWidth="560" HorizontalAlignment="Center"
+                    <StackPanel x:Name="SideStack" Grid.Column="2" Margin="0,140,88,0"
+                                Width="520" MaxWidth="520" HorizontalAlignment="Right"
                                 VerticalAlignment="Top"/>
                 </Grid>
 

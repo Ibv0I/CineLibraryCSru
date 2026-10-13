@@ -1175,7 +1175,7 @@ public sealed partial class MovieDetailDialog : Window
         side.MinWidth = wide ? 620 : 0;
         // Keep the technical column visibly toward the right, with breathing room at the edge.
         SideStack.HorizontalAlignment = wide ? HorizontalAlignment.Right : HorizontalAlignment.Stretch;
-        SideStack.Margin = new Thickness(0, 140, wide ? 88 : 0, 0);
+        SideStack.Margin = new Thickness(0, 140, wide ? 16 : 0, 0); // align right inset with PosterColumn (16 px)
         // At the top of the details column the divider has nothing to divide
         FieldsDivider.Visibility = wide ? Visibility.Collapsed : Visibility.Visible;
         FieldsGrid.Margin = new Thickness(0, wide ? 0 : 20, 0, 0);

@@ -700,8 +700,9 @@ public sealed partial class MovieDetailDialog : Window
 
     private void UpdateBrowseNav()
     {
-        var show = _browseIds != null ? Visibility.Visible : Visibility.Collapsed;
-        BrowseNav.Visibility = StickyBrowseNav.Visibility = show;
+        // Keep the banner clean: navigation arrows/counter are intentionally hidden there.
+        BrowseNav.Visibility = Visibility.Collapsed;
+        StickyBrowseNav.Visibility = _browseIds != null ? Visibility.Visible : Visibility.Collapsed;
         if (_browseIds == null) return;
         var at = IndexOf(_browseIds, _movieId);
         BrowsePosPill.Visibility = at >= 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -747,7 +748,8 @@ public sealed partial class MovieDetailDialog : Window
     private void PopulateRelated(MovieDetail m, (string Name, List<RelatedMovie> Movies)? collection, List<RelatedMovie> byDirector)
     {
         var inCollection = new HashSet<int>();
-        CollectionSection.Visibility = collection != null ? Visibility.Visible : Visibility.Collapsed;
+        // The "Part of the ..." collection strip is intentionally hidden.
+        CollectionSection.Visibility = Visibility.Collapsed;
         if (collection is { } c)
         {
             CollectionHeader.Text = c.Name.StartsWith("The ", StringComparison.OrdinalIgnoreCase)

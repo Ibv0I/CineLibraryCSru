@@ -1172,7 +1172,10 @@ public sealed partial class MovieDetailDialog : Window
         main.Width = new GridLength(wide ? 3 : 1, GridUnitType.Star);
         main.MaxWidth = wide ? 900 : double.PositiveInfinity;
         side.Width = wide ? new GridLength(2, GridUnitType.Star) : new GridLength(0);
-        side.MinWidth = wide ? 340 : 0;
+        side.MinWidth = wide ? 620 : 0;
+        // Keep the technical column visibly toward the right, with breathing room at the edge.
+        SideStack.HorizontalAlignment = wide ? HorizontalAlignment.Right : HorizontalAlignment.Stretch;
+        SideStack.Margin = new Thickness(0, 140, wide ? 88 : 0, 0);
         // At the top of the details column the divider has nothing to divide
         FieldsDivider.Visibility = wide ? Visibility.Collapsed : Visibility.Visible;
         FieldsGrid.Margin = new Thickness(0, wide ? 0 : 20, 0, 0);

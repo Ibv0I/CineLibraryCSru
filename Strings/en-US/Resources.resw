@@ -114,4 +114,535 @@
   <data name="OK" xml:space="preserve">
     <value>OK</value>
   </data>
-<data name="ShowSidebar" xml:space="preserve"><value>Show sidebar</value></data><data name="SearchScopeTooltip" xml:space="preserve"><value>What the search matches</value></data><data name="ScopeAll" xml:space="preserve"><value>All</value></data><data name="ScopeTitle" xml:space="preserve"><value>Title</value></data><data name="ScopeCastCrew" xml:space="preserve"><value>Cast &amp; crew</value></data><data name="SearchPlaceholder" xml:space="preserve"><value>Search title, actor, director…</value></data><data name="LibraryGroup" xml:space="preserve"><value>LIBRARY</value></data><data name="AllMovies" xml:space="preserve"><value>All Movies</value></data><data name="AllTvShows" xml:space="preserve"><value>All TV Shows</value></data><data name="Favorites" xml:space="preserve"><value>Favorites</value></data><data name="ToWatch" xml:space="preserve"><value>To Watch</value></data><data name="Notes" xml:space="preserve"><value>Notes</value></data><data name="WatchedGone" xml:space="preserve"><value>Watched &amp; Gone</value></data><data name="DiscoverGroup" xml:space="preserve"><value>DISCOVER</value></data><data name="ContinueWatching" xml:space="preserve"><value>Continue Watching</value></data><data name="RecentlyAdded" xml:space="preserve"><value>Recently Added</value></data><data name="RecentlyWatched" xml:space="preserve"><value>Recently Watched</value></data><data name="SurpriseMe" xml:space="preserve"><value>Surprise me</value></data><data name="OnThisDay" xml:space="preserve"><value>On This Day</value></data><data name="BrowseGroup" xml:space="preserve"><value>BROWSE</value></data><data name="ByGenre" xml:space="preserve"><value>By Genre</value></data><data name="ByDecade" xml:space="preserve"><value>By Decade</value></data><data name="ByRating" xml:space="preserve"><value>By Rating</value></data><data name="Collections" xml:space="preserve"><value>Collections</value></data><data name="ToolsGroup" xml:space="preserve"><value>TOOLS</value></data><data name="Statistics" xml:space="preserve"><value>Statistics</value></data><data name="Dupes" xml:space="preserve"><value>Dupes</value></data><data name="Backup" xml:space="preserve"><value>Backup</value></data><data name="Export" xml:space="preserve"><value>Export</value></data><data name="MyLists" xml:space="preserve"><value>MY LISTS</value></data><data name="CreateNewList" xml:space="preserve"><value>Create a new list</value></data><data name="Libraries" xml:space="preserve"><value>LIBRARIES</value></data><data name="Drives" xml:space="preserve"><value>Drives</value></data><data name="SwitchTheme" xml:space="preserve"><value>Switch theme</value></data><data name="KeyboardShortcuts" xml:space="preserve"><value>Keyboard shortcuts</value></data><data name="CollapseSidebar" xml:space="preserve"><value>Collapse sidebar</value></data><data name="Back" xml:space="preserve"><value>Back</value></data><data name="FilterAll" xml:space="preserve"><value>All</value></data><data name="FilterUnwatched" xml:space="preserve"><value>Unwatched</value></data><data name="FilterWatched" xml:space="preserve"><value>Watched</value></data><data name="SortTitleAsc" xml:space="preserve"><value>Title ↑</value></data><data name="SortTitleDesc" xml:space="preserve"><value>Title ↓</value></data><data name="SortYearDesc" xml:space="preserve"><value>Year ↓</value></data><data name="SortYearAsc" xml:space="preserve"><value>Year ↑</value></data><data name="SortRatingDesc" xml:space="preserve"><value>Rating ↓</value></data><data name="SortRatingAsc" xml:space="preserve"><value>Rating ↑</value></data><data name="SortRuntimeDesc" xml:space="preserve"><value>Runtime ↓</value></data><data name="SortRuntimeAsc" xml:space="preserve"><value>Runtime ↑</value></data><data name="SortDateAddedDesc" xml:space="preserve"><value>Date Added ↓</value></data><data name="SortDateAddedAsc" xml:space="preserve"><value>Date Added ↑</value></data><data name="SortLastWatchedDesc" xml:space="preserve"><value>Last Watched ↓</value></data><data name="SortLastWatchedAsc" xml:space="preserve"><value>Last Watched ↑</value></data><data name="PosterSize" xml:space="preserve"><value>Poster size</value></data><data name="SizeSmall" xml:space="preserve"><value>Small</value></data><data name="SizeMedium" xml:space="preserve"><value>Medium</value></data><data name="SizeLarge" xml:space="preserve"><value>Large</value></data><data name="SizeExtraLarge" xml:space="preserve"><value>Extra large</value></data><data name="GridView" xml:space="preserve"><value>Grid view</value></data><data name="ListView" xml:space="preserve"><value>List view</value></data><data name="SearchMatchScope" xml:space="preserve"><value>What the search matches</value></data><data name="NoMoviesMatch" xml:space="preserve"><value>No movies match your filters</value></data><data name="ClearSearchHint" xml:space="preserve"><value>Try clearing the search or choosing 'All' watched filter.</value></data><data name="TvShowsMatching" xml:space="preserve"><value>TV SHOWS MATCHING</value></data><data name="TvShowsInList" xml:space="preserve"><value>TV SHOWS IN THIS LIST</value></data><data name="SendToWatchedGone" xml:space="preserve"><value>Send to Watched and Gone</value></data><data name="KeepRecordRemoveLibrary" xml:space="preserve"><value>Keep as a record, remove from library</value></data><data name="ClearSelection" xml:space="preserve"><value>Clear selection (Esc)</value></data><data name="WatchedAndGone" xml:space="preserve"><value>Watched &amp; Gone</value></data><data name="SurpriseRandomTooltip" xml:space="preserve"><value>Surprise me — random pick from current view</value></data><data name="MovieDetails" xml:space="preserve"><value>Movie details</value></data><data name="Play" xml:space="preserve"><value>Play</value></data><data name="OpenFolder" xml:space="preserve"><value>Open folder</value></data><data name="Genres" xml:space="preserve"><value>Genres</value></data><data name="Cast" xml:space="preserve"><value>Cast</value></data><data name="Director" xml:space="preserve"><value>Director</value></data><data name="Writer" xml:space="preserve"><value>Writer</value></data><data name="Country" xml:space="preserve"><value>Country</value></data><data name="Released" xml:space="preserve"><value>Released</value></data><data name="FileSize" xml:space="preserve"><value>File size</value></data><data name="Resolution" xml:space="preserve"><value>Resolution</value></data><data name="VideoCodec" xml:space="preserve"><value>Video codec</value></data><data name="Audio" xml:space="preserve"><value>Audio</value></data><data name="Subtitles" xml:space="preserve"><value>Subtitles</value></data><data name="Duration" xml:space="preserve"><value>Duration</value></data><data name="YourNote" xml:space="preserve"><value>YOUR NOTE</value></data><data name="EpisodeNotePlaceholder" xml:space="preserve"><value>Anything you want to remember about this episode…</value></data><data name="Favorite" xml:space="preserve"><value>♡ Favorite</value></data><data name="Favorited" xml:space="preserve"><value>♥ Favorited</value></data><data name="Play" xml:space="preserve"><value>▶ Play</value></data><data name="MarkWatched" xml:space="preserve"><value>Mark watched</value></data><data name="MarkUnwatched" xml:space="preserve"><value>Mark unwatched</value></data><data name="CantPlayYet" xml:space="preserve"><value>Can't play yet</value></data><data name="TvShows" xml:space="preserve"><value>TV Shows</value></data><data name="Seasons" xml:space="preserve"><value>Seasons</value></data><data name="Episodes" xml:space="preserve"><value>Episodes</value></data><data name="NoTvShowsYet" xml:space="preserve"><value>No TV shows yet</value></data><data name="NoEpisodesYet" xml:space="preserve"><value>No episodes yet</value></data><data name="AllShows" xml:space="preserve"><value>All shows</value></data><data name="ContinueWatchingLower" xml:space="preserve"><value>Continue watching</value></data><data name="AddTag" xml:space="preserve"><value>Add tag</value></data><data name="RemoveTag" xml:space="preserve"><value>Remove tag</value></data><data name="CollectionNameAsc" xml:space="preserve"><value>Name ↑</value></data><data name="CollectionNameDesc" xml:space="preserve"><value>Name ↓</value></data><data name="CollectionMoviesDesc" xml:space="preserve"><value>Movies ↓</value></data><data name="CollectionMoviesAsc" xml:space="preserve"><value>Movies ↑</value></data><data name="NoCollectionsYet" xml:space="preserve"><value>No collections yet</value></data><data name="CollectionsEmptyHint" xml:space="preserve"><value>MediaElch collections (franchises, sagas) appear here once at least two of their movies are in your library and tagged in their .nfo files.</value></data><data name="CollectionsUnwatchedTooltip" xml:space="preserve"><value>Collections with movies you haven't watched yet</value></data><data name="CollectionsWatchedTooltip" xml:space="preserve"><value>Collections you've watched every movie of</value></data><data name="RefreshChanges" xml:space="preserve"><value>Refresh changes</value></data><data name="AddDrive" xml:space="preserve"><value>Add Drive</value></data><data name="DrivesDescription" xml:space="preserve"><value>External drives that hold your movies. Identified by hardware ID, so changing drive letters won't break anything.</value></data><data name="NoDrivesYet" xml:space="preserve"><value>No drives yet</value></data><data name="AddDriveHint" xml:space="preserve"><value>Click + Add Drive to get started.</value></data><data name="Update" xml:space="preserve"><value>Update</value></data><data name="AddFolder" xml:space="preserve"><value>Add folder</value></data><data name="Scanning" xml:space="preserve"><value>Scanning…</value></data><data name="BrowseMovies" xml:space="preserve"><value>Browse movies</value></data><data name="RenameDrive" xml:space="preserve"><value>Rename drive</value></data><data name="SyncDrive" xml:space="preserve"><value>Sync to drive (state + fetched art)</value></data><data name="RemoveDrive" xml:space="preserve"><value>Remove drive</value></data><data name="RemoveFolder" xml:space="preserve"><value>Remove folder</value></data><data name="RescanAllDrivesTooltip" xml:space="preserve"><value>Rescan all connected drives for new or changed files</value></data><data name="RescanDriveTooltip" xml:space="preserve"><value>Rescan this drive's folders for new or changed movies</value></data><data name="MoreDriveActions" xml:space="preserve"><value>More drive actions</value></data><data name="MoreActions" xml:space="preserve"><value>More actions</value></data><data name="StatsSubtitle" xml:space="preserve"><value>Your collection at a glance</value></data><data name="TotalMovies" xml:space="preserve"><value>Total movies</value></data><data name="TotalRuntime" xml:space="preserve"><value>Total runtime</value></data><data name="AvgRating" xml:space="preserve"><value>Avg rating</value></data><data name="DrivesTracked" xml:space="preserve"><value>Drives tracked</value></data><data name="WatchProgress" xml:space="preserve"><value>✓ Watch progress</value></data><data name="StatsTvShows" xml:space="preserve"><value>📺 TV Shows</value></data><data name="TvShows" xml:space="preserve"><value>TV shows</value></data><data name="EpisodeRuntime" xml:space="preserve"><value>Episode runtime</value></data><data name="AvgShowRating" xml:space="preserve"><value>Avg show rating</value></data><data name="EpisodesWatched" xml:space="preserve"><value>✓ Episodes watched</value></data><data name="MoviesByDecade" xml:space="preserve"><value>📅 Movies by decade</value></data><data name="NoYearData" xml:space="preserve"><value>No year data yet.</value></data><data name="TopGenres" xml:space="preserve"><value>🏷 Top genres</value></data><data name="NoGenresData" xml:space="preserve"><value>No genres tagged yet.</value></data><data name="TopDirectors" xml:space="preserve"><value>🎥 Top directors</value></data><data name="NoDirectorData" xml:space="preserve"><value>No director data yet.</value></data><data name="TopActors" xml:space="preserve"><value>🎭 Top actors</value></data><data name="NoActorData" xml:space="preserve"><value>No actor data yet.</value></data><data name="NoDuplicatesFound" xml:space="preserve"><value>No duplicates found</value></data><data name="NoDuplicatesHint" xml:space="preserve"><value>Every movie in your library appears once. Copies you keep in different languages, quality or editions aren't counted as duplicates.</value></data><data name="KeepCopy" xml:space="preserve"><value>✓ keep</value></data><data name="SendToWGShort" xml:space="preserve"><value>→ W&amp;G</value></data><data name="Browse" xml:space="preserve"><value>Browse</value></data><data name="NothingToBrowse" xml:space="preserve"><value>Nothing to browse yet</value></data><data name="BrowseNeedsDrive" xml:space="preserve"><value>Add a folder of movies on the Drives page first.</value></data><data name="WatchedGoneDescription" xml:space="preserve"><value>Movies you watched and let go — kept as records, with your notes and history, so you never re-download by mistake.</value></data><data name="SearchRecords" xml:space="preserve"><value>Search records…</value></data><data name="RecentlyGone" xml:space="preserve"><value>Recently gone</value></data><data name="AddWatchedMovie" xml:space="preserve"><value>Add watched movie</value></data><data name="ExportRecordsTooltip" xml:space="preserve"><value>Export the records list to CSV</value></data><data name="NoRecordsYet" xml:space="preserve"><value>No records yet</value></data><data name="WatchedOnDate" xml:space="preserve"><value>🎞  YOU WATCHED ON THIS DATE</value></data><data name="ReleasedOnDate" xml:space="preserve"><value>🎬  RELEASED ON THIS DATE</value></data><data name="NothingTiedToToday" xml:space="preserve"><value>Nothing tied to today</value></data><data name="OnThisDayHint" xml:space="preserve"><value>Check back tomorrow — On This Day surfaces movies you watched on this date in past years, plus films released on this date in past years.</value></data><data name="MatchMovieTmdb" xml:space="preserve"><value>Match this movie on TMDb</value></data><data name="UseThisMatch" xml:space="preserve"><value>Use this match</value></data><data name="PickCorrectFilmHint" xml:space="preserve"><value>Pick the correct film so the missing details are filled from the right entry.</value></data><data name="MovieTitlePlaceholder" xml:space="preserve"><value>Movie title…</value></data><data name="Year" xml:space="preserve"><value>Year</value></data><data name="Search" xml:space="preserve"><value>Search</value></data><data name="AddWatchedMovieTitle" xml:space="preserve"><value>Add a watched movie</value></data><data name="AddToWatchedGone" xml:space="preserve"><value>Add to Watched &amp; Gone</value></data><data name="AddWatchedMovieDescription" xml:space="preserve"><value>Watched a film somewhere else — at the cinema, on a streaming service, a friend's copy — and want it on record? Find it on TMDb, add your note, and it's saved here as a Watched &amp; Gone record. No file needed.</value></data><data name="YourNoteOptional" xml:space="preserve"><value>Your note (optional)</value></data><data name="NotePlaceholder" xml:space="preserve"><value>Why you liked it, where you watched it…</value></data><data name="TagsOptional" xml:space="preserve"><value>Tags (optional, comma-separated)</value></data><data name="TagsPlaceholder" xml:space="preserve"><value>e.g. drama, rewatch</value></data><data name="WatchedOn" xml:space="preserve"><value>Watched on</value></data><data name="SizeLabel" xml:space="preserve"><value>Size:</value></data></root>
+  <data name="ShowSidebar" xml:space="preserve">
+    <value>Show sidebar</value>
+  </data>
+  <data name="SearchScopeTooltip" xml:space="preserve">
+    <value>What the search matches</value>
+  </data>
+  <data name="ScopeAll" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="ScopeTitle" xml:space="preserve">
+    <value>Title</value>
+  </data>
+  <data name="ScopeCastCrew" xml:space="preserve">
+    <value>Cast &amp; crew</value>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Search title, actor, director…</value>
+  </data>
+  <data name="LibraryGroup" xml:space="preserve">
+    <value>LIBRARY</value>
+  </data>
+  <data name="AllMovies" xml:space="preserve">
+    <value>All Movies</value>
+  </data>
+  <data name="AllTvShows" xml:space="preserve">
+    <value>All TV Shows</value>
+  </data>
+  <data name="Favorites" xml:space="preserve">
+    <value>Favorites</value>
+  </data>
+  <data name="ToWatch" xml:space="preserve">
+    <value>To Watch</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="WatchedGone" xml:space="preserve">
+    <value>Watched &amp; Gone</value>
+  </data>
+  <data name="DiscoverGroup" xml:space="preserve">
+    <value>DISCOVER</value>
+  </data>
+  <data name="ContinueWatching" xml:space="preserve">
+    <value>Continue Watching</value>
+  </data>
+  <data name="RecentlyAdded" xml:space="preserve">
+    <value>Recently Added</value>
+  </data>
+  <data name="RecentlyWatched" xml:space="preserve">
+    <value>Recently Watched</value>
+  </data>
+  <data name="SurpriseMe" xml:space="preserve">
+    <value>Surprise me</value>
+  </data>
+  <data name="OnThisDay" xml:space="preserve">
+    <value>On This Day</value>
+  </data>
+  <data name="BrowseGroup" xml:space="preserve">
+    <value>BROWSE</value>
+  </data>
+  <data name="ByGenre" xml:space="preserve">
+    <value>By Genre</value>
+  </data>
+  <data name="ByDecade" xml:space="preserve">
+    <value>By Decade</value>
+  </data>
+  <data name="ByRating" xml:space="preserve">
+    <value>By Rating</value>
+  </data>
+  <data name="Collections" xml:space="preserve">
+    <value>Collections</value>
+  </data>
+  <data name="ToolsGroup" xml:space="preserve">
+    <value>TOOLS</value>
+  </data>
+  <data name="Statistics" xml:space="preserve">
+    <value>Statistics</value>
+  </data>
+  <data name="Dupes" xml:space="preserve">
+    <value>Dupes</value>
+  </data>
+  <data name="Backup" xml:space="preserve">
+    <value>Backup</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="MyLists" xml:space="preserve">
+    <value>MY LISTS</value>
+  </data>
+  <data name="CreateNewList" xml:space="preserve">
+    <value>Create a new list</value>
+  </data>
+  <data name="Libraries" xml:space="preserve">
+    <value>LIBRARIES</value>
+  </data>
+  <data name="Drives" xml:space="preserve">
+    <value>Drives</value>
+  </data>
+  <data name="SwitchTheme" xml:space="preserve">
+    <value>Switch theme</value>
+  </data>
+  <data name="KeyboardShortcuts" xml:space="preserve">
+    <value>Keyboard shortcuts</value>
+  </data>
+  <data name="CollapseSidebar" xml:space="preserve">
+    <value>Collapse sidebar</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="FilterUnwatched" xml:space="preserve">
+    <value>Unwatched</value>
+  </data>
+  <data name="FilterWatched" xml:space="preserve">
+    <value>Watched</value>
+  </data>
+  <data name="SortTitleAsc" xml:space="preserve">
+    <value>Title ↑</value>
+  </data>
+  <data name="SortTitleDesc" xml:space="preserve">
+    <value>Title ↓</value>
+  </data>
+  <data name="SortYearDesc" xml:space="preserve">
+    <value>Year ↓</value>
+  </data>
+  <data name="SortYearAsc" xml:space="preserve">
+    <value>Year ↑</value>
+  </data>
+  <data name="SortRatingDesc" xml:space="preserve">
+    <value>Rating ↓</value>
+  </data>
+  <data name="SortRatingAsc" xml:space="preserve">
+    <value>Rating ↑</value>
+  </data>
+  <data name="SortRuntimeDesc" xml:space="preserve">
+    <value>Runtime ↓</value>
+  </data>
+  <data name="SortRuntimeAsc" xml:space="preserve">
+    <value>Runtime ↑</value>
+  </data>
+  <data name="SortDateAddedDesc" xml:space="preserve">
+    <value>Date Added ↓</value>
+  </data>
+  <data name="SortDateAddedAsc" xml:space="preserve">
+    <value>Date Added ↑</value>
+  </data>
+  <data name="SortLastWatchedDesc" xml:space="preserve">
+    <value>Last Watched ↓</value>
+  </data>
+  <data name="SortLastWatchedAsc" xml:space="preserve">
+    <value>Last Watched ↑</value>
+  </data>
+  <data name="PosterSize" xml:space="preserve">
+    <value>Poster size</value>
+  </data>
+  <data name="SizeSmall" xml:space="preserve">
+    <value>Small</value>
+  </data>
+  <data name="SizeMedium" xml:space="preserve">
+    <value>Medium</value>
+  </data>
+  <data name="SizeLarge" xml:space="preserve">
+    <value>Large</value>
+  </data>
+  <data name="SizeExtraLarge" xml:space="preserve">
+    <value>Extra large</value>
+  </data>
+  <data name="GridView" xml:space="preserve">
+    <value>Grid view</value>
+  </data>
+  <data name="ListView" xml:space="preserve">
+    <value>List view</value>
+  </data>
+  <data name="SearchMatchScope" xml:space="preserve">
+    <value>What the search matches</value>
+  </data>
+  <data name="NoMoviesMatch" xml:space="preserve">
+    <value>No movies match your filters</value>
+  </data>
+  <data name="ClearSearchHint" xml:space="preserve">
+    <value>Try clearing the search or choosing 'All' watched filter.</value>
+  </data>
+  <data name="TvShowsMatching" xml:space="preserve">
+    <value>TV SHOWS MATCHING</value>
+  </data>
+  <data name="TvShowsInList" xml:space="preserve">
+    <value>TV SHOWS IN THIS LIST</value>
+  </data>
+  <data name="SendToWatchedGone" xml:space="preserve">
+    <value>Send to Watched and Gone</value>
+  </data>
+  <data name="KeepRecordRemoveLibrary" xml:space="preserve">
+    <value>Keep as a record, remove from library</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Clear selection (Esc)</value>
+  </data>
+  <data name="WatchedAndGone" xml:space="preserve">
+    <value>Watched &amp; Gone</value>
+  </data>
+  <data name="SurpriseRandomTooltip" xml:space="preserve">
+    <value>Surprise me — random pick from current view</value>
+  </data>
+  <data name="MovieDetails" xml:space="preserve">
+    <value>Movie details</value>
+  </data>
+  <data name="Play" xml:space="preserve">
+    <value>Play</value>
+  </data>
+  <data name="OpenFolder" xml:space="preserve">
+    <value>Open folder</value>
+  </data>
+  <data name="Genres" xml:space="preserve">
+    <value>Genres</value>
+  </data>
+  <data name="Cast" xml:space="preserve">
+    <value>Cast</value>
+  </data>
+  <data name="Director" xml:space="preserve">
+    <value>Director</value>
+  </data>
+  <data name="Writer" xml:space="preserve">
+    <value>Writer</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>Country</value>
+  </data>
+  <data name="Released" xml:space="preserve">
+    <value>Released</value>
+  </data>
+  <data name="FileSize" xml:space="preserve">
+    <value>File size</value>
+  </data>
+  <data name="Resolution" xml:space="preserve">
+    <value>Resolution</value>
+  </data>
+  <data name="VideoCodec" xml:space="preserve">
+    <value>Video codec</value>
+  </data>
+  <data name="Audio" xml:space="preserve">
+    <value>Audio</value>
+  </data>
+  <data name="Subtitles" xml:space="preserve">
+    <value>Subtitles</value>
+  </data>
+  <data name="Duration" xml:space="preserve">
+    <value>Duration</value>
+  </data>
+  <data name="YourNote" xml:space="preserve">
+    <value>YOUR NOTE</value>
+  </data>
+  <data name="EpisodeNotePlaceholder" xml:space="preserve">
+    <value>Anything you want to remember about this episode…</value>
+  </data>
+  <data name="Favorite" xml:space="preserve">
+    <value>♡ Favorite</value>
+  </data>
+  <data name="Favorited" xml:space="preserve">
+    <value>♥ Favorited</value>
+  </data>
+  <data name="PlayWithIcon" xml:space="preserve">
+    <value>▶ Play</value>
+  </data>
+  <data name="MarkWatched" xml:space="preserve">
+    <value>Mark watched</value>
+  </data>
+  <data name="MarkUnwatched" xml:space="preserve">
+    <value>Mark unwatched</value>
+  </data>
+  <data name="CantPlayYet" xml:space="preserve">
+    <value>Can't play yet</value>
+  </data>
+  <data name="TvShows" xml:space="preserve">
+    <value>TV Shows</value>
+  </data>
+  <data name="Seasons" xml:space="preserve">
+    <value>Seasons</value>
+  </data>
+  <data name="Episodes" xml:space="preserve">
+    <value>Episodes</value>
+  </data>
+  <data name="NoTvShowsYet" xml:space="preserve">
+    <value>No TV shows yet</value>
+  </data>
+  <data name="NoEpisodesYet" xml:space="preserve">
+    <value>No episodes yet</value>
+  </data>
+  <data name="AllShows" xml:space="preserve">
+    <value>All shows</value>
+  </data>
+  <data name="ContinueWatchingLower" xml:space="preserve">
+    <value>Continue watching</value>
+  </data>
+  <data name="AddTag" xml:space="preserve">
+    <value>Add tag</value>
+  </data>
+  <data name="RemoveTag" xml:space="preserve">
+    <value>Remove tag</value>
+  </data>
+  <data name="CollectionNameAsc" xml:space="preserve">
+    <value>Name ↑</value>
+  </data>
+  <data name="CollectionNameDesc" xml:space="preserve">
+    <value>Name ↓</value>
+  </data>
+  <data name="CollectionMoviesDesc" xml:space="preserve">
+    <value>Movies ↓</value>
+  </data>
+  <data name="CollectionMoviesAsc" xml:space="preserve">
+    <value>Movies ↑</value>
+  </data>
+  <data name="NoCollectionsYet" xml:space="preserve">
+    <value>No collections yet</value>
+  </data>
+  <data name="CollectionsEmptyHint" xml:space="preserve">
+    <value>MediaElch collections (franchises, sagas) appear here once at least two of their movies are in your library and tagged in their .nfo files.</value>
+  </data>
+  <data name="CollectionsUnwatchedTooltip" xml:space="preserve">
+    <value>Collections with movies you haven't watched yet</value>
+  </data>
+  <data name="CollectionsWatchedTooltip" xml:space="preserve">
+    <value>Collections you've watched every movie of</value>
+  </data>
+  <data name="RefreshChanges" xml:space="preserve">
+    <value>Refresh changes</value>
+  </data>
+  <data name="AddDrive" xml:space="preserve">
+    <value>Add Drive</value>
+  </data>
+  <data name="DrivesDescription" xml:space="preserve">
+    <value>External drives that hold your movies. Identified by hardware ID, so changing drive letters won't break anything.</value>
+  </data>
+  <data name="NoDrivesYet" xml:space="preserve">
+    <value>No drives yet</value>
+  </data>
+  <data name="AddDriveHint" xml:space="preserve">
+    <value>Click + Add Drive to get started.</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="AddFolder" xml:space="preserve">
+    <value>Add folder</value>
+  </data>
+  <data name="Scanning" xml:space="preserve">
+    <value>Scanning…</value>
+  </data>
+  <data name="BrowseMovies" xml:space="preserve">
+    <value>Browse movies</value>
+  </data>
+  <data name="RenameDrive" xml:space="preserve">
+    <value>Rename drive</value>
+  </data>
+  <data name="SyncDrive" xml:space="preserve">
+    <value>Sync to drive (state + fetched art)</value>
+  </data>
+  <data name="RemoveDrive" xml:space="preserve">
+    <value>Remove drive</value>
+  </data>
+  <data name="RemoveFolder" xml:space="preserve">
+    <value>Remove folder</value>
+  </data>
+  <data name="RescanAllDrivesTooltip" xml:space="preserve">
+    <value>Rescan all connected drives for new or changed files</value>
+  </data>
+  <data name="RescanDriveTooltip" xml:space="preserve">
+    <value>Rescan this drive's folders for new or changed movies</value>
+  </data>
+  <data name="MoreDriveActions" xml:space="preserve">
+    <value>More drive actions</value>
+  </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>More actions</value>
+  </data>
+  <data name="StatsSubtitle" xml:space="preserve">
+    <value>Your collection at a glance</value>
+  </data>
+  <data name="TotalMovies" xml:space="preserve">
+    <value>Total movies</value>
+  </data>
+  <data name="TotalRuntime" xml:space="preserve">
+    <value>Total runtime</value>
+  </data>
+  <data name="AvgRating" xml:space="preserve">
+    <value>Avg rating</value>
+  </data>
+  <data name="DrivesTracked" xml:space="preserve">
+    <value>Drives tracked</value>
+  </data>
+  <data name="WatchProgress" xml:space="preserve">
+    <value>✓ Watch progress</value>
+  </data>
+  <data name="StatsTvShows" xml:space="preserve">
+    <value>📺 TV Shows</value>
+  </data>
+  <data name="TvShowsLower" xml:space="preserve">
+    <value>TV shows</value>
+  </data>
+  <data name="EpisodeRuntime" xml:space="preserve">
+    <value>Episode runtime</value>
+  </data>
+  <data name="AvgShowRating" xml:space="preserve">
+    <value>Avg show rating</value>
+  </data>
+  <data name="EpisodesWatched" xml:space="preserve">
+    <value>✓ Episodes watched</value>
+  </data>
+  <data name="MoviesByDecade" xml:space="preserve">
+    <value>📅 Movies by decade</value>
+  </data>
+  <data name="NoYearData" xml:space="preserve">
+    <value>No year data yet.</value>
+  </data>
+  <data name="TopGenres" xml:space="preserve">
+    <value>🏷 Top genres</value>
+  </data>
+  <data name="NoGenresData" xml:space="preserve">
+    <value>No genres tagged yet.</value>
+  </data>
+  <data name="TopDirectors" xml:space="preserve">
+    <value>🎥 Top directors</value>
+  </data>
+  <data name="NoDirectorData" xml:space="preserve">
+    <value>No director data yet.</value>
+  </data>
+  <data name="TopActors" xml:space="preserve">
+    <value>🎭 Top actors</value>
+  </data>
+  <data name="NoActorData" xml:space="preserve">
+    <value>No actor data yet.</value>
+  </data>
+  <data name="NoDuplicatesFound" xml:space="preserve">
+    <value>No duplicates found</value>
+  </data>
+  <data name="NoDuplicatesHint" xml:space="preserve">
+    <value>Every movie in your library appears once. Copies you keep in different languages, quality or editions aren't counted as duplicates.</value>
+  </data>
+  <data name="KeepCopy" xml:space="preserve">
+    <value>✓ keep</value>
+  </data>
+  <data name="SendToWGShort" xml:space="preserve">
+    <value>→ W&amp;G</value>
+  </data>
+  <data name="Browse" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="NothingToBrowse" xml:space="preserve">
+    <value>Nothing to browse yet</value>
+  </data>
+  <data name="BrowseNeedsDrive" xml:space="preserve">
+    <value>Add a folder of movies on the Drives page first.</value>
+  </data>
+  <data name="WatchedGoneDescription" xml:space="preserve">
+    <value>Movies you watched and let go — kept as records, with your notes and history, so you never re-download by mistake.</value>
+  </data>
+  <data name="SearchRecords" xml:space="preserve">
+    <value>Search records…</value>
+  </data>
+  <data name="RecentlyGone" xml:space="preserve">
+    <value>Recently gone</value>
+  </data>
+  <data name="AddWatchedMovie" xml:space="preserve">
+    <value>Add watched movie</value>
+  </data>
+  <data name="ExportRecordsTooltip" xml:space="preserve">
+    <value>Export the records list to CSV</value>
+  </data>
+  <data name="NoRecordsYet" xml:space="preserve">
+    <value>No records yet</value>
+  </data>
+  <data name="WatchedOnDate" xml:space="preserve">
+    <value>🎞  YOU WATCHED ON THIS DATE</value>
+  </data>
+  <data name="ReleasedOnDate" xml:space="preserve">
+    <value>🎬  RELEASED ON THIS DATE</value>
+  </data>
+  <data name="NothingTiedToToday" xml:space="preserve">
+    <value>Nothing tied to today</value>
+  </data>
+  <data name="OnThisDayHint" xml:space="preserve">
+    <value>Check back tomorrow — On This Day surfaces movies you watched on this date in past years, plus films released on this date in past years.</value>
+  </data>
+  <data name="MatchMovieTmdb" xml:space="preserve">
+    <value>Match this movie on TMDb</value>
+  </data>
+  <data name="UseThisMatch" xml:space="preserve">
+    <value>Use this match</value>
+  </data>
+  <data name="PickCorrectFilmHint" xml:space="preserve">
+    <value>Pick the correct film so the missing details are filled from the right entry.</value>
+  </data>
+  <data name="MovieTitlePlaceholder" xml:space="preserve">
+    <value>Movie title…</value>
+  </data>
+  <data name="Year" xml:space="preserve">
+    <value>Year</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="AddWatchedMovieTitle" xml:space="preserve">
+    <value>Add a watched movie</value>
+  </data>
+  <data name="AddToWatchedGone" xml:space="preserve">
+    <value>Add to Watched &amp; Gone</value>
+  </data>
+  <data name="AddWatchedMovieDescription" xml:space="preserve">
+    <value>Watched a film somewhere else — at the cinema, on a streaming service, a friend's copy — and want it on record? Find it on TMDb, add your note, and it's saved here as a Watched &amp; Gone record. No file needed.</value>
+  </data>
+  <data name="YourNoteOptional" xml:space="preserve">
+    <value>Your note (optional)</value>
+  </data>
+  <data name="NotePlaceholder" xml:space="preserve">
+    <value>Why you liked it, where you watched it…</value>
+  </data>
+  <data name="TagsOptional" xml:space="preserve">
+    <value>Tags (optional, comma-separated)</value>
+  </data>
+  <data name="TagsPlaceholder" xml:space="preserve">
+    <value>e.g. drama, rewatch</value>
+  </data>
+  <data name="WatchedOn" xml:space="preserve">
+    <value>Watched on</value>
+  </data>
+  <data name="SizeLabel" xml:space="preserve">
+    <value>Size:</value>
+  </data>
+</root>

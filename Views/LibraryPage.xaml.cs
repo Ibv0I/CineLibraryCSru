@@ -125,35 +125,6 @@ public sealed partial class LibraryPage : Page
         _vm.PropertyChanged += OnVmPropertyChanged;
         _vm.Movies.CollectionChanged += (_, _) => UpdateEmptyState();
 
-        // v4.0.0: the page is cached and put back on screen as it is, so
-        // re-query the shows row each time; a show may have been made a
-        // favorite (or finished) on its own page meanwhile.
-        Loaded += (_, _) => { _shownRowKey = ""; RefreshShowsInList(); };
-        // v4.1.0: a show card's hover panel changed a show (un-favorited it on
-        // Favorites, finished it on Continue Watching): re-list the row.
-        TvShowCard.ShowChanged += _ => { _shownRowKey = ""; RefreshShowsInList(); };
-
-        // v2.8.2 — tap a show card in the "TV shows in this list" row to
-        // open that show on the TV page.
-        ShowsInListRepeater.Tapped += (s, e) =>
-        {
-            var d = e.OriginalSource as DependencyObject;
-            while (d != null && d is not TvShowCard)
-                d = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(d);
-            if (d is TvShowCard card && card.Show != null && App.MainWindow is MainWindow mw)
-                mw.OpenTvShow(card.Show.Id);
-        };
-
-        // v2.9 — same tap behaviour for the "TV shows matching" search row.
-        ShowsInSearchRepeater.Tapped += (s, e) =>
-        {
-            var d = e.OriginalSource as DependencyObject;
-            while (d != null && d is not TvShowCard)
-                d = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(d);
-            if (d is TvShowCard card && card.Show != null && App.MainWindow is MainWindow mw)
-                mw.OpenTvShow(card.Show.Id);
-        };
-
         // Wire up sidebar refresh from movie cards (watchlist / favorite / watched toggles
         // made inside the detail dialog need to bubble back up so the sidebar counts refresh)
         GridRepeater.ElementPrepared += OnGridRepeaterElementPrepared;
@@ -735,7 +706,7 @@ public sealed partial class LibraryPage : Page
     {
         // v4.0.0: a page whose only items are TV shows (the row above) isn't empty.
         var empty = _vm.Movies.Count == 0 && !_vm.IsLoading
-                    && ShowsInListSection.Visibility != Visibility.Visible;
+                    ;
         EmptyState.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
         GridBorder.Opacity = empty ? 0 : 1;
         ListBorder.Opacity = empty ? 0 : 1;
@@ -931,8 +902,6 @@ public sealed partial class LibraryPage : Page
             // Any filter-related VM change should reflect in the Clear button
             UpdateClearFiltersButton();
             UpdateFilterChips();
-            RefreshShowsInList();
-            RefreshShowsInSearch();
             // v2.9 — Recently Added / Recently Watched / On This Day are
             // accessed via sidebar entries instead of home rows now; the
             // horizontal rows interfered with vertical scrolling through
@@ -944,41 +913,6 @@ public sealed partial class LibraryPage : Page
     // live at the top of the Library home, but a horizontal scroll row
     // inside a vertical ScrollViewer steals the mouse wheel and makes the
     // main grid feel unscrollable. They're now sidebar entries only.
-
-    // ── v2.9 TV-in-search row ────────────────────────────────────────────────
-
-    private string? _lastShowsSearchTerm;
-
-    /// <summary>
-    /// When the search box has a term, also surface matching TV shows above
-    /// the movie grid. Re-queried only when the search term actually changes.
-    /// </summary>
-    private void RefreshShowsInSearch()
-    {
-        var q = (_vm.SearchText ?? "").Trim();
-        if (q.Length < 2)
-        {
-            ShowsInSearchSection.Visibility = Visibility.Collapsed;
-            ShowsInSearchRepeater.ItemsSource = null;
-            _lastShowsSearchTerm = null;
-            return;
-        }
-        if (q == _lastShowsSearchTerm) return;
-        _lastShowsSearchTerm = q;
-
-        var shows = AppState.Instance.Db.SearchTvShows(q, AppState.Instance.Connected, limit: 24);
-        if (shows.Count == 0)
-        {
-            ShowsInSearchSection.Visibility = Visibility.Collapsed;
-            ShowsInSearchRepeater.ItemsSource = null;
-            return;
-        }
-        ShowsInSearchHeader.Text = shows.Count == 1
-            ? "TV SHOW MATCHING"
-            : $"TV SHOWS MATCHING ({shows.Count})";
-        ShowsInSearchRepeater.ItemsSource = shows;
-        ShowsInSearchSection.Visibility = Visibility.Collapsed; // TV show results disabled in movies-only mode.
-    }
 
     // ── v2.9 Surprise Me 🎲 ──────────────────────────────────────────────────
 
@@ -1003,45 +937,12 @@ public sealed partial class LibraryPage : Page
         dialog.Activate();
     }
 
-    private string? _shownRowKey = "";   // "" = not run yet, so the first call always queries
-    private int _rowShowCount;
+    private int _rowShowCount = 0;
 
-    /// <summary>
-    /// v2.8.2 — when the current view is a user list, show that list's TV
-    /// shows in a row above the movie grid. v4.0.0: Favorites, To Watch and
-    /// Continue Watching get the same row; v4.3.0: Notes too. Re-queried only
-    /// when the view changes (or the page is opened again), so routine VM
-    /// updates stay cheap.
-    /// </summary>
-    private void RefreshShowsInList()
-    {
-        DatabaseService.TvShowPage? page =
-            _vm.FavoritesOnly      ? DatabaseService.TvShowPage.Favorites :
-            _vm.IsWatchlistOnly    ? DatabaseService.TvShowPage.Watchlist :
-            _vm.IsContinueWatching ? DatabaseService.TvShowPage.ContinueWatching :
-            _vm.HasNoteOnly        ? DatabaseService.TvShowPage.Notes : null;
-        var key = _vm.UserListId is int listId ? $"list:{listId}" : page?.ToString();
-        if (key == _shownRowKey) return;
-        _shownRowKey = key;
-
-        var db = AppState.Instance.Db;
-        var shows = _vm.UserListId is int id ? db.GetTvShowsInList(id, AppState.Instance.Connected)
-                  : page is { } p ? db.GetTvShowsForPage(p, AppState.Instance.Connected)
-                  : new List<TvShowListItem>();
-        ShowsInListHeader.Text = _vm.UserListId != null ? "TV SHOWS IN THIS LIST" : "TV SHOWS";
-        ShowsInListRepeater.ItemsSource = shows.Count > 0 ? shows : null;
-        ShowsInListSection.Visibility = Visibility.Collapsed; // TV show rows disabled in movies-only mode.
-        _rowShowCount = shows.Count;
-        UpdateCountText();
-        UpdateEmptyState();
-    }
-
-    /// <summary>"128 movies", plus " · 3 shows" when the shows row is showing (v4.0.0).</summary>
     private void UpdateCountText()
     {
         var movies = _vm.FilterTotal == 1 ? "1 movie" : $"{_vm.FilterTotal:N0} movies";
-        MovieCountText.Text = _rowShowCount == 0 ? movies
-            : $"{movies} · {(_rowShowCount == 1 ? "1 show" : $"{_rowShowCount} shows")}";
+        MovieCountText.Text = movies;
     }
 
     /// <summary>

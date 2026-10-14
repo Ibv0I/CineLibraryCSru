@@ -203,26 +203,7 @@
                         </Button>
 
                         <!-- All TV Shows (v2.8) -->
-                        <Button x:Name="BtnTvShows" Style="{StaticResource NavItemStyle}" Click="OnNavTvShows" Visibility="Collapsed">
-                            <Grid HorizontalAlignment="Stretch">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE7F4;" FontSize="15"
-                                              FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
-                                              VerticalAlignment="Center"/>
-                                    <TextBlock Text="All TV Shows" VerticalAlignment="Center"/>
-                                </StackPanel>
-                                <Border Grid.Column="1" Style="{StaticResource BadgeStyle}">
-                                    <TextBlock x:Name="TvShowsBadge" Text="0" FontSize="11"
-                                               Foreground="{ThemeResource MutedBrush}" HorizontalAlignment="Center"/>
-                                </Border>
-                            </Grid>
-                        </Button>
-
-                        <!-- Favorites -->
+<!-- Favorites -->
                         <Button x:Name="BtnFavorites" Style="{StaticResource NavItemStyle}" Click="OnNavFavorites" Visibility="Collapsed">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xEB51;" FontSize="15"
@@ -274,27 +255,7 @@
 
                         <!-- Watched & Gone (v3.3) — records of watched-then-deleted movies.
                              Hidden until the first record exists. -->
-                        <Button x:Name="BtnWatchedGone" Style="{StaticResource NavItemStyle}"
-                                Click="OnNavWatchedGone" Visibility="Collapsed">
-                            <Grid HorizontalAlignment="Stretch">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE7B8;" FontSize="15"
-                                              FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
-                                              VerticalAlignment="Center"/>
-                                    <TextBlock Text="Watched &amp; Gone" VerticalAlignment="Center"/>
-                                </StackPanel>
-                                <Border Grid.Column="1" Style="{StaticResource BadgeStyle}">
-                                    <TextBlock x:Name="WatchedGoneBadge" Text="0" FontSize="11"
-                                               Foreground="{ThemeResource MutedBrush}" HorizontalAlignment="Center"/>
-                                </Border>
-                            </Grid>
-                        </Button>
-
-                        <!-- DISCOVER group (v1.9.3) -->
+<!-- DISCOVER group (v1.9.3) -->
                         <TextBlock Text="DISCOVER" Style="{StaticResource SidebarGroupLabelStyle}"/>
 
                         <!-- Continue Watching (v1.8) -->

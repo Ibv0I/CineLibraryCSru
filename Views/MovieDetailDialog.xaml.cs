@@ -1,4 +1,4 @@
-﻿using Microsoft.UI;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -557,19 +557,16 @@ public sealed partial class MovieDetailDialog : Window
 
     private void UpdateBrowseNav()
     {
-        // Keep the banner clean: navigation arrows/counter are intentionally hidden there.
-        BrowseNav.Visibility = Visibility.Collapsed;
+        // Banner navigation and its counter are intentionally removed.
         StickyBrowseNav.Visibility = _browseIds != null ? Visibility.Visible : Visibility.Collapsed;
         if (_browseIds == null) return;
         var at = IndexOf(_browseIds, _movieId);
-        BrowsePosPill.Visibility = at >= 0 ? Visibility.Visible : Visibility.Collapsed;
-        BrowsePos.Text = $"{at + 1:N0} of {_browseIds.Count:N0}";
         bool canPrev = at >= 0 ? at > 0 : _browseIndex >= 0;
         bool canNext = (at >= 0 ? at : _browseIndex) + 1 < _browseIds.Count;
-        PrevMovieBtn.IsEnabled = StickyPrevBtn.IsEnabled = canPrev;
-        NextMovieBtn.IsEnabled = StickyNextBtn.IsEnabled = canNext;
-        PrevMovieBtn.Opacity = canPrev ? 1 : 0.4;   // the round style has no disabled look
-        NextMovieBtn.Opacity = canNext ? 1 : 0.4;
+        StickyPrevBtn.IsEnabled = canPrev;
+        StickyNextBtn.IsEnabled = canNext;
+        StickyPrevBtn.Opacity = canPrev ? 1 : 0.4;
+        StickyNextBtn.Opacity = canNext ? 1 : 0.4;
     }
 
     // Puts back everything PopulateUi only ever switches on, so nothing of the

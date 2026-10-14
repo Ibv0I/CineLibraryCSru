@@ -22,7 +22,6 @@ public sealed partial class MainWindow : Window
     private DupesPage? _dupesPage;
     private BrowsePage? _browsePage;
     private CollectionsBrowsePage? _collectionsPage;
-    private TvShowsPage? _tvShowsPage;
     private OnThisDayPage? _onThisDayPage;
     private WatchedGonePage? _watchedGonePage;
     private DeviceChangeWatcher? _deviceWatcher;

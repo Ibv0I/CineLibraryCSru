@@ -85,19 +85,7 @@
                                     BorderThickness="0" CornerRadius="4"
                                     Padding="8,3" FontSize="11" FontWeight="Bold"
                                     Content="IMDb"/>
-                            <Border x:Name="BrowsePosPill" Height="30" Padding="12,0" CornerRadius="15"
-                                    Background="#99000000" BorderBrush="#40FFFFFF" BorderThickness="1">
-                                <TextBlock x:Name="BrowsePos" FontSize="12" Foreground="White"
-                                           VerticalAlignment="Center"/>
-                            </Border>
-                            <Button x:Name="NextMovieBtn" Click="OnNextMovie"
-                                    Style="{StaticResource CardIconToggleStyle}"
-                                    AutomationProperties.Name="Next movie"
-                                    ToolTipService.ToolTip="Next movie (→)">
-                                <FontIcon Glyph="&#xE76C;" FontSize="12" Foreground="White"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
-                            </Button>
-                        </StackPanel>
+</StackPanel>
                     </Grid>
                 </Border>
 

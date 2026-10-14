@@ -181,7 +181,7 @@ public sealed partial class CollectionsBrowsePage : Page
         CollDensityM.IsChecked  = tag is not ("S" or "L" or "XL");
         CollDensityL.IsChecked  = tag == "L";
         CollDensityXL.IsChecked = tag == "XL";
-        CollDensityLabel.Text = $"Size: {(tag is "S" or "L" or "XL" ? tag : "M")}";
+        CollDensityLabel.Text = $"{CineLibraryCS.Services.LocalizationService.Get("SizeLabel")} {(tag is "S" or "L" or "XL" ? tag : "M")}";
     }
 
     private void SyncToolbar()

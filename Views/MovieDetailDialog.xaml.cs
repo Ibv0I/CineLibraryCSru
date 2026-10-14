@@ -170,7 +170,6 @@ public sealed partial class MovieDetailDialog : Window
 
         // IMDb / TMDb top-right pill buttons (v2.3)
         ImdbLinkBtn.Visibility = !string.IsNullOrWhiteSpace(m.ImdbId) ? Visibility.Visible : Visibility.Collapsed;
-        TmdbLinkBtn.Visibility = !string.IsNullOrWhiteSpace(m.TmdbId) ? Visibility.Visible : Visibility.Collapsed;
 
         // Chips
         ChipsPanel.Children.Clear();
@@ -312,146 +311,9 @@ public sealed partial class MovieDetailDialog : Window
         LoadImageAsync(m.LocalFanart, HeroImage, null, Math.Clamp(AppWindow.Size.Width, 1920, 3840));
 
         // v3.4 — "Fetch missing info from TMDB" (and, later, Sync to drive).
-        UpdateTmdbActions(m);
     }
 
     // ── v3.4 TMDB enrichment ──────────────────────────────────────────────────
-
-    /// <summary>True when the movie is missing something a TMDB fetch can fill.</summary>
-    private static bool HasGaps(MovieDetail m) =>
-        string.IsNullOrWhiteSpace(m.LocalPoster) ||
-        string.IsNullOrWhiteSpace(m.LocalFanart) ||
-        (string.IsNullOrWhiteSpace(m.Plot) && string.IsNullOrWhiteSpace(m.Outline)) ||
-        m.Actors.Count == 0 ||
-        !m.Year.HasValue || !m.Runtime.HasValue || !m.Rating.HasValue ||
-        string.IsNullOrWhiteSpace(m.Studio);
-
-    private bool IsArchiveRecord(MovieDetail m) => m.VolumeSerial == "__archive__";
-
-    /// <summary>
-    /// The Fetch button is shown on EVERY movie — partial scrapes are common and
-    /// a heuristic kept hiding it on movies that really did have gaps. On a fully
-    /// complete movie a fetch is simply a harmless no-op (everything is fill-only).
-    /// </summary>
-    private void UpdateTmdbActions(MovieDetail m)
-    {
-        FetchTmdbBtn.Visibility = Visibility.Collapsed;
-        // The per-movie fetch action is intentionally hidden; keep the underlying
-        // implementation intact so other metadata workflows are unaffected.
-        SyncDriveBtn.Visibility = Visibility.Collapsed;
-        TmdbActionsRow.Visibility = Visibility.Collapsed;
-        TmdbStatus.Visibility = Visibility.Collapsed;
-    }
-
-    private void TmdbBusyState(bool busy, string? status = null)
-    {
-        TmdbBusy.IsActive = busy;
-        FetchTmdbBtn.IsEnabled = !busy;
-        SyncDriveBtn.IsEnabled = !busy;
-        if (status != null) { TmdbStatus.Text = status; TmdbStatus.Visibility = Visibility.Visible; }
-    }
-
-    private async void OnFetchMissing(object sender, RoutedEventArgs e)
-    {
-        if (_movie == null) return;
-        var m = _movie;
-        using var client = new Services.Tmdb.TmdbClient();
-
-        TmdbBusyState(true, "Looking up TMDb…");
-        try
-        {
-            // Match: stored tmdb_id is exact; otherwise let the user confirm.
-            Services.Tmdb.TmdbMovie? d = null;
-            if (int.TryParse(m.TmdbId, out var tid) && tid > 0)
-            {
-                d = await client.GetMovieDetailsAsync(tid);
-            }
-            else
-            {
-                var picker = new TmdbPickerDialog(client, m.Title, m.Year)
-                {
-                    XamlRoot = (Content as FrameworkElement)?.XamlRoot
-                };
-                var pick = await picker.ShowAsync();
-                if (pick != ContentDialogResult.Primary || picker.Picked == null)
-                {
-                    TmdbBusyState(false);
-                    UpdateTmdbActions(m);
-                    return;
-                }
-                d = await client.GetMovieDetailsAsync(picker.Picked.TmdbId);
-            }
-
-            if (d == null)
-            {
-                TmdbBusyState(false, "Couldn't reach TMDb. Try again.");
-                return;
-            }
-
-            // Poster / fanart → portable cache, only if currently missing.
-            string? posterRel = null, fanartRel = null;
-            if (string.IsNullOrWhiteSpace(m.LocalPoster) && !string.IsNullOrEmpty(d.PosterPath))
-                posterRel = await DownloadArtAsync(client, d.PosterPath!, "manual_posters", d.TmdbId);
-            if (string.IsNullOrWhiteSpace(m.LocalFanart) && !string.IsNullOrEmpty(d.BackdropPath))
-                fanartRel = await DownloadArtAsync(client, d.BackdropPath!, "manual_fanart", d.TmdbId);
-
-            var studio = d.ProductionCompanies.Count > 0 ? d.ProductionCompanies[0].Name : null;
-            var country = d.ProductionCountries.Count > 0 ? d.ProductionCountries[0].Name : null;
-
-            AppState.Instance.Db.FillMovieGaps(
-                m.Id,
-                year: d.Year > 0 ? d.Year : null,
-                rating: d.Rating > 0 ? d.Rating : null,
-                votes: d.VoteCount > 0 ? d.VoteCount : null,
-                runtime: d.Runtime > 0 ? d.Runtime : null,
-                plot: string.IsNullOrWhiteSpace(d.Overview) ? null : d.Overview,
-                tagline: string.IsNullOrWhiteSpace(d.Tagline) ? null : d.Tagline,
-                mpaa: string.IsNullOrWhiteSpace(d.Certification) ? null : d.Certification,
-                imdbId: string.IsNullOrWhiteSpace(d.ImdbId) ? null : d.ImdbId,
-                tmdbId: d.TmdbId.ToString(),
-                premiered: string.IsNullOrWhiteSpace(d.ReleaseDate) ? null : d.ReleaseDate,
-                studio: studio, country: country,
-                posterRel: posterRel, fanartRel: fanartRel);
-
-            // Genres / directors / writers — fill-only, so the detail window's
-            // Genres and Director rows aren't left blank on a partial scrape.
-            var genreNames = new List<string>();
-            foreach (var g in d.Genres)
-                if (!string.IsNullOrWhiteSpace(g.Name)) genreNames.Add(g.Name);
-            AppState.Instance.Db.FillMovieGenreDirectorWriter(
-                m.Id, genreNames, d.Directors, d.Writers);
-
-            // Cast — fetch photos for the top-billed cast and link them. Runs
-            // even when the movie already has cast, because MediaElch NFOs often
-            // store actor <thumb>s as TMDb http URLs (blank offline) or none at
-            // all; we download portable copies and AddManualActors upgrades those
-            // weak thumbs to the local cache.
-            if (d.Cast.Count > 0)
-            {
-                TmdbBusyState(true, "Fetching cast photos…");
-                var actors = new List<(string, string?, int, string?)>();
-                foreach (var c in d.Cast)
-                {
-                    if (string.IsNullOrWhiteSpace(c.Name)) continue;
-                    string? thumbRel = null;
-                    if (!string.IsNullOrEmpty(c.ProfilePath))
-                        thumbRel = await DownloadArtRawAsync(client, c.ProfilePath!, "manual_actors", "w185");
-                    actors.Add((c.Name, string.IsNullOrWhiteSpace(c.Character) ? null : c.Character,
-                                c.Order, thumbRel));
-                }
-                AppState.Instance.Db.AddManualActors(m.Id, actors);
-            }
-
-            // Reload from the DB and re-render in place.
-            TmdbBusyState(false, "Updated.");
-            await LoadAsync();
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Fetch missing info failed: {ex.Message}");
-            TmdbBusyState(false, "Something went wrong. Please try again.");
-        }
-    }
 
     /// <summary>Downloads original-size art into a data-folder subfolder named by
     /// tmdb id; returns the data-relative path, or null on failure.</summary>
@@ -473,12 +335,6 @@ public sealed partial class MovieDetailDialog : Window
         var full = Path.Combine(AppState.Instance.DataDir, subfolder, fileName);
         return await client.DownloadImageAsync(client.GetImageUrl(tmdbPath, size), full)
             ? $"{subfolder}/{fileName}" : null;
-    }
-
-    private void OnSyncToDrive(object sender, RoutedEventArgs e)
-    {
-        // Phase B — writes fetched NFO + poster + .actors back to the movie's
-        // folder when its drive is online. Wired up in the next build.
     }
 
     /// <summary>
@@ -679,7 +535,7 @@ public sealed partial class MovieDetailDialog : Window
 
     private void StepMovie(int step)
     {
-        if (_browseIds == null || TmdbBusy.IsActive) return;
+        if (_browseIds == null) return;
         // Away from the grid (a film picked from a strip below), → goes on from
         // the last grid movie shown and ← goes back to it.
         var at = IndexOf(_browseIds, _movieId);
@@ -691,7 +547,7 @@ public sealed partial class MovieDetailDialog : Window
     /// <summary>Shows another movie in this window.</summary>
     private void ShowMovie(int movieId)
     {
-        if (movieId == _movieId || TmdbBusy.IsActive) return;
+        if (movieId == _movieId) return;
         _movieId = movieId;
         if (_browseIds != null && IndexOf(_browseIds, movieId) is var at and >= 0) _browseIndex = at;
         ResetForAnotherMovie();
@@ -1224,17 +1080,6 @@ public sealed partial class MovieDetailDialog : Window
         {
             if (App.MainWindow is MainWindow mw)
                 mw.ShowToast("Couldn't open IMDb — no browser available?");
-        }
-    }
-
-    private async void OnOpenTmdb(object sender, RoutedEventArgs e)
-    {
-        if (_movie?.TmdbId == null) return;
-        try { await Launcher.LaunchUriAsync(new Uri($"https://www.themoviedb.org/movie/{_movie.TmdbId}")); }
-        catch
-        {
-            if (App.MainWindow is MainWindow mw)
-                mw.ShowToast("Couldn't open TMDb — no browser available?");
         }
     }
 

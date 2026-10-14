@@ -26,10 +26,9 @@ public class ScannerService
     {
         await Task.Run(() =>
         {
+            // Movies-only configuration: scan movie metadata only.
+            // TV show tables and parser code are retained to avoid destructive database migrations.
             ScanSync(volumeSerial, driveRoot, progress, ct, scanFolder, incremental);
-            // v2.8 — second pass for TV shows. Separate transaction so a
-            // failure in one domain can't roll back the other.
-            ScanTvSync(volumeSerial, driveRoot, progress, ct, scanFolder);
         }, ct);
     }
 

@@ -50,6 +50,7 @@ public sealed partial class MainWindow : Window
         LocalizationService.ApplyLanguage(UiSettings.Language);
 
         InitializeComponent();
+        RootGrid.RequestedTheme = ElementTheme.Dark;
         LocalizationService.TranslateTree(RootGrid);
         RootGrid.Loaded += (_, _) => LocalizationService.TranslateTree(RootGrid);
 
@@ -158,38 +159,16 @@ public sealed partial class MainWindow : Window
 
     // ── Theme ─────────────────────────────────────────────────────────────
 
-    public static ElementTheme CurrentTheme { get; private set; } = ElementTheme.Default;
+    public static ElementTheme CurrentTheme { get; private set; } = ElementTheme.Dark;
 
-    private void ApplyTheme(ElementTheme theme)
+    // This build intentionally supports the dark theme only.
+    private void ApplyDarkTheme()
     {
-        CurrentTheme = theme;
+        CurrentTheme = ElementTheme.Dark;
         if (Content is FrameworkElement root)
-            root.RequestedTheme = theme;
-        // v3.0.0 — monochrome FontIcon glyph instead of a colour emoji so it
-        // sits cleanly next to the other footer icons.
-        //   Light  → Brightness (sun)   E706
-        //   Dark   → QuietHours (moon)  E708
-        //   System → TVMonitor          E7F4
-        ThemeIcon.Glyph = theme switch
-        {
-            ElementTheme.Light => "",
-            ElementTheme.Dark  => "",
-            _                  => "",
-        };
-        AppState.Instance.SetPref("theme", theme.ToString());
-        // Re-tint the (code-set) sidebar brush for the new theme.
+            root.RequestedTheme = ElementTheme.Dark;
+        AppState.Instance.SetPref("theme", ElementTheme.Dark.ToString());
         ApplyMica();
-    }
-
-    private void OnToggleTheme(object sender, RoutedEventArgs e)
-    {
-        var next = CurrentTheme switch
-        {
-            ElementTheme.Default => ElementTheme.Dark,
-            ElementTheme.Dark    => ElementTheme.Light,
-            _                    => ElementTheme.Default,
-        };
-        ApplyTheme(next);
     }
 
     // ── v3.0.0 Settings dialog ────────────────────────────────────────────
@@ -215,27 +194,6 @@ public sealed partial class MainWindow : Window
 
         // ── Appearance ──
         panel.Children.Add(Header(L("Appearance")));
-
-        // Theme — three-way segmented choice that mirrors the quick toggle.
-        var themeRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 0 };
-        RadioButton ThemeChip(string label, ElementTheme value)
-        {
-            var rb = new RadioButton
-            {
-                Content = label,
-                GroupName = "theme",
-                IsChecked = CurrentTheme == value,
-                MinWidth = 0,
-                Margin = new Thickness(0, 0, 14, 0),
-            };
-            rb.Checked += (_, _) => ApplyTheme(value);
-            return rb;
-        }
-        themeRow.Children.Add(ThemeChip(L("Light"),  ElementTheme.Light));
-        themeRow.Children.Add(ThemeChip(L("Dark"),   ElementTheme.Dark));
-        themeRow.Children.Add(ThemeChip(L("System"), ElementTheme.Default));
-        panel.Children.Add(new TextBlock { Text = L("Theme"), FontSize = 13 });
-        panel.Children.Add(themeRow);
 
         // Background material (Mica) — Off / Subtle / Strong
         var micaChoice = new RadioButtons
@@ -434,10 +392,8 @@ public sealed partial class MainWindow : Window
         // DB is ready by the time any UI handler can fire. InitAsync now
         // only does the slower bits: theme apply, sidebar populate, update check.
 
-        // Restore saved theme (default = System, not forced dark)
-        var saved = AppState.Instance.GetPref("theme", "Default");
-        var theme = Enum.TryParse<ElementTheme>(saved, out var t) ? t : ElementTheme.Default;
-        ApplyTheme(theme);
+        // Dark theme is fixed; migrate any previous light/system preference.
+        ApplyDarkTheme();
 
         // Restore sidebar collapsed state
         if (AppState.Instance.GetPref("sidebarCollapsed", "false") == "true")
@@ -602,7 +558,7 @@ public sealed partial class MainWindow : Window
             {
                 var wg = AppState.Instance.Db.GetArchivedCount();
                 WatchedGoneBadge.Text = wg.ToString();
-                BtnWatchedGone.Visibility = wg > 0 ? Visibility.Visible : Visibility.Collapsed;
+                BtnWatchedGone.Visibility = Visibility.Collapsed; // Movie-only build: TMDb-backed archive is disabled.
             }
             catch { }
             // v2.5.1 — StatRuntime / StatRating tiles removed from sidebar
@@ -1376,13 +1332,9 @@ public sealed partial class MainWindow : Window
         }
         else if (page == "tvshows")
         {
-            if (_tvShowsPage == null)
-            {
-                _tvShowsPage = new TvShowsPage();
-                _tvShowsPage.SidebarRefreshRequested += (_, _) => { _ = RefreshSidebarAsync(); };
-            }
-            _tvShowsPage.Load();
-            ContentFrame.Content = _tvShowsPage;
+            // Movies-only configuration: legacy TV navigation resolves to the movie library.
+            NavigateTo("library");
+            SetActiveNav(BtnAllMovies);
         }
         else if (page == "onthisday")
         {
@@ -1491,17 +1443,16 @@ public sealed partial class MainWindow : Window
 
     private void OnNavTvShows(object sender, RoutedEventArgs e)
     {
-        NavigateTo("tvshows");
-        SetActiveNav(sender as Button ?? BtnTvShows);
+        // Series library is disabled in the movie-only build.
     }
 
     /// <summary>Open the TV page directly on a specific show (e.g. from a
     /// list's "TV shows in this list" row).</summary>
     public void OpenTvShow(int showId)
     {
-        NavigateTo("tvshows");
-        SetActiveNav(BtnTvShows);
-        _tvShowsPage?.OpenShow(showId);
+        // TV show browsing is disabled in this movies-only build.
+        NavigateTo("library");
+        SetActiveNav(BtnAllMovies);
     }
 
     // ── v3.9.0 Export (Tools) ─────────────────────────────────────────────
@@ -1914,8 +1865,8 @@ public sealed partial class MainWindow : Window
 
     private void OnNavWatchedGone(object sender, RoutedEventArgs e)
     {
-        NavigateTo("watchedgone");
-        SetActiveNav(sender as Button ?? BtnWatchedGone);
+        // TMDb-backed Watched & Gone workflow is disabled in the movie-only build.
+        BtnWatchedGone.Visibility = Visibility.Collapsed;
     }
 
     // ── v1.4.1 Statistics dashboard ────────────────────────────────────────

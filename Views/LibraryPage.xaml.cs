@@ -977,7 +977,7 @@ public sealed partial class LibraryPage : Page
             ? "TV SHOW MATCHING"
             : $"TV SHOWS MATCHING ({shows.Count})";
         ShowsInSearchRepeater.ItemsSource = shows;
-        ShowsInSearchSection.Visibility = Visibility.Visible;
+        ShowsInSearchSection.Visibility = Visibility.Collapsed; // TV show results disabled in movies-only mode.
     }
 
     // ── v2.9 Surprise Me 🎲 ──────────────────────────────────────────────────
@@ -1030,7 +1030,7 @@ public sealed partial class LibraryPage : Page
                   : new List<TvShowListItem>();
         ShowsInListHeader.Text = _vm.UserListId != null ? "TV SHOWS IN THIS LIST" : "TV SHOWS";
         ShowsInListRepeater.ItemsSource = shows.Count > 0 ? shows : null;
-        ShowsInListSection.Visibility = shows.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        ShowsInListSection.Visibility = Visibility.Collapsed; // TV show rows disabled in movies-only mode.
         _rowShowCount = shows.Count;
         UpdateCountText();
         UpdateEmptyState();

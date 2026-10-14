@@ -149,13 +149,6 @@
                                                            FontSize="12" FontWeight="SemiBold"
                                                            Foreground="{StaticResource BrandGoldBrush}"/>
                                             </Border>
-                                            <Border Background="#26A78BFA"
-                                                    CornerRadius="8" Padding="10,5"
-                                                    Visibility="{x:Bind TvShowVisibility}">
-                                                <TextBlock Text="{x:Bind TvShowCountText}"
-                                                           FontSize="12" FontWeight="SemiBold"
-                                                           Foreground="{StaticResource BrandPurpleBrush}"/>
-                                            </Border>
                                         </StackPanel>
 
                                         <!-- Primary action: Update Database -->

@@ -203,7 +203,7 @@
                         </Button>
 
                         <!-- All TV Shows (v2.8) -->
-                        <Button x:Name="BtnTvShows" Style="{StaticResource NavItemStyle}" Click="OnNavTvShows">
+                        <Button x:Name="BtnTvShows" Style="{StaticResource NavItemStyle}" Click="OnNavTvShows" Visibility="Collapsed">
                             <Grid HorizontalAlignment="Stretch">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -223,7 +223,7 @@
                         </Button>
 
                         <!-- Favorites -->
-                        <Button x:Name="BtnFavorites" Style="{StaticResource NavItemStyle}" Click="OnNavFavorites">
+                        <Button x:Name="BtnFavorites" Style="{StaticResource NavItemStyle}" Click="OnNavFavorites" Visibility="Collapsed">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xEB51;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
@@ -253,7 +253,7 @@
                         </Button>
 
                         <!-- Notes (v2.8.2) — every movie that carries a note -->
-                        <Button x:Name="BtnNotes" Style="{StaticResource NavItemStyle}" Click="OnNavNotes">
+                        <Button x:Name="BtnNotes" Style="{StaticResource NavItemStyle}" Click="OnNavNotes" Visibility="Collapsed">
                             <Grid HorizontalAlignment="Stretch">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -603,16 +603,7 @@
                                 <FontIcon Glyph="&#xEDA2;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
                             </Button>
-                            <Button x:Name="ThemeBtn" Grid.Column="2" Click="OnToggleTheme"
-                                    Background="Transparent" BorderThickness="0"
-                                    Foreground="{ThemeResource MutedBrush}"
-                                    Padding="6" Margin="2,0,0,0" CornerRadius="6"
-                                    AutomationProperties.Name="Switch theme"
-                                    ToolTipService.ToolTip="Switch theme">
-                                <FontIcon x:Name="ThemeIcon" Glyph="&#xE706;" FontSize="15"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
-                            </Button>
-                            <Button x:Name="SettingsBtn" Grid.Column="3" Click="OnSettingsClick"
+                            <Button x:Name="SettingsBtn" Grid.Column="2" Click="OnSettingsClick"
                                     Background="Transparent" BorderThickness="0"
                                     Foreground="{ThemeResource MutedBrush}"
                                     Padding="6" Margin="2,0,0,0" CornerRadius="6"
@@ -621,7 +612,7 @@
                                 <FontIcon Glyph="&#xE713;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
                             </Button>
-                            <Button Grid.Column="4" Click="OnHelpClick"
+                            <Button Grid.Column="3" Click="OnHelpClick"
                                     Background="Transparent" BorderThickness="0"
                                     Foreground="{ThemeResource MutedBrush}"
                                     Padding="6" Margin="2,0,0,0" CornerRadius="6"
@@ -630,7 +621,7 @@
                                 <FontIcon Glyph="&#xE897;" FontSize="14"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
                             </Button>
-                            <Button x:Name="SidebarToggleBtn" Grid.Column="5" Click="OnToggleSidebar"
+                            <Button x:Name="SidebarToggleBtn" Grid.Column="4" Click="OnToggleSidebar"
                                     Background="Transparent" BorderThickness="0"
                                     Foreground="{ThemeResource MutedBrush}"
                                     Padding="6" Margin="2,0,0,0" CornerRadius="6"

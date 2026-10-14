@@ -54,7 +54,7 @@ public sealed partial class StatisticsPage : Page
         var tv = db.GetTvStats();
         if (tv.TotalShows > 0)
         {
-            TvSection.Visibility = Visibility.Visible;
+            TvSection.Visibility = Visibility.Collapsed; // TV statistics disabled in movies-only mode.
             TileTotalShows.Text = tv.TotalShows.ToString("N0");
             TileTotalEpisodes.Text = tv.TotalEpisodes.ToString("N0");
             TileTvRuntime.Text = FormatRuntime(tv.TotalRuntime);

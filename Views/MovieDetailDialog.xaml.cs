@@ -313,6 +313,30 @@ public sealed partial class MovieDetailDialog : Window
         // v3.4 — "Fetch missing info from TMDB" (and, later, Sync to drive).
     }
 
+    // ── v3.4 TMDB enrichment ──────────────────────────────────────────────────
+
+    /// <summary>Downloads original-size art into a data-folder subfolder named by
+    /// tmdb id; returns the data-relative path, or null on failure.</summary>
+    internal static async Task<string?> DownloadArtAsync(
+        Services.Tmdb.TmdbClient client, string tmdbPath, string subfolder, int tmdbId)
+    {
+        var fileName = $"{tmdbId}-{Guid.NewGuid():N}.jpg";
+        var full = Path.Combine(AppState.Instance.DataDir, subfolder, fileName);
+        return await client.DownloadImageAsync(client.GetImageUrl(tmdbPath, "original"), full)
+            ? $"{subfolder}/{fileName}" : null;
+    }
+
+    /// <summary>Downloads art keyed by its TMDb file name (used for actor photos);
+    /// returns the data-relative path, or null on failure.</summary>
+    internal static async Task<string?> DownloadArtRawAsync(
+        Services.Tmdb.TmdbClient client, string tmdbPath, string subfolder, string size)
+    {
+        var fileName = tmdbPath.TrimStart('/');
+        var full = Path.Combine(AppState.Instance.DataDir, subfolder, fileName);
+        return await client.DownloadImageAsync(client.GetImageUrl(tmdbPath, size), full)
+            ? $"{subfolder}/{fileName}" : null;
+    }
+
     /// <summary>
     /// v3.8.0: the cast grid gives every card the same height, so size it for
     /// the longest-wrapping name and role, measured with the user's text size.

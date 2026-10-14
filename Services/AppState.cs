@@ -26,8 +26,16 @@ public class AppState
         // sidecar (cinelibrary-state.json) so the state travels with the
         // drive. Best-effort; the sidecar helper swallows I/O errors.
         Db.PersonalStateChanged += OnPersonalStateChanged;
+        // v2.8 — same for TV shows (show favorite/watchlist + per-episode watched).
+        Db.TvShowStateChanged += OnTvShowStateChanged;
     }
 
+    private void OnTvShowStateChanged(int showId)
+    {
+        var composed = TvStateSidecar.Compose(Db, showId, _connected);
+        if (composed.HasValue)
+            TvStateSidecar.TryWrite(composed.Value.FolderAbs, composed.Value.State);
+    }
 
     /// <summary>
     /// Fires after Toggle/Set Watched | Favorite | Watchlist, MarkPlayed,
@@ -80,6 +88,14 @@ public class AppState
             written++;
         }
 
+        // v2.8 — also sweep TV shows (personal state only).
+        foreach (var id in Db.GetTvShowsWithPersonalState(onlyVolumeSerial))
+        {
+            var composed = TvStateSidecar.Compose(Db, id, _connected);
+            if (composed == null) { skipped++; continue; }
+            TvStateSidecar.TryWrite(composed.Value.FolderAbs, composed.Value.State);
+            written++;
+        }
         return (written, skipped);
     }
 

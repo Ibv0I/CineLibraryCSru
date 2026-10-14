@@ -23,6 +23,7 @@ public sealed partial class MainWindow : Window
     private BrowsePage? _browsePage;
     private CollectionsBrowsePage? _collectionsPage;
     private OnThisDayPage? _onThisDayPage;
+    private WatchedGonePage? _watchedGonePage;
     private DeviceChangeWatcher? _deviceWatcher;
 
     public MainWindow()
@@ -543,25 +544,38 @@ public sealed partial class MainWindow : Window
             TotalBadge.Text = stats?.TotalMovies.ToString() ?? "0";
             // v3.9.0: Drives is an icon in the bottom bar now; the count lives in its tooltip.
             ToolTipService.SetToolTip(BtnDrives, $"Drives ({_vm.Drives.Count})");
+            try { TvShowsBadge.Text = AppState.Instance.Db.GetTvShowCount().ToString(); } catch { }
             // v4.3.0: shows with a note count too, like To Watch since 4.0.0
             try
             {
-                NotesBadge.Text = AppState.Instance.Db.GetNotesCount().ToString();
+                NotesBadge.Text = (AppState.Instance.Db.GetNotesCount()
+                    + AppState.Instance.Db.GetTvShowPageCount(DatabaseService.TvShowPage.Notes)).ToString();
+            }
+            catch { }
+            // v3.3 — Watched & Gone entry appears once the first record exists.
+            try
+            {
+                var wg = AppState.Instance.Db.GetArchivedCount();
+                WatchedGoneBadge.Text = wg.ToString();
+                BtnWatchedGone.Visibility = Visibility.Collapsed; // Movie-only build: TMDb-backed archive is disabled.
             }
             catch { }
             // v2.5.1 — StatRuntime / StatRating tiles removed from sidebar
             // (they live on the Statistics page now). Stats object still
             // computed because other code paths use it.
 
-            // Update movie watchlist badge.
+            // Update watchlist badge (v1.3). v4.0.0: To Watch, Continue
+            // Watching and their badges include TV shows too.
             if (_libraryPage?.ViewModel is LibraryViewModel vm)
             {
                 vm.RefreshWatchlistCount();
-                WatchlistBadge.Text = vm.WatchlistCount.ToString();
+                WatchlistBadge.Text = (vm.WatchlistCount
+                    + AppState.Instance.Db.GetTvShowPageCount(DatabaseService.TvShowPage.Watchlist)).ToString();
             }
 
-            // Continue Watching badge — only show shortcut if there's anything to continue
-            var cwCount = AppState.Instance.Db.GetContinueWatchingCount();
+            // Continue Watching badge (v1.8) — only show shortcut if there's anything to continue
+            var cwCount = AppState.Instance.Db.GetContinueWatchingCount()
+                        + AppState.Instance.Db.GetTvShowPageCount(DatabaseService.TvShowPage.ContinueWatching);
             ContinueWatchingBadge.Text = cwCount.ToString();
             BtnContinueWatching.Visibility = cwCount > 0 ? Visibility.Visible : Visibility.Collapsed;
 
@@ -1315,6 +1329,12 @@ public sealed partial class MainWindow : Window
             _collectionsPage.Load();
             ContentFrame.Content = _collectionsPage;
         }
+        else if (page == "tvshows")
+        {
+            // Movies-only configuration: legacy TV navigation resolves to the movie library.
+            NavigateTo("library");
+            SetActiveNav(BtnAllMovies);
+        }
         else if (page == "onthisday")
         {
             if (_onThisDayPage == null)
@@ -1324,6 +1344,19 @@ public sealed partial class MainWindow : Window
             }
             _onThisDayPage.Load();
             ContentFrame.Content = _onThisDayPage;
+        }
+        else if (page == "watchedgone")
+        {
+            if (_watchedGonePage == null)
+            {
+                _watchedGonePage = new WatchedGonePage();
+                _watchedGonePage.SidebarRefreshRequested += (_, _) => { _ = RefreshSidebarAsync(); };
+            }
+            else
+            {
+                _watchedGonePage.Refresh();
+            }
+            ContentFrame.Content = _watchedGonePage;
         }
     }
 
@@ -1405,6 +1438,20 @@ public sealed partial class MainWindow : Window
         NavigateTo("library", new LibraryNavParam(FavoritesOnly: true, Label: "Favorites"));
         _libraryPage?.UpdatePageTitle("Favorites");   // v4.0.0: the page holds shows too, so not "All movies › …"
         SetActiveNav(sender as Button ?? BtnFavorites);
+    }
+
+    private void OnNavTvShows(object sender, RoutedEventArgs e)
+    {
+        // Series library is disabled in the movie-only build.
+    }
+
+    /// <summary>Open the TV page directly on a specific show (e.g. from a
+    /// list's "TV shows in this list" row).</summary>
+    public void OpenTvShow(int showId)
+    {
+        // TV show browsing is disabled in this movies-only build.
+        NavigateTo("library");
+        SetActiveNav(BtnAllMovies);
     }
 
     // ── v3.9.0 Export (Tools) ─────────────────────────────────────────────
@@ -1813,6 +1860,12 @@ public sealed partial class MainWindow : Window
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
         ClearLibraryBack();
         SetActiveNav(sender as Button ?? BtnNotes);
+    }
+
+    private void OnNavWatchedGone(object sender, RoutedEventArgs e)
+    {
+        // TMDb-backed Watched & Gone workflow is disabled in the movie-only build.
+        BtnWatchedGone.Visibility = Visibility.Collapsed;
     }
 
     // ── v1.4.1 Statistics dashboard ────────────────────────────────────────

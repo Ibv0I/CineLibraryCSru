@@ -265,6 +265,16 @@ public static class LocalizationService
         ["Library"] = "Library",
         ["Settings"] = "Settings",
         ["🏷  TAGS"] = "TagsHeading",
+        ["Movies you have more than once. Copies in a different audio language or edition are kept on purpose. Other copies, including ones that differ only in quality or codec, are flagged as possible duplicates."] = "DupesDescription",
+        ["Only possible duplicates"] = "OnlyPossibleDuplicates",
+        ["Show ignored"] = "ShowIgnored",
+        ["Re-check the files on disk and refresh. Run this after you delete a copy."] = "RescanDupesTooltip",
+        ["Rescan"] = "Rescan",
+        ["Matched by title + year only, no TMDb/IMDb id. Worth a quick check."] = "DuplicateMatchHint",
+        ["verify"] = "Verify",
+        ["Best copy: highest quality, then largest. Recommended to keep."] = "BestCopyHint",
+        ["Send this copy to Watched & Gone (keeps a record, removes it from the library)"] = "SendToWatchedGoneTooltip",
+        ["0 movies"] = "ZeroMovies",
     };
 
     public static string TranslateText(string? text)

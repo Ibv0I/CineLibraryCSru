@@ -131,7 +131,29 @@ public static class LocalizationService
             if (root is TextBox textBox)
                 textBox.PlaceholderText = TranslateText(textBox.PlaceholderText);
             if (root is ComboBox comboBox)
+            {
                 comboBox.PlaceholderText = TranslateText(comboBox.PlaceholderText);
+
+                // ComboBox items are hosted in a Popup when the dropdown opens,
+                // so they are not reliably reachable through VisualTreeHelper.
+                // Translate the items directly to ensure every search scope and
+                // sort option is localized before the user opens the dropdown.
+                foreach (var item in comboBox.Items)
+                {
+                    if (item is ComboBoxItem comboItem)
+                    {
+                        if (comboItem.Content is string itemText)
+                            comboItem.Content = TranslateText(itemText);
+                        else if (comboItem.Content is TextBlock itemBlock)
+                            itemBlock.Text = TranslateText(itemBlock.Text);
+                    }
+                    else if (item is string itemText)
+                    {
+                        var index = comboBox.Items.IndexOf(item);
+                        if (index >= 0) comboBox.Items[index] = TranslateText(itemText);
+                    }
+                }
+            }
             if (root is MenuFlyoutItem menuItem)
                 menuItem.Text = TranslateText(menuItem.Text);
 

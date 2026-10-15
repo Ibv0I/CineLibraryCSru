@@ -355,6 +355,16 @@ public static class LocalizationService
         ["Choose All to see every show."] = "Step7_2ed2a9ae6a",
         ["Anything you want to remember about this show…"] = "Step7_35a9bba459",
         ["Add a folder"] = "Step7_9b708126ae",
+        ["Error"] = "Step8_902b0d55fd",
+        ["📂 Add my movies folder"] = "Step8_f91c0f84b9",
+        ["Drive"] = "Step8_f2c6151d6c",
+        ["📌 In Watchlist"] = "Step8_26b92fd2e4",
+        ["☐ Add to Watchlist"] = "Step8_4c181008ff",
+        ["No fully watched shows yet"] = "Step8_a44a1ac120",
+        ["Nothing left to watch"] = "Step8_53618325f6",
+        ["This view ({label}) as CSV…"] = "Step8_c379c76ac7",
+        ["This view ({label}) as HTML…"] = "Step8_4ecffc7ed2",
+        ["Add movies by right-clicking any poster and choosing "] = "Step8_1878895391",
     };
 
     public static string TranslateText(string? text)

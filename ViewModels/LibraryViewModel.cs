@@ -250,7 +250,7 @@ public partial class LibraryViewModel : ObservableObject
     {
         ResetAllFilters();
         DriveSerial = serial;
-        PageTitle = driveLabel ?? (serial == null ? "All Movies" : "Drive");
+        PageTitle = driveLabel ?? (serial == null ? CineLibraryCS.Services.LocalizationService.TranslateText("All Movies") : CineLibraryCS.Services.LocalizationService.TranslateText("Drive"));
         _ = LoadAsync();
     }
 
@@ -258,7 +258,7 @@ public partial class LibraryViewModel : ObservableObject
     {
         ResetAllFilters();
         Genre = genre;
-        PageTitle = genre ?? "All Movies";
+        PageTitle = genre ?? CineLibraryCS.Services.LocalizationService.TranslateText("All Movies");
         _ = LoadAsync();
     }
 

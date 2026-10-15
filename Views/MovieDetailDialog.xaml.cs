@@ -206,7 +206,7 @@ public sealed partial class MovieDetailDialog : Window
         FolderBtn.IsEnabled = m.IsOnline;
         FavBtn.Content = m.IsFavorite ? "♥ Favorited" : "♡ Favorite";
         WatchedBtn.Content = m.IsWatched ? "✓ Watched" : "○ Mark Watched";
-        WatchlistBtn.Content = m.IsWatchlist ? "📌 In Watchlist" : "☐ Add to Watchlist";
+        WatchlistBtn.Content = m.IsWatchlist ? CineLibraryCS.Services.LocalizationService.TranslateText("📌 In Watchlist") : CineLibraryCS.Services.LocalizationService.TranslateText("☐ Add to Watchlist");
 
 
         // Notes
@@ -1126,7 +1126,7 @@ public sealed partial class MovieDetailDialog : Window
              if (_movie == null) return;
              AppState.Instance.Db.SetWatchlist(_movie.Id, !_movie.IsWatchlist);
              _movie.IsWatchlist = !_movie.IsWatchlist;
-             WatchlistBtn.Content = _movie.IsWatchlist ? "📌 In Watchlist" : "☐ Add to Watchlist";
+             WatchlistBtn.Content = _movie.IsWatchlist ? "📌 In Watchlist" : CineLibraryCS.Services.LocalizationService.TranslateText("☐ Add to Watchlist");
              WatchlistChanged?.Invoke(this, EventArgs.Empty);
          }
 
@@ -1390,7 +1390,7 @@ public sealed partial class MovieDetailDialog : Window
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("New list"),
                 Content = box,
                 PrimaryButtonText = "Create",
-                CloseButtonText = "Cancel",
+                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = RootGrid.XamlRoot,
                 RequestedTheme = MainWindow.CurrentTheme,

@@ -732,7 +732,7 @@ public sealed partial class MovieCardControl : UserControl
                           "The files on your drive are not touched.\n\n" +
                           "You can restore it from the Watched & Gone page anytime.",
                 PrimaryButtonText = "Send",
-                CloseButtonText = "Cancel",
+                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot,
                 RequestedTheme = MainWindow.CurrentTheme,
@@ -781,7 +781,7 @@ public sealed partial class MovieCardControl : UserControl
                 Content = $"“{m.Title}” — its record, cached poster, notes and watch history " +
                           "will be permanently removed from CineLibrary. This can't be undone.",
                 PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Delete forever"),
-                CloseButtonText = "Cancel",
+                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = XamlRoot,
                 RequestedTheme = MainWindow.CurrentTheme,
@@ -803,7 +803,7 @@ public sealed partial class MovieCardControl : UserControl
             Title = CineLibraryCS.Services.LocalizationService.TranslateText("New list"),
             Content = box,
             PrimaryButtonText = "Create",
-            CloseButtonText = "Cancel",
+            CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
             RequestedTheme = MainWindow.CurrentTheme,

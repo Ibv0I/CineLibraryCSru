@@ -298,7 +298,7 @@ public sealed partial class TvShowsPage : Page
         }
         else
         {
-            EmptyTitle.Text = _tvFilter == "watched" ? "No fully watched shows yet" : "Nothing left to watch";
+            EmptyTitle.Text = _tvFilter == "watched" ? "No fully watched shows yet" : CineLibraryCS.Services.LocalizationService.TranslateText("Nothing left to watch");
             EmptyHint.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Choose All to see every show.");
         }
         EmptyState.Visibility = shown.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -858,7 +858,7 @@ public sealed partial class TvShowsPage : Page
             Title = $"📝 Note for {show.Title}",
             Content = box,
             PrimaryButtonText = "Save",
-            CloseButtonText = "Cancel",
+            CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
             RequestedTheme = MainWindow.CurrentTheme,
@@ -949,7 +949,7 @@ public sealed partial class TvShowsPage : Page
             Title = CineLibraryCS.Services.LocalizationService.TranslateText("New list"),
             Content = box,
             PrimaryButtonText = "Create",
-            CloseButtonText = "Cancel",
+            CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
             RequestedTheme = MainWindow.CurrentTheme,

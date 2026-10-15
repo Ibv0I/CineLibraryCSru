@@ -36,7 +36,7 @@ public sealed partial class DrivesPage : Page
     private async void OnAddDrive(object sender, RoutedEventArgs e)
     {
         try { await DoAddDriveAsync(); }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Error"), ex.Message); }
     }
 
     private async Task DoAddDriveAsync()
@@ -105,7 +105,7 @@ public sealed partial class DrivesPage : Page
             Title = CineLibraryCS.Services.LocalizationService.TranslateText("Add Drive"),
             Content = panel,
             PrimaryButtonText = "Add",
-            CloseButtonText = "Cancel",
+            CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
             RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
@@ -173,7 +173,7 @@ public sealed partial class DrivesPage : Page
             // Now scan just that folder
             await ScanDriveAsync(serial, letter, drive?.Label ?? serial, folder.Path);
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Error"), ex.Message); }
     }
 
     // ── Remove folder ─────────────────────────────────────────────────────
@@ -190,7 +190,7 @@ public sealed partial class DrivesPage : Page
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Remove folder?"),
                 Content = $"Remove '{dr.DisplayName}' from '{drive?.Label}'? Movies indexed under this folder will be deleted from the library. The actual files on the drive are untouched.",
                 PrimaryButtonText = "Remove",
-                CloseButtonText = "Cancel",
+                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = XamlRoot,
                 RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
@@ -201,7 +201,7 @@ public sealed partial class DrivesPage : Page
             Refresh();
             RefreshRequested?.Invoke(this, EventArgs.Empty);
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Error"), ex.Message); }
     }
 
     // ── Update Database (rescan all tracked folders on this drive) ────────
@@ -221,7 +221,7 @@ public sealed partial class DrivesPage : Page
             var roots = AppState.Instance.Db.GetDriveRoots(serial);
             if (roots.Count == 0)
             {
-                await ShowInfoDialog("No folders", "Add at least one folder to this drive before updating.");
+                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("No folders"), "Add at least one folder to this drive before updating.");
                 return;
             }
 
@@ -234,7 +234,7 @@ public sealed partial class DrivesPage : Page
                 await ScanDriveAsync(serial, letter, drive?.Label ?? serial, abs);
             }
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Error"), ex.Message); }
     }
 
     // ── Scan (shared) ─────────────────────────────────────────────────────
@@ -524,7 +524,7 @@ public sealed partial class DrivesPage : Page
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Review missing movies"),
                 Content = content,
                 PrimaryButtonText = "Apply",
-                CloseButtonText = "Cancel",
+                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot,
                 RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
@@ -541,7 +541,7 @@ public sealed partial class DrivesPage : Page
             if (App.MainWindow is CineLibraryCS.MainWindow mw)
                 mw.ShowToast($"Kept {kept} as record(s) · removed {removed}");
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Error"), ex.Message); }
     }
 
     private async void OnCleanupMissing(object sender, RoutedEventArgs e)
@@ -563,7 +563,7 @@ public sealed partial class DrivesPage : Page
                     "Tip: if the drive was only partially connected or you scanned the wrong folder, " +
                     "cancel this and rescan first — otherwise you'll re-scrape these next time.",
                 PrimaryButtonText = $"Delete {drive.MissingCount} entries",
-                CloseButtonText = "Cancel",
+                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = XamlRoot,
                 RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
@@ -576,7 +576,7 @@ public sealed partial class DrivesPage : Page
 
             await ShowInfoDialog("Cleaned up", $"Removed {deleted} missing movie entries from '{drive.Label}'.");
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Error"), ex.Message); }
     }
 
     // ── Rename drive ──────────────────────────────────────────────────────
@@ -612,7 +612,7 @@ public sealed partial class DrivesPage : Page
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Rename Drive"),
                 Content = panel,
                 PrimaryButtonText = "Rename",
-                CloseButtonText = "Cancel",
+                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot,
                 RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
@@ -627,7 +627,7 @@ public sealed partial class DrivesPage : Page
             Refresh();
             RefreshRequested?.Invoke(this, EventArgs.Empty);
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Error"), ex.Message); }
     }
 
     // ── Remove drive ──────────────────────────────────────────────────────
@@ -688,7 +688,7 @@ public sealed partial class DrivesPage : Page
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Remove Drive?"),
                 Content = panel,
                 PrimaryButtonText = "Remove",
-                CloseButtonText = "Cancel",
+                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = XamlRoot,
                 RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
@@ -707,7 +707,7 @@ public sealed partial class DrivesPage : Page
             Refresh();
             RefreshRequested?.Invoke(this, EventArgs.Empty);
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Error"), ex.Message); }
     }
 
     private async void OnSyncStateToDrive(object sender, RoutedEventArgs e)
@@ -722,7 +722,7 @@ public sealed partial class DrivesPage : Page
                     ? "Nothing to sync — no personal state or fetched info on this drive yet."
                     : $"Synced {written} movie(s) to drive — state + any fetched art{(skipped > 0 ? $", {skipped} skipped" : "")}");
         }
-        catch (Exception ex) { await ShowInfoDialog("Error", ex.Message); }
+        catch (Exception ex) { await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Error"), ex.Message); }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────

@@ -487,7 +487,7 @@ public sealed partial class LibraryPage : Page
                       "your notes and watch history are all kept as records. " +
                       "The files on your drives are not touched.",
             PrimaryButtonText = "Send",
-            CloseButtonText = "Cancel",
+            CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
             RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
@@ -571,7 +571,7 @@ public sealed partial class LibraryPage : Page
             Title = CineLibraryCS.Services.LocalizationService.TranslateText("New list"),
             Content = box,
             PrimaryButtonText = "Create",
-            CloseButtonText = "Cancel",
+            CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = this.XamlRoot,
             RequestedTheme = MainWindow.CurrentTheme,
@@ -750,20 +750,19 @@ public sealed partial class LibraryPage : Page
         {
             EmptyTitle.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Welcome to CineLibrary");
             EmptyStateHint.Text =
-                "Point CineLibrary at the folder where MediaElch saved your scraped " +
-                "movies (each movie in its own folder with a .nfo + poster). " +
-                "Drives → Add folder.";
-            EmptyCtaBtn.Content = "📂 Add my movies folder";
+                "Укажите папку, в которой MediaElch сохранил данные фильмов " +
+                "(каждый фильм должен находиться в отдельной папке с файлом .nfo и постером). " +
+                "Диски → Добавить папку.";
+            EmptyCtaBtn.Content = CineLibraryCS.Services.LocalizationService.TranslateText("📂 Add my movies folder");
             EmptyCtaBtn.Visibility = Visibility.Visible;
         }
         else if (_vm.UserListId != null && string.IsNullOrEmpty(_vm.SearchText))
         {
             EmptyTitle.Text = CineLibraryCS.Services.LocalizationService.TranslateText("This list is empty");
             EmptyStateHint.Text =
-                "Add movies by right-clicking any poster and choosing " +
-                "“📑 Add to list”, or from a movie's detail dialog. " +
-                "You can also Ctrl+click multiple cards in the library and " +
-                "drag them onto this list in the sidebar.";
+                "Добавляйте фильмы через контекстное меню постера или из окна сведений о фильме. " +
+                "Также можно выбрать несколько карточек сочетанием Ctrl+щелчок " +
+                "и перетащить их на этот список в боковой панели.";
             EmptyCtaBtn.Visibility = Visibility.Collapsed;
         }
         else

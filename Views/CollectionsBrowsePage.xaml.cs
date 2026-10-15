@@ -65,7 +65,7 @@ public sealed partial class CollectionsBrowsePage : Page
         if (entries.Count == 0)
         {
             EmptyTitle.Text = all.Count == 0 ? "No collections yet"
-                : _filter == "watched" ? "No fully watched collections yet" : "Nothing left to watch";
+                : _filter == "watched" ? "No fully watched collections yet" : CineLibraryCS.Services.LocalizationService.TranslateText("Nothing left to watch");
             EmptyHint.Text = all.Count == 0 ? _noCollectionsHint : "Choose All to see every collection.";
             EmptyState.Visibility = Visibility.Visible;
             GridRepeater.ItemsSource = null;

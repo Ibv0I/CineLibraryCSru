@@ -102,7 +102,7 @@ public sealed partial class MovieRowControl : UserControl
                           "its poster, details, your notes and watch history are all kept as a record. " +
                           "The files on your drive are not touched.",
                 PrimaryButtonText = "Send",
-                CloseButtonText = "Cancel",
+                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot,
                 RequestedTheme = MainWindow.CurrentTheme,

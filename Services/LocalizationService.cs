@@ -275,6 +275,12 @@ public static class LocalizationService
         ["Best copy: highest quality, then largest. Recommended to keep."] = "BestCopyHint",
         ["Send this copy to Watched & Gone (keeps a record, removes it from the library)"] = "SendToWatchedGoneTooltip",
         ["0 movies"] = "ZeroMovies",
+        ["Unexpected Error"] = "Auto_Unexpected_Error_d17c2e74",
+        ["Can't copy yet"] = "Auto_Can_t_copy_yet_db219881",
+        ["Not enough free space"] = "Auto_Not_enough_free_space_8d845d16",
+        ["Send to Watched & Gone?"] = "Auto_Send_to_Watched_Gone_245193c6",
+        ["Delete this record?"] = "Auto_Delete_this_record_f9187972",
+        ["New list"] = "Auto_New_list_d44f1a8e",
     };
 
     public static string TranslateText(string? text)

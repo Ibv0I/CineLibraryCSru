@@ -645,4 +645,565 @@
   <data name="SizeLabel" xml:space="preserve">
     <value>Размер:</value>
   </data>
-<data name="MovieDetailsTitle" xml:space="preserve"><value>Информация о фильме</value></data><data name="PreviousMovie" xml:space="preserve"><value>Предыдущий фильм</value></data><data name="PreviousMovieTooltip" xml:space="preserve"><value>Предыдущий фильм (←)</value></data><data name="NextMovie" xml:space="preserve"><value>Следующий фильм</value></data><data name="NextMovieTooltip" xml:space="preserve"><value>Следующий фильм (→)</value></data><data name="Overview" xml:space="preserve"><value>ОПИСАНИЕ</value></data><data name="Studio" xml:space="preserve"><value>Студия</value></data><data name="IMDb" xml:space="preserve"><value>IMDb</value></data><data name="Rated" xml:space="preserve"><value>ВОЗРАСТНОЙ РЕЙТИНГ</value></data><data name="Runtime" xml:space="preserve"><value>ДЛИТЕЛЬНОСТЬ</value></data><data name="LanguageLabel" xml:space="preserve"><value>ЯЗЫК</value></data><data name="FileType" xml:space="preserve"><value>ТИП ФАЙЛА</value></data><data name="SubtitlesUpper" xml:space="preserve"><value>СУБТИТРЫ</value></data><data name="CountryUpper" xml:space="preserve"><value>СТРАНА</value></data><data name="DurationUpper" xml:space="preserve"><value>ДЛИТЕЛЬНОСТЬ</value></data><data name="ReleasedUpper" xml:space="preserve"><value>ДАТА ВЫХОДА</value></data><data name="FileSizeUpper" xml:space="preserve"><value>РАЗМЕР ФАЙЛА</value></data><data name="LocatedOn" xml:space="preserve"><value>Расположение:</value></data><data name="DriveOfflineNote" xml:space="preserve"><value>Диск отключён — заметка сохранена локально и синхронизируется с папкой фильма после подключения.</value></data><data name="AddNote" xml:space="preserve"><value>+ Добавить заметку</value></data><data name="AddTagButton" xml:space="preserve"><value>+ Добавить тег</value></data><data name="Edit" xml:space="preserve"><value>Изменить</value></data><data name="Save" xml:space="preserve"><value>Сохранить</value></data><data name="TagNamePlaceholder" xml:space="preserve"><value>Название тега (Enter — добавить)</value></data><data name="FilmNotePlaceholder" xml:space="preserve"><value>Что вы думаете об этом фильме?</value></data><data name="OpenFolderButton" xml:space="preserve"><value>📂 Открыть папку</value></data><data name="AddToList" xml:space="preserve"><value>📑 Добавить в список</value></data><data name="NotesLabel" xml:space="preserve"><value>📝 Заметки</value></data><data name="ViewDetails" xml:space="preserve"><value>Подробнее</value></data><data name="Watchlist" xml:space="preserve"><value>К просмотру</value></data><data name="AllMoviesLabel" xml:space="preserve"><value>Все фильмы</value></data><data name="ScopeCastCrewLabel" xml:space="preserve"><value>Актёры и съёмочная группа</value></data><data name="Esc" xml:space="preserve"><value>Esc</value></data><data name="SizeMLabel" xml:space="preserve"><value>Размер: M</value></data><data name="WatchedGoneLabel" xml:space="preserve"><value>Просмотренные и удалённые</value></data><data name="FavoriteWithHeart" xml:space="preserve"><value>♥ Избранное</value></data><data name="Watched" xml:space="preserve"><value>Просмотрено</value></data><data name="ClearFilters" xml:space="preserve"><value>✕ Сбросить фильтры</value></data><data name="WatchlistWithPin" xml:space="preserve"><value>📌 К просмотру</value></data><data name="AddToListDropdown" xml:space="preserve"><value>📑 Добавить в список ▾</value></data><data name="RemoveFromList" xml:space="preserve"><value>🗑 Удалить из списка</value></data><data name="SortCollections" xml:space="preserve"><value>Сортировка коллекций</value></data><data name="RemoveFolderAndMovies" xml:space="preserve"><value>Удалить папку и фильмы в ней</value></data><data name="Library" xml:space="preserve"><value>Библиотека</value></data><data name="TagsHeading" xml:space="preserve"><value>🏷  ТЕГИ</value></data><data name="DrivesPageTitle" xml:space="preserve"><value>Диски</value></data><data name="RescanAllDrivesTitle" xml:space="preserve"><value>Повторно проверить все подключённые диски на наличие новых или изменённых файлов</value></data><data name="DupesDescription" xml:space="preserve"><value>Фильмы, которые есть у вас в нескольких копиях. Версии с другим языком аудио или изданием считаются намеренными. Остальные копии, отличающиеся только качеством или кодеком, отмечаются как возможные дубликаты.</value></data><data name="OnlyPossibleDuplicates" xml:space="preserve"><value>Только возможные дубликаты</value></data><data name="ShowIgnored" xml:space="preserve"><value>Показать скрытые</value></data><data name="RescanDupesTooltip" xml:space="preserve"><value>Повторно проверить файлы на диске и обновить список. Выполните это после удаления копии.</value></data><data name="Rescan" xml:space="preserve"><value>Перепроверить</value></data><data name="DuplicateMatchHint" xml:space="preserve"><value>Совпадают только название и год, идентификаторы TMDb/IMDb отсутствуют. Стоит проверить.</value></data><data name="Verify" xml:space="preserve"><value>Проверить</value></data><data name="BestCopyHint" xml:space="preserve"><value>Лучшая копия: сначала по качеству, затем по размеру. Рекомендуется оставить её.</value></data><data name="SendToWatchedGoneTooltip" xml:space="preserve"><value>Перенести эту копию в «Просмотрено и удалено» (сохранить запись и убрать из библиотеки)</value></data><data name="RuntimeUpper" xml:space="preserve"><value>ДЛИТЕЛЬНОСТЬ</value></data><data name="FavoriteCard" xml:space="preserve"><value>В избранное</value></data><data name="ZeroMovies" xml:space="preserve"><value>0 фильмов</value></data></root>
+  <data name="MovieDetailsTitle" xml:space="preserve">
+    <value>Информация о фильме</value>
+  </data>
+  <data name="PreviousMovie" xml:space="preserve">
+    <value>Предыдущий фильм</value>
+  </data>
+  <data name="PreviousMovieTooltip" xml:space="preserve">
+    <value>Предыдущий фильм (←)</value>
+  </data>
+  <data name="NextMovie" xml:space="preserve">
+    <value>Следующий фильм</value>
+  </data>
+  <data name="NextMovieTooltip" xml:space="preserve">
+    <value>Следующий фильм (→)</value>
+  </data>
+  <data name="Overview" xml:space="preserve">
+    <value>ОПИСАНИЕ</value>
+  </data>
+  <data name="Studio" xml:space="preserve">
+    <value>Студия</value>
+  </data>
+  <data name="IMDb" xml:space="preserve">
+    <value>IMDb</value>
+  </data>
+  <data name="Rated" xml:space="preserve">
+    <value>ВОЗРАСТНОЙ РЕЙТИНГ</value>
+  </data>
+  <data name="Runtime" xml:space="preserve">
+    <value>ДЛИТЕЛЬНОСТЬ</value>
+  </data>
+  <data name="LanguageLabel" xml:space="preserve">
+    <value>ЯЗЫК</value>
+  </data>
+  <data name="FileType" xml:space="preserve">
+    <value>ТИП ФАЙЛА</value>
+  </data>
+  <data name="SubtitlesUpper" xml:space="preserve">
+    <value>СУБТИТРЫ</value>
+  </data>
+  <data name="CountryUpper" xml:space="preserve">
+    <value>СТРАНА</value>
+  </data>
+  <data name="DurationUpper" xml:space="preserve">
+    <value>ДЛИТЕЛЬНОСТЬ</value>
+  </data>
+  <data name="ReleasedUpper" xml:space="preserve">
+    <value>ДАТА ВЫХОДА</value>
+  </data>
+  <data name="FileSizeUpper" xml:space="preserve">
+    <value>РАЗМЕР ФАЙЛА</value>
+  </data>
+  <data name="LocatedOn" xml:space="preserve">
+    <value>Расположение:</value>
+  </data>
+  <data name="DriveOfflineNote" xml:space="preserve">
+    <value>Диск отключён — заметка сохранена локально и синхронизируется с папкой фильма после подключения.</value>
+  </data>
+  <data name="AddNote" xml:space="preserve">
+    <value>+ Добавить заметку</value>
+  </data>
+  <data name="AddTagButton" xml:space="preserve">
+    <value>+ Добавить тег</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Изменить</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="TagNamePlaceholder" xml:space="preserve">
+    <value>Название тега (Enter — добавить)</value>
+  </data>
+  <data name="FilmNotePlaceholder" xml:space="preserve">
+    <value>Что вы думаете об этом фильме?</value>
+  </data>
+  <data name="OpenFolderButton" xml:space="preserve">
+    <value>📂 Открыть папку</value>
+  </data>
+  <data name="AddToList" xml:space="preserve">
+    <value>📑 Добавить в список</value>
+  </data>
+  <data name="NotesLabel" xml:space="preserve">
+    <value>📝 Заметки</value>
+  </data>
+  <data name="ViewDetails" xml:space="preserve">
+    <value>Подробнее</value>
+  </data>
+  <data name="Watchlist" xml:space="preserve">
+    <value>К просмотру</value>
+  </data>
+  <data name="AllMoviesLabel" xml:space="preserve">
+    <value>Все фильмы</value>
+  </data>
+  <data name="ScopeCastCrewLabel" xml:space="preserve">
+    <value>Актёры и съёмочная группа</value>
+  </data>
+  <data name="Esc" xml:space="preserve">
+    <value>Esc</value>
+  </data>
+  <data name="SizeMLabel" xml:space="preserve">
+    <value>Размер: M</value>
+  </data>
+  <data name="WatchedGoneLabel" xml:space="preserve">
+    <value>Просмотренные и удалённые</value>
+  </data>
+  <data name="FavoriteWithHeart" xml:space="preserve">
+    <value>♥ Избранное</value>
+  </data>
+  <data name="Watched" xml:space="preserve">
+    <value>Просмотрено</value>
+  </data>
+  <data name="ClearFilters" xml:space="preserve">
+    <value>✕ Сбросить фильтры</value>
+  </data>
+  <data name="WatchlistWithPin" xml:space="preserve">
+    <value>📌 К просмотру</value>
+  </data>
+  <data name="AddToListDropdown" xml:space="preserve">
+    <value>📑 Добавить в список ▾</value>
+  </data>
+  <data name="RemoveFromList" xml:space="preserve">
+    <value>🗑 Удалить из списка</value>
+  </data>
+  <data name="SortCollections" xml:space="preserve">
+    <value>Сортировка коллекций</value>
+  </data>
+  <data name="RemoveFolderAndMovies" xml:space="preserve">
+    <value>Удалить папку и фильмы в ней</value>
+  </data>
+  <data name="Library" xml:space="preserve">
+    <value>Библиотека</value>
+  </data>
+  <data name="TagsHeading" xml:space="preserve">
+    <value>🏷  ТЕГИ</value>
+  </data>
+  <data name="DrivesPageTitle" xml:space="preserve">
+    <value>Диски</value>
+  </data>
+  <data name="RescanAllDrivesTitle" xml:space="preserve">
+    <value>Повторно проверить все подключённые диски на наличие новых или изменённых файлов</value>
+  </data>
+  <data name="DupesDescription" xml:space="preserve">
+    <value>Фильмы, которые есть у вас в нескольких копиях. Версии с другим языком аудио или изданием считаются намеренными. Остальные копии, отличающиеся только качеством или кодеком, отмечаются как возможные дубликаты.</value>
+  </data>
+  <data name="OnlyPossibleDuplicates" xml:space="preserve">
+    <value>Только возможные дубликаты</value>
+  </data>
+  <data name="ShowIgnored" xml:space="preserve">
+    <value>Показать скрытые</value>
+  </data>
+  <data name="RescanDupesTooltip" xml:space="preserve">
+    <value>Повторно проверить файлы на диске и обновить список. Выполните это после удаления копии.</value>
+  </data>
+  <data name="Rescan" xml:space="preserve">
+    <value>Перепроверить</value>
+  </data>
+  <data name="DuplicateMatchHint" xml:space="preserve">
+    <value>Совпадают только название и год, идентификаторы TMDb/IMDb отсутствуют. Стоит проверить.</value>
+  </data>
+  <data name="Verify" xml:space="preserve">
+    <value>Проверить</value>
+  </data>
+  <data name="BestCopyHint" xml:space="preserve">
+    <value>Лучшая копия: сначала по качеству, затем по размеру. Рекомендуется оставить её.</value>
+  </data>
+  <data name="SendToWatchedGoneTooltip" xml:space="preserve">
+    <value>Перенести эту копию в «Просмотрено и удалено» (сохранить запись и убрать из библиотеки)</value>
+  </data>
+  <data name="RuntimeUpper" xml:space="preserve">
+    <value>ДЛИТЕЛЬНОСТЬ</value>
+  </data>
+  <data name="FavoriteCard" xml:space="preserve">
+    <value>В избранное</value>
+  </data>
+  <data name="ZeroMovies" xml:space="preserve">
+    <value>0 фильмов</value>
+  </data>
+  <data name="Auto_Show_sidebar_5982a293" xml:space="preserve">
+    <value>Показать боковую панель</value>
+  </data>
+  <data name="Auto_What_the_search_matches_77819fdf" xml:space="preserve">
+    <value>Что искать</value>
+  </data>
+  <data name="Auto_All_6a720856" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="Auto_Title_768e0c1c" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="Auto_Cast_crew_65adcd13" xml:space="preserve">
+    <value>Актёры и съёмочная группа</value>
+  </data>
+  <data name="Auto_Search_title_actor_director_1e27381d" xml:space="preserve">
+    <value>Поиск по названию, актёру, режиссёру…</value>
+  </data>
+  <data name="Auto_LIBRARY_7b8a89ce" xml:space="preserve">
+    <value>БИБЛИОТЕКА</value>
+  </data>
+  <data name="Auto_All_Movies_7b9be257" xml:space="preserve">
+    <value>Все фильмы</value>
+  </data>
+  <data name="Auto_All_TV_Shows_185f90e0" xml:space="preserve">
+    <value>Все сериалы</value>
+  </data>
+  <data name="Auto_Favorites_07b3e447" xml:space="preserve">
+    <value>Избранное</value>
+  </data>
+  <data name="Auto_To_Watch_22af52ea" xml:space="preserve">
+    <value>К просмотру</value>
+  </data>
+  <data name="Auto_Notes_70440046" xml:space="preserve">
+    <value>Заметки</value>
+  </data>
+  <data name="Auto_Watched_Gone_2150a2ad" xml:space="preserve">
+    <value>Просмотрено и удалено</value>
+  </data>
+  <data name="Auto_DISCOVER_d3f02e63" xml:space="preserve">
+    <value>ОТКРЫТЬ</value>
+  </data>
+  <data name="Auto_Continue_Watching_b60506f5" xml:space="preserve">
+    <value>Продолжить просмотр</value>
+  </data>
+  <data name="Auto_Recently_Added_66560f11" xml:space="preserve">
+    <value>Недавно добавлено</value>
+  </data>
+  <data name="Auto_Recently_Watched_73ac2b98" xml:space="preserve">
+    <value>Недавно просмотрено</value>
+  </data>
+  <data name="Auto_Surprise_me_92898d55" xml:space="preserve">
+    <value>Случайный выбор</value>
+  </data>
+  <data name="Auto_On_This_Day_ba0ee0ec" xml:space="preserve">
+    <value>В этот день</value>
+  </data>
+  <data name="Auto_BROWSE_c509cd6d" xml:space="preserve">
+    <value>ОБЗОР</value>
+  </data>
+  <data name="Auto_By_Genre_8651b06c" xml:space="preserve">
+    <value>По жанру</value>
+  </data>
+  <data name="Auto_By_Decade_094df6a3" xml:space="preserve">
+    <value>По десятилетию</value>
+  </data>
+  <data name="Auto_By_Rating_b66f68d7" xml:space="preserve">
+    <value>По рейтингу</value>
+  </data>
+  <data name="Auto_TOOLS_9d0e510b" xml:space="preserve">
+    <value>ИНСТРУМЕНТЫ</value>
+  </data>
+  <data name="Auto_Statistics_2086b21f" xml:space="preserve">
+    <value>Статистика</value>
+  </data>
+  <data name="Auto_Dupes_4fe03095" xml:space="preserve">
+    <value>Дубликаты</value>
+  </data>
+  <data name="Auto_Backup_dd96994d" xml:space="preserve">
+    <value>Резервная копия</value>
+  </data>
+  <data name="Auto_Export_f3e4fadb" xml:space="preserve">
+    <value>Экспорт</value>
+  </data>
+  <data name="Auto_MY_LISTS_831efb6d" xml:space="preserve">
+    <value>МОИ СПИСКИ</value>
+  </data>
+  <data name="Auto_Create_a_new_list_334c0dd1" xml:space="preserve">
+    <value>Создать список</value>
+  </data>
+  <data name="Auto_LIBRARIES_538f1ef4" xml:space="preserve">
+    <value>БИБЛИОТЕКИ</value>
+  </data>
+  <data name="Auto_Drives_13219b91" xml:space="preserve">
+    <value>Диски</value>
+  </data>
+  <data name="Auto_Keyboard_shortcuts_26669547" xml:space="preserve">
+    <value>Горячие клавиши</value>
+  </data>
+  <data name="Auto_Collapse_sidebar_9e687628" xml:space="preserve">
+    <value>Свернуть боковую панель</value>
+  </data>
+  <data name="Auto_Back_b52b36b7" xml:space="preserve">
+    <value>Назад</value>
+  </data>
+  <data name="Auto_Unwatched_dc70d6d5" xml:space="preserve">
+    <value>Не просмотрено</value>
+  </data>
+  <data name="Auto_Watched_de9a3242" xml:space="preserve">
+    <value>Просмотрено</value>
+  </data>
+  <data name="Auto_Title_651292d0" xml:space="preserve">
+    <value>Название ↑</value>
+  </data>
+  <data name="Auto_Title_3b20fb3a" xml:space="preserve">
+    <value>Название ↓</value>
+  </data>
+  <data name="Auto_Year_38f250d1" xml:space="preserve">
+    <value>Год ↓</value>
+  </data>
+  <data name="Auto_Year_61ad958a" xml:space="preserve">
+    <value>Год ↑</value>
+  </data>
+  <data name="Auto_Rating_51de42a0" xml:space="preserve">
+    <value>Рейтинг ↓</value>
+  </data>
+  <data name="Auto_Rating_b5548008" xml:space="preserve">
+    <value>Рейтинг ↑</value>
+  </data>
+  <data name="Auto_Runtime_6e9aacfc" xml:space="preserve">
+    <value>Длительность ↓</value>
+  </data>
+  <data name="Auto_Runtime_9a989779" xml:space="preserve">
+    <value>Длительность ↑</value>
+  </data>
+  <data name="Auto_Date_Added_b4ecd8cd" xml:space="preserve">
+    <value>Дата добавления ↓</value>
+  </data>
+  <data name="Auto_Date_Added_970b7b3d" xml:space="preserve">
+    <value>Дата добавления ↑</value>
+  </data>
+  <data name="Auto_Last_Watched_76eb93b3" xml:space="preserve">
+    <value>Последний просмотр ↓</value>
+  </data>
+  <data name="Auto_Last_Watched_5e63b55b" xml:space="preserve">
+    <value>Последний просмотр ↑</value>
+  </data>
+  <data name="Auto_Poster_size_8d9d7e90" xml:space="preserve">
+    <value>Размер постеров</value>
+  </data>
+  <data name="Auto_Small_c74fd971" xml:space="preserve">
+    <value>Маленький</value>
+  </data>
+  <data name="Auto_Medium_d404968e" xml:space="preserve">
+    <value>Средний</value>
+  </data>
+  <data name="Auto_Large_738fd1d2" xml:space="preserve">
+    <value>Большой</value>
+  </data>
+  <data name="Auto_Extra_large_05128f46" xml:space="preserve">
+    <value>Очень большой</value>
+  </data>
+  <data name="Auto_Grid_view_d44ec861" xml:space="preserve">
+    <value>Сетка</value>
+  </data>
+  <data name="Auto_List_view_694bbd75" xml:space="preserve">
+    <value>Список</value>
+  </data>
+  <data name="Auto_No_movies_match_your_filters_194e0a3b" xml:space="preserve">
+    <value>Фильмы не найдены</value>
+  </data>
+  <data name="Auto_Try_clearing_the_search_or_choosing_All_watched_filter_7594092f" xml:space="preserve">
+    <value>Попробуйте очистить поиск или выбрать фильтр «Все».</value>
+  </data>
+  <data name="Auto_TV_SHOWS_MATCHING_cde047b4" xml:space="preserve">
+    <value>ПОДХОДЯЩИЕ СЕРИАЛЫ</value>
+  </data>
+  <data name="Auto_TV_SHOWS_IN_THIS_LIST_141d563c" xml:space="preserve">
+    <value>СЕРИАЛЫ В ЭТОМ СПИСКЕ</value>
+  </data>
+  <data name="Auto_Keep_as_a_record_remove_from_library_5322b501" xml:space="preserve">
+    <value>Оставить запись, удалить из библиотеки</value>
+  </data>
+  <data name="Auto_Clear_selection_Esc_a7157f58" xml:space="preserve">
+    <value>Снять выделение (Esc)</value>
+  </data>
+  <data name="Auto_Surprise_me_random_pick_from_current_view_ba9dd0b5" xml:space="preserve">
+    <value>Случайный фильм из текущего списка</value>
+  </data>
+  <data name="Auto_Rescan_all_connected_drives_for_new_or_changed_files_92457576" xml:space="preserve">
+    <value>Повторно проверить подключённые диски на новые и изменённые файлы</value>
+  </data>
+  <data name="Auto_Refresh_changes_a4e297a5" xml:space="preserve">
+    <value>Обновить изменения</value>
+  </data>
+  <data name="Auto_Add_Drive_ac6361ea" xml:space="preserve">
+    <value>Добавить диск</value>
+  </data>
+  <data name="Auto_External_drives_that_hold_your_movies_Identified_by_hardware_ID_so_cha_560adfbb" xml:space="preserve">
+    <value>Внешние диски с фильмами. Диск определяется по ID оборудования, поэтому смена буквы не нарушит связь.</value>
+  </data>
+  <data name="Auto_No_drives_yet_a8eda6c1" xml:space="preserve">
+    <value>Диски ещё не добавлены</value>
+  </data>
+  <data name="Auto_Click_Add_Drive_to_get_started_44ea3d09" xml:space="preserve">
+    <value>Нажмите «+ Добавить диск», чтобы начать.</value>
+  </data>
+  <data name="Auto_Rescan_this_drive_s_folders_for_new_or_changed_movies_063ee270" xml:space="preserve">
+    <value>Повторно проверить папки диска на новые и изменённые фильмы</value>
+  </data>
+  <data name="Auto_Update_fb91e24f" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="Auto_More_actions_a1e34f91" xml:space="preserve">
+    <value>Другие действия</value>
+  </data>
+  <data name="Auto_Browse_movies_c8c84d6c" xml:space="preserve">
+    <value>Открыть фильмы</value>
+  </data>
+  <data name="Auto_Rename_drive_c0c74ba3" xml:space="preserve">
+    <value>Переименовать диск</value>
+  </data>
+  <data name="Auto_Sync_to_drive_state_fetched_art_9639261a" xml:space="preserve">
+    <value>Синхронизировать с диском (состояние и изображения)</value>
+  </data>
+  <data name="Auto_Remove_drive_bbbed197" xml:space="preserve">
+    <value>Удалить диск</value>
+  </data>
+  <data name="Auto_Remove_folder_and_its_movies_c9895add" xml:space="preserve">
+    <value>Удалить папку и фильмы в ней</value>
+  </data>
+  <data name="Auto_Add_folder_03eb1a44" xml:space="preserve">
+    <value>Добавить папку</value>
+  </data>
+  <data name="Auto_Scanning_36c4a06f" xml:space="preserve">
+    <value>Сканирование…</value>
+  </data>
+  <data name="Auto_Cancel_77dfd213" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Auto_Collections_4bbb632f" xml:space="preserve">
+    <value>Коллекции</value>
+  </data>
+  <data name="Auto_Collections_with_movies_you_haven_t_watched_yet_a69b86ee" xml:space="preserve">
+    <value>Коллекции с непросмотренными фильмами</value>
+  </data>
+  <data name="Auto_Collections_you_ve_watched_every_movie_of_0fa8b32c" xml:space="preserve">
+    <value>Коллекции, в которых просмотрены все фильмы</value>
+  </data>
+  <data name="Auto_Movies_9e9ba475" xml:space="preserve">
+    <value>Фильмы ↓</value>
+  </data>
+  <data name="Auto_Movies_14c29c6a" xml:space="preserve">
+    <value>Фильмы ↑</value>
+  </data>
+  <data name="Auto_Size_M_59326f8a" xml:space="preserve">
+    <value>Размер: M</value>
+  </data>
+  <data name="Auto_Size_86251551" xml:space="preserve">
+    <value>Размер:</value>
+  </data>
+  <data name="Auto_No_collections_yet_a5c62e4d" xml:space="preserve">
+    <value>Коллекций пока нет</value>
+  </data>
+  <data name="Auto_MediaElch_collections_franchises_sagas_appear_here_once_at_least_two_o_5a8bf46e" xml:space="preserve">
+    <value>Коллекции MediaElch (франшизы и киносаги) появятся здесь, когда в библиотеке будет хотя бы два фильма из коллекции с соответствующими тегами в NFO-файлах.</value>
+  </data>
+  <data name="Auto_Your_collection_at_a_glance_2b3901c6" xml:space="preserve">
+    <value>Ваша коллекция вкратце</value>
+  </data>
+  <data name="Auto_Total_movies_305b93eb" xml:space="preserve">
+    <value>Всего фильмов</value>
+  </data>
+  <data name="Auto_Total_runtime_f1468b4c" xml:space="preserve">
+    <value>Общая длительность</value>
+  </data>
+  <data name="Auto_Avg_rating_dd1bf597" xml:space="preserve">
+    <value>Средний рейтинг</value>
+  </data>
+  <data name="Auto_Drives_tracked_ad2b034c" xml:space="preserve">
+    <value>Дисков отслеживается</value>
+  </data>
+  <data name="Auto_Watch_progress_f3e0c41d" xml:space="preserve">
+    <value>✓ Прогресс просмотра</value>
+  </data>
+  <data name="Auto_TV_shows_ac32c5b1" xml:space="preserve">
+    <value>Сериалы</value>
+  </data>
+  <data name="Auto_Episode_runtime_4689462c" xml:space="preserve">
+    <value>Длительность серий</value>
+  </data>
+  <data name="Auto_Avg_show_rating_013527fd" xml:space="preserve">
+    <value>Средний рейтинг сериалов</value>
+  </data>
+  <data name="Auto_Episodes_watched_c46315bd" xml:space="preserve">
+    <value>✓ Просмотрено серий</value>
+  </data>
+  <data name="Auto_Movies_by_decade_8c71f993" xml:space="preserve">
+    <value>📅 Фильмы по десятилетиям</value>
+  </data>
+  <data name="Auto_No_year_data_yet_9cffd3e0" xml:space="preserve">
+    <value>Пока нет данных о годах выпуска.</value>
+  </data>
+  <data name="Auto_Top_genres_5d98f731" xml:space="preserve">
+    <value>🏷 Популярные жанры</value>
+  </data>
+  <data name="Auto_No_genres_tagged_yet_1930fb50" xml:space="preserve">
+    <value>Жанры пока не указаны.</value>
+  </data>
+  <data name="Auto_Top_directors_fa2eabec" xml:space="preserve">
+    <value>🎥 Популярные режиссёры</value>
+  </data>
+  <data name="Auto_No_director_data_yet_c510a2e6" xml:space="preserve">
+    <value>Пока нет данных о режиссёрах.</value>
+  </data>
+  <data name="Auto_Top_actors_b95f0d23" xml:space="preserve">
+    <value>🎭 Популярные актёры</value>
+  </data>
+  <data name="Auto_No_actor_data_yet_f71279ca" xml:space="preserve">
+    <value>Пока нет данных об актёрах.</value>
+  </data>
+  <data name="Auto_Movies_you_have_more_than_once_Copies_in_a_different_audio_language_or_1df5c4b6" xml:space="preserve">
+    <value>Фильмы, у которых есть несколько копий. Версии на другом языке или в другом издании сохраняются намеренно. Остальные копии, включая отличающиеся только качеством или кодеком, отмечаются как возможные дубликаты.</value>
+  </data>
+  <data name="Auto_Only_possible_duplicates_ed4cb2b9" xml:space="preserve">
+    <value>Только возможные дубликаты</value>
+  </data>
+  <data name="Auto_Show_ignored_722c8d1f" xml:space="preserve">
+    <value>Показать проигнорированные</value>
+  </data>
+  <data name="Auto_Re_check_the_files_on_disk_and_refresh_Run_this_after_you_delete_a_cop_1ee6f867" xml:space="preserve">
+    <value>Повторно проверить файлы на диске и обновить список. Запустите после удаления копии.</value>
+  </data>
+  <data name="Auto_Rescan_84661f6a" xml:space="preserve">
+    <value>Проверить снова</value>
+  </data>
+  <data name="Auto_Matched_by_title_year_only_no_TMDb_IMDb_id_Worth_a_quick_check_9ef823b6" xml:space="preserve">
+    <value>Совпадение только по названию и году, без ID TMDb/IMDb. Стоит проверить.</value>
+  </data>
+  <data name="Auto_verify_86a4261d" xml:space="preserve">
+    <value>проверить</value>
+  </data>
+  <data name="Auto_Best_copy_highest_quality_then_largest_Recommended_to_keep_bcdc8470" xml:space="preserve">
+    <value>Лучшая копия: сначала по качеству, затем по размеру. Рекомендуется оставить.</value>
+  </data>
+  <data name="Auto_Open_folder_f9630141" xml:space="preserve">
+    <value>Открыть папку</value>
+  </data>
+  <data name="Auto_Send_this_copy_to_Watched_Gone_keeps_a_record_removes_it_from_the_libr_81465f20" xml:space="preserve">
+    <value>Перенести копию в «Просмотрено и удалено» (запись сохранится, фильм исчезнет из библиотеки)</value>
+  </data>
+  <data name="Auto_No_duplicates_found_9ca6c289" xml:space="preserve">
+    <value>Дубликаты не найдены</value>
+  </data>
+  <data name="Auto_Every_movie_in_your_library_appears_once_Copies_you_keep_in_different__ac1e6dee" xml:space="preserve">
+    <value>Каждый фильм в библиотеке представлен один раз. Копии на других языках, в другом качестве или издании не считаются дубликатами.</value>
+  </data>
+  <data name="Auto_Nothing_tied_to_today_cc5f2eff" xml:space="preserve">
+    <value>На эту дату ничего нет</value>
+  </data>
+  <data name="Auto_Check_back_tomorrow_On_This_Day_surfaces_movies_you_watched_on_this_da_0628dc08" xml:space="preserve">
+    <value>Загляните завтра. Здесь показываются фильмы, просмотренные или выпущенные в этот день в прошлые годы.</value>
+  </data>
+  <data name="Auto_Unexpected_Error_d17c2e74" xml:space="preserve">
+    <value>Непредвиденная ошибка</value>
+  </data>
+  <data name="Auto_Can_t_copy_yet_db219881" xml:space="preserve">
+    <value>Пока нельзя скопировать</value>
+  </data>
+  <data name="Auto_Not_enough_free_space_8d845d16" xml:space="preserve">
+    <value>Недостаточно свободного места</value>
+  </data>
+  <data name="Auto_Can_t_play_yet_a2b30721" xml:space="preserve">
+    <value>Пока нельзя воспроизвести</value>
+  </data>
+  <data name="Auto_Send_to_Watched_Gone_245193c6" xml:space="preserve">
+    <value>Перенести в «Просмотрено и удалено»?</value>
+  </data>
+  <data name="Auto_Delete_this_record_f9187972" xml:space="preserve">
+    <value>Удалить эту запись?</value>
+  </data>
+  <data name="Auto_New_list_d44f1a8e" xml:space="preserve">
+    <value>Новый список</value>
+  </data>
+</root>

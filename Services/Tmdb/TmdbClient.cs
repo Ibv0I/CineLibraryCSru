@@ -188,7 +188,7 @@ public sealed class TmdbClient : IDisposable
             var job = m.TryGetProperty("job", out var j) ? j.GetString() ?? "" : "";
             var dept = m.TryGetProperty("department", out var d) ? d.GetString() ?? "" : "";
 
-            if (string.Equals(job, CineLibraryCS.Services.LocalizationService.TranslateText("Director"), StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(job, "Director", StringComparison.OrdinalIgnoreCase))
             {
                 if (!movie.Directors.Contains(name)) movie.Directors.Add(name);
             }

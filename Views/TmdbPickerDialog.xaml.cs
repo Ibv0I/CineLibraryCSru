@@ -27,9 +27,9 @@ public sealed partial class TmdbPickerDialog : ContentDialog
         _tvShows = tvShows;
         if (tvShows)
         {
-            Title = "Match this show on TMDb";
-            HintText.Text = "Pick the correct show so the missing details are filled from the right entry.";
-            TitleBox.PlaceholderText = "Show title…";
+            Title = CineLibraryCS.Services.LocalizationService.TranslateText("Match this show on TMDb");
+            HintText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Pick the correct show so the missing details are filled from the right entry.");
+            TitleBox.PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("Show title…");
         }
         TitleBox.Text = initialTitle ?? "";
         if (year is int y && y > 0) YearBox.Text = y.ToString();
@@ -73,7 +73,7 @@ public sealed partial class TmdbPickerDialog : ContentDialog
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"TMDb picker search failed: {ex.Message}");
-            StatusText.Text = "Couldn't reach TMDb. Check your connection and try again.";
+            StatusText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Couldn't reach TMDb. Check your connection and try again.");
             StatusText.Visibility = Visibility.Visible;
         }
         finally

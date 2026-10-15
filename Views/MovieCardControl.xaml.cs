@@ -346,7 +346,7 @@ public sealed partial class MovieCardControl : UserControl
         if (m.IsMissing)
         {
             StatusDot.Fill = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xEF, 0x44, 0x44));
-            StatusText.Text = "MISSING";
+            StatusText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("MISSING");
             StatusText.Visibility = Visibility.Visible;
             StatusBadge.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0xCC, 0, 0, 0));
             StatusBadge.Visibility = Visibility.Visible;
@@ -605,7 +605,7 @@ public sealed partial class MovieCardControl : UserControl
     {
         var dlg = new ContentDialog
         {
-            Title = "Can't play yet",
+            Title = CineLibraryCS.Services.LocalizationService.TranslateText("Can't play yet"),
             Content = string.IsNullOrEmpty(driveLabel)
                 ? $"\"{title}\" lives on a drive that isn't connected. Plug it in and try again."
                 : $"\"{title}\" lives on \"{driveLabel}\", which isn't connected. Plug it in and try again.",
@@ -661,7 +661,7 @@ public sealed partial class MovieCardControl : UserControl
         flyout.Items.Add(new MenuFlyoutSeparator());
 
         // Add to list submenu
-        var listsSub = new MenuFlyoutSubItem { Text = "📑 Add to list" };
+        var listsSub = new MenuFlyoutSubItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("📑 Add to list") };
         var allLists = AppState.Instance.Db.GetUserLists();
         var membership = AppState.Instance.Db.GetUserListsForMovie(Movie.Id);
         if (allLists.Count == 0)
@@ -708,7 +708,7 @@ public sealed partial class MovieCardControl : UserControl
         flyout.Items.Add(listsSub);
 
         flyout.Items.Add(new MenuFlyoutSeparator());
-        var openItem = new MenuFlyoutItem { Text = "Open details" };
+        var openItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Open details") };
         openItem.Click += (_, _) => OpenDetail();
         flyout.Items.Add(openItem);
 
@@ -717,7 +717,7 @@ public sealed partial class MovieCardControl : UserControl
         flyout.Items.Add(new MenuFlyoutSeparator());
         var archiveItem = new MenuFlyoutItem
         {
-            Text = "Send to Watched & Gone",
+            Text = CineLibraryCS.Services.LocalizationService.TranslateText("Send to Watched & Gone"),
             Icon = new FontIcon { Glyph = "", FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Segoe Fluent Icons,Segoe MDL2 Assets") },
         };
         archiveItem.Click += async (_, _) =>
@@ -726,7 +726,7 @@ public sealed partial class MovieCardControl : UserControl
             var m = Movie;
             var dlg = new ContentDialog
             {
-                Title = "Send to Watched & Gone?",
+                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Send to Watched & Gone?"),
                 Content = $"“{m.Title}” moves out of your library into Watched & Gone — " +
                           "its poster, details, your notes and watch history are all kept as a record. " +
                           "The files on your drive are not touched.\n\n" +
@@ -752,13 +752,13 @@ public sealed partial class MovieCardControl : UserControl
         if (Movie == null) return;
         var m = Movie;
 
-        var openItem = new MenuFlyoutItem { Text = "Open details" };
+        var openItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Open details") };
         openItem.Click += (_, _) => OpenDetail();
         flyout.Items.Add(openItem);
 
         flyout.Items.Add(new MenuFlyoutSeparator());
 
-        var restoreItem = new MenuFlyoutItem { Text = "Restore to library" };
+        var restoreItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Restore to library") };
         restoreItem.Click += (_, _) =>
         {
             AppState.Instance.Db.RestoreArchivedMovie(m.Id);
@@ -770,17 +770,17 @@ public sealed partial class MovieCardControl : UserControl
 
         var deleteItem = new MenuFlyoutItem
         {
-            Text = "Delete record permanently",
+            Text = CineLibraryCS.Services.LocalizationService.TranslateText("Delete record permanently"),
             Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xEF, 0x44, 0x44)),
         };
         deleteItem.Click += async (_, _) =>
         {
             var dlg = new ContentDialog
             {
-                Title = "Delete this record?",
+                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Delete this record?"),
                 Content = $"“{m.Title}” — its record, cached poster, notes and watch history " +
                           "will be permanently removed from CineLibrary. This can't be undone.",
-                PrimaryButtonText = "Delete forever",
+                PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Delete forever"),
                 CloseButtonText = "Cancel",
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = XamlRoot,
@@ -797,10 +797,10 @@ public sealed partial class MovieCardControl : UserControl
 
     private async Task<string?> PromptNewListNameDialog()
     {
-        var box = new TextBox { PlaceholderText = "List name" };
+        var box = new TextBox { PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("List name") };
         var dlg = new ContentDialog
         {
-            Title = "New list",
+            Title = CineLibraryCS.Services.LocalizationService.TranslateText("New list"),
             Content = box,
             PrimaryButtonText = "Create",
             CloseButtonText = "Cancel",

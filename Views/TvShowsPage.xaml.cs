@@ -187,7 +187,7 @@ public sealed partial class TvShowsPage : Page
         // string clears the note row. Sidecar is best-effort.
         root.Children.Add(new TextBlock
         {
-            Text = "YOUR NOTE",
+            Text = CineLibraryCS.Services.LocalizationService.TranslateText("YOUR NOTE"),
             FontSize = 11,
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             CharacterSpacing = 120,
@@ -200,7 +200,7 @@ public sealed partial class TvShowsPage : Page
             AcceptsReturn = true,
             TextWrapping = TextWrapping.Wrap,
             MinHeight = 70,
-            PlaceholderText = "Anything you want to remember about this episode…",
+            PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("Anything you want to remember about this episode…"),
         };
         noteBox.LostFocus += (_, _) =>
         {
@@ -229,7 +229,7 @@ public sealed partial class TvShowsPage : Page
         {
             Title = title,
             Content = new ScrollViewer { Content = root, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = 500, Padding = new Thickness(0, 0, 16, 0) },
-            PrimaryButtonText = "▶ Play",
+            PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("▶ Play"),
             SecondaryButtonText = d.IsWatched ? "Mark unwatched" : "Mark watched",
             CloseButtonText = "Close",
             DefaultButton = ContentDialogButton.Primary,
@@ -282,7 +282,7 @@ public sealed partial class TvShowsPage : Page
 
     private void LoadShows()
     {
-        TitleText.Text = "All TV shows";
+        TitleText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("All TV shows");
         BackLabel.Text = "Back";
         var all = AppState.Instance.Db.GetTvShows(AppState.Instance.Connected);
         var shown = SortShows(FilterShows(all)).ToList();
@@ -293,13 +293,13 @@ public sealed partial class TvShowsPage : Page
             : $"{shown.Count} of {all.Count} shows";
         if (all.Count == 0)
         {
-            EmptyTitle.Text = "No TV shows yet";
+            EmptyTitle.Text = CineLibraryCS.Services.LocalizationService.TranslateText("No TV shows yet");
             EmptyHint.Text = _noShowsHint;
         }
         else
         {
             EmptyTitle.Text = _tvFilter == "watched" ? "No fully watched shows yet" : "Nothing left to watch";
-            EmptyHint.Text = "Choose All to see every show.";
+            EmptyHint.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Choose All to see every show.");
         }
         EmptyState.Visibility = shown.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
@@ -392,7 +392,7 @@ public sealed partial class TvShowsPage : Page
     {
         if (_currentShow == null) { _level = Level.Shows; ShowLevel(); return; }
         TitleText.Text = _currentShow.Title;   // as written, not in capitals (v3.10.0, issue #12)
-        BackLabel.Text = "All TV Shows";
+        BackLabel.Text = CineLibraryCS.Services.LocalizationService.TranslateText("All TV Shows");
         EmptyState.Visibility = Visibility.Collapsed;
 
         _selectedSeason = null;   // a newly opened show starts on its default season
@@ -850,7 +850,7 @@ public sealed partial class TvShowsPage : Page
             TextWrapping = TextWrapping.Wrap,
             MinHeight = 120,
             MaxHeight = 300,
-            PlaceholderText = "Anything you want to remember about this show…",
+            PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("Anything you want to remember about this show…"),
         };
         ScrollViewer.SetVerticalScrollBarVisibility(box, ScrollBarVisibility.Auto);
         var dlg = new ContentDialog
@@ -943,10 +943,10 @@ public sealed partial class TvShowsPage : Page
 
     private async Task<string?> PromptNewListName()
     {
-        var box = new TextBox { PlaceholderText = "List name" };
+        var box = new TextBox { PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("List name") };
         var dlg = new ContentDialog
         {
-            Title = "New list",
+            Title = CineLibraryCS.Services.LocalizationService.TranslateText("New list"),
             Content = box,
             PrimaryButtonText = "Create",
             CloseButtonText = "Cancel",
@@ -1258,7 +1258,7 @@ public sealed partial class TvShowsPage : Page
     {
         var dlg = new ContentDialog
         {
-            Title = "Can't play yet",
+            Title = CineLibraryCS.Services.LocalizationService.TranslateText("Can't play yet"),
             Content = $"\"{title}\" is on a drive that isn't connected. Plug it in and try again.",
             CloseButtonText = "OK",
             XamlRoot = XamlRoot,

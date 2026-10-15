@@ -81,8 +81,8 @@ public sealed partial class TvShowCard : UserControl
         MetaText.Foreground = s.NextEpisode != null ? NextBrush : MetaBrush;
         FavBadge.Visibility = s.IsFavorite ? Visibility.Visible : Visibility.Collapsed;
 
-        if (s.IsMissing) { StatusText.Text = "MISSING"; StatusBadge.Visibility = Visibility.Visible; }
-        else if (!s.IsOnline) { StatusText.Text = "OFFLINE"; StatusBadge.Visibility = Visibility.Visible; }
+        if (s.IsMissing) { StatusText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("MISSING"); StatusBadge.Visibility = Visibility.Visible; }
+        else if (!s.IsOnline) { StatusText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("OFFLINE"); StatusBadge.Visibility = Visibility.Visible; }
         else StatusBadge.Visibility = Visibility.Collapsed;
 
         CardRoot.Height = CardHeight;

@@ -565,10 +565,10 @@ public sealed partial class LibraryPage : Page
 
     private async Task<string?> PromptNewListName()
     {
-        var box = new TextBox { PlaceholderText = "List name" };
+        var box = new TextBox { PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("List name") };
         var dlg = new ContentDialog
         {
-            Title = "New list",
+            Title = CineLibraryCS.Services.LocalizationService.TranslateText("New list"),
             Content = box,
             PrimaryButtonText = "Create",
             CloseButtonText = "Cancel",
@@ -748,7 +748,7 @@ public sealed partial class LibraryPage : Page
         var hasAnyDrive = AppState.Instance.Db.GetDrives().Count > 0;
         if (!hasAnyDrive)
         {
-            EmptyTitle.Text = "Welcome to CineLibrary";
+            EmptyTitle.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Welcome to CineLibrary");
             EmptyStateHint.Text =
                 "Point CineLibrary at the folder where MediaElch saved your scraped " +
                 "movies (each movie in its own folder with a .nfo + poster). " +
@@ -758,7 +758,7 @@ public sealed partial class LibraryPage : Page
         }
         else if (_vm.UserListId != null && string.IsNullOrEmpty(_vm.SearchText))
         {
-            EmptyTitle.Text = "This list is empty";
+            EmptyTitle.Text = CineLibraryCS.Services.LocalizationService.TranslateText("This list is empty");
             EmptyStateHint.Text =
                 "Add movies by right-clicking any poster and choosing " +
                 "“📑 Add to list”, or from a movie's detail dialog. " +
@@ -768,8 +768,8 @@ public sealed partial class LibraryPage : Page
         }
         else
         {
-            EmptyTitle.Text = "No movies match your filters";
-            EmptyStateHint.Text = "Try clearing the search or choosing 'All' watched filter.";
+            EmptyTitle.Text = CineLibraryCS.Services.LocalizationService.TranslateText("No movies match your filters");
+            EmptyStateHint.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Try clearing the search or choosing 'All' watched filter.");
             EmptyCtaBtn.Visibility = Visibility.Collapsed;
         }
     }
@@ -792,7 +792,7 @@ public sealed partial class LibraryPage : Page
         FilterWatched.Style = pill;
         _vm.WatchedFilter = WatchedFilter.All;
         _vm.ClearFilters();
-        PageTitleText.Text = "All movies";
+        PageTitleText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("All movies");
         UpdateClearFiltersButton();
     }
 
@@ -1092,8 +1092,8 @@ public sealed partial class LibraryPage : Page
         mutate();
         if (!AnyFilterActive())
         {
-            _vm.PageTitle = "All Movies";
-            PageTitleText.Text = "All movies";
+            _vm.PageTitle = CineLibraryCS.Services.LocalizationService.TranslateText("All Movies");
+            PageTitleText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("All movies");
         }
         _ = _vm.LoadAsync();
         UpdateClearFiltersButton();

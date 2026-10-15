@@ -77,7 +77,7 @@ public sealed partial class DrivesPage : Page
         var nameBox = new TextBox
         {
             Text = newDrives[0].VolumeLabel,
-            PlaceholderText = "Drive label (e.g. Seagate Red 5TB)"
+            PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("Drive label (e.g. Seagate Red 5TB)")
         };
 
         combo.SelectionChanged += (_, _) =>
@@ -90,19 +90,19 @@ public sealed partial class DrivesPage : Page
         var muted = new Microsoft.UI.Xaml.Media.SolidColorBrush(
             Windows.UI.Color.FromArgb(0xFF, 0x90, 0x90, 0xA0));
         var panel = new StackPanel { Spacing = 12 };
-        panel.Children.Add(new TextBlock { Text = "Select drive:", FontSize = 13, Foreground = muted });
+        panel.Children.Add(new TextBlock { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Select drive:"), FontSize = 13, Foreground = muted });
         panel.Children.Add(combo);
-        panel.Children.Add(new TextBlock { Text = "Drive label:", FontSize = 13, Foreground = muted });
+        panel.Children.Add(new TextBlock { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Drive label:"), FontSize = 13, Foreground = muted });
         panel.Children.Add(nameBox);
         panel.Children.Add(new TextBlock
         {
-            Text = "After adding, use “+ Add Folder” on the drive card to pick which folders to index.",
+            Text = CineLibraryCS.Services.LocalizationService.TranslateText("After adding, use “+ Add Folder” on the drive card to pick which folders to index."),
             FontSize = 12, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
 
         var dialog = new ContentDialog
         {
-            Title = "Add Drive",
+            Title = CineLibraryCS.Services.LocalizationService.TranslateText("Add Drive"),
             Content = panel,
             PrimaryButtonText = "Add",
             CloseButtonText = "Cancel",
@@ -187,7 +187,7 @@ public sealed partial class DrivesPage : Page
 
             var dialog = new ContentDialog
             {
-                Title = "Remove folder?",
+                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Remove folder?"),
                 Content = $"Remove '{dr.DisplayName}' from '{drive?.Label}'? Movies indexed under this folder will be deleted from the library. The actual files on the drive are untouched.",
                 PrimaryButtonText = "Remove",
                 CloseButtonText = "Cancel",
@@ -249,7 +249,7 @@ public sealed partial class DrivesPage : Page
 
         ScanOverlay.Visibility = Visibility.Visible;
         ScanStatusText.Text = $"Scanning {scopeLabel}…";
-        ScanDetailText.Text = "Preparing…";
+        ScanDetailText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Preparing…");
 
         _scanCts = new CancellationTokenSource();
 
@@ -271,7 +271,7 @@ public sealed partial class DrivesPage : Page
         }
         catch (OperationCanceledException)
         {
-            ScanStatusText.Text = "Scan cancelled";
+            ScanStatusText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Scan cancelled");
             await Task.Delay(1000);
         }
         catch (Exception ex)
@@ -373,7 +373,7 @@ public sealed partial class DrivesPage : Page
         }
         catch (OperationCanceledException)
         {
-            ScanStatusText.Text = "Refresh cancelled";
+            ScanStatusText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Refresh cancelled");
             await Task.Delay(1000);
         }
         catch (Exception ex)
@@ -504,9 +504,9 @@ public sealed partial class DrivesPage : Page
                        "watch history stay. Unticked ones are removed from CineLibrary. Your files are never touched.",
                 TextWrapping = TextWrapping.Wrap, FontSize = 13, Foreground = muted, Margin = new Thickness(0, 0, 0, 4),
             });
-            var keepAll = new HyperlinkButton { Content = "Keep all" };
+            var keepAll = new HyperlinkButton { Content = CineLibraryCS.Services.LocalizationService.TranslateText("Keep all") };
             keepAll.Click += (_, _) => { foreach (var (b, _) in checkboxes) b.IsChecked = true; };
-            var keepNone = new HyperlinkButton { Content = "Keep none" };
+            var keepNone = new HyperlinkButton { Content = CineLibraryCS.Services.LocalizationService.TranslateText("Keep none") };
             keepNone.Click += (_, _) => { foreach (var (b, _) in checkboxes) b.IsChecked = false; };
             var quick = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
             quick.Children.Add(keepAll);
@@ -521,7 +521,7 @@ public sealed partial class DrivesPage : Page
 
             var dialog = new ContentDialog
             {
-                Title = "Review missing movies",
+                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Review missing movies"),
                 Content = content,
                 PrimaryButtonText = "Apply",
                 CloseButtonText = "Cancel",
@@ -594,7 +594,7 @@ public sealed partial class DrivesPage : Page
                 Text = drive.Label,
                 SelectionStart = 0,
                 SelectionLength = drive.Label.Length,
-                PlaceholderText = "e.g. Seagate Red 5TB - Movies",
+                PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("e.g. Seagate Red 5TB - Movies"),
                 MinWidth = 320,
             };
             var muted = new Microsoft.UI.Xaml.Media.SolidColorBrush(
@@ -602,14 +602,14 @@ public sealed partial class DrivesPage : Page
             var panel = new StackPanel { Spacing = 10 };
             panel.Children.Add(new TextBlock
             {
-                Text = "Give this drive a unique name so you can tell it apart from other drives with the same model.",
+                Text = CineLibraryCS.Services.LocalizationService.TranslateText("Give this drive a unique name so you can tell it apart from other drives with the same model."),
                 FontSize = 12, Foreground = muted, TextWrapping = TextWrapping.Wrap,
             });
             panel.Children.Add(box);
 
             var dialog = new ContentDialog
             {
-                Title = "Rename Drive",
+                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Rename Drive"),
                 Content = panel,
                 PrimaryButtonText = "Rename",
                 CloseButtonText = "Cancel",
@@ -666,7 +666,7 @@ public sealed partial class DrivesPage : Page
                 {
                     syncBox = new CheckBox
                     {
-                        Content = "Save that state to the drive first (so it comes back if you re-add this drive later)",
+                        Content = CineLibraryCS.Services.LocalizationService.TranslateText("Save that state to the drive first (so it comes back if you re-add this drive later)"),
                         IsChecked = true,
                     };
                     panel.Children.Add(syncBox);
@@ -685,7 +685,7 @@ public sealed partial class DrivesPage : Page
 
             var dialog = new ContentDialog
             {
-                Title = "Remove Drive?",
+                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Remove Drive?"),
                 Content = panel,
                 PrimaryButtonText = "Remove",
                 CloseButtonText = "Cancel",

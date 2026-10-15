@@ -75,7 +75,7 @@ public sealed partial class MovieDetailDialog : Window
         if (int.TryParse(savedW, out var w) && w >= 700) width = w;
         if (int.TryParse(savedH, out var h) && h >= 500) height = h;
         appWindow.Resize(new SizeInt32(width, height));
-        appWindow.Title = "Movie Details";
+        appWindow.Title = CineLibraryCS.Services.LocalizationService.TranslateText("Movie Details");
 
         // Ensure window is resizable and maximizable, then open maximized
         if (appWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
@@ -1384,10 +1384,10 @@ public sealed partial class MovieDetailDialog : Window
 
         private async Task<string?> PromptNewListName()
         {
-            var box = new TextBox { PlaceholderText = "List name" };
+            var box = new TextBox { PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("List name") };
             var dlg = new ContentDialog
             {
-                Title = "New list",
+                Title = CineLibraryCS.Services.LocalizationService.TranslateText("New list"),
                 Content = box,
                 PrimaryButtonText = "Create",
                 CloseButtonText = "Cancel",

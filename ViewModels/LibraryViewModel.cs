@@ -274,7 +274,7 @@ public partial class LibraryViewModel : ObservableObject
     {
         ResetAllFilters();
         FavoritesOnly = true;
-        PageTitle = "Favorites";
+        PageTitle = CineLibraryCS.Services.LocalizationService.TranslateText("Favorites");
         _ = LoadAsync();
     }
 
@@ -333,7 +333,7 @@ public partial class LibraryViewModel : ObservableObject
     public void ClearFilters()
     {
         ResetAllFilters();
-        PageTitle = "All Movies";
+        PageTitle = CineLibraryCS.Services.LocalizationService.TranslateText("All Movies");
         _ = LoadAsync();
     }
 
@@ -433,7 +433,7 @@ public partial class LibraryViewModel : ObservableObject
     {
         ResetAllFilters();
         HasNoteOnly = true;
-        PageTitle = "📝 Notes";
+        PageTitle = CineLibraryCS.Services.LocalizationService.TranslateText("📝 Notes");
         _ = LoadAsync();
     }
 

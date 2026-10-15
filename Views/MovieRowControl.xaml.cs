@@ -62,7 +62,7 @@ public sealed partial class MovieRowControl : UserControl
         flyout.Items.Clear();
         if (Movie == null) return;
 
-        var listsSub = new MenuFlyoutSubItem { Text = "📑 Add to list" };
+        var listsSub = new MenuFlyoutSubItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("📑 Add to list") };
         var allLists = AppState.Instance.Db.GetUserLists();
         var membership = AppState.Instance.Db.GetUserListsForMovie(Movie.Id);
         if (allLists.Count == 0)
@@ -90,14 +90,14 @@ public sealed partial class MovieRowControl : UserControl
 
         // v3.3 — Watched & Gone (same action as the grid-card context menu).
         flyout.Items.Add(new MenuFlyoutSeparator());
-        var archiveItem = new MenuFlyoutItem { Text = "Send to Watched & Gone" };
+        var archiveItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Send to Watched & Gone") };
         archiveItem.Click += async (_, _) =>
         {
             if (Movie == null) return;
             var m = Movie;
             var dlg = new ContentDialog
             {
-                Title = "Send to Watched & Gone?",
+                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Send to Watched & Gone?"),
                 Content = $"“{m.Title}” moves out of your library into Watched & Gone — " +
                           "its poster, details, your notes and watch history are all kept as a record. " +
                           "The files on your drive are not touched.",
@@ -176,19 +176,19 @@ public sealed partial class MovieRowControl : UserControl
         if (m.IsMissing)
         {
             RowStatusBadge.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0xEF, 0x44, 0x44));
-            RowStatusText.Text = "MISSING";
+            RowStatusText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("MISSING");
             RowStatusText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xEF, 0x44, 0x44));
         }
         else if (m.IsOnline)
         {
             RowStatusBadge.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0x22, 0xC5, 0x5E));
-            RowStatusText.Text = "ONLINE";
+            RowStatusText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("ONLINE");
             RowStatusText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x22, 0xC5, 0x5E));
         }
         else
         {
             RowStatusBadge.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0x6B, 0x72, 0x80));
-            RowStatusText.Text = "OFFLINE";
+            RowStatusText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("OFFLINE");
             RowStatusText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x6B, 0x72, 0x80));
         }
 
@@ -343,7 +343,7 @@ public sealed partial class MovieRowControl : UserControl
     {
         var dlg = new ContentDialog
         {
-            Title = "Can't play yet",
+            Title = CineLibraryCS.Services.LocalizationService.TranslateText("Can't play yet"),
             Content = string.IsNullOrEmpty(driveLabel)
                 ? $"\"{title}\" lives on a drive that isn't connected. Plug it in and try again."
                 : $"\"{title}\" lives on \"{driveLabel}\", which isn't connected. Plug it in and try again.",

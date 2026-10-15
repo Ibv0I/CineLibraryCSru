@@ -66,7 +66,7 @@ public partial class App : Application
         {
             var dialog = new ContentDialog
             {
-                Title = "Unexpected Error",
+                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Unexpected Error"),
                 Content = new ScrollViewer
                 {
                     Content = new TextBlock

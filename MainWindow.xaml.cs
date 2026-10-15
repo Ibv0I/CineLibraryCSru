@@ -66,7 +66,7 @@ public sealed partial class MainWindow : Window
         var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
         var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
         appWindow.Resize(new SizeInt32(1400, 900));   // restore-size used when the user un-maximizes
-        appWindow.Title = "CineLibrary";
+        appWindow.Title = CineLibraryCS.Services.LocalizationService.TranslateText("CineLibrary");
 
         // v2.9 — start maximized. The 1400×900 above becomes the size the
         // window restores to when the user clicks the restore button.
@@ -442,7 +442,7 @@ public sealed partial class MainWindow : Window
     private void ShowUpdateToast(string version)
     {
         ToastText.Text = $"CineLibrary v{version} is available";
-        ToastActionBtn.Content = "Download";
+        ToastActionBtn.Content = CineLibraryCS.Services.LocalizationService.TranslateText("Download");
         ToastActionBtn.Visibility = Visibility.Visible;
         ToastBorder.Visibility = Visibility.Visible;
         // Update toast stays until dismissed — no auto-hide.
@@ -490,7 +490,7 @@ public sealed partial class MainWindow : Window
             ToastText.Text = message;
             // Set the visual label BEFORE installing the action so a rapid
             // click can never trigger the wrong handler.
-            ToastActionBtn.Content = "Undo";
+            ToastActionBtn.Content = CineLibraryCS.Services.LocalizationService.TranslateText("Undo");
             ToastActionBtn.Visibility = Visibility.Visible;
             _pendingUndo = undo;
             ToastBorder.Visibility = Visibility.Visible;
@@ -751,7 +751,7 @@ public sealed partial class MainWindow : Window
         exportImgItem.Click += async (_, _) => await ExportListAsImage(ul);
         var renameItem = new MenuFlyoutItem { Text = "Rename" };
         renameItem.Click += async (_, _) => await PromptRenameUserList(ul);
-        var deleteItem = new MenuFlyoutItem { Text = "Delete list" };
+        var deleteItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Delete list") };
         deleteItem.Click += async (_, _) => await ConfirmDeleteUserList(ul);
         menu.Items.Add(copyItem);
         menu.Items.Add(exportImgItem);
@@ -930,7 +930,7 @@ public sealed partial class MainWindow : Window
                 : "Nothing to copy.";
             var emptyDlg = new ContentDialog
             {
-                Title = "Can't copy yet",
+                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Can't copy yet"),
                 Content = detail,
                 CloseButtonText = Services.LocalizationService.Get("OK"),
                 XamlRoot = Content.XamlRoot,
@@ -970,7 +970,7 @@ public sealed partial class MainWindow : Window
         {
             var dlg = new ContentDialog
             {
-                Title = "Not enough free space",
+                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Not enough free space"),
                 Content = $"Need {FormatBytes(plan.TotalBytes)}, only {FormatBytes(free)} free at the destination.",
                 CloseButtonText = Services.LocalizationService.Get("OK"),
                 XamlRoot = Content.XamlRoot,
@@ -992,8 +992,8 @@ public sealed partial class MainWindow : Window
             {
                 Title = $"{conflicts.Count} folder(s) already exist at destination",
                 Content = $"What should happen to existing copies?\n\n{preview}",
-                PrimaryButtonText = "Skip existing",
-                SecondaryButtonText = "Overwrite",
+                PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Skip existing"),
+                SecondaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Overwrite"),
                 CloseButtonText = "Cancel",
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = Content.XamlRoot,
@@ -1142,7 +1142,7 @@ public sealed partial class MainWindow : Window
 
     private async Task<string?> PromptForListName(string title, string initial)
     {
-        var box = new TextBox { Text = initial, PlaceholderText = "List name" };
+        var box = new TextBox { Text = initial, PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("List name") };
         var dlg = new ContentDialog
         {
             Title = title,
@@ -1704,7 +1704,7 @@ public sealed partial class MainWindow : Window
                 var file = await picker.PickSaveFileAsync();
                 if (file == null) return;
                 status.Visibility = Visibility.Visible;
-                status.Text = "Building backup…";
+                status.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Building backup…");
                 exportBtn.IsEnabled = false; importBtn.IsEnabled = false;
                 await Task.Run(() =>
                 {
@@ -1735,7 +1735,7 @@ public sealed partial class MainWindow : Window
                 var file = await picker.PickSingleFileAsync();
                 if (file == null) return;
                 status.Visibility = Visibility.Visible;
-                status.Text = "Reading backup…";
+                status.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Reading backup…");
                 exportBtn.IsEnabled = false; importBtn.IsEnabled = false;
                 BackupService.ImportResult? result = null;
                 await Task.Run(() =>
@@ -1965,7 +1965,7 @@ public sealed partial class MainWindow : Window
 
         var note = new TextBlock
         {
-            Text = "Card shortcuts (F, W, Delete) act on the current selection — "
+            Text = CineLibraryCS.Services.LocalizationService.TranslateText("Card shortcuts (F, W, Delete) act on the current selection — ")
                  + "click one or more cards first. They pause while you're typing in the search box.",
             FontSize = 12,
             Opacity = 0.75,
@@ -1976,7 +1976,7 @@ public sealed partial class MainWindow : Window
 
         var dialog = new ContentDialog
         {
-            Title = "Keyboard shortcuts",
+            Title = CineLibraryCS.Services.LocalizationService.TranslateText("Keyboard shortcuts"),
             Content = new ScrollViewer
             {
                 Content = new StackPanel { Children = { panel, note } },
@@ -1998,17 +1998,17 @@ public sealed partial class MainWindow : Window
         var panel = new StackPanel { Spacing = 10 };
         panel.Children.Add(new TextBlock
         {
-            Text = "A fast, native movie catalog for MediaElch-scraped collections.",
+            Text = CineLibraryCS.Services.LocalizationService.TranslateText("A fast, native movie catalog for MediaElch-scraped collections."),
             TextWrapping = TextWrapping.Wrap,
         });
         panel.Children.Add(new TextBlock
         {
-            Text = "Browse, search and play your movies across multiple external drives.",
+            Text = CineLibraryCS.Services.LocalizationService.TranslateText("Browse, search and play your movies across multiple external drives."),
             TextWrapping = TextWrapping.Wrap,
         });
         panel.Children.Add(new TextBlock
         {
-            Text = "Built with C# + WinUI 3.",
+            Text = CineLibraryCS.Services.LocalizationService.TranslateText("Built with C# + WinUI 3."),
             TextWrapping = TextWrapping.Wrap,
         });
         var link = new HyperlinkButton

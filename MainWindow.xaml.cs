@@ -441,7 +441,7 @@ public sealed partial class MainWindow : Window
 
     private void ShowUpdateToast(string version)
     {
-        ToastText.Text = $"CineLibrary v{version} is available";
+        ToastText.Text = $"Доступна версия CineLibrary {version}";
         ToastActionBtn.Content = CineLibraryCS.Services.LocalizationService.TranslateText("Download");
         ToastActionBtn.Visibility = Visibility.Visible;
         ToastBorder.Visibility = Visibility.Visible;
@@ -744,12 +744,12 @@ public sealed partial class MainWindow : Window
 
         // Right-click context menu: copy / export image / rename / delete
         var menu = new MenuFlyout();
-        var copyItem = new MenuFlyoutItem { Text = "📂 Copy movies to folder…" };
+        var copyItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("📂 Copy movies to folder…") };
         copyItem.Click += async (_, _) => await CopyListToFolder(ul);
         // v2.9 — export the list as a shareable PNG poster grid.
-        var exportImgItem = new MenuFlyoutItem { Text = "📤 Export as image…" };
+        var exportImgItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("📤 Export as image…") };
         exportImgItem.Click += async (_, _) => await ExportListAsImage(ul);
-        var renameItem = new MenuFlyoutItem { Text = "Rename" };
+        var renameItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Rename") };
         renameItem.Click += async (_, _) => await PromptRenameUserList(ul);
         var deleteItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Delete list") };
         deleteItem.Click += async (_, _) => await ConfirmDeleteUserList(ul);
@@ -767,7 +767,7 @@ public sealed partial class MainWindow : Window
         {
             foreach (var mid in ids)
                 AppState.Instance.Db.AddMovieToUserList(listIdCap, mid);
-            return $"Added {ids.Count} to “{listNameCap}”";
+            return $"Добавлено в список «{listNameCap}»: {ids.Count}";
         });
         return btn;
     }
@@ -820,7 +820,7 @@ public sealed partial class MainWindow : Window
             try { toastMsg = applyOp(ids); }
             catch (Exception ex)
             {
-                ShowToast($"Couldn't apply drop: {ex.Message}");
+                ShowToast($"Не удалось добавить перетаскиванием: {ex.Message}");
                 return;
             }
             _ = RefreshSidebarAsync();
@@ -870,7 +870,7 @@ public sealed partial class MainWindow : Window
         var movies = AppState.Instance.Db.GetMovies(opts, AppState.Instance.Connected);
         if (movies.Count == 0)
         {
-            ShowToast($"“{ul.Name}” has no movies to export");
+            ShowToast($"В списке «{ul.Name}» нет фильмов для экспорта");
             return;
         }
 
@@ -886,10 +886,10 @@ public sealed partial class MainWindow : Window
         var file = await picker.PickSaveFileAsync();
         if (file == null) return;
 
-        ShowToast("Rendering image…");
+        ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Rendering image…"));
         var ok = await ListImageExporter.ExportAsync(Content.XamlRoot, ul.Name, movies, file.Path);
-        if (ok) ShowToast($"Saved to {file.Path}");
-        else    ShowToast("Image export failed — see debug log");
+        if (ok) ShowToast($"Сохранено: {file.Path}");
+        else    ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Image export failed — see debug log"));
     }
 
     private static string SanitizeFileName(string raw)
@@ -990,8 +990,8 @@ public sealed partial class MainWindow : Window
                 : string.Join("\n", conflicts.Take(5).Select(c => $"• {c}")) + $"\n…and {conflicts.Count - 5} more";
             var dlg = new ContentDialog
             {
-                Title = $"{conflicts.Count} folder(s) already exist at destination",
-                Content = $"What should happen to existing copies?\n\n{preview}",
+                Title = $"В месте назначения уже существует папок: {conflicts.Count}",
+                Content = $"Что сделать с уже существующими копиями?\n\n{preview}",
                 PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Skip existing"),
                 SecondaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Overwrite"),
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
@@ -1036,7 +1036,7 @@ public sealed partial class MainWindow : Window
                 FontSize = 11,
                 Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
                 FontStyle = Windows.UI.Text.FontStyle.Italic,
-                Text = $"Skipping {plan.OfflineDriveLabels.Count} offline drive(s): " +
+                Text = $"Пропущено отключённых дисков: {plan.OfflineDriveLabels.Count}. " +
                        string.Join(", ", plan.OfflineDriveLabels),
                 TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap,
             });
@@ -1044,7 +1044,7 @@ public sealed partial class MainWindow : Window
 
         var dlg = new ContentDialog
         {
-            Title = $"Copying \"{listName}\" → {destRoot}",
+            Title = $"Копирование «{listName}» → {destRoot}",
             Content = content,
             CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.None,
@@ -1057,7 +1057,7 @@ public sealed partial class MainWindow : Window
         {
             // Already on UI thread (Progress<T> captures sync context)
             bar.Value = p.BytesDone;
-            movieText.Text = $"Movie {p.MoviesDone} of {p.MoviesTotal}";
+            movieText.Text = $"Фильмов: {p.MoviesDone} из {p.MoviesTotal}";
             bytesText.Text = $"{FormatBytes(p.BytesDone)} of {FormatBytes(p.BytesTotal)}";
             fileText.Text = p.CurrentFile;
         });
@@ -1076,15 +1076,15 @@ public sealed partial class MainWindow : Window
         // Summary toast
         if (result == null)
         {
-            ShowToast("Copy cancelled");
+            ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Copy cancelled"));
         }
         else
         {
             var bits = new List<string>();
-            if (result.Copied > 0) bits.Add($"{result.Copied} copied");
-            if (result.Skipped > 0) bits.Add($"{result.Skipped} skipped");
-            if (result.OfflineSkipped > 0) bits.Add($"{result.OfflineSkipped} offline");
-            ShowToast(result.Cancelled ? $"Cancelled — {string.Join(", ", bits)}" : string.Join(", ", bits));
+            if (result.Copied > 0) bits.Add($"скопировано: {result.Copied}");
+            if (result.Skipped > 0) bits.Add($"пропущено: {result.Skipped}");
+            if (result.OfflineSkipped > 0) bits.Add($"на отключённых дисках: {result.OfflineSkipped}");
+            ShowToast(result.Cancelled ? $"Отменено — {string.Join(", ", bits)}" : string.Join(", ", bits));
         }
     }
 
@@ -1099,7 +1099,7 @@ public sealed partial class MainWindow : Window
 
     private async void OnNewUserList(object sender, RoutedEventArgs e)
     {
-        var name = await PromptForListName("New list", "Untitled list");
+        var name = await PromptForListName(CineLibraryCS.Services.LocalizationService.TranslateText("New list"), CineLibraryCS.Services.LocalizationService.TranslateText("Untitled list"));
         if (string.IsNullOrWhiteSpace(name)) return;
         try
         {
@@ -1114,7 +1114,7 @@ public sealed partial class MainWindow : Window
 
     private async Task PromptRenameUserList(DatabaseService.UserList ul)
     {
-        var name = await PromptForListName("Rename list", ul.Name);
+        var name = await PromptForListName(CineLibraryCS.Services.LocalizationService.TranslateText("Rename list"), ul.Name);
         if (string.IsNullOrWhiteSpace(name) || name.Trim() == ul.Name) return;
         AppState.Instance.Db.RenameUserList(ul.Id, name.Trim());
         RefreshUserLists();
@@ -1470,8 +1470,8 @@ public sealed partial class MainWindow : Window
         }
         Func<Task<List<MovieListItem>>> all = () => Task.Run(() => AppState.Instance.Db.GetMovies(
             new DatabaseService.ListOptions(Limit: int.MaxValue), AppState.Instance.Connected));
-        Add("All movies as CSV…", all, html: false);
-        Add("All movies as HTML…", all, html: true);
+        Add(CineLibraryCS.Services.LocalizationService.TranslateText("All movies as CSV…"), all, html: false);
+        Add(CineLibraryCS.Services.LocalizationService.TranslateText("All movies as HTML…"), all, html: true);
         if (_libraryPage != null && ReferenceEquals(ContentFrame.Content, _libraryPage)
             && _libraryPage.ViewCount < (_vm.Stats?.TotalMovies ?? 0))
         {
@@ -1664,7 +1664,7 @@ public sealed partial class MainWindow : Window
 
         var exportBtn = new Button
         {
-            Content = "📤  Export backup…",
+            Content = CineLibraryCS.Services.LocalizationService.TranslateText("📤  Export backup…"),
             Background = CineLibraryCS.Services.ThemeBrushes.Get("BrandPurpleBrush"),
             Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White),
             BorderThickness = new Thickness(0),
@@ -1944,7 +1944,7 @@ public sealed partial class MainWindow : Window
         }
 
         AddHeader("SEARCH & GENERAL");
-        AddRow("Ctrl + F   ·   /", "Focus the search box");
+        AddRow("Ctrl + F   ·   /", CineLibraryCS.Services.LocalizationService.TranslateText("Focus the search box"));
         AddRow("Esc",              "Clear search, then clear selection");
         AddRow("Ctrl + B",         "Toggle the sidebar");
         AddRow("Ctrl + Shift + /", "Show this shortcuts dialog");
@@ -1956,7 +1956,7 @@ public sealed partial class MainWindow : Window
         AddRow("Shift + click","Range-select from the last card");
         AddRow("F",            "Toggle favorite on the selection");
         AddRow("W",            "Toggle watchlist on the selection");
-        AddRow("Delete",       "Remove selection from the current list");
+        AddRow("Delete",       CineLibraryCS.Services.LocalizationService.TranslateText("Remove selection from the current list"));
 
         AddHeader("NAVIGATION");
         AddRow("PgDn / PgUp",  "Scroll one viewport");

@@ -1640,4 +1640,62 @@
   <data name="Step11_777cf5cbae" xml:space="preserve">
     <value>Фильмы сгруппированы по студиям.</value>
   </data>
+
+  <data name="Step12_4847410da7" xml:space="preserve">
+    <value>📂 Копировать фильмы в папку…</value>
+  </data>
+  <data name="Step12_3bb5570bb3" xml:space="preserve">
+    <value>📤 Экспортировать изображением…</value>
+  </data>
+  <data name="Step12_d11a255b26" xml:space="preserve">
+    <value>Создание изображения…</value>
+  </data>
+  <data name="Step12_0335760c29" xml:space="preserve">
+    <value>Не удалось экспортировать изображение — подробности в журнале</value>
+  </data>
+  <data name="Step12_cdbc3c20a1" xml:space="preserve">
+    <value>Копирование отменено</value>
+  </data>
+  <data name="Step12_92990f9202" xml:space="preserve">
+    <value>Список без названия</value>
+  </data>
+  <data name="Step12_8b16353cd5" xml:space="preserve">
+    <value>📤  Экспортировать резервную копию…</value>
+  </data>
+  <data name="Step12_9be6ff5d68" xml:space="preserve">
+    <value>Перейти к строке поиска</value>
+  </data>
+  <data name="Step12_57dfa476c0" xml:space="preserve">
+    <value>Копировать фильмы в папку</value>
+  </data>
+  <data name="Step12_1cb9d18e0f" xml:space="preserve">
+    <value>Экспортировать изображением</value>
+  </data>
+  <data name="Step12_a1c58e9422" xml:space="preserve">
+    <value>Внешний вид</value>
+  </data>
+  <data name="Step12_014148d64a" xml:space="preserve">
+    <value>Материал фона</value>
+  </data>
+  <data name="Step12_d0fb9fe741" xml:space="preserve">
+    <value>Границы карточек</value>
+  </data>
+  <data name="Step12_c1b5ba2be6" xml:space="preserve">
+    <value>Тени карточек</value>
+  </data>
+  <data name="Step12_22c735a84e" xml:space="preserve">
+    <value>Уменьшить анимацию</value>
+  </data>
+  <data name="Step12_c1c6353ee8" xml:space="preserve">
+    <value>Видеопроигрыватель</value>
+  </data>
+  <data name="Step12_4994a8ffeb" xml:space="preserve">
+    <value>Язык</value>
+  </data>
+  <data name="Step12_3a6d8e8443" xml:space="preserve">
+    <value>Применить (потребуется перезапуск)</value>
+  </data>
+  <data name="Step12_f92965e2c8" xml:space="preserve">
+    <value>Готово</value>
+  </data>
 </root>

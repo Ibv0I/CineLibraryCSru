@@ -1640,4 +1640,62 @@ Then try again.</value>
   <data name="Step11_777cf5cbae" xml:space="preserve">
     <value>Movies grouped by studio.</value>
   </data>
+
+  <data name="Step12_4847410da7" xml:space="preserve">
+    <value>📂 Copy movies to folder…</value>
+  </data>
+  <data name="Step12_3bb5570bb3" xml:space="preserve">
+    <value>📤 Export as image…</value>
+  </data>
+  <data name="Step12_d11a255b26" xml:space="preserve">
+    <value>Rendering image…</value>
+  </data>
+  <data name="Step12_0335760c29" xml:space="preserve">
+    <value>Image export failed — see debug log</value>
+  </data>
+  <data name="Step12_cdbc3c20a1" xml:space="preserve">
+    <value>Copy cancelled</value>
+  </data>
+  <data name="Step12_92990f9202" xml:space="preserve">
+    <value>Untitled list</value>
+  </data>
+  <data name="Step12_8b16353cd5" xml:space="preserve">
+    <value>📤  Export backup…</value>
+  </data>
+  <data name="Step12_9be6ff5d68" xml:space="preserve">
+    <value>Focus the search box</value>
+  </data>
+  <data name="Step12_57dfa476c0" xml:space="preserve">
+    <value>Copy movies to folder</value>
+  </data>
+  <data name="Step12_1cb9d18e0f" xml:space="preserve">
+    <value>Export as image</value>
+  </data>
+  <data name="Step12_a1c58e9422" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="Step12_014148d64a" xml:space="preserve">
+    <value>BackgroundMaterial</value>
+  </data>
+  <data name="Step12_d0fb9fe741" xml:space="preserve">
+    <value>CardBorders</value>
+  </data>
+  <data name="Step12_c1b5ba2be6" xml:space="preserve">
+    <value>CardShadows</value>
+  </data>
+  <data name="Step12_22c735a84e" xml:space="preserve">
+    <value>ReduceMotion</value>
+  </data>
+  <data name="Step12_c1c6353ee8" xml:space="preserve">
+    <value>VideoPlayer</value>
+  </data>
+  <data name="Step12_4994a8ffeb" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Step12_3a6d8e8443" xml:space="preserve">
+    <value>ApplyLanguageRestart</value>
+  </data>
+  <data name="Step12_f92965e2c8" xml:space="preserve">
+    <value>Done</value>
+  </data>
 </root>

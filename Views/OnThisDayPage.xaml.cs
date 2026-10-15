@@ -69,9 +69,9 @@ public sealed partial class OnThisDayPage : Page
         SubText.Text = (watched.Count, released.Count) switch
         {
             (0, 0)            => DateTime.Now.ToString("MMMM d") + " — nothing in your library tied to this date.",
-            (0, 1)            => "One movie released on this date in a past year.",
+            (0, 1)            => CineLibraryCS.Services.LocalizationService.TranslateText("One movie released on this date in a past year."),
             (0, var rel)      => $"{rel} movies released on this date in past years.",
-            (1, 0)            => "One movie you watched on this date in a past year.",
+            (1, 0)            => CineLibraryCS.Services.LocalizationService.TranslateText("One movie you watched on this date in a past year."),
             (var w, 0)        => $"{w} movies you've watched on this date in years past.",
             (var w, var rel)  => $"{w} you've watched · {rel} released on this date.",
         };

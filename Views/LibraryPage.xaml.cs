@@ -900,7 +900,7 @@ public sealed partial class LibraryPage : Page
 
         // Breadcrumb-style title: "All movies › Drama"
         PageTitleText.Text = p.Label == null
-            ? "All movies"
+            ? CineLibraryCS.Services.LocalizationService.TranslateText("All movies")
             : $"All movies › {p.Label}";
     }
 
@@ -973,7 +973,7 @@ public sealed partial class LibraryPage : Page
             return;
         }
         ShowsInSearchHeader.Text = shows.Count == 1
-            ? "TV SHOW MATCHING"
+            ? CineLibraryCS.Services.LocalizationService.TranslateText("TV SHOW MATCHING")
             : $"TV SHOWS MATCHING ({shows.Count})";
         ShowsInSearchRepeater.ItemsSource = shows;
         ShowsInSearchSection.Visibility = Visibility.Collapsed; // TV show results disabled in movies-only mode.
@@ -1027,7 +1027,7 @@ public sealed partial class LibraryPage : Page
         var shows = _vm.UserListId is int id ? db.GetTvShowsInList(id, AppState.Instance.Connected)
                   : page is { } p ? db.GetTvShowsForPage(p, AppState.Instance.Connected)
                   : new List<TvShowListItem>();
-        ShowsInListHeader.Text = _vm.UserListId != null ? "TV SHOWS IN THIS LIST" : "TV SHOWS";
+        ShowsInListHeader.Text = _vm.UserListId != null ? CineLibraryCS.Services.LocalizationService.TranslateText("TV SHOWS IN THIS LIST") : CineLibraryCS.Services.LocalizationService.TranslateText("TV SHOWS");
         ShowsInListRepeater.ItemsSource = shows.Count > 0 ? shows : null;
         ShowsInListSection.Visibility = Visibility.Collapsed; // TV show rows disabled in movies-only mode.
         _rowShowCount = shows.Count;
@@ -1061,14 +1061,14 @@ public sealed partial class LibraryPage : Page
                 () => DropFilter(() => _vm.FilterDecadeStart = null));
         AddChip("Rating",   _vm.FilterRatingBand,() => DropFilter(() => _vm.FilterRatingBand = null));
         AddChip("Actor",    _vm.FilterActor,     () => DropFilter(() => _vm.FilterActor = null));
-        AddChip("Director", _vm.FilterDirector,  () => DropFilter(() => _vm.FilterDirector = null));
+        AddChip(CineLibraryCS.Services.LocalizationService.TranslateText("Director"), _vm.FilterDirector,  () => DropFilter(() => _vm.FilterDirector = null));
         AddChip("Studio",   _vm.FilterStudio,    () => DropFilter(() => _vm.FilterStudio = null));
         if (_vm.FavoritesOnly)
-            AddChip("Favorites", "♥",   () => DropFilter(() => _vm.FavoritesOnly = false));
+            AddChip(CineLibraryCS.Services.LocalizationService.TranslateText("Favorites"), "♥",   () => DropFilter(() => _vm.FavoritesOnly = false));
         if (_vm.IsWatchlistOnly)
-            AddChip("Watchlist", "📌",  () => DropFilter(() => _vm.IsWatchlistOnly = false));
+            AddChip(CineLibraryCS.Services.LocalizationService.TranslateText("Watchlist"), "📌",  () => DropFilter(() => _vm.IsWatchlistOnly = false));
         if (_vm.IsContinueWatching)
-            AddChip("Continue", "▶",    () => DropFilter(() => _vm.IsContinueWatching = false));
+            AddChip(CineLibraryCS.Services.LocalizationService.TranslateText("Continue"), "▶",    () => DropFilter(() => _vm.IsContinueWatching = false));
         if (_vm.IsRecentlyWatched)
             AddChip("Recent", "🕓",     () => DropFilter(() => _vm.IsRecentlyWatched = false));
         if (_vm.IsRecentlyAdded)

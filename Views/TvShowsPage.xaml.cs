@@ -179,9 +179,9 @@ public sealed partial class TvShowsPage : Page
             root.Children.Add(g);
         }
         AddRow("Audio", d.AudioLanguages?.Replace(",", " · "));
-        AddRow("Subtitles", d.SubtitleLanguages?.Replace(",", " · "));
-        AddRow("Duration", d.DurationText);
-        AddRow("File size", d.FileSizeText);
+        AddRow(CineLibraryCS.Services.LocalizationService.TranslateText("Subtitles"), d.SubtitleLanguages?.Replace(",", " · "));
+        AddRow(CineLibraryCS.Services.LocalizationService.TranslateText("Duration"), d.DurationText);
+        AddRow(CineLibraryCS.Services.LocalizationService.TranslateText("File size"), d.FileSizeText);
 
         // v2.9 — Personal note for this episode. Saves on blur; empty
         // string clears the note row. Sidecar is best-effort.
@@ -230,7 +230,7 @@ public sealed partial class TvShowsPage : Page
             Title = title,
             Content = new ScrollViewer { Content = root, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = 500, Padding = new Thickness(0, 0, 16, 0) },
             PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("▶ Play"),
-            SecondaryButtonText = d.IsWatched ? "Mark unwatched" : "Mark watched",
+            SecondaryButtonText = d.IsWatched ? CineLibraryCS.Services.LocalizationService.TranslateText("Mark unwatched") : CineLibraryCS.Services.LocalizationService.TranslateText("Mark watched"),
             CloseButtonText = "Close",
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
@@ -525,7 +525,7 @@ public sealed partial class TvShowsPage : Page
         var left = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center };
         left.Children.Add(new TextBlock
         {
-            Text = season.Season == 0 ? "Specials" : $"Season {season.Season}",
+            Text = season.Season == 0 ? CineLibraryCS.Services.LocalizationService.TranslateText("Specials") : $"Season {season.Season}",
             FontSize = 16,
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             Foreground = text,
@@ -566,7 +566,7 @@ public sealed partial class TvShowsPage : Page
 
         var markAll = new Button
         {
-            Content = anyUnwatched ? "Mark all watched" : "Mark all unwatched",
+            Content = anyUnwatched ? CineLibraryCS.Services.LocalizationService.TranslateText("Mark all watched") : CineLibraryCS.Services.LocalizationService.TranslateText("Mark all unwatched"),
             Background = CineLibraryCS.Services.ThemeBrushes.Get("CardBrush"),
             Foreground = text,
             BorderBrush = CineLibraryCS.Services.ThemeBrushes.Get("BorderBrush"),
@@ -616,8 +616,8 @@ public sealed partial class TvShowsPage : Page
             };
             return b;
         }
-        var prev = PageButton(((char)0xE76B).ToString(), "Previous episodes", -1);
-        var next = PageButton(((char)0xE76C).ToString(), "Next episodes", 1);
+        var prev = PageButton(((char)0xE76B).ToString(), CineLibraryCS.Services.LocalizationService.TranslateText("Previous episodes"), -1);
+        var next = PageButton(((char)0xE76C).ToString(), CineLibraryCS.Services.LocalizationService.TranslateText("Next episodes"), 1);
         void SyncPager()
         {
             var visible = row.ScrollableWidth > 0.5 ? Visibility.Visible : Visibility.Collapsed;
@@ -776,7 +776,7 @@ public sealed partial class TvShowsPage : Page
             // often TMDb links (blank offline) or missing; these are kept locally.
             if (t.Cast.Count > 0)
             {
-                ShowTmdbBusyState(true, "Fetching cast photos…");
+                ShowTmdbBusyState(true, CineLibraryCS.Services.LocalizationService.TranslateText("Fetching cast photos…"));
                 var actors = new List<(string, string?, int, string?)>();
                 foreach (var c in t.Cast)
                 {
@@ -789,13 +789,13 @@ public sealed partial class TvShowsPage : Page
                 db.AddManualShowActors(show.Id, actors);
             }
 
-            ShowTmdbBusyState(false, "Updated.");
+            ShowTmdbBusyState(false, CineLibraryCS.Services.LocalizationService.TranslateText("Updated."));
             if (ReferenceEquals(_detail, show)) PopulateShowHeader();   // re-render in place
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Fetch missing show info failed: {ex.Message}");
-            ShowTmdbBusyState(false, "Something went wrong. Please try again.");
+            ShowTmdbBusyState(false, CineLibraryCS.Services.LocalizationService.TranslateText("Something went wrong. Please try again."));
         }
     }
 

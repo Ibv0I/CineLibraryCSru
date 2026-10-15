@@ -1599,11 +1599,9 @@ Then try again.</value>
   <data name="Step9_bafd7322c6" xml:space="preserve">
     <value>No</value>
   </data>
-
   <data name="Step11_82490a0689" xml:space="preserve">
     <value>Record a movie you watched but never had in your library</value>
   </data>
-
   <data name="Step11_e6622d7f1b" xml:space="preserve">
     <value>Drive offline</value>
   </data>
@@ -1640,7 +1638,6 @@ Then try again.</value>
   <data name="Step11_777cf5cbae" xml:space="preserve">
     <value>Movies grouped by studio.</value>
   </data>
-
   <data name="Step12_4847410da7" xml:space="preserve">
     <value>📂 Copy movies to folder…</value>
   </data>
@@ -1697,5 +1694,135 @@ Then try again.</value>
   </data>
   <data name="Step12_f92965e2c8" xml:space="preserve">
     <value>Done</value>
+  </data>
+  <data name="Step13_e9fb87c9c5" xml:space="preserve">
+    <value>No drives found</value>
+  </data>
+  <data name="Step13_9a7c42ce5e" xml:space="preserve">
+    <value>No external drives are currently connected. Connect a drive and try again.</value>
+  </data>
+  <data name="Step13_19f809d43e" xml:space="preserve">
+    <value>All drives added</value>
+  </data>
+  <data name="Step13_015bf20d24" xml:space="preserve">
+    <value>All connected drives are already in your library.</value>
+  </data>
+  <data name="Step13_af0eaf83bb" xml:space="preserve">
+    <value>Wrong drive</value>
+  </data>
+  <data name="Step13_d12c93ba9a" xml:space="preserve">
+    <value>Already added</value>
+  </data>
+  <data name="Step13_001253b37f" xml:space="preserve">
+    <value>(drive root)</value>
+  </data>
+  <data name="Step13_4f463e7373" xml:space="preserve">
+    <value>Scan error</value>
+  </data>
+  <data name="Step13_9b61b7bb26" xml:space="preserve">
+    <value>No online drives</value>
+  </data>
+  <data name="Step13_5b6aeebd54" xml:space="preserve">
+    <value>Plug in at least one drive that has movies on it, then try again.</value>
+  </data>
+  <data name="Step13_1a3162c09d" xml:space="preserve">
+    <value>Nothing to refresh</value>
+  </data>
+  <data name="Step13_b36882e7e0" xml:space="preserve">
+    <value>None of the online drives have any folders configured to scan. </value>
+  </data>
+  <data name="Step13_a3d3c3817c" xml:space="preserve">
+    <value>Add a folder on a drive card first.</value>
+  </data>
+  <data name="Step13_846a54fef5" xml:space="preserve">
+    <value>Refresh error</value>
+  </data>
+  <data name="Step13_1b5e187b22" xml:space="preserve">
+    <value>Has note</value>
+  </data>
+  <data name="Step13_8a52dcbd93" xml:space="preserve">
+    <value>Their folders may have been renamed or deleted on the drive.
+
+</value>
+  </data>
+  <data name="Step13_0fb3372859" xml:space="preserve">
+    <value>Removing them will delete their entries (and cached posters/fanart) from the CineLibrary database. </value>
+  </data>
+  <data name="Step13_d31d24ed6f" xml:space="preserve">
+    <value>The actual files on the drive are not touched.
+
+</value>
+  </data>
+  <data name="Step13_54ee0eade8" xml:space="preserve">
+    <value>Tip: if the drive was only partially connected or you scanned the wrong folder, </value>
+  </data>
+  <data name="Step13_512f66e61d" xml:space="preserve">
+    <value>Cleaned up</value>
+  </data>
+  <data name="Step13_1063e38cb5" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Step13_a8a65c8ae8" xml:space="preserve">
+    <value>No fully watched collections yet</value>
+  </data>
+  <data name="Step13_035c80e135" xml:space="preserve">
+    <value>Choose All to see every collection.</value>
+  </data>
+  <data name="Step13_09346abb6f" xml:space="preserve">
+    <value>One movie released on this date in a past year.</value>
+  </data>
+  <data name="Step13_2e831aaf9f" xml:space="preserve">
+    <value>One movie you watched on this date in a past year.</value>
+  </data>
+  <data name="Step13_d144329e3e" xml:space="preserve">
+    <value>Not yet rated</value>
+  </data>
+  <data name="Step13_0072cbeb5f" xml:space="preserve">
+    <value>CSV file</value>
+  </data>
+  <data name="Step13_d1aa22a312" xml:space="preserve">
+    <value>Specials</value>
+  </data>
+  <data name="Step13_067e645453" xml:space="preserve">
+    <value>Mark all watched</value>
+  </data>
+  <data name="Step13_fd30bfacbe" xml:space="preserve">
+    <value>Mark all unwatched</value>
+  </data>
+  <data name="Step13_d738ee70ea" xml:space="preserve">
+    <value>Previous episodes</value>
+  </data>
+  <data name="Step13_8f34961967" xml:space="preserve">
+    <value>Next episodes</value>
+  </data>
+  <data name="Step13_87705a4615" xml:space="preserve">
+    <value>Fetching cast photos…</value>
+  </data>
+  <data name="Step13_4e43554896" xml:space="preserve">
+    <value>Updated.</value>
+  </data>
+  <data name="Step13_e9f36d65b0" xml:space="preserve">
+    <value>Something went wrong. Please try again.</value>
+  </data>
+  <data name="Step13_42198fb58b" xml:space="preserve">
+    <value>TV SHOW MATCHING</value>
+  </data>
+  <data name="Step13_c6a30884c1" xml:space="preserve">
+    <value>TV SHOWS</value>
+  </data>
+  <data name="Step13_a67e750ed0" xml:space="preserve">
+    <value>Record deleted</value>
+  </data>
+  <data name="Step13_8087d3dae9" xml:space="preserve">
+    <value>Tip: add movies to your watchlist from the movie detail dialog.</value>
+  </data>
+  <data name="Step13_bbc45d9b35" xml:space="preserve">
+    <value>Stereo</value>
+  </data>
+  <data name="Step13_dd1f775e44" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="Step13_10ac3d0425" xml:space="preserve">
+    <value>Next</value>
   </data>
 </root>

@@ -49,7 +49,7 @@ public partial class TvSeason : ObservableObject
     public int WatchedCount { get; set; }
     public string? PosterPath { get; set; } // show poster fallback
 
-    public string SeasonLabel => Season == 0 ? "Specials" : $"Season {Season}";
+    public string SeasonLabel => Season == 0 ? CineLibraryCS.Services.LocalizationService.TranslateText("Specials") : $"Season {Season}";
     public string ProgressText => $"{WatchedCount}/{EpisodeCount}";
     public double ProgressFraction =>
         EpisodeCount > 0 ? (double)WatchedCount / EpisodeCount : 0;

@@ -213,7 +213,7 @@ public sealed class TmdbResultItem
 
     public string SubLine => Source.Rating > 0
         ? $"★ {Source.Rating:0.0}"
-        : "Not yet rated";
+        : CineLibraryCS.Services.LocalizationService.TranslateText("Not yet rated");
 
     public string Overview => Source.Overview;
 }

@@ -636,7 +636,7 @@ public sealed partial class MovieCardControl : UserControl
         // Watched / Favorite / Watchlist toggles
         var watchedItem = new ToggleMenuFlyoutItem
         {
-            Text = "Watched",
+            Text = CineLibraryCS.Services.LocalizationService.TranslateText("Watched"),
             IsChecked = Movie.IsWatched,
         };
         watchedItem.Click += (_, _) => WatchedToggleRequested?.Invoke(this, Movie);
@@ -644,7 +644,7 @@ public sealed partial class MovieCardControl : UserControl
 
         var favItem = new ToggleMenuFlyoutItem
         {
-            Text = "Favorite",
+            Text = CineLibraryCS.Services.LocalizationService.TranslateText("Favorite"),
             IsChecked = Movie.IsFavorite,
         };
         favItem.Click += (_, _) => ToggleFavorite();
@@ -652,7 +652,7 @@ public sealed partial class MovieCardControl : UserControl
 
         var watchlistItem = new ToggleMenuFlyoutItem
         {
-            Text = "Watchlist",
+            Text = CineLibraryCS.Services.LocalizationService.TranslateText("Watchlist"),
             IsChecked = Movie.IsWatchlist,
         };
         watchlistItem.Click += (_, _) => WatchlistToggleRequested?.Invoke(this, Movie);
@@ -789,7 +789,7 @@ public sealed partial class MovieCardControl : UserControl
             if (await dlg.ShowAsync() != ContentDialogResult.Primary) return;
             AppState.Instance.Db.DeleteArchivedRecord(m.Id);
             if (App.MainWindow is MainWindow mw)
-                mw.ShowToast("Record deleted");
+                mw.ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Record deleted"));
             RaiseMovieArchived();
         };
         flyout.Items.Add(deleteItem);

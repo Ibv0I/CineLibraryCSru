@@ -794,7 +794,7 @@ public sealed partial class MovieDetailDialog : Window
                 "8" => "7.1",
                 "7" => "6.1",
                 "6" => "5.1",
-                "2" => "Stereo",
+                "2" => CineLibraryCS.Services.LocalizationService.TranslateText("Stereo"),
                 "1" => "Mono",
                 _ => $"{channels} ch",
             };

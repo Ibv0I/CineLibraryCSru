@@ -44,8 +44,8 @@ public sealed partial class DrivesPage : Page
         var connected = AppState.Instance.Connected;
         if (!connected.Any())
         {
-            await ShowInfoDialog("No drives found",
-                "No external drives are currently connected. Connect a drive and try again.");
+            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("No drives found"),
+                CineLibraryCS.Services.LocalizationService.TranslateText("No external drives are currently connected. Connect a drive and try again."));
             return;
         }
 
@@ -65,7 +65,7 @@ public sealed partial class DrivesPage : Page
 
         if (!newDrives.Any())
         {
-            await ShowInfoDialog("All drives added", "All connected drives are already in your library.");
+            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("All drives added"), CineLibraryCS.Services.LocalizationService.TranslateText("All connected drives are already in your library."));
             return;
         }
 
@@ -151,7 +151,7 @@ public sealed partial class DrivesPage : Page
 
             if (!folder.Path.StartsWith(driveRoot, StringComparison.OrdinalIgnoreCase))
             {
-                await ShowInfoDialog("Wrong drive",
+                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Wrong drive"),
                     $"Please choose a folder on drive {letter}: ({driveRoot}).");
                 return;
             }
@@ -164,7 +164,7 @@ public sealed partial class DrivesPage : Page
             var existingRoots = AppState.Instance.Db.GetDriveRoots(serial);
             if (existingRoots.Any(x => x.RootPath == relPath))
             {
-                await ShowInfoDialog("Already added", $"'{(relPath == "" ? "(drive root)" : relPath)}' is already tracked on this drive.");
+                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Already added"), $"'{(relPath == "" ? CineLibraryCS.Services.LocalizationService.TranslateText("(drive root)") : relPath)}' is already tracked on this drive.");
                 return;
             }
 
@@ -189,7 +189,7 @@ public sealed partial class DrivesPage : Page
             {
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Remove folder?"),
                 Content = $"Remove '{dr.DisplayName}' from '{drive?.Label}'? Movies indexed under this folder will be deleted from the library. The actual files on the drive are untouched.",
-                PrimaryButtonText = "Remove",
+                PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Remove"),
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = XamlRoot,
@@ -276,7 +276,7 @@ public sealed partial class DrivesPage : Page
         }
         catch (Exception ex)
         {
-            await ShowInfoDialog("Scan error", ex.Message);
+            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Scan error"), ex.Message);
         }
         finally
         {
@@ -305,7 +305,7 @@ public sealed partial class DrivesPage : Page
                           .ToList();
         if (drives.Count == 0)
         {
-            await ShowInfoDialog("No online drives", "Plug in at least one drive that has movies on it, then try again.");
+            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("No online drives"), CineLibraryCS.Services.LocalizationService.TranslateText("Plug in at least one drive that has movies on it, then try again."));
             return;
         }
 
@@ -326,9 +326,9 @@ public sealed partial class DrivesPage : Page
         }
         if (work.Count == 0)
         {
-            await ShowInfoDialog("Nothing to refresh",
-                "None of the online drives have any folders configured to scan. " +
-                "Add a folder on a drive card first.");
+            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Nothing to refresh"),
+                CineLibraryCS.Services.LocalizationService.TranslateText("None of the online drives have any folders configured to scan. ") +
+                CineLibraryCS.Services.LocalizationService.TranslateText("Add a folder on a drive card first."));
             return;
         }
 
@@ -378,7 +378,7 @@ public sealed partial class DrivesPage : Page
         }
         catch (Exception ex)
         {
-            await ShowInfoDialog("Refresh error", ex.Message);
+            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Refresh error"), ex.Message);
         }
         finally
         {
@@ -479,8 +479,8 @@ public sealed partial class DrivesPage : Page
                 });
                 var bits = new List<string>();
                 if (m.Year != null) bits.Add(m.Year.ToString()!);
-                bits.Add(m.IsWatched ? "Watched" : "Unwatched");
-                if (m.HasNote) bits.Add("Has note");
+                bits.Add(m.IsWatched ? CineLibraryCS.Services.LocalizationService.TranslateText("Watched") : "Unwatched");
+                if (m.HasNote) bits.Add(CineLibraryCS.Services.LocalizationService.TranslateText("Has note"));
                 info.Children.Add(new TextBlock { Text = string.Join("  ·  ", bits), FontSize = 11, Foreground = muted });
                 Grid.SetColumn(info, 1);
                 row.Children.Add(info);
@@ -557,10 +557,10 @@ public sealed partial class DrivesPage : Page
                 Title = $"Remove {drive.MissingCount} missing movies?",
                 Content =
                     $"The last scan of '{drive.Label}' didn't find {drive.MissingCount} movie(s) that were previously indexed. " +
-                    "Their folders may have been renamed or deleted on the drive.\n\n" +
-                    "Removing them will delete their entries (and cached posters/fanart) from the CineLibrary database. " +
-                    "The actual files on the drive are not touched.\n\n" +
-                    "Tip: if the drive was only partially connected or you scanned the wrong folder, " +
+                    CineLibraryCS.Services.LocalizationService.TranslateText("Their folders may have been renamed or deleted on the drive.\n\n") +
+                    CineLibraryCS.Services.LocalizationService.TranslateText("Removing them will delete their entries (and cached posters/fanart) from the CineLibrary database. ") +
+                    CineLibraryCS.Services.LocalizationService.TranslateText("The actual files on the drive are not touched.\n\n") +
+                    CineLibraryCS.Services.LocalizationService.TranslateText("Tip: if the drive was only partially connected or you scanned the wrong folder, ") +
                     "cancel this and rescan first — otherwise you'll re-scrape these next time.",
                 PrimaryButtonText = $"Delete {drive.MissingCount} entries",
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
@@ -574,7 +574,7 @@ public sealed partial class DrivesPage : Page
             Refresh();
             RefreshRequested?.Invoke(this, EventArgs.Empty);
 
-            await ShowInfoDialog("Cleaned up", $"Removed {deleted} missing movie entries from '{drive.Label}'.");
+            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Cleaned up"), $"Removed {deleted} missing movie entries from '{drive.Label}'.");
         }
         catch (Exception ex) { await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Error"), ex.Message); }
     }
@@ -687,7 +687,7 @@ public sealed partial class DrivesPage : Page
             {
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Remove Drive?"),
                 Content = panel,
-                PrimaryButtonText = "Remove",
+                PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Remove"),
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = XamlRoot,

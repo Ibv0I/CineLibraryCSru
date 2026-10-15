@@ -48,7 +48,7 @@ public sealed partial class StatisticsPage : Page
         var watchlist = db.GetWatchlistCount();
         WatchlistCountText.Text = watchlist > 0
             ? $"📌 {watchlist} on your watchlist"
-            : "Tip: add movies to your watchlist from the movie detail dialog.";
+            : CineLibraryCS.Services.LocalizationService.TranslateText("Tip: add movies to your watchlist from the movie detail dialog.");
 
         // ── TV Shows (v2.8.2) — only surfaced when the library has shows ──
         var tv = db.GetTvStats();

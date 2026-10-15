@@ -64,9 +64,9 @@ public sealed partial class CollectionsBrowsePage : Page
             all.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         if (entries.Count == 0)
         {
-            EmptyTitle.Text = all.Count == 0 ? "No collections yet"
-                : _filter == "watched" ? "No fully watched collections yet" : CineLibraryCS.Services.LocalizationService.TranslateText("Nothing left to watch");
-            EmptyHint.Text = all.Count == 0 ? _noCollectionsHint : "Choose All to see every collection.";
+            EmptyTitle.Text = all.Count == 0 ? CineLibraryCS.Services.LocalizationService.TranslateText("No collections yet")
+                : _filter == "watched" ? CineLibraryCS.Services.LocalizationService.TranslateText("No fully watched collections yet") : CineLibraryCS.Services.LocalizationService.TranslateText("Nothing left to watch");
+            EmptyHint.Text = all.Count == 0 ? _noCollectionsHint : CineLibraryCS.Services.LocalizationService.TranslateText("Choose All to see every collection.");
             EmptyState.Visibility = Visibility.Visible;
             GridRepeater.ItemsSource = null;
             _tiles = new();

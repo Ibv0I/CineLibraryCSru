@@ -1435,8 +1435,8 @@ public sealed partial class MainWindow : Window
 
     private void OnNavFavorites(object sender, RoutedEventArgs e)
     {
-        NavigateTo("library", new LibraryNavParam(FavoritesOnly: true, Label: "Favorites"));
-        _libraryPage?.UpdatePageTitle("Favorites");   // v4.0.0: the page holds shows too, so not "All movies › …"
+        NavigateTo("library", new LibraryNavParam(FavoritesOnly: true, Label: CineLibraryCS.Services.LocalizationService.TranslateText("Favorites")));
+        _libraryPage?.UpdatePageTitle(CineLibraryCS.Services.LocalizationService.TranslateText("Favorites"));   // v4.0.0: the page holds shows too, so not "All movies › …"
         SetActiveNav(sender as Button ?? BtnFavorites);
     }
 
@@ -1613,7 +1613,7 @@ public sealed partial class MainWindow : Window
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.ShowContinueWatching();
-        _libraryPage?.UpdatePageTitle("Continue watching");   // v4.0.0: it said "All movies"
+        _libraryPage?.UpdatePageTitle("Continue watching");   // v4.0.0: it said CineLibraryCS.Services.LocalizationService.TranslateText("All movies")
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
         ClearLibraryBack();
         SetActiveNav(sender as Button ?? BtnContinueWatching);

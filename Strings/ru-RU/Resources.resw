@@ -1599,11 +1599,9 @@
   <data name="Step9_bafd7322c6" xml:space="preserve">
     <value>Нет</value>
   </data>
-
   <data name="Step11_82490a0689" xml:space="preserve">
     <value>Добавьте фильм, который смотрели, но которого не было в библиотеке</value>
   </data>
-
   <data name="Step11_e6622d7f1b" xml:space="preserve">
     <value>Диск отключён</value>
   </data>
@@ -1640,7 +1638,6 @@
   <data name="Step11_777cf5cbae" xml:space="preserve">
     <value>Фильмы сгруппированы по студиям.</value>
   </data>
-
   <data name="Step12_4847410da7" xml:space="preserve">
     <value>📂 Копировать фильмы в папку…</value>
   </data>
@@ -1697,5 +1694,135 @@
   </data>
   <data name="Step12_f92965e2c8" xml:space="preserve">
     <value>Готово</value>
+  </data>
+  <data name="Step13_e9fb87c9c5" xml:space="preserve">
+    <value>Диски не найдены</value>
+  </data>
+  <data name="Step13_9a7c42ce5e" xml:space="preserve">
+    <value>Внешние диски не подключены. Подключите диск и повторите попытку.</value>
+  </data>
+  <data name="Step13_19f809d43e" xml:space="preserve">
+    <value>Все диски уже добавлены</value>
+  </data>
+  <data name="Step13_015bf20d24" xml:space="preserve">
+    <value>Все подключённые диски уже есть в библиотеке.</value>
+  </data>
+  <data name="Step13_af0eaf83bb" xml:space="preserve">
+    <value>Неверный диск</value>
+  </data>
+  <data name="Step13_d12c93ba9a" xml:space="preserve">
+    <value>Уже добавлено</value>
+  </data>
+  <data name="Step13_001253b37f" xml:space="preserve">
+    <value>(корень диска)</value>
+  </data>
+  <data name="Step13_4f463e7373" xml:space="preserve">
+    <value>Ошибка сканирования</value>
+  </data>
+  <data name="Step13_9b61b7bb26" xml:space="preserve">
+    <value>Нет доступных дисков</value>
+  </data>
+  <data name="Step13_5b6aeebd54" xml:space="preserve">
+    <value>Подключите хотя бы один диск с фильмами и повторите попытку.</value>
+  </data>
+  <data name="Step13_1a3162c09d" xml:space="preserve">
+    <value>Нечего обновлять</value>
+  </data>
+  <data name="Step13_b36882e7e0" xml:space="preserve">
+    <value>На доступных дисках нет папок для сканирования. </value>
+  </data>
+  <data name="Step13_a3d3c3817c" xml:space="preserve">
+    <value>Сначала добавьте папку на карточке диска.</value>
+  </data>
+  <data name="Step13_846a54fef5" xml:space="preserve">
+    <value>Ошибка обновления</value>
+  </data>
+  <data name="Step13_1b5e187b22" xml:space="preserve">
+    <value>Есть заметка</value>
+  </data>
+  <data name="Step13_8a52dcbd93" xml:space="preserve">
+    <value>Папки могли быть переименованы или удалены на диске.
+
+</value>
+  </data>
+  <data name="Step13_0fb3372859" xml:space="preserve">
+    <value>Удаление уберёт их записи и кэшированные постеры и фоны из базы CineLibrary. </value>
+  </data>
+  <data name="Step13_d31d24ed6f" xml:space="preserve">
+    <value>Сами файлы на диске не изменяются.
+
+</value>
+  </data>
+  <data name="Step13_54ee0eade8" xml:space="preserve">
+    <value>Совет: если диск был подключён не полностью или выбрана неверная папка, </value>
+  </data>
+  <data name="Step13_512f66e61d" xml:space="preserve">
+    <value>Очистка завершена</value>
+  </data>
+  <data name="Step13_1063e38cb5" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="Step13_a8a65c8ae8" xml:space="preserve">
+    <value>Нет полностью просмотренных коллекций</value>
+  </data>
+  <data name="Step13_035c80e135" xml:space="preserve">
+    <value>Выберите «Все», чтобы увидеть все коллекции.</value>
+  </data>
+  <data name="Step13_09346abb6f" xml:space="preserve">
+    <value>Один фильм, вышедший в этот день в прошлом.</value>
+  </data>
+  <data name="Step13_2e831aaf9f" xml:space="preserve">
+    <value>Один фильм, просмотренный вами в этот день в прошлом.</value>
+  </data>
+  <data name="Step13_d144329e3e" xml:space="preserve">
+    <value>Без рейтинга</value>
+  </data>
+  <data name="Step13_0072cbeb5f" xml:space="preserve">
+    <value>Файл CSV</value>
+  </data>
+  <data name="Step13_d1aa22a312" xml:space="preserve">
+    <value>Спецвыпуски</value>
+  </data>
+  <data name="Step13_067e645453" xml:space="preserve">
+    <value>Отметить всё просмотренным</value>
+  </data>
+  <data name="Step13_fd30bfacbe" xml:space="preserve">
+    <value>Отметить всё непросмотренным</value>
+  </data>
+  <data name="Step13_d738ee70ea" xml:space="preserve">
+    <value>Предыдущие серии</value>
+  </data>
+  <data name="Step13_8f34961967" xml:space="preserve">
+    <value>Следующие серии</value>
+  </data>
+  <data name="Step13_87705a4615" xml:space="preserve">
+    <value>Загрузка фотографий актёров…</value>
+  </data>
+  <data name="Step13_4e43554896" xml:space="preserve">
+    <value>Обновлено.</value>
+  </data>
+  <data name="Step13_e9f36d65b0" xml:space="preserve">
+    <value>Что-то пошло не так. Попробуйте ещё раз.</value>
+  </data>
+  <data name="Step13_42198fb58b" xml:space="preserve">
+    <value>НАЙДЕННЫЙ СЕРИАЛ</value>
+  </data>
+  <data name="Step13_c6a30884c1" xml:space="preserve">
+    <value>СЕРИАЛЫ</value>
+  </data>
+  <data name="Step13_a67e750ed0" xml:space="preserve">
+    <value>Запись удалена</value>
+  </data>
+  <data name="Step13_8087d3dae9" xml:space="preserve">
+    <value>Совет: добавляйте фильмы в список просмотра из окна сведений о фильме.</value>
+  </data>
+  <data name="Step13_bbc45d9b35" xml:space="preserve">
+    <value>Стерео</value>
+  </data>
+  <data name="Step13_dd1f775e44" xml:space="preserve">
+    <value>Назад</value>
+  </data>
+  <data name="Step13_10ac3d0425" xml:space="preserve">
+    <value>Далее</value>
   </data>
 </root>

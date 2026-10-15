@@ -103,7 +103,7 @@ public sealed partial class WatchedGonePage : Page
     {
         if (_records.Count == 0) return;
         var picker = new FileSavePicker { SuggestedStartLocation = PickerLocationId.DocumentsLibrary };
-        picker.FileTypeChoices.Add("CSV file", new List<string> { ".csv" });
+        picker.FileTypeChoices.Add(CineLibraryCS.Services.LocalizationService.TranslateText("CSV file"), new List<string> { ".csv" });
         picker.SuggestedFileName = "watched_and_gone";
         InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(App.MainWindow));
         var file = await picker.PickSaveFileAsync();

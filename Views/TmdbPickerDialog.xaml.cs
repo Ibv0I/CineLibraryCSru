@@ -60,7 +60,7 @@ public sealed partial class TmdbPickerDialog : ContentDialog
                 : await _client.SearchMovieAsync(title, year);
             if (results.Count == 0)
             {
-                StatusText.Text = $"No TMDb matches for “{title}”.";
+                StatusText.Text = $"В TMDb не найдено совпадений для «{title}».";
                 StatusText.Visibility = Visibility.Visible;
                 ResultsList.ItemsSource = null;
                 return;

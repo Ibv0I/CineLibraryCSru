@@ -41,7 +41,7 @@ public sealed partial class AddWatchedMovieDialog : ContentDialog
     private async Task DoSearchAsync()
     {
         var title = (TitleBox.Text ?? "").Trim();
-        if (title.Length == 0) { ShowStatus("Type a movie title to search."); return; }
+        if (title.Length == 0) { ShowStatus("Введите название фильма для поиска."); return; }
 
         int? year = int.TryParse((YearBox.Text ?? "").Trim(), out var y) && y > 1800 ? y : null;
 
@@ -56,7 +56,7 @@ public sealed partial class AddWatchedMovieDialog : ContentDialog
             var results = await _client.SearchMovieAsync(title, year);
             if (results.Count == 0)
             {
-                ShowStatus($"No TMDb matches for “{title}”.");
+                ShowStatus($"В TMDb не найдено совпадений для «{title}».");
                 return;
             }
 
@@ -70,7 +70,7 @@ public sealed partial class AddWatchedMovieDialog : ContentDialog
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"TMDb search failed: {ex.Message}");
-            ShowStatus("Couldn't reach TMDb. Check your connection and try again.");
+            ShowStatus("Не удалось подключиться к TMDb. Проверьте соединение и повторите попытку.");
         }
         finally
         {
@@ -91,7 +91,7 @@ public sealed partial class AddWatchedMovieDialog : ContentDialog
         var deferral = args.GetDeferral();
         IsPrimaryButtonEnabled = false;
         Busy.IsActive = true;
-        ShowStatus("Saving record…");
+        ShowStatus("Сохранение записи…");
 
         try
         {
@@ -143,7 +143,7 @@ public sealed partial class AddWatchedMovieDialog : ContentDialog
             // folder so the record's faces survive offline, then link them.
             if (d.Cast.Count > 0)
             {
-                ShowStatus("Fetching cast photos…");
+                ShowStatus("Загрузка фотографий актёров…");
                 var actors = new List<(string, string?, int, string?)>();
                 foreach (var c in d.Cast)
                 {
@@ -178,7 +178,7 @@ public sealed partial class AddWatchedMovieDialog : ContentDialog
             System.Diagnostics.Debug.WriteLine($"Add watched movie failed: {ex.Message}");
             AddedMovieId = null;
             args.Cancel = true;
-            ShowStatus("Something went wrong saving the record. Please try again.");
+            ShowStatus("Не удалось сохранить запись. Попробуйте ещё раз.");
             IsPrimaryButtonEnabled = true;
         }
         finally

@@ -133,8 +133,8 @@ public sealed partial class DrivesPage : Page
             var connected = AppState.Instance.Connected;
             if (!connected.TryGetValue(serial, out var letter))
             {
-                await ShowInfoDialog("Drive offline",
-                    "Connect this drive to add or scan folders on it.");
+                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Drive offline"),
+                    "Подключите диск, чтобы добавлять или сканировать папки.");
                 return;
             }
             var driveRoot = $"{letter}:\\";
@@ -214,14 +214,14 @@ public sealed partial class DrivesPage : Page
             var connected = AppState.Instance.Connected;
             if (!connected.TryGetValue(serial, out var letter))
             {
-                await ShowInfoDialog("Drive offline", "This drive is not connected.");
+                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Drive offline"), CineLibraryCS.Services.LocalizationService.TranslateText("This drive is not connected."));
                 return;
             }
             var drive = _drives.FirstOrDefault(d => d.VolumeSerial == serial);
             var roots = AppState.Instance.Db.GetDriveRoots(serial);
             if (roots.Count == 0)
             {
-                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("No folders"), "Add at least one folder to this drive before updating.");
+                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("No folders"), CineLibraryCS.Services.LocalizationService.TranslateText("Add at least one folder to this drive before updating."));
                 return;
             }
 

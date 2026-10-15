@@ -27,18 +27,18 @@ public sealed partial class BrowsePage : Page
         Facet = facet;
         PageTitleText.Text = facet switch
         {
-            DatabaseService.BrowseFacet.Genre  => "By genre",
-            DatabaseService.BrowseFacet.Decade => "By decade",
-            DatabaseService.BrowseFacet.Rating => "By rating",
-            DatabaseService.BrowseFacet.Studio => "By studio",
-            _ => "Browse"
+            DatabaseService.BrowseFacet.Genre  => CineLibraryCS.Services.LocalizationService.TranslateText("By genre"),
+            DatabaseService.BrowseFacet.Decade => CineLibraryCS.Services.LocalizationService.TranslateText("By decade"),
+            DatabaseService.BrowseFacet.Rating => CineLibraryCS.Services.LocalizationService.TranslateText("By rating"),
+            DatabaseService.BrowseFacet.Studio => CineLibraryCS.Services.LocalizationService.TranslateText("By studio"),
+            _ => CineLibraryCS.Services.LocalizationService.TranslateText("Browse")
         };
         PageSubText.Text = facet switch
         {
-            DatabaseService.BrowseFacet.Genre  => "Pick a genre to filter the library.",
-            DatabaseService.BrowseFacet.Decade => "Movies grouped by their decade of release.",
-            DatabaseService.BrowseFacet.Rating => "Movies grouped by their star rating.",
-            DatabaseService.BrowseFacet.Studio => "Movies grouped by studio.",
+            DatabaseService.BrowseFacet.Genre  => CineLibraryCS.Services.LocalizationService.TranslateText("Pick a genre to filter the library."),
+            DatabaseService.BrowseFacet.Decade => CineLibraryCS.Services.LocalizationService.TranslateText("Movies grouped by their decade of release."),
+            DatabaseService.BrowseFacet.Rating => CineLibraryCS.Services.LocalizationService.TranslateText("Movies grouped by their star rating."),
+            DatabaseService.BrowseFacet.Studio => CineLibraryCS.Services.LocalizationService.TranslateText("Movies grouped by studio."),
             _ => ""
         };
 

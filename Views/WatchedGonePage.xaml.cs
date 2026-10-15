@@ -95,7 +95,7 @@ public sealed partial class WatchedGonePage : Page
         {
             Refresh();
             SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
-            if (App.MainWindow is MainWindow mw) mw.ShowToast("Added to Watched & Gone");
+            if (App.MainWindow is MainWindow mw) mw.ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Added to Watched & Gone"));
         }
     }
 
@@ -109,6 +109,6 @@ public sealed partial class WatchedGonePage : Page
         var file = await picker.PickSaveFileAsync();
         if (file == null) return;
         await new MainViewModel().ExportCsvAsync(_records, file.Path);
-        if (App.MainWindow is MainWindow mw) mw.ShowToast("Exported records to CSV");
+        if (App.MainWindow is MainWindow mw) mw.ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Exported records to CSV"));
     }
 }

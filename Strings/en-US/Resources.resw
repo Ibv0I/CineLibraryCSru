@@ -1599,4 +1599,45 @@ Then try again.</value>
   <data name="Step9_bafd7322c6" xml:space="preserve">
     <value>No</value>
   </data>
+
+  <data name="Step11_82490a0689" xml:space="preserve">
+    <value>Record a movie you watched but never had in your library</value>
+  </data>
+
+  <data name="Step11_e6622d7f1b" xml:space="preserve">
+    <value>Drive offline</value>
+  </data>
+  <data name="Step11_5d9c78c0e2" xml:space="preserve">
+    <value>This drive is not connected.</value>
+  </data>
+  <data name="Step11_58f3ffed53" xml:space="preserve">
+    <value>Added to Watched &amp; Gone</value>
+  </data>
+  <data name="Step11_d7c37433f1" xml:space="preserve">
+    <value>Exported records to CSV</value>
+  </data>
+  <data name="Step11_d46a1c070a" xml:space="preserve">
+    <value>By genre</value>
+  </data>
+  <data name="Step11_8a6e97e174" xml:space="preserve">
+    <value>By decade</value>
+  </data>
+  <data name="Step11_70b1482091" xml:space="preserve">
+    <value>By rating</value>
+  </data>
+  <data name="Step11_cec6cc8c5e" xml:space="preserve">
+    <value>By studio</value>
+  </data>
+  <data name="Step11_ef337f57da" xml:space="preserve">
+    <value>Pick a genre to filter the library.</value>
+  </data>
+  <data name="Step11_1d14e6c793" xml:space="preserve">
+    <value>Movies grouped by their decade of release.</value>
+  </data>
+  <data name="Step11_55e1e55586" xml:space="preserve">
+    <value>Movies grouped by their star rating.</value>
+  </data>
+  <data name="Step11_777cf5cbae" xml:space="preserve">
+    <value>Movies grouped by studio.</value>
+  </data>
 </root>

@@ -1599,4 +1599,45 @@
   <data name="Step9_bafd7322c6" xml:space="preserve">
     <value>Нет</value>
   </data>
+
+  <data name="Step11_82490a0689" xml:space="preserve">
+    <value>Добавьте фильм, который смотрели, но которого не было в библиотеке</value>
+  </data>
+
+  <data name="Step11_e6622d7f1b" xml:space="preserve">
+    <value>Диск отключён</value>
+  </data>
+  <data name="Step11_5d9c78c0e2" xml:space="preserve">
+    <value>Этот диск не подключён.</value>
+  </data>
+  <data name="Step11_58f3ffed53" xml:space="preserve">
+    <value>Добавлено в «Просмотрено и удалено»</value>
+  </data>
+  <data name="Step11_d7c37433f1" xml:space="preserve">
+    <value>Записи экспортированы в CSV</value>
+  </data>
+  <data name="Step11_d46a1c070a" xml:space="preserve">
+    <value>По жанрам</value>
+  </data>
+  <data name="Step11_8a6e97e174" xml:space="preserve">
+    <value>По десятилетиям</value>
+  </data>
+  <data name="Step11_70b1482091" xml:space="preserve">
+    <value>По рейтингу</value>
+  </data>
+  <data name="Step11_cec6cc8c5e" xml:space="preserve">
+    <value>По студиям</value>
+  </data>
+  <data name="Step11_ef337f57da" xml:space="preserve">
+    <value>Выберите жанр, чтобы отфильтровать библиотеку.</value>
+  </data>
+  <data name="Step11_1d14e6c793" xml:space="preserve">
+    <value>Фильмы сгруппированы по десятилетию выхода.</value>
+  </data>
+  <data name="Step11_55e1e55586" xml:space="preserve">
+    <value>Фильмы сгруппированы по рейтингу.</value>
+  </data>
+  <data name="Step11_777cf5cbae" xml:space="preserve">
+    <value>Фильмы сгруппированы по студиям.</value>
+  </data>
 </root>

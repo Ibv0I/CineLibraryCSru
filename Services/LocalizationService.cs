@@ -397,6 +397,19 @@ public static class LocalizationService
         ["Connected as {letter}:"] = "Step9_3897afd76e",
         ["Yes"] = "Step9_93cba07454",
         ["No"] = "Step9_bafd7322c6",
+        ["Record a movie you watched but never had in your library"] = "Step11_82490a0689",
+        ["Drive offline"] = "Step11_e6622d7f1b",
+        ["This drive is not connected."] = "Step11_5d9c78c0e2",
+        ["Added to Watched & Gone"] = "Step11_58f3ffed53",
+        ["Exported records to CSV"] = "Step11_d7c37433f1",
+        ["By genre"] = "Step11_d46a1c070a",
+        ["By decade"] = "Step11_8a6e97e174",
+        ["By rating"] = "Step11_70b1482091",
+        ["By studio"] = "Step11_cec6cc8c5e",
+        ["Pick a genre to filter the library."] = "Step11_ef337f57da",
+        ["Movies grouped by their decade of release."] = "Step11_1d14e6c793",
+        ["Movies grouped by their star rating."] = "Step11_55e1e55586",
+        ["Movies grouped by studio."] = "Step11_777cf5cbae",
     };
 
     public static string TranslateText(string? text)

@@ -362,7 +362,7 @@ public partial class LibraryViewModel : ObservableObject
     {
         ResetAllFilters();
         FilterActor = actorName;
-        PageTitle = $"Movies with {actorName}";
+        PageTitle = $"Фильмы с участием {actorName}";
         _ = LoadAsync();
     }
 
@@ -370,7 +370,7 @@ public partial class LibraryViewModel : ObservableObject
     {
         ResetAllFilters();
         FilterDirector = directorName;
-        PageTitle = $"Directed by {directorName}";
+        PageTitle = $"Режиссёр: {directorName}";
         _ = LoadAsync();
     }
 

@@ -281,6 +281,15 @@ public static class LocalizationService
         ["Send to Watched & Gone?"] = "Auto_Send_to_Watched_Gone_245193c6",
         ["Delete this record?"] = "Auto_Delete_this_record_f9187972",
         ["New list"] = "Auto_New_list_d44f1a8e",
+        ["No folders"] = "NoFolders",
+        ["Add at least one folder to this drive before updating."] = "AddFolderBeforeUpdate",
+        ["Watch progress"] = "WatchProgress",
+        ["Movies by decade"] = "MoviesByDecade",
+        ["Top genres"] = "TopGenres",
+        ["Top directors"] = "TopDirectors",
+        ["Top actors"] = "TopActors",
+        ["YOU WATCHED ON THIS DATE"] = "WatchedOnThisDate",
+        ["RELEASED ON THIS DATE"] = "ReleasedOnThisDate",
     };
 
     public static string TranslateText(string? text)

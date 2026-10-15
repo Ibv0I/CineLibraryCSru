@@ -116,12 +116,12 @@ public sealed partial class MainWindow : Window
         WireSidebarDropTarget(BtnFavorites, ids =>
         {
             foreach (var mid in ids) AppState.Instance.Db.ToggleFavorite(mid);
-            return $"Favorited {ids.Count}";
+            return $"Добавлено в избранное: {ids.Count}";
         });
         WireSidebarDropTarget(BtnWatchlist, ids =>
         {
             foreach (var mid in ids) AppState.Instance.Db.SetWatchlist(mid, true);
-            return $"Added {ids.Count} to watchlist";
+            return $"Добавлено в список просмотра: {ids.Count}";
         });
 
         // v1.4.1 — Ctrl+? (Ctrl+Shift+/) shows keyboard shortcuts dialog
@@ -919,15 +919,15 @@ public sealed partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            ShowToast($"Couldn't read source folders: {ex.Message}");
+            ShowToast($"Не удалось прочитать исходные папки: {ex.Message}");
             return;
         }
 
         if (plan.Items.Count == 0)
         {
             var detail = plan.OfflineDriveLabels.Count > 0
-                ? $"All movies are on offline drives. Plug in:\n• {string.Join("\n• ", plan.OfflineDriveLabels)}\n\nThen try again."
-                : "Nothing to copy.";
+                ? $"Все фильмы находятся на отключённых дисках. Подключите:\n• {string.Join("\n• ", plan.OfflineDriveLabels)}\n\nЗатем повторите попытку."
+                : "Нечего копировать.";
             var emptyDlg = new ContentDialog
             {
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Can't copy yet"),
@@ -945,16 +945,16 @@ public sealed partial class MainWindow : Window
         // movies will be copied.
         if (plan.OfflineDriveLabels.Count > 0)
         {
-            var msg = $"These drives are offline — their movies in this list won't be copied:\n• " +
+            var msg = $"Эти диски отключены — фильмы с них не будут скопированы:\n• " +
                       $"{string.Join("\n• ", plan.OfflineDriveLabels)}\n\n" +
-                      $"Plug them in to include all {plan.Items.Count + plan.OfflineDriveLabels.Count}+ movies, " +
-                      $"or continue with the {plan.Items.Count} online ones.";
+                      $"Подключите их, чтобы скопировать все фильмы ({plan.Items.Count + plan.OfflineDriveLabels.Count}+), " +
+                      $"или продолжите с доступными фильмами: {plan.Items.Count}.";
             var dlg = new ContentDialog
             {
-                Title = $"{plan.OfflineDriveLabels.Count} drive(s) offline",
+                Title = $"Отключено дисков: {plan.OfflineDriveLabels.Count}",
                 Content = msg,
                 PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
-                SecondaryButtonText = $"Continue with {plan.Items.Count} online",
+                SecondaryButtonText = $"Продолжить ({plan.Items.Count} доступно)",
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = Content.XamlRoot,
                 RequestedTheme = CurrentTheme,
@@ -971,7 +971,7 @@ public sealed partial class MainWindow : Window
             var dlg = new ContentDialog
             {
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Not enough free space"),
-                Content = $"Need {FormatBytes(plan.TotalBytes)}, only {FormatBytes(free)} free at the destination.",
+                Content = $"Требуется {FormatBytes(plan.TotalBytes)}, но в месте назначения доступно только {FormatBytes(free)}.",
                 CloseButtonText = Services.LocalizationService.Get("OK"),
                 XamlRoot = Content.XamlRoot,
                 RequestedTheme = CurrentTheme,
@@ -1124,9 +1124,9 @@ public sealed partial class MainWindow : Window
     {
         var dlg = new ContentDialog
         {
-            Title = $"Delete \"{ul.Name}\"?",
-            Content = $"This list contains {ul.MovieCount} movie(s). Movies themselves are not deleted — only the list and its membership.",
-            PrimaryButtonText = "Delete",
+            Title = $"Удалить «{ul.Name}»?",
+            Content = $"В списке {ul.MovieCount} фильм(ов). Сами фильмы не удаляются — будет удалён только список и его содержимое.",
+            PrimaryButtonText = "Удалить",
             CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.Close,
             XamlRoot = Content.XamlRoot,
@@ -1493,14 +1493,14 @@ public sealed partial class MainWindow : Window
             SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary,
             SuggestedFileName = "movies_export",
         };
-        picker.FileTypeChoices.Add(html ? "HTML file" : "CSV file", new List<string> { html ? ".html" : ".csv" });
+        picker.FileTypeChoices.Add(html ? "Файл HTML" : "Файл CSV", new List<string> { html ? ".html" : ".csv" });
         WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(this));
         var file = await picker.PickSaveFileAsync();
         if (file == null) return;
         var movies = await load();
         if (html) await _vm.ExportHtmlAsync(movies, file.Path);
         else await _vm.ExportCsvAsync(movies, file.Path);
-        ShowToast($"Exported {movies.Count:N0} movies to {(html ? "HTML" : "CSV")}");
+        ShowToast($"Экспортировано фильмов: {movies.Count:N0}. Формат: {(html ? "HTML" : "CSV")}");
     }
 
     private void OnNavDrives(object sender, RoutedEventArgs e)
@@ -1525,7 +1525,7 @@ public sealed partial class MainWindow : Window
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.FilterByActor(actor);
-        _libraryPage?.UpdatePageTitle($"All movies › {actor}");
+        _libraryPage?.UpdatePageTitle($"Все фильмы › {actor}");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
         ClearLibraryBack();  // chip-driven (e.g. from detail dialog) — no Browse origin
     }
@@ -1534,7 +1534,7 @@ public sealed partial class MainWindow : Window
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.FilterByDirector(director);
-        _libraryPage?.UpdatePageTitle($"All movies › {director}");
+        _libraryPage?.UpdatePageTitle($"Все фильмы › {director}");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
         ClearLibraryBack();
     }
@@ -1562,7 +1562,7 @@ public sealed partial class MainWindow : Window
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.FilterByStudio(studio);
-        _libraryPage?.UpdatePageTitle($"All movies › {studio}");
+        _libraryPage?.UpdatePageTitle($"Все фильмы › {studio}");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
     }
 
@@ -1570,7 +1570,7 @@ public sealed partial class MainWindow : Window
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.FilterByDecade(decadeStart, label);
-        _libraryPage?.UpdatePageTitle($"All movies › {label}");
+        _libraryPage?.UpdatePageTitle($"Все фильмы › {label}");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
     }
 
@@ -1578,7 +1578,7 @@ public sealed partial class MainWindow : Window
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.FilterByRatingBand(key, label);
-        _libraryPage?.UpdatePageTitle($"All movies › {label}");
+        _libraryPage?.UpdatePageTitle($"Все фильмы › {label}");
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
     }
 
@@ -1711,12 +1711,12 @@ public sealed partial class MainWindow : Window
                     var snapshot = BackupService.BuildSnapshot(AppState.Instance.Db, AppVersionString());
                     BackupService.WriteToFile(snapshot, file.Path);
                 });
-                status.Text = $"Saved to {file.Path}";
+                status.Text = $"Сохранено: {file.Path}";
             }
             catch (Exception ex)
             {
                 status.Visibility = Visibility.Visible;
-                status.Text = $"Export failed: {ex.Message}";
+                status.Text = $"Ошибка экспорта: {ex.Message}";
             }
             finally { exportBtn.IsEnabled = true; importBtn.IsEnabled = true; }
         };
@@ -1741,23 +1741,23 @@ public sealed partial class MainWindow : Window
                 await Task.Run(() =>
                 {
                     var b = BackupService.ReadFromFile(file.Path);
-                    if (b == null) throw new InvalidOperationException("File isn't a CineLibrary backup");
+                    if (b == null) throw new InvalidOperationException("Файл не является резервной копией CineLibrary");
                     result = BackupService.Import(AppState.Instance.Db, b);
                 });
                 if (result != null)
                 {
                     status.Text =
-                        $"Imported: {result.MoviesMerged} movies, {result.ShowsMerged} shows, " +
-                        $"{result.EpisodesMerged} episodes, {result.ListsCreated} new lists, " +
-                        $"{result.TagsCreated} new tags, {result.EventsAppended} history events. " +
-                        $"Skipped: {result.MoviesSkipped + result.ShowsSkipped} (drive not mounted).";
+                        $"Импортировано: фильмов — {result.MoviesMerged}, сериалов — {result.ShowsMerged}, " +
+                        $"эпизодов — {result.EpisodesMerged}, новых списков — {result.ListsCreated}, " +
+                        $"новых тегов — {result.TagsCreated}, событий истории — {result.EventsAppended}. " +
+                        $"Пропущено: {result.MoviesSkipped + result.ShowsSkipped} (диск не подключён).";
                     _ = RefreshSidebarAsync();
                 }
             }
             catch (Exception ex)
             {
                 status.Visibility = Visibility.Visible;
-                status.Text = $"Import failed: {ex.Message}";
+                status.Text = $"Ошибка импорта: {ex.Message}";
             }
             finally { exportBtn.IsEnabled = true; importBtn.IsEnabled = true; }
         };

@@ -17,23 +17,23 @@ public class DriveInfo
     public Microsoft.UI.Xaml.Visibility TvShowVisibility =>
         TvShowCount > 0 ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
 
-    public string StatusText => IsConnected ? $"Connected ({CurrentLetter}:)" : "Offline";
-    public string NotConnectedText => IsConnected ? $"Connected as {CurrentLetter}:" : "Not connected";
+    public string StatusText => IsConnected ? $"Подключён ({CurrentLetter}:)" : "Отключён";
+    public string NotConnectedText => IsConnected ? $"Подключён как {CurrentLetter}:" : "Не подключён";
     public string LetterDisplay => CurrentLetter != null ? $"({CurrentLetter}:)" : "";
     public bool HasFolders => Folders.Count > 0;
     public bool HasMissing => MissingCount > 0;
-    public string MissingButtonText => MissingCount > 0 ? $"Review {MissingCount}…" : "Review…";
+    public string MissingButtonText => MissingCount > 0 ? $"Проверить ({MissingCount})…" : "Проверить…";
     public Microsoft.UI.Xaml.Visibility MissingVisibility =>
         MissingCount > 0 ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
 
     // v3.2 — compact, sleek Drives page helpers.
-    public string MovieCountText => $"{MovieCount} {(MovieCount == 1 ? "movie" : "movies")}";
-    public string TvShowCountText => $"{TvShowCount} {(TvShowCount == 1 ? "show" : "shows")}";
-    public string FolderCountText => $"{Folders.Count} {(Folders.Count == 1 ? "folder" : "folders")}";
+    public string MovieCountText => $"Фильмов: {MovieCount}";
+    public string TvShowCountText => $"Сериалов: {TvShowCount}";
+    public string FolderCountText => $"Папок: {Folders.Count}";
     public Microsoft.UI.Xaml.Visibility FoldersVisibility =>
         Folders.Count > 0 ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
     public string MissingInfoText =>
-        $"{MissingCount} indexed movie(s) weren't found in the last scan — they may have been moved or deleted. Review them to keep watched ones as records or remove the rest.";
+        $"После последнего сканирования не найдено фильмов: {MissingCount}. Возможно, они перемещены или удалены. Проверьте их, чтобы сохранить просмотренные в истории или удалить остальные.";
 }
 
 public class DriveRoot

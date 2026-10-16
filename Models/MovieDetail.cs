@@ -103,6 +103,6 @@ public class MovieDetail
     public List<string> Tags { get; set; } = new();
 
     public string RatingText => Rating.HasValue ? $"★ {Rating:F1}" : "";
-    public string RuntimeText => Runtime.HasValue ? $"{Runtime} min" : "";
+    public string RuntimeText => Runtime.HasValue ? $"{Runtime} мин" : "";
     public string ImdbUrl => ImdbId != null ? $"https://www.imdb.com/title/{ImdbId}/" : "";
 }

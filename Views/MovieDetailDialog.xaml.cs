@@ -1361,7 +1361,7 @@ public sealed partial class MovieDetailDialog : Window
             }
 
             ListsFlyout.Items.Add(new MenuFlyoutSeparator());
-            var newItem = new MenuFlyoutItem { Text = "+ New list…" };
+            var newItem = new MenuFlyoutItem { Text = "+ Новый список…" };
             newItem.Click += async (_, _) =>
             {
                 var name = await PromptNewListName();

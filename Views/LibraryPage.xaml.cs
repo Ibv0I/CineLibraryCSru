@@ -300,7 +300,7 @@ public sealed partial class LibraryPage : Page
             _selectionBarShown = false;
             return;
         }
-        SelectionCountText.Text = $"{_selectedIds.Count} selected";
+        SelectionCountText.Text = $"Выбрано: {_selectedIds.Count}";
         // v2.6 — animate the bar up the first time it appears in this
         // selection session; subsequent count changes just update the text.
         if (!_selectionBarShown)
@@ -369,7 +369,7 @@ public sealed partial class LibraryPage : Page
         {
             SelListsFlyout.Items.Add(new MenuFlyoutItem
             {
-                Text = "(no lists yet — use + below)", IsEnabled = false
+                Text = "(списков пока нет — нажмите + ниже)", IsEnabled = false
             });
         }
         foreach (var ul in lists)
@@ -380,7 +380,7 @@ public sealed partial class LibraryPage : Page
             SelListsFlyout.Items.Add(item);
         }
         SelListsFlyout.Items.Add(new MenuFlyoutSeparator());
-        var newItem = new MenuFlyoutItem { Text = "+ New list…" };
+        var newItem = new MenuFlyoutItem { Text = "+ Новый список…" };
         newItem.Click += async (_, _) =>
         {
             var name = await PromptNewListName();
@@ -482,8 +482,8 @@ public sealed partial class LibraryPage : Page
         if (picked.Count == 0) return;
         var dlg = new ContentDialog
         {
-            Title = $"Send {picked.Count} movie(s) to Watched & Gone?",
-            Content = "They move out of your library into Watched & Gone — posters, details, " +
+            Title = $"Перенести фильмов: {picked.Count} — в «Просмотрено и удалено»?",
+            Content = "Фильмы будут убраны из библиотеки в раздел «Просмотрено и удалено» — постеры, сведения, " +
                       "your notes and watch history are all kept as records. " +
                       "The files on your drives are not touched.",
             PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Send"),
@@ -830,7 +830,7 @@ public sealed partial class LibraryPage : Page
         DensityM.IsChecked  = tag == "M";
         DensityL.IsChecked  = tag == "L";
         DensityXL.IsChecked = tag == "XL";
-        DensityLabel.Text = $"Size: {(tag is "S" or "L" or "XL" ? tag : "M")}";
+        DensityLabel.Text = $"Размер: {(tag is "S" or "L" or "XL" ? tag : "M")}";
     }
 
     private void SyncUiFromVm()
@@ -901,7 +901,7 @@ public sealed partial class LibraryPage : Page
         // Breadcrumb-style title: "All movies › Drama"
         PageTitleText.Text = p.Label == null
             ? CineLibraryCS.Services.LocalizationService.TranslateText("All movies")
-            : $"All movies › {p.Label}";
+            : $"Все фильмы › {p.Label}";
     }
 
     private void OnVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

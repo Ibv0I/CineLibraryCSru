@@ -266,7 +266,7 @@ public partial class LibraryViewModel : ObservableObject
     {
         ResetAllFilters();
         CollectionId = id;
-        PageTitle = name ?? "Collection";
+        PageTitle = name ?? "Коллекция";
         _ = LoadAsync();
     }
 
@@ -293,7 +293,7 @@ public partial class LibraryViewModel : ObservableObject
         WatchedFilter = WatchedFilter.All;
         SortKey = SortKey.DateAdded;
         SortDir = SortDir.Desc;
-        PageTitle = "🆕 Recently Added";
+        PageTitle = "🆕 Недавно добавленные";
         _ = LoadAsync();
     }
 
@@ -309,7 +309,7 @@ public partial class LibraryViewModel : ObservableObject
         WatchedFilter = WatchedFilter.All;
         SortKey = SortKey.LastPlayed;
         SortDir = SortDir.Desc;
-        PageTitle = "▶ Continue Watching";
+        PageTitle = "▶ Продолжить просмотр";
         _ = LoadAsync();
     }
 
@@ -326,7 +326,7 @@ public partial class LibraryViewModel : ObservableObject
         WatchedFilter = WatchedFilter.All;
         SortKey = SortKey.LastPlayed;
         SortDir = SortDir.Desc;
-        PageTitle = "🕓 Recently Watched";
+        PageTitle = "🕓 Недавно просмотренные";
         _ = LoadAsync();
     }
 
@@ -378,7 +378,7 @@ public partial class LibraryViewModel : ObservableObject
     {
         ResetAllFilters();
         FilterStudio = studio;
-        PageTitle = $"Studio: {studio}";
+        PageTitle = $"Студия: {studio}";
         _ = LoadAsync();
     }
 
@@ -424,7 +424,7 @@ public partial class LibraryViewModel : ObservableObject
     {
         ResetAllFilters();
         IsWatchlistOnly = true;
-        PageTitle = "📋 To Watch";
+        PageTitle = "📋 К просмотру";
         RefreshWatchlistCount();
         _ = LoadAsync();
     }

@@ -49,7 +49,7 @@ public partial class TvSeason : ObservableObject
     public int WatchedCount { get; set; }
     public string? PosterPath { get; set; } // show poster fallback
 
-    public string SeasonLabel => Season == 0 ? CineLibraryCS.Services.LocalizationService.TranslateText("Specials") : $"Season {Season}";
+    public string SeasonLabel => Season == 0 ? CineLibraryCS.Services.LocalizationService.TranslateText("Specials") : $"Сезон {Season}";
     public string ProgressText => $"{WatchedCount}/{EpisodeCount}";
     public double ProgressFraction =>
         EpisodeCount > 0 ? (double)WatchedCount / EpisodeCount : 0;
@@ -80,7 +80,7 @@ public partial class TvEpisodeItem : ObservableObject
 
     public string Code => $"S{Season:D2}E{Episode:D2}";
     public string Header => $"{Code} · {Title}";
-    public string RuntimeText => Runtime.HasValue ? $"{Runtime} min" : "";
+    public string RuntimeText => Runtime.HasValue ? $"{Runtime} мин" : "";
     public string RatingText => Rating.HasValue ? $"★ {Rating:F1}" : "";
 }
 
@@ -118,7 +118,7 @@ public class TvEpisodeDetail
 
     public string Code => $"S{Season:D2}E{Episode:D2}";
     public string AiredText => string.IsNullOrEmpty(Aired) ? "" : Aired;
-    public string RuntimeText => Runtime.HasValue ? $"{Runtime} min" : "";
+    public string RuntimeText => Runtime.HasValue ? $"{Runtime} мин" : "";
     public string RatingText => Rating.HasValue ? $"★ {Rating:F1}" : "";
 
     /// <summary>e.g. "1080p", "2160p (4K)", "720p" from the height.</summary>

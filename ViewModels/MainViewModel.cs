@@ -107,7 +107,7 @@ public partial class MainViewModel : ObservableObject
             prev.TryGetValue(drive.VolumeSerial, out var wasConnected);
             var nowConnected = curr.ContainsKey(drive.VolumeSerial);
             if (!wasConnected && nowConnected)
-                ShowToast($"Drive '{drive.Label}' connected");
+                ShowToast($"Диск «{drive.Label}» подключён");
         }
 
         // Track every known drive's CONNECTED state (true / false), not just

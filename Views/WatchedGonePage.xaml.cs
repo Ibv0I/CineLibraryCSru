@@ -64,7 +64,7 @@ public sealed partial class WatchedGonePage : Page
             Limit: 10000, Offset: 0), AppState.Instance.Connected);
 
         RecordsRepeater.ItemsSource = _records;
-        CountText.Text = _records.Count == 1 ? "1 record" : $"{_records.Count:N0} records";
+        CountText.Text = _records.Count == 1 ? "1 запись" : $"{_records.Count:N0} записей";
         EmptyState.Visibility = _records.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 

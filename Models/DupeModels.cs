@@ -110,11 +110,11 @@ public partial class DupeGroup : ObservableObject
     [ObservableProperty] private BitmapImage? _poster;
 
     public string TitleYear => Year is int y ? $"{Title} ({y})" : Title;
-    public string BadgeText => PossibleDuplicate ? "⚠ possible duplicate" : "✓ kept on purpose";
+    public string BadgeText => PossibleDuplicate ? "⚠ возможный дубликат" : "✓ оставлено намеренно";
 
-    public string ReclaimableText => ReclaimableBytes > 0 ? $"~{DupeCopy.HumanSize(ReclaimableBytes)} reclaimable" : "";
+    public string ReclaimableText => ReclaimableBytes > 0 ? $"~{DupeCopy.HumanSize(ReclaimableBytes)} можно освободить" : "";
     public Visibility ReclaimVisibility => ReclaimableBytes > 0 ? Visibility.Visible : Visibility.Collapsed;
     public Visibility VerifyVisibility => MatchedByName ? Visibility.Visible : Visibility.Collapsed;
-    public string IgnoreLabel => IsIgnored ? "Un-ignore" : "Ignore set";
+    public string IgnoreLabel => IsIgnored ? "Перестать игнорировать" : "Игнорировать набор";
     public char PosterInitial => string.IsNullOrEmpty(Title) ? '?' : char.ToUpperInvariant(Title[0]);
 }

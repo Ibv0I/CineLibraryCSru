@@ -44,6 +44,14 @@ public static class LocalizationService
     // lets us localize the current UI without restructuring its layout.
     private static readonly Dictionary<string, string> UiLiteralKeys = new(StringComparer.Ordinal)
     {
+        ["On"] = "OnLabel",
+        ["Collection"] = "CollectionLabelExtra",
+        ["Studio:"] = "StudioLabel",
+        ["possible duplicate"] = "PossibleDuplicateLower",
+        ["kept on purpose"] = "KeptOnPurpose",
+        ["reclaimable"] = "ReclaimableLabel",
+        ["Season"] = "SeasonLabelExtra",
+        ["min"] = "MinutesShort",
         ["Off"] = "OffLabel",
         ["Subtle"] = "SubtleLabel",
         ["Strong"] = "StrongLabel",

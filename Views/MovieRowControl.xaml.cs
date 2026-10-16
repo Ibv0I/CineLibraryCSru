@@ -67,7 +67,7 @@ public sealed partial class MovieRowControl : UserControl
         var membership = AppState.Instance.Db.GetUserListsForMovie(Movie.Id);
         if (allLists.Count == 0)
         {
-            listsSub.Items.Add(new MenuFlyoutItem { Text = "(no lists yet)", IsEnabled = false });
+            listsSub.Items.Add(new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("(no lists yet)"), IsEnabled = false });
         }
         else
         {
@@ -98,9 +98,9 @@ public sealed partial class MovieRowControl : UserControl
             var dlg = new ContentDialog
             {
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Send to Watched & Gone?"),
-                Content = $"“{m.Title}” moves out of your library into Watched & Gone — " +
-                          "its poster, details, your notes and watch history are all kept as a record. " +
-                          "The files on your drive are not touched.",
+                Content = $"«{m.Title}» перемещается из библиотеки в раздел «Просмотрено и удалено» — " +
+                          CineLibraryCS.Services.LocalizationService.TranslateText("its poster, details, your notes and watch history are all kept as a record. ") +
+                          CineLibraryCS.Services.LocalizationService.TranslateText("The files on your drive are not touched."),
                 PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Send"),
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
@@ -110,7 +110,7 @@ public sealed partial class MovieRowControl : UserControl
             if (await dlg.ShowAsync() != ContentDialogResult.Primary) return;
             AppState.Instance.Db.ArchiveMovies(new[] { m.Id });
             if (App.MainWindow is MainWindow mw)
-                mw.ShowToast($"“{m.Title}” sent to Watched & Gone");
+                mw.ShowToast($"«{m.Title}» " + CineLibraryCS.Services.LocalizationService.TranslateText("sent to Watched & Gone"));
             MovieCardControl.RaiseMovieArchived();
         };
         flyout.Items.Add(archiveItem);

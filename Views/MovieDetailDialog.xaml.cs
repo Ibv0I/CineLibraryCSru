@@ -294,7 +294,7 @@ public sealed partial class MovieDetailDialog : Window
             var shown = m.Actors.Count > CastPreview ? m.Actors.Take(CastPreview).ToList() : m.Actors;
             CastRepeater.ItemsSource = shown;
             FitCastCardHeight(m.Actors);   // all of them, so Show all keeps the card height
-            CastShowAllBtn.Content = $"Show all {m.Actors.Count}";
+            CastShowAllBtn.Content = $"{CineLibraryCS.Services.LocalizationService.TranslateText("Show all")} {m.Actors.Count}";
             CastShowAllBtn.Visibility = shown.Count < m.Actors.Count ? Visibility.Visible : Visibility.Collapsed;
             string? movieFolderAbs = null;
             if (m.IsOnline && m.CurrentLetter != null && m.FolderRelPath != null)
@@ -1332,7 +1332,7 @@ public sealed partial class MovieDetailDialog : Window
 
             if (lists.Count == 0)
             {
-                var none = new MenuFlyoutItem { Text = "(no lists yet)", IsEnabled = false };
+                var none = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("(no lists yet)"), IsEnabled = false };
                 ListsFlyout.Items.Add(none);
             }
             else
@@ -1376,7 +1376,7 @@ public sealed partial class MovieDetailDialog : Window
                 catch (Microsoft.Data.Sqlite.SqliteException)
                 {
                     if (App.MainWindow is MainWindow mw)
-                        mw.ShowToast($"A list named “{name.Trim()}” already exists");
+                        mw.ShowToast($"{CineLibraryCS.Services.LocalizationService.TranslateText("A list named")} «{name.Trim()}» {CineLibraryCS.Services.LocalizationService.TranslateText("already exists")}");
                 }
             };
             ListsFlyout.Items.Add(newItem);

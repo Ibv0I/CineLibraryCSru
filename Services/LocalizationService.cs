@@ -528,46 +528,58 @@ public static class LocalizationService
         ["Stereo"] = "Step13_bbc45d9b35",
         ["Previous"] = "Step13_dd1f775e44",
         ["Next"] = "Step13_10ac3d0425",
-        ["Create"] = "Step15_686e697538",
-        ["Send"] = "Step15_94966d9074",
-        ["Add"] = "Step15_ec211f7c20",
-        ["Apply"] = "Step15_9639e32cab",
-        ["Rename"] = "Step15_904a830405",
-        ["Keep"] = "Step15_02bce93bff",
-        ["Close"] = "Step15_d3d2e61733",
-        ["Save"] = "Step15_c9cc8cce24",
-        ["OK"] = "Step15_e0aa021e21",
-        ["Cancel"] = "Step15_ea4788705e",
-        ["Delete"] = "Step15_f2a6c498fb",
-        ["Remove"] = "Step15_1063e38cb5",
-        ["Export"] = "Step15_0095a9fa74",
+
+
+
+
+
+
+
+
+
+
+
+
+
         ["Import"] = "Step15_72d6d7a188",
         ["Refresh"] = "Step15_63a6a88c06",
-        ["Open"] = "Step15_c3bf447eab",
-        ["Browse"] = "Step15_1b9abf135c",
-        ["Continue"] = "Step15_a0bfb8e59e",
-        ["Mark Watched"] = "Step15_0dca3215bd",
-        ["Mark Unwatched"] = "Step15_14bef0668a",
-        ["All movies"] = "Step15_d5b393def6",
-        ["All Movies"] = "Step15_9cffcd0d8c",
-        ["Studio"] = "Step15_8bc227feed",
+
+
+
+
+
+
+
+
         ["Recent"] = "Step15_dae52b8071",
-        ["Notes"] = "Step15_f4c6f851b0",
-        ["Genre"] = "Step15_91563b0449",
-        ["Decade"] = "Step15_ad3bf81f37",
-        ["Rating"] = "Step15_dda9c06f33",
-        ["Actor"] = "Step15_1cc8461967",
-        ["List name"] = "Step15_5102491a98",
-        ["New list"] = "Step15_0dfa571878",
-        ["Movie Details"] = "Step15_0d35802c4c",
-        ["Movie details"] = "Step15_656236cb60",
-        ["No movies match your filters"] = "Step15_22f4d2c3ae",
-        ["Welcome to CineLibrary"] = "Step15_e2a791de17",
-        ["This list is empty"] = "Step15_fe26697e19",
-        ["No movies match the current filter — try clearing some filters"] = "Step15_2c8d6a43e8",
+
+
+
+
+
+
+
+
+
+
+
+
+
         ["Nothing in your library tied to this date."] = "Step15_a9dfb8d4a8",
-        ["Match this show on TMDb"] = "Step15_950585184a",
-        ["Pick the correct show so the missing details are filled from the right entry."] = "Step15_f2c91c31aa",
+
+
+        ["(no lists yet)"] = "Step18_456f9627a3",
+        ["+ New list…"] = "Step18_98f5a09275",
+        ["The files on your drive are not touched."] = "Step18_f95ae95c2f",
+        ["\\n\\nYou can restore it from the Watched & Gone page anytime."] = "Step18_a21c9cedc8",
+        ["No movies selected"] = "Step18_aefff6b89b",
+        ["No folder selected"] = "Step18_c2a5c127eb",
+        ["sent to Watched & Gone"] = "Step18_ac33295599",
+        ["restored to your library"] = "Step18_05e8bad44f",
+        ["its poster, details, your notes and watch history are all kept as a record. "] = "Step18_31c1a4b2dc",
+        ["will be permanently removed from CineLibrary. This can't be undone."] = "Step18_65e6aa8be6",
+        ["A list named"] = "Step18_d4bebf0332",
+        ["already exists"] = "Step18_102779676f",
     };
 
     public static string TranslateText(string? text)

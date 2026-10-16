@@ -274,7 +274,7 @@ public sealed partial class MainWindow : Window
             Text = UiSettings.PlayerPath,
             PlaceholderText = L("WindowsDefaultPlayer"),
         };
-        var choosePlayer = new Button { Content = L("Choose") };
+        var choosePlayer = new Button { Content = L(CineLibraryCS.Services.LocalizationService.TranslateText("Choose")) };
         var defaultPlayer = new Button
         {
             Content = L("UseWindowsDefault"),
@@ -329,7 +329,7 @@ public sealed partial class MainWindow : Window
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
         languageChoice.Items.Add(new ComboBoxItem { Content = "Русский", Tag = "ru-RU" });
-        languageChoice.Items.Add(new ComboBoxItem { Content = "English", Tag = "en-US" });
+        languageChoice.Items.Add(new ComboBoxItem { Content = CineLibraryCS.Services.LocalizationService.TranslateText("English"), Tag = "en-US" });
         languageChoice.SelectedValue = UiSettings.Language;
         panel.Children.Add(languageChoice);
         panel.Children.Add(new TextBlock

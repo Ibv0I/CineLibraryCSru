@@ -2035,4 +2035,79 @@ Then try again.</value>
   <data name="Step15_f2c91c31aa" xml:space="preserve">
     <value>Pick the correct show so the missing details are filled from the right entry.</value>
   </data>
-<data name="OffLabel" xml:space="preserve"><value>Off</value></data><data name="SubtleLabel" xml:space="preserve"><value>Subtle</value></data><data name="StrongLabel" xml:space="preserve"><value>Strong</value></data><data name="PngImage" xml:space="preserve"><value>PNG image</value></data><data name="NoListsYetHint" xml:space="preserve"><value>No lists yet — use + below</value></data><data name="TvShowsInListLabel" xml:space="preserve"><value>TV shows in this list</value></data><data name="TvShowsMatchingLabel" xml:space="preserve"><value>TV shows matching</value></data><data name="SelectedLabel" xml:space="preserve"><value>selected</value></data><data name="NoMoviesFilter" xml:space="preserve"><value>No movies match the current filter</value></data><data name="ClearFilter" xml:space="preserve"><value>Clear filter</value></data><data name="CardShadowsSetting" xml:space="preserve"><value>Card shadows</value></data><data name="OneMovie" xml:space="preserve"><value>1 movie</value></data><data name="MoviesCount" xml:space="preserve"><value>movies</value></data><data name="NoMoviesYet" xml:space="preserve"><value>No movies yet</value></data><data name="PartOfCollection" xml:space="preserve"><value>Part of the ...</value></data><data name="FavoritedLabel" xml:space="preserve"><value>Favorited</value></data><data name="CouldntOpenFolder" xml:space="preserve"><value>Couldn’t open that folder.</value></data><data name="CopyDriveOffline" xml:space="preserve"><value>That copy’s drive is offline.</value></data><data name="PossibleDuplicateLabel" xml:space="preserve"><value>Possible duplicate</value></data><data name="IgnoreSet" xml:space="preserve"><value>Ignore set</value></data><data name="Unignore" xml:space="preserve"><value>Un-ignore</value></data><data name="OnLabel" xml:space="preserve"><value>On</value></data><data name="CollectionLabelExtra" xml:space="preserve"><value>Collection</value></data><data name="PossibleDuplicateLower" xml:space="preserve"><value>possible duplicate</value></data><data name="KeptOnPurpose" xml:space="preserve"><value>kept on purpose</value></data><data name="ReclaimableLabel" xml:space="preserve"><value>reclaimable</value></data><data name="SeasonLabelExtra" xml:space="preserve"><value>Season</value></data><data name="MinutesShort" xml:space="preserve"><value>min</value></data></root>
+<data name="OffLabel" xml:space="preserve"><value>Off</value></data><data name="SubtleLabel" xml:space="preserve"><value>Subtle</value></data><data name="StrongLabel" xml:space="preserve"><value>Strong</value></data><data name="PngImage" xml:space="preserve"><value>PNG image</value></data><data name="NoListsYetHint" xml:space="preserve"><value>No lists yet — use + below</value></data><data name="TvShowsInListLabel" xml:space="preserve"><value>TV shows in this list</value></data><data name="TvShowsMatchingLabel" xml:space="preserve"><value>TV shows matching</value></data><data name="SelectedLabel" xml:space="preserve"><value>selected</value></data><data name="NoMoviesFilter" xml:space="preserve"><value>No movies match the current filter</value></data><data name="ClearFilter" xml:space="preserve"><value>Clear filter</value></data><data name="CardShadowsSetting" xml:space="preserve"><value>Card shadows</value></data><data name="OneMovie" xml:space="preserve"><value>1 movie</value></data><data name="MoviesCount" xml:space="preserve"><value>movies</value></data><data name="NoMoviesYet" xml:space="preserve"><value>No movies yet</value></data><data name="PartOfCollection" xml:space="preserve"><value>Part of the ...</value></data><data name="FavoritedLabel" xml:space="preserve"><value>Favorited</value></data><data name="CouldntOpenFolder" xml:space="preserve"><value>Couldn’t open that folder.</value></data><data name="CopyDriveOffline" xml:space="preserve"><value>That copy’s drive is offline.</value></data><data name="PossibleDuplicateLabel" xml:space="preserve"><value>Possible duplicate</value></data><data name="IgnoreSet" xml:space="preserve"><value>Ignore set</value></data><data name="Unignore" xml:space="preserve"><value>Un-ignore</value></data><data name="OnLabel" xml:space="preserve"><value>On</value></data><data name="CollectionLabelExtra" xml:space="preserve"><value>Collection</value></data><data name="PossibleDuplicateLower" xml:space="preserve"><value>possible duplicate</value></data><data name="KeptOnPurpose" xml:space="preserve"><value>kept on purpose</value></data><data name="ReclaimableLabel" xml:space="preserve"><value>reclaimable</value></data><data name="SeasonLabelExtra" xml:space="preserve"><value>Season</value></data><data name="MinutesShort" xml:space="preserve"><value>min</value></data>
+  <data name="Step18_456f9627a3" xml:space="preserve">
+    <value>(no lists yet)</value>
+  </data>
+  <data name="Step18_98f5a09275" xml:space="preserve">
+    <value>+ New list…</value>
+  </data>
+  <data name="Step18_61b71569a1" xml:space="preserve">
+    <value>A list named “{name}” already exists</value>
+  </data>
+  <data name="Step18_354eef496a" xml:space="preserve">
+    <value>“{m.Title}” moves out of your library into Watched &amp; Gone — </value>
+  </data>
+  <data name="Step18_31c1a4b2dc" xml:space="preserve">
+    <value>its poster, details, your notes and watch history are all kept as a record. </value>
+  </data>
+  <data name="Step18_f95ae95c2f" xml:space="preserve">
+    <value>The files on your drive are not touched.</value>
+  </data>
+  <data name="Step18_a21c9cedc8" xml:space="preserve">
+    <value>\n\nYou can restore it from the Watched &amp; Gone page anytime.</value>
+  </data>
+  <data name="Step18_a7cd18018d" xml:space="preserve">
+    <value>“{m.Title}” sent to Watched &amp; Gone</value>
+  </data>
+  <data name="Step18_0c68508520" xml:space="preserve">
+    <value>“{m.Title}” — its record, cached poster, notes and watch history </value>
+  </data>
+  <data name="Step18_65e6aa8be6" xml:space="preserve">
+    <value>will be permanently removed from CineLibrary. This can't be undone.</value>
+  </data>
+  <data name="Step18_5586799cb0" xml:space="preserve">
+    <value>“{m.Title}” restored to your library</value>
+  </data>
+  <data name="Step18_a290d06231" xml:space="preserve">
+    <value>Show all {m.Actors.Count}</value>
+  </data>
+  <data name="Step18_eb92025cb8" xml:space="preserve">
+    <value>Show all</value>
+  </data>
+  <data name="Step18_4db44a5d9d" xml:space="preserve">
+    <value>Add to list</value>
+  </data>
+  <data name="Step18_6bcd150c72" xml:space="preserve">
+    <value>In Watchlist</value>
+  </data>
+  <data name="Step18_1f65d5dbc8" xml:space="preserve">
+    <value>Add to Watchlist</value>
+  </data>
+  <data name="Step18_a4db236049" xml:space="preserve">
+    <value>This can't be undone.</value>
+  </data>
+  <data name="Step18_2bd339d85e" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="Step18_aefff6b89b" xml:space="preserve">
+    <value>No movies selected</value>
+  </data>
+  <data name="Step18_c2a5c127eb" xml:space="preserve">
+    <value>No folder selected</value>
+  </data>
+
+  <data name="Step18_ac33295599" xml:space="preserve">
+    <value>sent to Watched &amp; Gone</value>
+  </data>
+  <data name="Step18_05e8bad44f" xml:space="preserve">
+    <value>restored to your library</value>
+  </data>
+
+  <data name="Step18_d4bebf0332" xml:space="preserve">
+    <value>A list named</value>
+  </data>
+  <data name="Step18_102779676f" xml:space="preserve">
+    <value>already exists</value>
+  </data>
+</root>

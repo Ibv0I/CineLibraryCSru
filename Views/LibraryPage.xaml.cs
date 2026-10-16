@@ -393,7 +393,7 @@ public sealed partial class LibraryPage : Page
             catch (Microsoft.Data.Sqlite.SqliteException)
             {
                 if (App.MainWindow is MainWindow mw)
-                    mw.ShowToast($"A list named “{name.Trim()}” already exists");
+                    mw.ShowToast($"{CineLibraryCS.Services.LocalizationService.TranslateText("A list named")} «{name.Trim()}» {CineLibraryCS.Services.LocalizationService.TranslateText("already exists")}");
             }
         };
         SelListsFlyout.Items.Add(newItem);

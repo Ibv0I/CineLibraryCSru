@@ -666,7 +666,7 @@ public sealed partial class MovieCardControl : UserControl
         var membership = AppState.Instance.Db.GetUserListsForMovie(Movie.Id);
         if (allLists.Count == 0)
         {
-            listsSub.Items.Add(new MenuFlyoutItem { Text = "(no lists yet)", IsEnabled = false });
+            listsSub.Items.Add(new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("(no lists yet)"), IsEnabled = false });
         }
         else
         {
@@ -687,7 +687,7 @@ public sealed partial class MovieCardControl : UserControl
             }
         }
         listsSub.Items.Add(new MenuFlyoutSeparator());
-        var newListItem = new MenuFlyoutItem { Text = "+ New list…" };
+        var newListItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("+ New list…") };
         newListItem.Click += async (_, _) =>
         {
             var name = await PromptNewListNameDialog();
@@ -701,7 +701,7 @@ public sealed partial class MovieCardControl : UserControl
             catch (Microsoft.Data.Sqlite.SqliteException)
             {
                 if (App.MainWindow is MainWindow mw)
-                    mw.ShowToast($"A list named “{name.Trim()}” already exists");
+                    mw.ShowToast($"{CineLibraryCS.Services.LocalizationService.TranslateText("A list named")} «{name.Trim()}» {CineLibraryCS.Services.LocalizationService.TranslateText("already exists")}");
             }
         };
         listsSub.Items.Add(newListItem);
@@ -727,10 +727,10 @@ public sealed partial class MovieCardControl : UserControl
             var dlg = new ContentDialog
             {
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Send to Watched & Gone?"),
-                Content = $"“{m.Title}” moves out of your library into Watched & Gone — " +
-                          "its poster, details, your notes and watch history are all kept as a record. " +
-                          "The files on your drive are not touched.\n\n" +
-                          "You can restore it from the Watched & Gone page anytime.",
+                Content = $"«{m.Title}» перемещается из библиотеки в раздел «Просмотрено и удалено» — " +
+                          CineLibraryCS.Services.LocalizationService.TranslateText("its poster, details, your notes and watch history are all kept as a record. ") +
+                          CineLibraryCS.Services.LocalizationService.TranslateText("The files on your drive are not touched.") + "\n\n" +
+                          CineLibraryCS.Services.LocalizationService.TranslateText("You can restore it from the Watched & Gone page anytime."),
                 PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Send"),
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
@@ -740,7 +740,7 @@ public sealed partial class MovieCardControl : UserControl
             if (await dlg.ShowAsync() != ContentDialogResult.Primary) return;
             AppState.Instance.Db.ArchiveMovies(new[] { m.Id });
             if (App.MainWindow is MainWindow mw)
-                mw.ShowToast($"“{m.Title}” sent to Watched & Gone");
+                mw.ShowToast($"«{m.Title}» " + CineLibraryCS.Services.LocalizationService.TranslateText("sent to Watched & Gone"));
             RaiseMovieArchived();
         };
         flyout.Items.Add(archiveItem);
@@ -763,7 +763,7 @@ public sealed partial class MovieCardControl : UserControl
         {
             AppState.Instance.Db.RestoreArchivedMovie(m.Id);
             if (App.MainWindow is MainWindow mw)
-                mw.ShowToast($"“{m.Title}” restored to your library");
+                mw.ShowToast($"«{m.Title}» " + CineLibraryCS.Services.LocalizationService.TranslateText("restored to your library"));
             RaiseMovieArchived();
         };
         flyout.Items.Add(restoreItem);
@@ -778,8 +778,8 @@ public sealed partial class MovieCardControl : UserControl
             var dlg = new ContentDialog
             {
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Delete this record?"),
-                Content = $"“{m.Title}” — its record, cached poster, notes and watch history " +
-                          "will be permanently removed from CineLibrary. This can't be undone.",
+                Content = $"«{m.Title}» — запись, сохранённый постер, заметки и история просмотров " +
+                          CineLibraryCS.Services.LocalizationService.TranslateText("will be permanently removed from CineLibrary. This can't be undone."),
                 PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Delete forever"),
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Close,

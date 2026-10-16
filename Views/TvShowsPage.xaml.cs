@@ -894,8 +894,8 @@ public sealed partial class TvShowsPage : Page
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    // "📑 Add to list" — mirrors the movie flyout: toggle membership of any
-    // list, plus "+ New list…". Lists are independent buckets, so a show
+    // CineLibraryCS.Services.LocalizationService.TranslateText("📑 Add to list") — mirrors the movie flyout: toggle membership of any
+    // list, plus CineLibraryCS.Services.LocalizationService.TranslateText("+ New list…"). Lists are independent buckets, so a show
     // and a movie can share a list.
     private void OnShowListsFlyoutOpening(object sender, object e)
     {
@@ -906,7 +906,7 @@ public sealed partial class TvShowsPage : Page
         var membership = db.GetUserListsForShow(_detail.Id);
 
         if (lists.Count == 0)
-            ShowListsFlyout.Items.Add(new MenuFlyoutItem { Text = "(no lists yet)", IsEnabled = false });
+            ShowListsFlyout.Items.Add(new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("(no lists yet)"), IsEnabled = false });
         else
             foreach (var ul in lists)
             {
@@ -935,7 +935,7 @@ public sealed partial class TvShowsPage : Page
             }
             catch (Microsoft.Data.Sqlite.SqliteException)
             {
-                if (App.MainWindow is MainWindow mw) mw.ShowToast($"A list named “{name.Trim()}” already exists");
+                if (App.MainWindow is MainWindow mw) mw.ShowToast($"{CineLibraryCS.Services.LocalizationService.TranslateText("A list named")} «{name.Trim()}» {CineLibraryCS.Services.LocalizationService.TranslateText("already exists")}");
             }
         };
         ShowListsFlyout.Items.Add(newItem);

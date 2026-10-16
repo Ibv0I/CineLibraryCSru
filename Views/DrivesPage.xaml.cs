@@ -499,9 +499,9 @@ public sealed partial class DrivesPage : Page
             var content = new StackPanel { Spacing = 6, MinWidth = 480 };
             content.Children.Add(new TextBlock
             {
-                Text = $"{missing.Count} movie(s) on “{drive?.Label}” weren't found in the last scan. " +
-                       "Tick the ones to keep as records in Watched & Gone — their poster, details, notes and " +
-                       "watch history stay. Unticked ones are removed from CineLibrary. Your files are never touched.",
+                Text = $"При последнем сканировании на диске «{drive?.Label}» не найдено фильмов: {missing.Count}. " +
+                       "Отметьте фильмы, записи о которых нужно сохранить в разделе «Просмотрено и убрано»: постер, сведения, заметки и " +
+                       "история просмотров останутся. Неотмеченные записи будут удалены из CineLibrary. Сами файлы не изменяются.",
                 TextWrapping = TextWrapping.Wrap, FontSize = 13, Foreground = muted, Margin = new Thickness(0, 0, 0, 4),
             });
             var keepAll = new HyperlinkButton { Content = CineLibraryCS.Services.LocalizationService.TranslateText("Keep all") };
@@ -554,15 +554,15 @@ public sealed partial class DrivesPage : Page
 
             var dialog = new ContentDialog
             {
-                Title = $"Remove {drive.MissingCount} missing movies?",
+                Title = $"Удалить отсутствующие фильмы ({drive.MissingCount})?",
                 Content =
-                    $"The last scan of '{drive.Label}' didn't find {drive.MissingCount} movie(s) that were previously indexed. " +
+                    $"При последнем сканировании на диске «{drive.Label}» не найдено ранее добавленных фильмов: {drive.MissingCount}. " +
                     CineLibraryCS.Services.LocalizationService.TranslateText("Their folders may have been renamed or deleted on the drive.\n\n") +
                     CineLibraryCS.Services.LocalizationService.TranslateText("Removing them will delete their entries (and cached posters/fanart) from the CineLibrary database. ") +
                     CineLibraryCS.Services.LocalizationService.TranslateText("The actual files on the drive are not touched.\n\n") +
                     CineLibraryCS.Services.LocalizationService.TranslateText("Tip: if the drive was only partially connected or you scanned the wrong folder, ") +
-                    "cancel this and rescan first — otherwise you'll re-scrape these next time.",
-                PrimaryButtonText = $"Delete {drive.MissingCount} entries",
+                    "Отмените удаление и запустите сканирование повторно, иначе эти записи снова будут обработаны при следующем обновлении.",
+                PrimaryButtonText = $"Удалить записей: {drive.MissingCount}",
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = XamlRoot,
@@ -574,7 +574,7 @@ public sealed partial class DrivesPage : Page
             Refresh();
             RefreshRequested?.Invoke(this, EventArgs.Empty);
 
-            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Cleaned up"), $"Removed {deleted} missing movie entries from '{drive.Label}'.");
+            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Cleaned up"), $"Удалено записей об отсутствующих фильмах: {deleted} (диск «{drive.Label}»).");
         }
         catch (Exception ex) { await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Error"), ex.Message); }
     }
@@ -649,7 +649,7 @@ public sealed partial class DrivesPage : Page
             var panel = new StackPanel { Spacing = 10 };
             panel.Children.Add(new TextBlock
             {
-                Text = $"Remove '{drive?.Label}' and all its {drive?.MovieCount} movies from CineLibrary? The actual files on the drive are not deleted.",
+                Text = $"Удалить диск «{drive?.Label}» и все его фильмы ({drive?.MovieCount}) из CineLibrary? Сами файлы на диске не будут удалены.",
                 TextWrapping = TextWrapping.Wrap,
             });
             CheckBox? syncBox = null;
@@ -657,7 +657,7 @@ public sealed partial class DrivesPage : Page
             {
                 panel.Children.Add(new TextBlock
                 {
-                    Text = $"{stateful} movie(s) on this drive have watched / favorite / list / notes data.",
+                    Text = $"Для {stateful} фильмов на этом диске сохранены данные о просмотре, избранном, списках или заметках.",
                     FontSize = 12,
                     Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
                     TextWrapping = TextWrapping.Wrap,
@@ -675,7 +675,7 @@ public sealed partial class DrivesPage : Page
                 {
                     panel.Children.Add(new TextBlock
                     {
-                        Text = "⚠ Drive is offline — that state will be lost unless you cancel and connect the drive first.",
+                        Text = "⚠ Диск отключён. Эти данные будут потеряны, если не отменить действие и не подключить диск.",
                         FontSize = 12,
                         Foreground = CineLibraryCS.Services.ThemeBrushes.Get("AccentRedBrush"),
                         TextWrapping = TextWrapping.Wrap,
@@ -719,8 +719,8 @@ public sealed partial class DrivesPage : Page
                 AppState.Instance.SweepStateSidecars(serial, includeFetchedArt: true));
             if (App.MainWindow is CineLibraryCS.MainWindow mw)
                 mw.ShowToast(written == 0
-                    ? "Nothing to sync — no personal state or fetched info on this drive yet."
-                    : $"Synced {written} movie(s) to drive — state + any fetched art{(skipped > 0 ? $", {skipped} skipped" : "")}");
+                    ? "Нет данных для синхронизации: на этом диске пока нет личных отметок или загруженных изображений."
+                    : $"Синхронизировано фильмов: {written}; личные отметки и изображения сохранены{(skipped > 0 ? $", пропущено: {skipped}" : "")}");
         }
         catch (Exception ex) { await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Error"), ex.Message); }
     }

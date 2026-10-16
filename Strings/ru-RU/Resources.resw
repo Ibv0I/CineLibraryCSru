@@ -2197,4 +2197,28 @@
   <data name="Step19_37a70ca094" xml:space="preserve">
     <value>Открыть на IMDb</value>
   </data>
+  <data name="Step20_85d0b86d7d" xml:space="preserve">
+    <value>Импорт резервной копии…</value>
+  </data>
+  <data name="Step21_1512105438" xml:space="preserve">
+    <value>Сортировать фильмы</value>
+  </data>
+  <data name="Step21_c49c29bb66" xml:space="preserve">
+    <value>Ничего не найдено</value>
+  </data>
+  <data name="Step21_74540c79e3" xml:space="preserve">
+    <value>Открыть файл</value>
+  </data>
+  <data name="Step21_729a51874f" xml:space="preserve">
+    <value>Вы уверены?</value>
+  </data>
+  <data name="Step21_04d043a498" xml:space="preserve">
+    <value>Фильмы не найдены</value>
+  </data>
+  <data name="Step21_4c41e0bd95" xml:space="preserve">
+    <value>Выбрать всё</value>
+  </data>
+  <data name="Step21_52e3ce2bc9" xml:space="preserve">
+    <value>Снять выделение</value>
+  </data>
 </root>

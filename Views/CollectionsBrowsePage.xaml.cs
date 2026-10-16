@@ -80,7 +80,7 @@ public sealed partial class CollectionsBrowsePage : Page
             {
                 Id = e.Id,
                 Name = e.Name,
-                CountText = $"{e.Count} movie{(e.Count == 1 ? "" : "s")}",
+                CountText = $"{e.Count} {(e.Count == 1 ? "фильм" : e.Count is >= 2 and <= 4 ? "фильма" : "фильмов")}",
                 CardWidth = _cardWidth,
                 CardHeight = _cardHeight,
                 WatchedVisibility = e.Watched >= e.Count ? Visibility.Visible : Visibility.Collapsed,

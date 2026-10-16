@@ -27,12 +27,12 @@ public sealed partial class StatisticsPage : Page
         TileTotalDrives.Text   = stats.TotalDrives.ToString();
 
         var archived = db.GetArchivedCount();
-        ArchivedLine.Text = $"Plus {archived:N0} {(archived == 1 ? "movie" : "movies")} kept in Watched & Gone.";
+        ArchivedLine.Text = $"Ещё {archived:N0} {(archived == 1 ? "фильм хранится" : "фильмов хранится")} в разделе «Просмотрено и убрано».";
         ArchivedLine.Visibility = archived > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         if (stats.TotalMissing > 0)
         {
-            MissingHint.Text = $"⚠ {stats.TotalMissing} movie{(stats.TotalMissing == 1 ? "" : "s")} marked missing. Clean up in the Drives page.";
+            MissingHint.Text = $"⚠ Отсутствующих фильмов: {stats.TotalMissing}. Проверьте список на странице «Диски».";
             MissingHint.Visibility = Visibility.Visible;
         }
         else
@@ -47,7 +47,7 @@ public sealed partial class StatisticsPage : Page
 
         var watchlist = db.GetWatchlistCount();
         WatchlistCountText.Text = watchlist > 0
-            ? $"📌 {watchlist} on your watchlist"
+            ? $"📌 В списке «К просмотру»: {watchlist}"
             : CineLibraryCS.Services.LocalizationService.TranslateText("Tip: add movies to your watchlist from the movie detail dialog.");
 
         // ── TV Shows (v2.8.2) — only surfaced when the library has shows ──

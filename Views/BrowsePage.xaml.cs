@@ -118,7 +118,7 @@ public sealed partial class BrowsePage : Page
         });
         labelStack.Children.Add(new TextBlock
         {
-            Text = $"{e.Count} movie{(e.Count == 1 ? "" : "s")}",
+            Text = $"{e.Count} {(e.Count == 1 ? "фильм" : e.Count is >= 2 and <= 4 ? "фильма" : "фильмов")}",
             FontSize = 12,
             Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xCC, 0xFF, 0xFF, 0xFF)),
         });

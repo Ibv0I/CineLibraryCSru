@@ -2197,4 +2197,28 @@ Then try again.</value>
   <data name="Step19_37a70ca094" xml:space="preserve">
     <value>Open on IMDb</value>
   </data>
+  <data name="Step20_85d0b86d7d" xml:space="preserve">
+    <value>Import backup…</value>
+  </data>
+  <data name="Step21_1512105438" xml:space="preserve">
+    <value>Sort movies</value>
+  </data>
+  <data name="Step21_c49c29bb66" xml:space="preserve">
+    <value>No results</value>
+  </data>
+  <data name="Step21_74540c79e3" xml:space="preserve">
+    <value>Open file</value>
+  </data>
+  <data name="Step21_729a51874f" xml:space="preserve">
+    <value>Are you sure?</value>
+  </data>
+  <data name="Step21_04d043a498" xml:space="preserve">
+    <value>No movies found</value>
+  </data>
+  <data name="Step21_4c41e0bd95" xml:space="preserve">
+    <value>Select all</value>
+  </data>
+  <data name="Step21_52e3ce2bc9" xml:space="preserve">
+    <value>Deselect all</value>
+  </data>
 </root>

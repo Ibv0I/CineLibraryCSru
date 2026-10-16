@@ -1674,7 +1674,7 @@ public sealed partial class MainWindow : Window
         };
         var importBtn = new Button
         {
-            Content = "📥  Import backup…",
+            Content = CineLibraryCS.Services.LocalizationService.TranslateText("Import backup…"),
             Background = CineLibraryCS.Services.ThemeBrushes.Get("CardBrush"),
             Foreground = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush"),
             BorderBrush = CineLibraryCS.Services.ThemeBrushes.Get("BorderBrush"),

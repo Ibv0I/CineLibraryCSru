@@ -582,6 +582,14 @@ public static class LocalizationService
         ["already exists"] = "Step18_102779676f",
         ["Clear filters"] = "Step19_0b275442d6",
         ["Open on IMDb"] = "Step19_37a70ca094",
+        ["Import backup…"] = "Step20_85d0b86d7d",
+        ["Sort movies"] = "Step21_1512105438",
+        ["No results"] = "Step21_c49c29bb66",
+        ["Open file"] = "Step21_74540c79e3",
+        ["Are you sure?"] = "Step21_729a51874f",
+        ["No movies found"] = "Step21_04d043a498",
+        ["Select all"] = "Step21_4c41e0bd95",
+        ["Deselect all"] = "Step21_52e3ce2bc9",
     };
 
     public static string TranslateText(string? text)

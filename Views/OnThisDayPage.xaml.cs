@@ -43,7 +43,7 @@ public sealed partial class OnThisDayPage : Page
         if (watched.Count > 0)
         {
             WatchedSection.Visibility = Visibility.Visible;
-            WatchedSub.Text = watched.Count == 1 ? "1 movie" : $"{watched.Count} movies";
+            WatchedSub.Text = watched.Count == 1 ? "1 фильм" : $"{watched.Count} фильмов";
             WatchedRepeater.ItemsSource = watched;
         }
         else

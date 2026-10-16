@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -2035,7 +2035,90 @@ Then try again.</value>
   <data name="Step15_f2c91c31aa" xml:space="preserve">
     <value>Pick the correct show so the missing details are filled from the right entry.</value>
   </data>
-<data name="OffLabel" xml:space="preserve"><value>Off</value></data><data name="SubtleLabel" xml:space="preserve"><value>Subtle</value></data><data name="StrongLabel" xml:space="preserve"><value>Strong</value></data><data name="PngImage" xml:space="preserve"><value>PNG image</value></data><data name="NoListsYetHint" xml:space="preserve"><value>No lists yet — use + below</value></data><data name="TvShowsInListLabel" xml:space="preserve"><value>TV shows in this list</value></data><data name="TvShowsMatchingLabel" xml:space="preserve"><value>TV shows matching</value></data><data name="SelectedLabel" xml:space="preserve"><value>selected</value></data><data name="NoMoviesFilter" xml:space="preserve"><value>No movies match the current filter</value></data><data name="ClearFilter" xml:space="preserve"><value>Clear filter</value></data><data name="CardShadowsSetting" xml:space="preserve"><value>Card shadows</value></data><data name="OneMovie" xml:space="preserve"><value>1 movie</value></data><data name="MoviesCount" xml:space="preserve"><value>movies</value></data><data name="NoMoviesYet" xml:space="preserve"><value>No movies yet</value></data><data name="PartOfCollection" xml:space="preserve"><value>Part of the ...</value></data><data name="FavoritedLabel" xml:space="preserve"><value>Favorited</value></data><data name="CouldntOpenFolder" xml:space="preserve"><value>Couldn’t open that folder.</value></data><data name="CopyDriveOffline" xml:space="preserve"><value>That copy’s drive is offline.</value></data><data name="PossibleDuplicateLabel" xml:space="preserve"><value>Possible duplicate</value></data><data name="IgnoreSet" xml:space="preserve"><value>Ignore set</value></data><data name="Unignore" xml:space="preserve"><value>Un-ignore</value></data><data name="OnLabel" xml:space="preserve"><value>On</value></data><data name="CollectionLabelExtra" xml:space="preserve"><value>Collection</value></data><data name="PossibleDuplicateLower" xml:space="preserve"><value>possible duplicate</value></data><data name="KeptOnPurpose" xml:space="preserve"><value>kept on purpose</value></data><data name="ReclaimableLabel" xml:space="preserve"><value>reclaimable</value></data><data name="SeasonLabelExtra" xml:space="preserve"><value>Season</value></data><data name="MinutesShort" xml:space="preserve"><value>min</value></data>
+  <data name="OffLabel" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="SubtleLabel" xml:space="preserve">
+    <value>Subtle</value>
+  </data>
+  <data name="StrongLabel" xml:space="preserve">
+    <value>Strong</value>
+  </data>
+  <data name="PngImage" xml:space="preserve">
+    <value>PNG image</value>
+  </data>
+  <data name="NoListsYetHint" xml:space="preserve">
+    <value>No lists yet — use + below</value>
+  </data>
+  <data name="TvShowsInListLabel" xml:space="preserve">
+    <value>TV shows in this list</value>
+  </data>
+  <data name="TvShowsMatchingLabel" xml:space="preserve">
+    <value>TV shows matching</value>
+  </data>
+  <data name="SelectedLabel" xml:space="preserve">
+    <value>selected</value>
+  </data>
+  <data name="NoMoviesFilter" xml:space="preserve">
+    <value>No movies match the current filter</value>
+  </data>
+  <data name="ClearFilter" xml:space="preserve">
+    <value>Clear filter</value>
+  </data>
+  <data name="CardShadowsSetting" xml:space="preserve">
+    <value>Card shadows</value>
+  </data>
+  <data name="OneMovie" xml:space="preserve">
+    <value>1 movie</value>
+  </data>
+  <data name="MoviesCount" xml:space="preserve">
+    <value>movies</value>
+  </data>
+  <data name="NoMoviesYet" xml:space="preserve">
+    <value>No movies yet</value>
+  </data>
+  <data name="PartOfCollection" xml:space="preserve">
+    <value>Part of the ...</value>
+  </data>
+  <data name="FavoritedLabel" xml:space="preserve">
+    <value>Favorited</value>
+  </data>
+  <data name="CouldntOpenFolder" xml:space="preserve">
+    <value>Couldn’t open that folder.</value>
+  </data>
+  <data name="CopyDriveOffline" xml:space="preserve">
+    <value>That copy’s drive is offline.</value>
+  </data>
+  <data name="PossibleDuplicateLabel" xml:space="preserve">
+    <value>Possible duplicate</value>
+  </data>
+  <data name="IgnoreSet" xml:space="preserve">
+    <value>Ignore set</value>
+  </data>
+  <data name="Unignore" xml:space="preserve">
+    <value>Un-ignore</value>
+  </data>
+  <data name="OnLabel" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="CollectionLabelExtra" xml:space="preserve">
+    <value>Collection</value>
+  </data>
+  <data name="PossibleDuplicateLower" xml:space="preserve">
+    <value>possible duplicate</value>
+  </data>
+  <data name="KeptOnPurpose" xml:space="preserve">
+    <value>kept on purpose</value>
+  </data>
+  <data name="ReclaimableLabel" xml:space="preserve">
+    <value>reclaimable</value>
+  </data>
+  <data name="SeasonLabelExtra" xml:space="preserve">
+    <value>Season</value>
+  </data>
+  <data name="MinutesShort" xml:space="preserve">
+    <value>min</value>
+  </data>
   <data name="Step18_456f9627a3" xml:space="preserve">
     <value>(no lists yet)</value>
   </data>
@@ -2096,18 +2179,22 @@ Then try again.</value>
   <data name="Step18_c2a5c127eb" xml:space="preserve">
     <value>No folder selected</value>
   </data>
-
   <data name="Step18_ac33295599" xml:space="preserve">
     <value>sent to Watched &amp; Gone</value>
   </data>
   <data name="Step18_05e8bad44f" xml:space="preserve">
     <value>restored to your library</value>
   </data>
-
   <data name="Step18_d4bebf0332" xml:space="preserve">
     <value>A list named</value>
   </data>
   <data name="Step18_102779676f" xml:space="preserve">
     <value>already exists</value>
+  </data>
+  <data name="Step19_0b275442d6" xml:space="preserve">
+    <value>Clear filters</value>
+  </data>
+  <data name="Step19_37a70ca094" xml:space="preserve">
+    <value>Open on IMDb</value>
   </data>
 </root>

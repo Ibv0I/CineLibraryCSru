@@ -188,7 +188,7 @@ public sealed partial class DrivesPage : Page
             var dialog = new ContentDialog
             {
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Remove folder?"),
-                Content = $"Remove '{dr.DisplayName}' from '{drive?.Label}'? Movies indexed under this folder will be deleted from the library. The actual files on the drive are untouched.",
+                Content = $"Удалить «{dr.DisplayName}» из «{drive?.Label}»? Фильмы, найденные в этой папке, будут удалены из библиотеки. Сами файлы на диске останутся.",
                 PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Remove"),
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Close,
@@ -248,7 +248,7 @@ public sealed partial class DrivesPage : Page
             : label;
 
         ScanOverlay.Visibility = Visibility.Visible;
-        ScanStatusText.Text = $"Scanning {scopeLabel}…";
+        ScanStatusText.Text = $"Сканирование: {scopeLabel}…";
         ScanDetailText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Preparing…");
 
         _scanCts = new CancellationTokenSource();
@@ -333,7 +333,7 @@ public sealed partial class DrivesPage : Page
         }
 
         ScanOverlay.Visibility = Visibility.Visible;
-        ScanStatusText.Text = $"Refreshing {work.Count} folder(s)…";
+        ScanStatusText.Text = $"Обновление папок: {work.Count}…";
         ScanDetailText.Text = "";
         _scanCts = new CancellationTokenSource();
 
@@ -350,7 +350,7 @@ public sealed partial class DrivesPage : Page
                 {
                     DispatcherQueue.TryEnqueue(() =>
                     {
-                        ScanStatusText.Text = $"{prog}/{work.Count} — {label}: {p.Found} checked";
+                        ScanStatusText.Text = $"{prog}/{work.Count} — {label}: проверено {p.Found}";
                         ScanDetailText.Text = p.Done ? "" : Path.GetFileName(p.CurrentFolder);
                     });
                 });
@@ -539,7 +539,7 @@ public sealed partial class DrivesPage : Page
             Refresh();
             RefreshRequested?.Invoke(this, EventArgs.Empty);
             if (App.MainWindow is CineLibraryCS.MainWindow mw)
-                mw.ShowToast($"Kept {kept} as record(s) · removed {removed}");
+                mw.ShowToast($"Сохранено записей: {kept} · удалено: {removed}");
         }
         catch (Exception ex) { await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Error"), ex.Message); }
     }
@@ -700,7 +700,7 @@ public sealed partial class DrivesPage : Page
                 var (written, skipped) = await Task.Run(() =>
                     AppState.Instance.SweepStateSidecars(serial));
                 if (App.MainWindow is CineLibraryCS.MainWindow mw)
-                    mw.ShowToast($"Synced state to {written} movie(s){(skipped > 0 ? $" — {skipped} skipped" : "")}");
+                    mw.ShowToast($"Синхронизировано фильмов: {written}{(skipped > 0 ? $" — пропущено: {skipped}" : "")}");
             }
 
             AppState.Instance.Db.RemoveDrive(serial);

@@ -580,6 +580,8 @@ public static class LocalizationService
         ["will be permanently removed from CineLibrary. This can't be undone."] = "Step18_65e6aa8be6",
         ["A list named"] = "Step18_d4bebf0332",
         ["already exists"] = "Step18_102779676f",
+        ["Clear filters"] = "Step19_0b275442d6",
+        ["Open on IMDb"] = "Step19_37a70ca094",
     };
 
     public static string TranslateText(string? text)

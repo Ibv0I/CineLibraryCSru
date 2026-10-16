@@ -849,7 +849,7 @@ public sealed partial class MovieDetailDialog : Window
         "themoviedb" or "tmdb" => "TMDb",
         "rottentomatoes" => "Rotten Tomatoes",
         "metacritic" => "Metacritic",
-        "default" => "Rating",
+        "default" => "Рейтинг",
         _ => char.ToUpper(src[0]) + src.Substring(1),
     };
 

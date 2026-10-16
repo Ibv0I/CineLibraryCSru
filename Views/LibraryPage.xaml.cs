@@ -406,7 +406,7 @@ public sealed partial class LibraryPage : Page
         foreach (var mid in ids)
             AppState.Instance.Db.AddMovieToUserList(listId, mid);
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
-        ShowSelectionToast($"Added {ids.Count} to “{listName}”", () =>
+        ShowSelectionToast($"Добавлено фильмов: {ids.Count} — в список «{listName}»", () =>
         {
             foreach (var mid in ids)
                 AppState.Instance.Db.RemoveMovieFromUserList(listId, mid);
@@ -429,7 +429,7 @@ public sealed partial class LibraryPage : Page
         }
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         ShowSelectionToast(
-            $"{(anyUnwatched ? "Marked" : "Unmarked")} {changed.Count} watched",
+            $"{(anyUnwatched ? "Отмечено как просмотренное" : "Снята отметка просмотра")}: {changed.Count}",
             () => {
                 foreach (var m in changed)
                 {
@@ -455,7 +455,7 @@ public sealed partial class LibraryPage : Page
         }
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         ShowSelectionToast(
-            $"{(anyOff ? "Added" : "Removed")} {changed.Count} {(anyOff ? "to" : "from")} watchlist",
+            $"{(anyOff ? "Добавлено в список просмотра" : "Удалено из списка просмотра")}: {changed.Count}",
             () => {
                 foreach (var m in changed)
                 {
@@ -484,8 +484,8 @@ public sealed partial class LibraryPage : Page
         {
             Title = $"Перенести фильмов: {picked.Count} — в «Просмотрено и удалено»?",
             Content = "Фильмы будут убраны из библиотеки в раздел «Просмотрено и удалено» — постеры, сведения, " +
-                      "your notes and watch history are all kept as records. " +
-                      "The files on your drives are not touched.",
+                      "заметки и история просмотров сохранятся в записи. " +
+                      "Файлы на дисках не изменяются.",
             PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Send"),
             CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.Primary,
@@ -497,7 +497,7 @@ public sealed partial class LibraryPage : Page
         var n = AppState.Instance.Db.ArchiveMovies(picked.Select(m => m.Id).ToList());
         ClearSelection();
         if (App.MainWindow is CineLibraryCS.MainWindow mw)
-            mw.ShowToast($"Sent {n} movie(s) to Watched & Gone");
+            mw.ShowToast($"Перенесено фильмов в «Просмотрено и убрано»: {n}");
         MovieCardControl.RaiseMovieArchived();
     }
 
@@ -516,7 +516,7 @@ public sealed partial class LibraryPage : Page
         }
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         ShowSelectionToast(
-            $"{(anyOff ? "Favorited" : "Unfavorited")} {changed.Count}",
+            $"{(anyOff ? "Добавлено в избранное" : "Убрано из избранного")}: {changed.Count}",
             () => {
                 foreach (var m in changed)
                 {
@@ -548,7 +548,7 @@ public sealed partial class LibraryPage : Page
         _selectedIds.Clear();
         AfterSelectionChanged();
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
-        ShowSelectionToast($"Removed {ids.Count} from list", () =>
+        ShowSelectionToast($"Удалено из списка: {ids.Count}", () =>
         {
             foreach (var mid in ids)
                 AppState.Instance.Db.AddMovieToUserList(listId, mid);

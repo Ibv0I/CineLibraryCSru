@@ -68,12 +68,12 @@ public sealed partial class OnThisDayPage : Page
         // when this was a dialog, so the moment of arrival reads naturally.
         SubText.Text = (watched.Count, released.Count) switch
         {
-            (0, 0)            => DateTime.Now.ToString("MMMM d") + " — nothing in your library tied to this date.",
+            (0, 0)            => DateTime.Now.ToString("d MMMM") + " — в библиотеке нет событий, связанных с этой датой.",
             (0, 1)            => CineLibraryCS.Services.LocalizationService.TranslateText("One movie released on this date in a past year."),
-            (0, var rel)      => $"{rel} movies released on this date in past years.",
+            (0, var rel)      => $"В прошлые годы в этот день вышло фильмов: {rel}.",
             (1, 0)            => CineLibraryCS.Services.LocalizationService.TranslateText("One movie you watched on this date in a past year."),
-            (var w, 0)        => $"{w} movies you've watched on this date in years past.",
-            (var w, var rel)  => $"{w} you've watched · {rel} released on this date.",
+            (var w, 0)        => $"Фильмов, просмотренных вами в этот день в прошлые годы: {w}.",
+            (var w, var rel)  => $"Просмотрено в этот день: {w} · вышло в этот день: {rel}.",
         };
 
         EmptyState.Visibility = (watched.Count + released.Count) == 0

@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -1825,4 +1825,214 @@ Then try again.</value>
   <data name="Step13_10ac3d0425" xml:space="preserve">
     <value>Next</value>
   </data>
-<data name="Find" xml:space="preserve"><value>Find</value></data><data name="MoreBy" xml:space="preserve"><value>More by</value></data><data name="TvShowsSectionTitle" xml:space="preserve"><value>📺 TV Shows</value></data><data name="WatchedOnDateHeader" xml:space="preserve"><value>🎞  YOU WATCHED ON THIS DATE</value></data><data name="ReleasedOnDateHeader" xml:space="preserve"><value>🎬  RELEASED ON THIS DATE</value></data><data name="ListIsEmpty" xml:space="preserve"><value>This list is empty</value></data><data name="AllMoviesLower" xml:space="preserve"><value>All movies</value></data><data name="NoMoviesCurrentFilter" xml:space="preserve"><value>No movies match the current filter — try clearing some filters</value></data><data name="GenreLabel" xml:space="preserve"><value>Genre</value></data><data name="DecadeLabel" xml:space="preserve"><value>Decade</value></data><data name="RatingLabel" xml:space="preserve"><value>Rating</value></data><data name="ActorLabel" xml:space="preserve"><value>Actor</value></data><data name="StudioLabel" xml:space="preserve"><value>Studio</value></data><data name="TotalShows" xml:space="preserve"><value>Total shows</value></data><data name="ListEmptyState" xml:space="preserve"><value>This list is empty</value></data><data name="AllMoviesDrama" xml:space="preserve"><value>All movies › Drama</value></data><data name="WelcomeTitle" xml:space="preserve"><value>Welcome to CineLibrary</value></data><data name="AddMoviesFolder" xml:space="preserve"><value>Add my movies folder</value></data><data name="ListName" xml:space="preserve"><value>List name</value></data><data name="NewList" xml:space="preserve"><value>New list</value></data><data name="Create" xml:space="preserve"><value>Create</value></data><data name="DeleteList" xml:space="preserve"><value>Delete list</value></data><data name="Rename" xml:space="preserve"><value>Rename</value></data><data name="ExportAsImage" xml:space="preserve"><value>Export as image…</value></data><data name="CopyMoviesToFolder" xml:space="preserve"><value>Copy movies to folder…</value></data><data name="AddedToWatchedGone" xml:space="preserve"><value>Added to Watched &amp; Gone</value></data><data name="ExportedRecordsCsv" xml:space="preserve"><value>Exported records to CSV</value></data><data name="YourNoteTitle" xml:space="preserve"><value>Your note</value></data><data name="NoListsYet" xml:space="preserve"><value>No lists yet</value></data><data name="NewListEllipsis" xml:space="preserve"><value>New list…</value></data></root>
+  <data name="Find" xml:space="preserve">
+    <value>Find</value>
+  </data>
+  <data name="MoreBy" xml:space="preserve">
+    <value>More by</value>
+  </data>
+  <data name="TvShowsSectionTitle" xml:space="preserve">
+    <value>📺 TV Shows</value>
+  </data>
+  <data name="WatchedOnDateHeader" xml:space="preserve">
+    <value>🎞  YOU WATCHED ON THIS DATE</value>
+  </data>
+  <data name="ReleasedOnDateHeader" xml:space="preserve">
+    <value>🎬  RELEASED ON THIS DATE</value>
+  </data>
+  <data name="ListIsEmpty" xml:space="preserve">
+    <value>This list is empty</value>
+  </data>
+  <data name="AllMoviesLower" xml:space="preserve">
+    <value>All movies</value>
+  </data>
+  <data name="NoMoviesCurrentFilter" xml:space="preserve">
+    <value>No movies match the current filter — try clearing some filters</value>
+  </data>
+  <data name="GenreLabel" xml:space="preserve">
+    <value>Genre</value>
+  </data>
+  <data name="DecadeLabel" xml:space="preserve">
+    <value>Decade</value>
+  </data>
+  <data name="RatingLabel" xml:space="preserve">
+    <value>Rating</value>
+  </data>
+  <data name="ActorLabel" xml:space="preserve">
+    <value>Actor</value>
+  </data>
+  <data name="StudioLabel" xml:space="preserve">
+    <value>Studio</value>
+  </data>
+  <data name="TotalShows" xml:space="preserve">
+    <value>Total shows</value>
+  </data>
+  <data name="ListEmptyState" xml:space="preserve">
+    <value>This list is empty</value>
+  </data>
+  <data name="AllMoviesDrama" xml:space="preserve">
+    <value>All movies › Drama</value>
+  </data>
+  <data name="WelcomeTitle" xml:space="preserve">
+    <value>Welcome to CineLibrary</value>
+  </data>
+  <data name="AddMoviesFolder" xml:space="preserve">
+    <value>Add my movies folder</value>
+  </data>
+  <data name="ListName" xml:space="preserve">
+    <value>List name</value>
+  </data>
+  <data name="NewList" xml:space="preserve">
+    <value>New list</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="DeleteList" xml:space="preserve">
+    <value>Delete list</value>
+  </data>
+  <data name="Rename" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="ExportAsImage" xml:space="preserve">
+    <value>Export as image…</value>
+  </data>
+  <data name="CopyMoviesToFolder" xml:space="preserve">
+    <value>Copy movies to folder…</value>
+  </data>
+  <data name="AddedToWatchedGone" xml:space="preserve">
+    <value>Added to Watched &amp; Gone</value>
+  </data>
+  <data name="ExportedRecordsCsv" xml:space="preserve">
+    <value>Exported records to CSV</value>
+  </data>
+  <data name="YourNoteTitle" xml:space="preserve">
+    <value>Your note</value>
+  </data>
+  <data name="NoListsYet" xml:space="preserve">
+    <value>No lists yet</value>
+  </data>
+  <data name="NewListEllipsis" xml:space="preserve">
+    <value>New list…</value>
+  </data>
+  <data name="Step15_686e697538" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="Step15_94966d9074" xml:space="preserve">
+    <value>Send</value>
+  </data>
+  <data name="Step15_ec211f7c20" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Step15_9639e32cab" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Step15_904a830405" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="Step15_02bce93bff" xml:space="preserve">
+    <value>Keep</value>
+  </data>
+  <data name="Step15_d3d2e61733" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Step15_c9cc8cce24" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Step15_e0aa021e21" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Step15_ea4788705e" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Step15_f2a6c498fb" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Step15_1063e38cb5" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Step15_0095a9fa74" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Step15_72d6d7a188" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Step15_63a6a88c06" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Step15_c3bf447eab" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="Step15_1b9abf135c" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="Step15_a0bfb8e59e" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="Step15_0dca3215bd" xml:space="preserve">
+    <value>Mark Watched</value>
+  </data>
+  <data name="Step15_14bef0668a" xml:space="preserve">
+    <value>Mark Unwatched</value>
+  </data>
+  <data name="Step15_d5b393def6" xml:space="preserve">
+    <value>All movies</value>
+  </data>
+  <data name="Step15_9cffcd0d8c" xml:space="preserve">
+    <value>All Movies</value>
+  </data>
+  <data name="Step15_8bc227feed" xml:space="preserve">
+    <value>Studio</value>
+  </data>
+  <data name="Step15_dae52b8071" xml:space="preserve">
+    <value>Recent</value>
+  </data>
+  <data name="Step15_f4c6f851b0" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="Step15_91563b0449" xml:space="preserve">
+    <value>Genre</value>
+  </data>
+  <data name="Step15_ad3bf81f37" xml:space="preserve">
+    <value>Decade</value>
+  </data>
+  <data name="Step15_dda9c06f33" xml:space="preserve">
+    <value>Rating</value>
+  </data>
+  <data name="Step15_1cc8461967" xml:space="preserve">
+    <value>Actor</value>
+  </data>
+  <data name="Step15_5102491a98" xml:space="preserve">
+    <value>List name</value>
+  </data>
+  <data name="Step15_0dfa571878" xml:space="preserve">
+    <value>New list</value>
+  </data>
+  <data name="Step15_0d35802c4c" xml:space="preserve">
+    <value>Movie Details</value>
+  </data>
+  <data name="Step15_656236cb60" xml:space="preserve">
+    <value>Movie details</value>
+  </data>
+  <data name="Step15_22f4d2c3ae" xml:space="preserve">
+    <value>No movies match your filters</value>
+  </data>
+  <data name="Step15_e2a791de17" xml:space="preserve">
+    <value>Welcome to CineLibrary</value>
+  </data>
+  <data name="Step15_fe26697e19" xml:space="preserve">
+    <value>This list is empty</value>
+  </data>
+  <data name="Step15_2c8d6a43e8" xml:space="preserve">
+    <value>No movies match the current filter — try clearing some filters</value>
+  </data>
+  <data name="Step15_a9dfb8d4a8" xml:space="preserve">
+    <value>Nothing in your library tied to this date.</value>
+  </data>
+  <data name="Step15_950585184a" xml:space="preserve">
+    <value>Match this show on TMDb</value>
+  </data>
+  <data name="Step15_f2c91c31aa" xml:space="preserve">
+    <value>Pick the correct show so the missing details are filled from the right entry.</value>
+  </data>
+</root>

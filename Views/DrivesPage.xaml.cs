@@ -104,7 +104,7 @@ public sealed partial class DrivesPage : Page
         {
             Title = CineLibraryCS.Services.LocalizationService.TranslateText("Add Drive"),
             Content = panel,
-            PrimaryButtonText = "Add",
+            PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Add"),
             CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
@@ -488,7 +488,7 @@ public sealed partial class DrivesPage : Page
                 var cb = new CheckBox
                 {
                     IsChecked = m.IsWatched || m.HasNote,
-                    Content = "Keep", MinWidth = 0, VerticalAlignment = VerticalAlignment.Center,
+                    Content = CineLibraryCS.Services.LocalizationService.TranslateText("Keep"), MinWidth = 0, VerticalAlignment = VerticalAlignment.Center,
                 };
                 Grid.SetColumn(cb, 2);
                 row.Children.Add(cb);
@@ -523,7 +523,7 @@ public sealed partial class DrivesPage : Page
             {
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Review missing movies"),
                 Content = content,
-                PrimaryButtonText = "Apply",
+                PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Apply"),
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot,
@@ -611,7 +611,7 @@ public sealed partial class DrivesPage : Page
             {
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Rename Drive"),
                 Content = panel,
-                PrimaryButtonText = "Rename",
+                PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Rename"),
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot,
@@ -731,7 +731,7 @@ public sealed partial class DrivesPage : Page
     {
         var dialog = new ContentDialog
         {
-            Title = title, Content = message, CloseButtonText = "OK",
+            Title = title, Content = message, CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("OK"),
             XamlRoot = XamlRoot,
             RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
         };

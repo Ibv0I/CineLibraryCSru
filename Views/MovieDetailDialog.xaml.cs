@@ -1389,7 +1389,7 @@ public sealed partial class MovieDetailDialog : Window
             {
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("New list"),
                 Content = box,
-                PrimaryButtonText = "Create",
+                PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Create"),
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = RootGrid.XamlRoot,

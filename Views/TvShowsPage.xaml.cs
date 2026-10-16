@@ -231,7 +231,7 @@ public sealed partial class TvShowsPage : Page
             Content = new ScrollViewer { Content = root, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = 500, Padding = new Thickness(0, 0, 16, 0) },
             PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("▶ Play"),
             SecondaryButtonText = d.IsWatched ? CineLibraryCS.Services.LocalizationService.TranslateText("Mark unwatched") : CineLibraryCS.Services.LocalizationService.TranslateText("Mark watched"),
-            CloseButtonText = "Close",
+            CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Close"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
             RequestedTheme = ElementTheme.Dark,   // the dark card in both themes, as the show header
@@ -857,7 +857,7 @@ public sealed partial class TvShowsPage : Page
         {
             Title = $"📝 Note for {show.Title}",
             Content = box,
-            PrimaryButtonText = "Save",
+            PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Save"),
             CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
@@ -948,7 +948,7 @@ public sealed partial class TvShowsPage : Page
         {
             Title = CineLibraryCS.Services.LocalizationService.TranslateText("New list"),
             Content = box,
-            PrimaryButtonText = "Create",
+            PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Create"),
             CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
@@ -1260,7 +1260,7 @@ public sealed partial class TvShowsPage : Page
         {
             Title = CineLibraryCS.Services.LocalizationService.TranslateText("Can't play yet"),
             Content = $"\"{title}\" is on a drive that isn't connected. Plug it in and try again.",
-            CloseButtonText = "OK",
+            CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("OK"),
             XamlRoot = XamlRoot,
             RequestedTheme = MainWindow.CurrentTheme,
         };

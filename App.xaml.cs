@@ -80,7 +80,7 @@ public partial class App : Application
                     MaxHeight = 400,
                     Padding = new Microsoft.UI.Xaml.Thickness(0, 0, 16, 0),
                 },
-                CloseButtonText = "OK",
+                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("OK"),
                 XamlRoot = MainWindow?.Content?.XamlRoot,
                 RequestedTheme = ElementTheme.Dark,
             };

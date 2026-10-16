@@ -1147,7 +1147,7 @@ public sealed partial class MainWindow : Window
         {
             Title = title,
             Content = box,
-            PrimaryButtonText = "OK",
+            PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("OK"),
             CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = Content.XamlRoot,
@@ -1766,7 +1766,7 @@ public sealed partial class MainWindow : Window
         {
             Title = "🔒  Backup",
             Content = panel,
-            CloseButtonText = "Close",
+            CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Close"),
             XamlRoot = Content.XamlRoot,
             RequestedTheme = CurrentTheme,
         };
@@ -1984,7 +1984,7 @@ public sealed partial class MainWindow : Window
                 MaxHeight = 520,
                 Padding = new Thickness(0, 0, 16, 0),
             },
-            CloseButtonText = "Close",
+            CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Close"),
             XamlRoot = Content.XamlRoot,
             RequestedTheme = CurrentTheme,
         };

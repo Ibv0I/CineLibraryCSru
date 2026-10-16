@@ -486,7 +486,7 @@ public sealed partial class LibraryPage : Page
             Content = "They move out of your library into Watched & Gone — posters, details, " +
                       "your notes and watch history are all kept as records. " +
                       "The files on your drives are not touched.",
-            PrimaryButtonText = "Send",
+            PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Send"),
             CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
@@ -570,7 +570,7 @@ public sealed partial class LibraryPage : Page
         {
             Title = CineLibraryCS.Services.LocalizationService.TranslateText("New list"),
             Content = box,
-            PrimaryButtonText = "Create",
+            PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Create"),
             CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = this.XamlRoot,
@@ -1055,14 +1055,14 @@ public sealed partial class LibraryPage : Page
     private void UpdateFilterChips()
     {
         ActiveFilterChips.Items.Clear();
-        AddChip("Genre",    _vm.Genre,           () => DropFilter(() => _vm.Genre = null));
+        AddChip(CineLibraryCS.Services.LocalizationService.TranslateText("Genre"),    _vm.Genre,           () => DropFilter(() => _vm.Genre = null));
         if (_vm.FilterDecadeStart.HasValue)
-            AddChip("Decade", $"{_vm.FilterDecadeStart.Value}s",
+            AddChip(CineLibraryCS.Services.LocalizationService.TranslateText("Decade"), $"{_vm.FilterDecadeStart.Value}s",
                 () => DropFilter(() => _vm.FilterDecadeStart = null));
-        AddChip("Rating",   _vm.FilterRatingBand,() => DropFilter(() => _vm.FilterRatingBand = null));
-        AddChip("Actor",    _vm.FilterActor,     () => DropFilter(() => _vm.FilterActor = null));
+        AddChip(CineLibraryCS.Services.LocalizationService.TranslateText("Rating"),   _vm.FilterRatingBand,() => DropFilter(() => _vm.FilterRatingBand = null));
+        AddChip(CineLibraryCS.Services.LocalizationService.TranslateText("Actor"),    _vm.FilterActor,     () => DropFilter(() => _vm.FilterActor = null));
         AddChip(CineLibraryCS.Services.LocalizationService.TranslateText("Director"), _vm.FilterDirector,  () => DropFilter(() => _vm.FilterDirector = null));
-        AddChip("Studio",   _vm.FilterStudio,    () => DropFilter(() => _vm.FilterStudio = null));
+        AddChip(CineLibraryCS.Services.LocalizationService.TranslateText("Studio"),   _vm.FilterStudio,    () => DropFilter(() => _vm.FilterStudio = null));
         if (_vm.FavoritesOnly)
             AddChip(CineLibraryCS.Services.LocalizationService.TranslateText("Favorites"), "♥",   () => DropFilter(() => _vm.FavoritesOnly = false));
         if (_vm.IsWatchlistOnly)
@@ -1070,11 +1070,11 @@ public sealed partial class LibraryPage : Page
         if (_vm.IsContinueWatching)
             AddChip(CineLibraryCS.Services.LocalizationService.TranslateText("Continue"), "▶",    () => DropFilter(() => _vm.IsContinueWatching = false));
         if (_vm.IsRecentlyWatched)
-            AddChip("Recent", "🕓",     () => DropFilter(() => _vm.IsRecentlyWatched = false));
+            AddChip(CineLibraryCS.Services.LocalizationService.TranslateText("Recent"), "🕓",     () => DropFilter(() => _vm.IsRecentlyWatched = false));
         if (_vm.IsRecentlyAdded)
             AddChip("New", "🆕",        () => DropFilter(() => _vm.IsRecentlyAdded = false));
         if (_vm.HasNoteOnly)
-            AddChip("Notes", "📝",      () => DropFilter(() => _vm.HasNoteOnly = false));
+            AddChip(CineLibraryCS.Services.LocalizationService.TranslateText("Notes"), "📝",      () => DropFilter(() => _vm.HasNoteOnly = false));
         if (_vm.TagId != null && !string.IsNullOrEmpty(_vm.TagName))
             AddChip("Tag",   _vm.TagName, () => DropFilter(() => { _vm.TagId = null; _vm.TagName = null; }));
         ActiveFilterChips.Visibility = ActiveFilterChips.Items.Count > 0

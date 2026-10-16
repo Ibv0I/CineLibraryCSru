@@ -609,7 +609,7 @@ public sealed partial class MovieCardControl : UserControl
             Content = string.IsNullOrEmpty(driveLabel)
                 ? $"\"{title}\" lives on a drive that isn't connected. Plug it in and try again."
                 : $"\"{title}\" lives on \"{driveLabel}\", which isn't connected. Plug it in and try again.",
-            CloseButtonText = "OK",
+            CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("OK"),
             XamlRoot = XamlRoot,
             RequestedTheme = MainWindow.CurrentTheme,
         };
@@ -731,7 +731,7 @@ public sealed partial class MovieCardControl : UserControl
                           "its poster, details, your notes and watch history are all kept as a record. " +
                           "The files on your drive are not touched.\n\n" +
                           "You can restore it from the Watched & Gone page anytime.",
-                PrimaryButtonText = "Send",
+                PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Send"),
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot,
@@ -802,7 +802,7 @@ public sealed partial class MovieCardControl : UserControl
         {
             Title = CineLibraryCS.Services.LocalizationService.TranslateText("New list"),
             Content = box,
-            PrimaryButtonText = "Create",
+            PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Create"),
             CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,

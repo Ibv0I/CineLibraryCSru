@@ -75,7 +75,7 @@ public sealed partial class MovieDetailDialog : Window
         if (int.TryParse(savedW, out var w) && w >= 700) width = w;
         if (int.TryParse(savedH, out var h) && h >= 500) height = h;
         appWindow.Resize(new SizeInt32(width, height));
-        appWindow.Title = CineLibraryCS.Services.LocalizationService.TranslateText("Movie Details");
+        appWindow.Title = CineLibraryCS.Services.LocalizationService.TranslateText("Подробности фильма");
 
         // Ensure window is resizable and maximizable, then open maximized
         if (appWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
@@ -204,9 +204,9 @@ public sealed partial class MovieDetailDialog : Window
         // Actions
         PlayBtn.IsEnabled = m.Playable;
         FolderBtn.IsEnabled = m.IsOnline;
-        FavBtn.Content = m.IsFavorite ? "♥ Favorited" : "♡ Favorite";
-        WatchedBtn.Content = m.IsWatched ? "✓ Watched" : "○ Mark Watched";
-        WatchlistBtn.Content = m.IsWatchlist ? CineLibraryCS.Services.LocalizationService.TranslateText("📌 In Watchlist") : CineLibraryCS.Services.LocalizationService.TranslateText("☐ Add to Watchlist");
+        FavBtn.Content = m.IsFavorite ? "♥ В избранном" : "♡ В избранное";
+        WatchedBtn.Content = m.IsWatched ? "✓ Просмотрен" : "○ Отметить просмотренным";
+        WatchlistBtn.Content = m.IsWatchlist ? CineLibraryCS.Services.LocalizationService.TranslateText("📌 В списке просмотра") : CineLibraryCS.Services.LocalizationService.TranslateText("☐ Добавить в список просмотра");
 
 
         // Notes
@@ -796,7 +796,7 @@ public sealed partial class MovieDetailDialog : Window
                 "6" => "5.1",
                 "2" => CineLibraryCS.Services.LocalizationService.TranslateText("Stereo"),
                 "1" => "Mono",
-                _ => $"{channels} ch",
+                _ => $"{channels} кан.",
             };
             parts.Add(lbl);
         }
@@ -924,7 +924,7 @@ public sealed partial class MovieDetailDialog : Window
                 0 => "—",
                 1 => subs[0],
                 <= 3 => string.Join(" · ", subs),
-                _ => $"{subs.Length} tracks",
+                _ => $"Дорожек: {subs.Length}",
             };
             FiSubsBlock.Visibility = Visibility.Visible;
             any = true;
@@ -1076,7 +1076,7 @@ public sealed partial class MovieDetailDialog : Window
         catch
         {
             if (App.MainWindow is MainWindow mw)
-                mw.ShowToast("Couldn't open IMDb — no browser available?");
+                mw.ShowToast("Не удалось открыть IMDb — браузер недоступен?");
         }
     }
 
@@ -1110,7 +1110,7 @@ public sealed partial class MovieDetailDialog : Window
         if (_movie == null) return;
         AppState.Instance.Db.ToggleFavorite(_movie.Id);
         _movie.IsFavorite = !_movie.IsFavorite;
-        FavBtn.Content = _movie.IsFavorite ? "♥ Favorited" : "♡ Favorite";
+        FavBtn.Content = _movie.IsFavorite ? "♥ В избранном" : "♡ В избранное";
     }
 
          private void OnToggleWatched(object sender, RoutedEventArgs e)
@@ -1118,7 +1118,7 @@ public sealed partial class MovieDetailDialog : Window
              if (_movie == null) return;
              AppState.Instance.Db.ToggleWatched(_movie.Id);
              _movie.IsWatched = !_movie.IsWatched;
-             WatchedBtn.Content = _movie.IsWatched ? "✓ Watched" : "○ Mark Watched";
+             WatchedBtn.Content = _movie.IsWatched ? "✓ Просмотрен" : "○ Отметить просмотренным";
          }
 
          private void OnToggleWatchlist(object sender, RoutedEventArgs e)
@@ -1126,7 +1126,7 @@ public sealed partial class MovieDetailDialog : Window
              if (_movie == null) return;
              AppState.Instance.Db.SetWatchlist(_movie.Id, !_movie.IsWatchlist);
              _movie.IsWatchlist = !_movie.IsWatchlist;
-             WatchlistBtn.Content = _movie.IsWatchlist ? "📌 In Watchlist" : CineLibraryCS.Services.LocalizationService.TranslateText("☐ Add to Watchlist");
+             WatchlistBtn.Content = _movie.IsWatchlist ? "📌 В списке просмотра" : CineLibraryCS.Services.LocalizationService.TranslateText("☐ Добавить в список просмотра");
              WatchlistChanged?.Invoke(this, EventArgs.Empty);
          }
 
@@ -1185,7 +1185,7 @@ public sealed partial class MovieDetailDialog : Window
                 MinWidth = 18,
                 MinHeight = 18,
             };
-            ToolTipService.SetToolTip(x, $"Remove from “{listName}”");
+            ToolTipService.SetToolTip(x, $"Убрать из списка «{listName}»");
             x.Click += (_, _) =>
             {
                 if (_movie == null) return;
@@ -1245,7 +1245,7 @@ public sealed partial class MovieDetailDialog : Window
                 MinWidth = 18,
                 MinHeight = 18,
             };
-            ToolTipService.SetToolTip(x, $"Remove tag “{tagName}”");
+            ToolTipService.SetToolTip(x, $"Удалить тег «{tagName}»");
             x.Click += (_, _) =>
             {
                 if (_movie == null) return;
@@ -1313,7 +1313,7 @@ public sealed partial class MovieDetailDialog : Window
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Add tag failed: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Не удалось добавить тег: {ex.Message}");
             }
             sender.Text = "";
             AddTagBox.Visibility = Visibility.Collapsed;
@@ -1332,7 +1332,7 @@ public sealed partial class MovieDetailDialog : Window
 
             if (lists.Count == 0)
             {
-                var none = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("(no lists yet)"), IsEnabled = false };
+                var none = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("(списков пока нет)"), IsEnabled = false };
                 ListsFlyout.Items.Add(none);
             }
             else
@@ -1384,10 +1384,10 @@ public sealed partial class MovieDetailDialog : Window
 
         private async Task<string?> PromptNewListName()
         {
-            var box = new TextBox { PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("List name") };
+            var box = new TextBox { PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("Название списка") };
             var dlg = new ContentDialog
             {
-                Title = CineLibraryCS.Services.LocalizationService.TranslateText("New list"),
+                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Новый список"),
                 Content = box,
                 PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Create"),
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),

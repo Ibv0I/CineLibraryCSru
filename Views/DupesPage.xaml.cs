@@ -69,9 +69,9 @@ public sealed partial class DupesPage : Page
         GroupsRepeater.ItemsSource = shown;
         CountText.Text = _all.Count == 0
             ? ""
-            : $"{possible} possible duplicate{(possible == 1 ? "" : "s")} · {_all.Count} group{(_all.Count == 1 ? "" : "s")}"
-              + (ignored > 0 ? $" · {ignored} ignored" : "");
-        ReclaimHeadline.Text = reclaimable > 0 ? $"~{DupeCopy.HumanSize(reclaimable)} reclaimable" : "";
+            : $"Возможных дубликатов: {possible} · групп: {_all.Count}"
+              + (ignored > 0 ? $" · игнорируется: {ignored}" : "");
+        ReclaimHeadline.Text = reclaimable > 0 ? $"Можно освободить: ~{DupeCopy.HumanSize(reclaimable)}" : "";
         EmptyState.Visibility = shown.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
         _ = LoadPostersAsync(shown, ++_posterToken);
@@ -115,7 +115,7 @@ public sealed partial class DupesPage : Page
         if ((sender as FrameworkElement)?.Tag is not DupeCopy copy) return;
         if (!copy.IsOnline || copy.CurrentLetter == null || copy.FolderRelPath == null)
         {
-            if (App.MainWindow is MainWindow mw) mw.ShowToast("That copy's drive is offline.");
+            if (App.MainWindow is MainWindow mw) mw.ShowToast("Диск с этой копией отключён.");
             return;
         }
         var folder = System.IO.Path.Combine($"{copy.CurrentLetter}:\\",
@@ -123,7 +123,7 @@ public sealed partial class DupesPage : Page
         try { await Windows.System.Launcher.LaunchFolderPathAsync(folder); }
         catch
         {
-            if (App.MainWindow is MainWindow mw2) mw2.ShowToast("Couldn't open that folder.");
+            if (App.MainWindow is MainWindow mw2) mw2.ShowToast("Не удалось открыть эту папку.");
         }
     }
 
@@ -131,7 +131,7 @@ public sealed partial class DupesPage : Page
     {
         if ((sender as FrameworkElement)?.Tag is not DupeCopy copy) return;
         AppState.Instance.Db.ArchiveMovies(new[] { copy.Id });
-        if (App.MainWindow is MainWindow mw) mw.ShowToast("Sent to Watched & Gone");
+        if (App.MainWindow is MainWindow mw) mw.ShowToast("Перенесено в «Просмотрено и удалено»");
         SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         Refresh();
     }

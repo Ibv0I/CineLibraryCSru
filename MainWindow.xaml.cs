@@ -603,7 +603,7 @@ public sealed partial class MainWindow : Window
             LibrariesHeader.Visibility = _vm.Drives.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
             // v2.1: COLLECTIONS + TOP GENRES sub-sections removed. Both live
-            // as BROWSE pages now (Collections grid, By Genre banners).
+            // as BROWSE pages now (Collections grid, По жанру banners).
 
             RefreshUserLists();
         }
@@ -744,14 +744,14 @@ public sealed partial class MainWindow : Window
 
         // Right-click context menu: copy / export image / rename / delete
         var menu = new MenuFlyout();
-        var copyItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("📂 Copy movies to folder…") };
+        var copyItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("📂 Копировать фильмы в папку…") };
         copyItem.Click += async (_, _) => await CopyListToFolder(ul);
         // v2.9 — export the list as a shareable PNG poster grid.
-        var exportImgItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("📤 Export as image…") };
+        var exportImgItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("📤 Экспортировать изображением…") };
         exportImgItem.Click += async (_, _) => await ExportListAsImage(ul);
         var renameItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Rename") };
         renameItem.Click += async (_, _) => await PromptRenameUserList(ul);
-        var deleteItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Delete list") };
+        var deleteItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Удалить список") };
         deleteItem.Click += async (_, _) => await ConfirmDeleteUserList(ul);
         menu.Items.Add(copyItem);
         menu.Items.Add(exportImgItem);
@@ -880,16 +880,16 @@ public sealed partial class MainWindow : Window
             SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.PicturesLibrary,
             SuggestedFileName = $"{SanitizeFileName(ul.Name)}-{DateTime.Now:yyyyMMdd}",
         };
-        picker.FileTypeChoices.Add("PNG image", new List<string> { ".png" });
+        picker.FileTypeChoices.Add("Изображение PNG", new List<string> { ".png" });
         WinRT.Interop.InitializeWithWindow.Initialize(picker,
             WinRT.Interop.WindowNative.GetWindowHandle(this));
         var file = await picker.PickSaveFileAsync();
         if (file == null) return;
 
-        ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Rendering image…"));
+        ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Создание изображения…"));
         var ok = await ListImageExporter.ExportAsync(Content.XamlRoot, ul.Name, movies, file.Path);
         if (ok) ShowToast($"Сохранено: {file.Path}");
-        else    ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Image export failed — see debug log"));
+        else    ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Не удалось экспортировать изображение — см. журнал отладки"));
     }
 
     private static string SanitizeFileName(string raw)
@@ -930,7 +930,7 @@ public sealed partial class MainWindow : Window
                 : "Нечего копировать.";
             var emptyDlg = new ContentDialog
             {
-                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Can't copy yet"),
+                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Пока невозможно скопировать"),
                 Content = detail,
                 CloseButtonText = Services.LocalizationService.Get("OK"),
                 XamlRoot = Content.XamlRoot,
@@ -970,7 +970,7 @@ public sealed partial class MainWindow : Window
         {
             var dlg = new ContentDialog
             {
-                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Not enough free space"),
+                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Недостаточно свободного места"),
                 Content = $"Требуется {FormatBytes(plan.TotalBytes)}, но в месте назначения доступно только {FormatBytes(free)}.",
                 CloseButtonText = Services.LocalizationService.Get("OK"),
                 XamlRoot = Content.XamlRoot,
@@ -992,7 +992,7 @@ public sealed partial class MainWindow : Window
             {
                 Title = $"В месте назначения уже существует папок: {conflicts.Count}",
                 Content = $"Что сделать с уже существующими копиями?\n\n{preview}",
-                PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Skip existing"),
+                PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Пропустить существующие копии"),
                 SecondaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Overwrite"),
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
@@ -1058,7 +1058,7 @@ public sealed partial class MainWindow : Window
             // Already on UI thread (Progress<T> captures sync context)
             bar.Value = p.BytesDone;
             movieText.Text = $"Фильмов: {p.MoviesDone} из {p.MoviesTotal}";
-            bytesText.Text = $"{FormatBytes(p.BytesDone)} of {FormatBytes(p.BytesTotal)}";
+            bytesText.Text = $"{FormatBytes(p.BytesDone)} из {FormatBytes(p.BytesTotal)}";
             fileText.Text = p.CurrentFile;
         });
 
@@ -1076,7 +1076,7 @@ public sealed partial class MainWindow : Window
         // Summary toast
         if (result == null)
         {
-            ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Copy cancelled"));
+            ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Копирование отменено"));
         }
         else
         {
@@ -1099,7 +1099,7 @@ public sealed partial class MainWindow : Window
 
     private async void OnNewUserList(object sender, RoutedEventArgs e)
     {
-        var name = await PromptForListName(CineLibraryCS.Services.LocalizationService.TranslateText("New list"), CineLibraryCS.Services.LocalizationService.TranslateText("Untitled list"));
+        var name = await PromptForListName(CineLibraryCS.Services.LocalizationService.TranslateText("Новый список"), CineLibraryCS.Services.LocalizationService.TranslateText("Список без названия"));
         if (string.IsNullOrWhiteSpace(name)) return;
         try
         {
@@ -1108,13 +1108,13 @@ public sealed partial class MainWindow : Window
         }
         catch (Microsoft.Data.Sqlite.SqliteException)
         {
-            ShowToast("A list with that name already exists");
+            ShowToast("Список с таким названием уже существует");
         }
     }
 
     private async Task PromptRenameUserList(DatabaseService.UserList ul)
     {
-        var name = await PromptForListName(CineLibraryCS.Services.LocalizationService.TranslateText("Rename list"), ul.Name);
+        var name = await PromptForListName(CineLibraryCS.Services.LocalizationService.TranslateText("Переименовать список"), ul.Name);
         if (string.IsNullOrWhiteSpace(name) || name.Trim() == ul.Name) return;
         AppState.Instance.Db.RenameUserList(ul.Id, name.Trim());
         RefreshUserLists();
@@ -1142,7 +1142,7 @@ public sealed partial class MainWindow : Window
 
     private async Task<string?> PromptForListName(string title, string initial)
     {
-        var box = new TextBox { Text = initial, PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("List name") };
+        var box = new TextBox { Text = initial, PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("Название списка") };
         var dlg = new ContentDialog
         {
             Title = title,
@@ -1369,7 +1369,7 @@ public sealed partial class MainWindow : Window
     // ── Browse back navigation (v2.7) ─────────────────────────────────────
     // When the library view is drilled into from a Browse banner or the
     // Collections page, remember how to get back so LibraryPage can show
-    // a "‹ By Rating" style button. Cleared on any other navigation.
+    // a "‹ По рейтингу" style button. Cleared on any other navigation.
     private Action? _libraryBackAction;
 
     public void SetLibraryBackToBrowse(DatabaseService.BrowseFacet facet)
@@ -1377,10 +1377,10 @@ public sealed partial class MainWindow : Window
         _libraryBackAction = () => NavigateTo("browse", facet);
         _libraryPage?.ShowBrowseBack(facet switch
         {
-            DatabaseService.BrowseFacet.Genre  => "By Genre",
-            DatabaseService.BrowseFacet.Decade => "By Decade",
-            DatabaseService.BrowseFacet.Rating => "By Rating",
-            DatabaseService.BrowseFacet.Studio => "By Studio",
+            DatabaseService.BrowseFacet.Genre  => "По жанру",
+            DatabaseService.BrowseFacet.Decade => "По десятилетию",
+            DatabaseService.BrowseFacet.Rating => "По рейтингу",
+            DatabaseService.BrowseFacet.Studio => "По студии",
             _ => "Back",
         });
     }
@@ -1436,7 +1436,7 @@ public sealed partial class MainWindow : Window
     private void OnNavFavorites(object sender, RoutedEventArgs e)
     {
         NavigateTo("library", new LibraryNavParam(FavoritesOnly: true, Label: CineLibraryCS.Services.LocalizationService.TranslateText("Favorites")));
-        _libraryPage?.UpdatePageTitle(CineLibraryCS.Services.LocalizationService.TranslateText("Favorites"));   // v4.0.0: the page holds shows too, so not "All movies › …"
+        _libraryPage?.UpdatePageTitle(CineLibraryCS.Services.LocalizationService.TranslateText("Favorites"));   // v4.0.0: the page holds shows too, so not "Все фильмы › …"
         SetActiveNav(sender as Button ?? BtnFavorites);
     }
 
@@ -1470,16 +1470,16 @@ public sealed partial class MainWindow : Window
         }
         Func<Task<List<MovieListItem>>> all = () => Task.Run(() => AppState.Instance.Db.GetMovies(
             new DatabaseService.ListOptions(Limit: int.MaxValue), AppState.Instance.Connected));
-        Add(CineLibraryCS.Services.LocalizationService.TranslateText("All movies as CSV…"), all, html: false);
-        Add(CineLibraryCS.Services.LocalizationService.TranslateText("All movies as HTML…"), all, html: true);
+        Add(CineLibraryCS.Services.LocalizationService.TranslateText("Все фильмы в CSV…"), all, html: false);
+        Add(CineLibraryCS.Services.LocalizationService.TranslateText("Все фильмы в HTML…"), all, html: true);
         if (_libraryPage != null && ReferenceEquals(ContentFrame.Content, _libraryPage)
             && _libraryPage.ViewCount < (_vm.Stats?.TotalMovies ?? 0))
         {
             var n = _libraryPage.ViewCount;
-            var label = n == 1 ? "1 movie" : $"{n:N0} movies";
+            var label = n == 1 ? "1 фильм" : $"Фильмов: {n:N0}";
             menu.Items.Add(new MenuFlyoutSeparator());
-            Add($"This view ({label}) as CSV…", _libraryPage.GetViewMoviesAsync, html: false);
-            Add($"This view ({label}) as HTML…", _libraryPage.GetViewMoviesAsync, html: true);
+            Add($"Текущий экран ({label}) в CSV…", _libraryPage.GetViewMoviesAsync, html: false);
+            Add($"Текущий экран ({label}) в HTML…", _libraryPage.GetViewMoviesAsync, html: true);
         }
         var restore = HighlightWhileOpen(sender as Button ?? BtnExport);
         menu.Closed += (_, _) => restore();

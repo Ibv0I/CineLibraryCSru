@@ -48,7 +48,7 @@ public sealed partial class StatisticsPage : Page
         var watchlist = db.GetWatchlistCount();
         WatchlistCountText.Text = watchlist > 0
             ? $"📌 В списке «К просмотру»: {watchlist}"
-            : CineLibraryCS.Services.LocalizationService.TranslateText("Tip: add movies to your watchlist from the movie detail dialog.");
+            : CineLibraryCS.Services.LocalizationService.TranslateText("Совет: добавляйте фильмы в список просмотра в окне подробной информации о фильме.");
 
         // ── TV Shows (v2.8.2) — only surfaced when the library has shows ──
         var tv = db.GetTvStats();
@@ -153,7 +153,7 @@ public sealed partial class StatisticsPage : Page
         var hours = minutes / 60;
         if (hours < 24) return $"{hours}h";
         var days = hours / 24;
-        return $"{days}d {hours % 24}h";
+        return $"{days} д {hours % 24} ч";
     }
 
     // Build a row: [label on left] [bar that fills to fraction] [count on right]

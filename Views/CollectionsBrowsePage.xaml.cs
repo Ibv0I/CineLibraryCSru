@@ -58,15 +58,15 @@ public sealed partial class CollectionsBrowsePage : Page
         var all = AppState.Instance.Db.GetCollectionGrid();
         var entries = Sort(Filter(all)).ToList();
         PageCountText.Text = all.Count == 0 ? ""
-            : entries.Count == all.Count ? $"{all.Count} collection{(all.Count == 1 ? "" : "s")}"
-            : $"{entries.Count} of {all.Count} collections";
+            : entries.Count == all.Count ? $"{all.Count} коллекци{(all.Count == 1 ? "я" : "и")}"
+            : $"Коллекций: {entries.Count} из {all.Count}";
         CollFilterPills.Visibility = CollToolbar.Visibility =
             all.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         if (entries.Count == 0)
         {
-            EmptyTitle.Text = all.Count == 0 ? CineLibraryCS.Services.LocalizationService.TranslateText("No collections yet")
-                : _filter == "watched" ? CineLibraryCS.Services.LocalizationService.TranslateText("No fully watched collections yet") : CineLibraryCS.Services.LocalizationService.TranslateText("Nothing left to watch");
-            EmptyHint.Text = all.Count == 0 ? _noCollectionsHint : CineLibraryCS.Services.LocalizationService.TranslateText("Choose All to see every collection.");
+            EmptyTitle.Text = all.Count == 0 ? CineLibraryCS.Services.LocalizationService.TranslateText("Коллекций пока нет")
+                : _filter == "watched" ? CineLibraryCS.Services.LocalizationService.TranslateText("Нет полностью просмотренных коллекций") : CineLibraryCS.Services.LocalizationService.TranslateText("Нет фильмов, оставшихся к просмотру");
+            EmptyHint.Text = all.Count == 0 ? _noCollectionsHint : CineLibraryCS.Services.LocalizationService.TranslateText("Выберите «Все», чтобы увидеть все коллекции.");
             EmptyState.Visibility = Visibility.Visible;
             GridRepeater.ItemsSource = null;
             _tiles = new();

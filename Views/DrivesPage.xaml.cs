@@ -44,8 +44,8 @@ public sealed partial class DrivesPage : Page
         var connected = AppState.Instance.Connected;
         if (!connected.Any())
         {
-            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("No drives found"),
-                CineLibraryCS.Services.LocalizationService.TranslateText("No external drives are currently connected. Connect a drive and try again."));
+            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Диски не найдены"),
+                CineLibraryCS.Services.LocalizationService.TranslateText("Сейчас нет подключённых внешних дисков. Подключите диск и повторите попытку."));
             return;
         }
 
@@ -65,7 +65,7 @@ public sealed partial class DrivesPage : Page
 
         if (!newDrives.Any())
         {
-            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("All drives added"), CineLibraryCS.Services.LocalizationService.TranslateText("All connected drives are already in your library."));
+            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Все диски добавлены"), CineLibraryCS.Services.LocalizationService.TranslateText("Все подключённые диски уже добавлены в библиотеку."));
             return;
         }
 
@@ -77,7 +77,7 @@ public sealed partial class DrivesPage : Page
         var nameBox = new TextBox
         {
             Text = newDrives[0].VolumeLabel,
-            PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("Drive label (e.g. Seagate Red 5TB)")
+            PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("Название диска (например, Seagate Red 5TB)")
         };
 
         combo.SelectionChanged += (_, _) =>
@@ -90,22 +90,22 @@ public sealed partial class DrivesPage : Page
         var muted = new Microsoft.UI.Xaml.Media.SolidColorBrush(
             Windows.UI.Color.FromArgb(0xFF, 0x90, 0x90, 0xA0));
         var panel = new StackPanel { Spacing = 12 };
-        panel.Children.Add(new TextBlock { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Select drive:"), FontSize = 13, Foreground = muted });
+        panel.Children.Add(new TextBlock { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Выберите диск:"), FontSize = 13, Foreground = muted });
         panel.Children.Add(combo);
-        panel.Children.Add(new TextBlock { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Drive label:"), FontSize = 13, Foreground = muted });
+        panel.Children.Add(new TextBlock { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Название диска:"), FontSize = 13, Foreground = muted });
         panel.Children.Add(nameBox);
         panel.Children.Add(new TextBlock
         {
-            Text = CineLibraryCS.Services.LocalizationService.TranslateText("After adding, use “+ Add Folder” on the drive card to pick which folders to index."),
+            Text = CineLibraryCS.Services.LocalizationService.TranslateText("После добавления нажмите «+ Добавить папку» на карточке диска и выберите папки для индексации."),
             FontSize = 12, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
 
         var dialog = new ContentDialog
         {
-            Title = CineLibraryCS.Services.LocalizationService.TranslateText("Add Drive"),
+            Title = CineLibraryCS.Services.LocalizationService.TranslateText("Добавить диск"),
             Content = panel,
-            PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Add"),
-            CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
+            PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Добавить"),
+            CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Отмена"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
             RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
@@ -133,7 +133,7 @@ public sealed partial class DrivesPage : Page
             var connected = AppState.Instance.Connected;
             if (!connected.TryGetValue(serial, out var letter))
             {
-                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Drive offline"),
+                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Диск отключён"),
                     "Подключите диск, чтобы добавлять или сканировать папки.");
                 return;
             }
@@ -151,8 +151,8 @@ public sealed partial class DrivesPage : Page
 
             if (!folder.Path.StartsWith(driveRoot, StringComparison.OrdinalIgnoreCase))
             {
-                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Wrong drive"),
-                    $"Please choose a folder on drive {letter}: ({driveRoot}).");
+                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Неверный диск"),
+                    $"Выберите папку на диске {letter}: ({driveRoot}).");
                 return;
             }
 
@@ -164,7 +164,7 @@ public sealed partial class DrivesPage : Page
             var existingRoots = AppState.Instance.Db.GetDriveRoots(serial);
             if (existingRoots.Any(x => x.RootPath == relPath))
             {
-                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Already added"), $"'{(relPath == "" ? CineLibraryCS.Services.LocalizationService.TranslateText("(drive root)") : relPath)}' is already tracked on this drive.");
+                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Уже добавлено"), $"'{(relPath == "" ? CineLibraryCS.Services.LocalizationService.TranslateText("(drive root)") : relPath)}' is already tracked on this drive.");
                 return;
             }
 
@@ -190,7 +190,7 @@ public sealed partial class DrivesPage : Page
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Remove folder?"),
                 Content = $"Удалить «{dr.DisplayName}» из «{drive?.Label}»? Фильмы, найденные в этой папке, будут удалены из библиотеки. Сами файлы на диске останутся.",
                 PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Remove"),
-                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
+                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Отмена"),
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = XamlRoot,
                 RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
@@ -214,14 +214,14 @@ public sealed partial class DrivesPage : Page
             var connected = AppState.Instance.Connected;
             if (!connected.TryGetValue(serial, out var letter))
             {
-                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Drive offline"), CineLibraryCS.Services.LocalizationService.TranslateText("This drive is not connected."));
+                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Диск отключён"), CineLibraryCS.Services.LocalizationService.TranslateText("This drive is not connected."));
                 return;
             }
             var drive = _drives.FirstOrDefault(d => d.VolumeSerial == serial);
             var roots = AppState.Instance.Db.GetDriveRoots(serial);
             if (roots.Count == 0)
             {
-                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("No folders"), CineLibraryCS.Services.LocalizationService.TranslateText("Add at least one folder to this drive before updating."));
+                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Нет папок"), CineLibraryCS.Services.LocalizationService.TranslateText("Перед обновлением добавьте на этот диск хотя бы одну папку."));
                 return;
             }
 
@@ -249,7 +249,7 @@ public sealed partial class DrivesPage : Page
 
         ScanOverlay.Visibility = Visibility.Visible;
         ScanStatusText.Text = $"Сканирование: {scopeLabel}…";
-        ScanDetailText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Preparing…");
+        ScanDetailText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Подготовка…");
 
         _scanCts = new CancellationTokenSource();
 
@@ -258,8 +258,8 @@ public sealed partial class DrivesPage : Page
             DispatcherQueue.TryEnqueue(() =>
             {
                 ScanStatusText.Text = p.Done
-                    ? $"Done — {p.Inserted} new, {p.Updated} updated, {p.Skipped} skipped"
-                    : $"Scanning {scopeLabel}… ({p.Found} found)";
+                    ? $"Готово — новых: {p.Inserted}, обновлено: {p.Updated}, пропущено: {p.Skipped}"
+                    : $"Сканирование {scopeLabel}… найдено: {p.Found}";
                 ScanDetailText.Text = p.Done ? "" : Path.GetFileName(p.CurrentFolder);
             });
         });
@@ -271,12 +271,12 @@ public sealed partial class DrivesPage : Page
         }
         catch (OperationCanceledException)
         {
-            ScanStatusText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Scan cancelled");
+            ScanStatusText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Сканирование отменено");
             await Task.Delay(1000);
         }
         catch (Exception ex)
         {
-            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Scan error"), ex.Message);
+            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Ошибка сканирования"), ex.Message);
         }
         finally
         {
@@ -305,7 +305,7 @@ public sealed partial class DrivesPage : Page
                           .ToList();
         if (drives.Count == 0)
         {
-            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("No online drives"), CineLibraryCS.Services.LocalizationService.TranslateText("Plug in at least one drive that has movies on it, then try again."));
+            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Нет подключённых дисков"), CineLibraryCS.Services.LocalizationService.TranslateText("Подключите хотя бы один диск с фильмами и повторите попытку."));
             return;
         }
 
@@ -326,8 +326,8 @@ public sealed partial class DrivesPage : Page
         }
         if (work.Count == 0)
         {
-            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Nothing to refresh"),
-                CineLibraryCS.Services.LocalizationService.TranslateText("None of the online drives have any folders configured to scan. ") +
+            await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Нет данных для обновления"),
+                CineLibraryCS.Services.LocalizationService.TranslateText("На подключённых дисках не настроены папки для сканирования. ") +
                 CineLibraryCS.Services.LocalizationService.TranslateText("Add a folder on a drive card first."));
             return;
         }
@@ -524,7 +524,7 @@ public sealed partial class DrivesPage : Page
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Review missing movies"),
                 Content = content,
                 PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Apply"),
-                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
+                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Отмена"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot,
                 RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
@@ -563,7 +563,7 @@ public sealed partial class DrivesPage : Page
                     CineLibraryCS.Services.LocalizationService.TranslateText("Tip: if the drive was only partially connected or you scanned the wrong folder, ") +
                     "Отмените удаление и запустите сканирование повторно, иначе эти записи снова будут обработаны при следующем обновлении.",
                 PrimaryButtonText = $"Удалить записей: {drive.MissingCount}",
-                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
+                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Отмена"),
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = XamlRoot,
                 RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
@@ -612,7 +612,7 @@ public sealed partial class DrivesPage : Page
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Rename Drive"),
                 Content = panel,
                 PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Rename"),
-                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
+                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Отмена"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot,
                 RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,
@@ -688,7 +688,7 @@ public sealed partial class DrivesPage : Page
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Remove Drive?"),
                 Content = panel,
                 PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Remove"),
-                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
+                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Отмена"),
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = XamlRoot,
                 RequestedTheme = CineLibraryCS.MainWindow.CurrentTheme,

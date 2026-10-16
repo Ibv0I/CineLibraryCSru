@@ -54,7 +54,7 @@ public sealed partial class MovieRowControl : UserControl
         args.Data.Properties["cinelibrary/movie-ids"] = string.Join(",", ids);
         args.Data.RequestedOperation = DataPackageOperation.Link;
         args.AllowedOperations = DataPackageOperation.Link | DataPackageOperation.Copy;
-        args.Data.Properties.Title = ids.Count == 1 ? Movie.Title : $"{ids.Count} movies";
+        args.Data.Properties.Title = ids.Count == 1 ? Movie.Title : $"Фильмов: {ids.Count}";
     }
 
     private void RebuildContextFlyout(MenuFlyout flyout)
@@ -62,12 +62,12 @@ public sealed partial class MovieRowControl : UserControl
         flyout.Items.Clear();
         if (Movie == null) return;
 
-        var listsSub = new MenuFlyoutSubItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("📑 Add to list") };
+        var listsSub = new MenuFlyoutSubItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("📑 Добавить в список") };
         var allLists = AppState.Instance.Db.GetUserLists();
         var membership = AppState.Instance.Db.GetUserListsForMovie(Movie.Id);
         if (allLists.Count == 0)
         {
-            listsSub.Items.Add(new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("(no lists yet)"), IsEnabled = false });
+            listsSub.Items.Add(new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("(списков пока нет)"), IsEnabled = false });
         }
         else
         {
@@ -90,17 +90,17 @@ public sealed partial class MovieRowControl : UserControl
 
         // v3.3 — Watched & Gone (same action as the grid-card context menu).
         flyout.Items.Add(new MenuFlyoutSeparator());
-        var archiveItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Send to Watched & Gone") };
+        var archiveItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Перенести в «Просмотрено и удалено»") };
         archiveItem.Click += async (_, _) =>
         {
             if (Movie == null) return;
             var m = Movie;
             var dlg = new ContentDialog
             {
-                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Send to Watched & Gone?"),
+                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Перенести в «Просмотрено и удалено»?"),
                 Content = $"«{m.Title}» перемещается из библиотеки в раздел «Просмотрено и удалено» — " +
-                          CineLibraryCS.Services.LocalizationService.TranslateText("its poster, details, your notes and watch history are all kept as a record. ") +
-                          CineLibraryCS.Services.LocalizationService.TranslateText("The files on your drive are not touched."),
+                          CineLibraryCS.Services.LocalizationService.TranslateText("Постер, сведения, заметки и история просмотров сохранятся в записи. ") +
+                          CineLibraryCS.Services.LocalizationService.TranslateText("Файлы на диске не изменяются."),
                 PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Send"),
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
@@ -110,7 +110,7 @@ public sealed partial class MovieRowControl : UserControl
             if (await dlg.ShowAsync() != ContentDialogResult.Primary) return;
             AppState.Instance.Db.ArchiveMovies(new[] { m.Id });
             if (App.MainWindow is MainWindow mw)
-                mw.ShowToast($"«{m.Title}» " + CineLibraryCS.Services.LocalizationService.TranslateText("sent to Watched & Gone"));
+                mw.ShowToast($"«{m.Title}» " + CineLibraryCS.Services.LocalizationService.TranslateText("перенесён в «Просмотрено и удалено»"));
             MovieCardControl.RaiseMovieArchived();
         };
         flyout.Items.Add(archiveItem);
@@ -335,7 +335,7 @@ public sealed partial class MovieRowControl : UserControl
         catch
         {
             if (App.MainWindow is MainWindow mw)
-                mw.ShowToast("Couldn't launch the video player");
+                mw.ShowToast("Не удалось запустить видеопроигрыватель");
         }
     }
 
@@ -343,7 +343,7 @@ public sealed partial class MovieRowControl : UserControl
     {
         var dlg = new ContentDialog
         {
-            Title = CineLibraryCS.Services.LocalizationService.TranslateText("Can't play yet"),
+            Title = CineLibraryCS.Services.LocalizationService.TranslateText("Пока не удаётся воспроизвести фильм"),
             Content = string.IsNullOrEmpty(driveLabel)
                 ? $"\"{title}\" lives on a drive that isn't connected. Plug it in and try again."
                 : $"\"{title}\" lives on \"{driveLabel}\", which isn't connected. Plug it in and try again.",

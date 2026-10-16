@@ -100,7 +100,7 @@ public class ListCopyService
 
     /// <summary>
     /// Returns names of plan items whose target folder already exists at
-    /// destRoot. Used to gate the "Skip / Overwrite" conflict prompt.
+    /// destRoot. Used to gate the "Пропустить / перезаписать" conflict prompt.
     /// </summary>
     public List<string> FindExistingTargets(CopyPlan plan, string destRoot)
     {
@@ -160,7 +160,7 @@ public class ListCopyService
                     {
                         skipped++;
                         bytesDone += item.Bytes;
-                        progress.Report(new CopyProgress(i + 1, plan.Items.Count, bytesDone, plan.TotalBytes, $"Skipped: {item.Title}"));
+                        progress.Report(new CopyProgress(i + 1, plan.Items.Count, bytesDone, plan.TotalBytes, $"Пропущено: {item.Title}"));
                         continue;
                     }
                     // Overwrite: leave existing folder in place; we just copy

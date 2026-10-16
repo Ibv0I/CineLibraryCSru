@@ -565,10 +565,10 @@ public sealed partial class LibraryPage : Page
 
     private async Task<string?> PromptNewListName()
     {
-        var box = new TextBox { PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("List name") };
+        var box = new TextBox { PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("Название списка") };
         var dlg = new ContentDialog
         {
-            Title = CineLibraryCS.Services.LocalizationService.TranslateText("New list"),
+            Title = CineLibraryCS.Services.LocalizationService.TranslateText("Новый список"),
             Content = box,
             PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Create"),
             CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
@@ -748,17 +748,17 @@ public sealed partial class LibraryPage : Page
         var hasAnyDrive = AppState.Instance.Db.GetDrives().Count > 0;
         if (!hasAnyDrive)
         {
-            EmptyTitle.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Welcome to CineLibrary");
+            EmptyTitle.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Добро пожаловать в CineLibrary");
             EmptyStateHint.Text =
                 "Укажите папку, в которой MediaElch сохранил данные фильмов " +
                 "(каждый фильм должен находиться в отдельной папке с файлом .nfo и постером). " +
                 "Диски → Добавить папку.";
-            EmptyCtaBtn.Content = CineLibraryCS.Services.LocalizationService.TranslateText("📂 Add my movies folder");
+            EmptyCtaBtn.Content = CineLibraryCS.Services.LocalizationService.TranslateText("📂 Добавить папку с фильмами");
             EmptyCtaBtn.Visibility = Visibility.Visible;
         }
         else if (_vm.UserListId != null && string.IsNullOrEmpty(_vm.SearchText))
         {
-            EmptyTitle.Text = CineLibraryCS.Services.LocalizationService.TranslateText("This list is empty");
+            EmptyTitle.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Этот список пуст");
             EmptyStateHint.Text =
                 "Добавляйте фильмы через контекстное меню постера или из окна сведений о фильме. " +
                 "Также можно выбрать несколько карточек сочетанием Ctrl+щелчок " +
@@ -767,8 +767,8 @@ public sealed partial class LibraryPage : Page
         }
         else
         {
-            EmptyTitle.Text = CineLibraryCS.Services.LocalizationService.TranslateText("No movies match your filters");
-            EmptyStateHint.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Try clearing the search or choosing 'All' watched filter.");
+            EmptyTitle.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Фильмы по выбранным фильтрам не найдены");
+            EmptyStateHint.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Попробуйте очистить поиск или выбрать фильтр просмотра «Все».");
             EmptyCtaBtn.Visibility = Visibility.Collapsed;
         }
     }
@@ -791,7 +791,7 @@ public sealed partial class LibraryPage : Page
         FilterWatched.Style = pill;
         _vm.WatchedFilter = WatchedFilter.All;
         _vm.ClearFilters();
-        PageTitleText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("All movies");
+        PageTitleText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Все фильмы");
         UpdateClearFiltersButton();
     }
 
@@ -898,9 +898,9 @@ public sealed partial class LibraryPage : Page
         else
             _vm.ClearFilters();
 
-        // Breadcrumb-style title: "All movies › Drama"
+        // Breadcrumb-style title: "Все фильмы › Drama"
         PageTitleText.Text = p.Label == null
-            ? CineLibraryCS.Services.LocalizationService.TranslateText("All movies")
+            ? CineLibraryCS.Services.LocalizationService.TranslateText("Все фильмы")
             : $"Все фильмы › {p.Label}";
     }
 
@@ -994,7 +994,7 @@ public sealed partial class LibraryPage : Page
         if (id == null)
         {
             if (App.MainWindow is MainWindow mw)
-                mw.ShowToast("No movies match the current filter — try clearing some filters");
+                mw.ShowToast("По текущему фильтру фильмов нет — попробуйте сбросить часть фильтров");
             return;
         }
         var dialog = new MovieDetailDialog(id.Value);
@@ -1092,7 +1092,7 @@ public sealed partial class LibraryPage : Page
         if (!AnyFilterActive())
         {
             _vm.PageTitle = CineLibraryCS.Services.LocalizationService.TranslateText("All Movies");
-            PageTitleText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("All movies");
+            PageTitleText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Все фильмы");
         }
         _ = _vm.LoadAsync();
         UpdateClearFiltersButton();
@@ -1143,7 +1143,7 @@ public sealed partial class LibraryPage : Page
             Padding = new Thickness(4, 0, 4, 0),
             MinWidth = 18, MinHeight = 18,
         };
-        ToolTipService.SetToolTip(x, $"Clear {label.ToLower()} filter");
+        ToolTipService.SetToolTip(x, $"Сбросить фильтр «{label}»");
         x.Click += (_, _) => onClear();
         sp.Children.Add(x);
         border.Child = sp;
@@ -1157,7 +1157,7 @@ public sealed partial class LibraryPage : Page
         if (!_ready) return;
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
             _vm.SearchText = sender.Text;
-        // v2.6 — Esc hint visibility tracks "has text" (Esc only does
+        // v2.6 — Esc hint visibility tracks "содержит текст" (Esc only does
         // something when there's a search to clear).
         UpdateSearchEscHint();
     }
@@ -1184,7 +1184,7 @@ public sealed partial class LibraryPage : Page
 
     private void UpdateSearchEscHint()
     {
-        // Show only when the box is focused AND has text to clear.
+        // Show only when the box is focused AND содержит текст to clear.
         var hasText = !string.IsNullOrEmpty(SearchBox.Text);
         var focused = Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(XamlRoot)
             is FrameworkElement fe && (fe == SearchBox || fe.Parent == SearchBox);
@@ -1265,7 +1265,7 @@ public sealed partial class LibraryPage : Page
     // ── Export ────────────────────────────────────────────────────────────
 
     // v3.9.0 — Export moved to Tools in the sidebar. These let it offer
-    // "this view" and write every matching movie, not just the loaded pages.
+    // "этот экран" and write every matching movie, not just the loaded pages.
     public int ViewCount => _vm.FilterTotal;
     public Task<List<MovieListItem>> GetViewMoviesAsync() => _vm.GetAllMatchingAsync();
 
@@ -1277,7 +1277,7 @@ public sealed partial class LibraryPage : Page
         // This will be called by MainWindow to show/hide it
     }
 
-    // v2.7 — "back to Browse" button. MainWindow drives visibility via
+    // v2.7 — "назад к обзору" button. MainWindow drives visibility via
     // ShowBrowseBack / HideBrowseBack and handles the actual navigation.
     private void OnBrowseBackClick(object sender, RoutedEventArgs e)
         => (App.MainWindow as MainWindow)?.OnLibraryBackRequested();

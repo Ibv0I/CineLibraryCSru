@@ -95,7 +95,7 @@ public sealed partial class WatchedGonePage : Page
         {
             Refresh();
             SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
-            if (App.MainWindow is MainWindow mw) mw.ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Added to Watched & Gone"));
+            if (App.MainWindow is MainWindow mw) mw.ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Добавлено в «Просмотрено и удалено»"));
         }
     }
 
@@ -103,12 +103,12 @@ public sealed partial class WatchedGonePage : Page
     {
         if (_records.Count == 0) return;
         var picker = new FileSavePicker { SuggestedStartLocation = PickerLocationId.DocumentsLibrary };
-        picker.FileTypeChoices.Add(CineLibraryCS.Services.LocalizationService.TranslateText("CSV file"), new List<string> { ".csv" });
+        picker.FileTypeChoices.Add(CineLibraryCS.Services.LocalizationService.TranslateText("Файл CSV"), new List<string> { ".csv" });
         picker.SuggestedFileName = "watched_and_gone";
         InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(App.MainWindow));
         var file = await picker.PickSaveFileAsync();
         if (file == null) return;
         await new MainViewModel().ExportCsvAsync(_records, file.Path);
-        if (App.MainWindow is MainWindow mw) mw.ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Exported records to CSV"));
+        if (App.MainWindow is MainWindow mw) mw.ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Записи экспортированы в CSV"));
     }
 }

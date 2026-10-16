@@ -2221,4 +2221,10 @@
   <data name="Step21_52e3ce2bc9" xml:space="preserve">
     <value>Снять выделение</value>
   </data>
+  <data name="ReleasedMovieSingular" xml:space="preserve">
+    <value>1 фильм</value>
+  </data>
+  <data name="ReleasedMoviesPlural" xml:space="preserve">
+    <value>{0} фильмов</value>
+  </data>
 </root>

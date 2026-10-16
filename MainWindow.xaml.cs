@@ -1764,7 +1764,7 @@ public sealed partial class MainWindow : Window
 
         var dlg = new ContentDialog
         {
-            Title = "🔒  Backup",
+            Title = $"🔒  {CineLibraryCS.Services.LocalizationService.TranslateText("Backup")}",
             Content = panel,
             CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Close"),
             XamlRoot = Content.XamlRoot,

@@ -55,7 +55,9 @@ public sealed partial class OnThisDayPage : Page
         if (released.Count > 0)
         {
             ReleasedSection.Visibility = Visibility.Visible;
-            ReleasedSub.Text = released.Count == 1 ? "1 movie" : $"{released.Count} movies";
+            ReleasedSub.Text = released.Count == 1
+                ? CineLibraryCS.Services.LocalizationService.Get("ReleasedMovieSingular")
+                : string.Format(CineLibraryCS.Services.LocalizationService.Get("ReleasedMoviesPlural"), released.Count);
             ReleasedRepeater.ItemsSource = released;
         }
         else

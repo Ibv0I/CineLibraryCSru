@@ -2221,4 +2221,10 @@ Then try again.</value>
   <data name="Step21_52e3ce2bc9" xml:space="preserve">
     <value>Deselect all</value>
   </data>
+  <data name="ReleasedMovieSingular" xml:space="preserve">
+    <value>1 movie</value>
+  </data>
+  <data name="ReleasedMoviesPlural" xml:space="preserve">
+    <value>{0} movies</value>
+  </data>
 </root>

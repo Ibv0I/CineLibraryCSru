@@ -69,7 +69,7 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock x:Name="MetaText" Grid.Column="0" FontSize="11" Foreground="#D8D8D8"/>
                             <TextBlock x:Name="ProgressText" Grid.Column="1" FontSize="11"
-                                       FontWeight="SemiBold" Foreground="#A78BFA"/>
+                                       FontWeight="SemiBold" Foreground="#3B82F6"/>
                         </Grid>
                         <!-- Watched progress bar (v4.1.0: star columns follow the card's width) -->
                         <Grid Height="4" CornerRadius="2" Background="#40FFFFFF">

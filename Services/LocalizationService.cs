@@ -287,7 +287,7 @@ public static class LocalizationService
         ["IMDb"] = "IMDb",
         ["RATED"] = "Rated",
         ["RUNTIME"] = "Runtime",
-        ["LANGUAGE"] = "LanguageLabel",
+        ["AUDIO"] = "Audio",
         ["FILE TYPE"] = "FileType",
         ["SUBTITLES"] = "SubtitlesUpper",
         ["COUNTRY"] = "CountryUpper",

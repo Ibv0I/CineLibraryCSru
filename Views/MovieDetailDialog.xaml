@@ -182,7 +182,7 @@
                     <!-- Actions (wrap onto a second line in narrow windows) -->
                     <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8" Margin="0,12,0,0">
                         <Button x:Name="PlayBtn" Click="OnPlay"
-                                Background="#A78BFA" Foreground="White"
+                                Background="#3B82F6" Foreground="White"
                                 BorderThickness="0" CornerRadius="8" Padding="16,8">
                             <TextBlock Text="▶ Play"/>
                         </Button>
@@ -327,7 +327,7 @@
                                            Foreground="{ThemeResource TextBrush}"/>
                             </StackPanel>
                             <StackPanel x:Name="FiLangBlock" Visibility="Collapsed">
-                                <TextBlock Text="LANGUAGE" FontSize="9" FontWeight="SemiBold"
+                                <TextBlock Text="AUDIO" FontSize="9" FontWeight="SemiBold"
                                            CharacterSpacing="150" Opacity="0.65"
                                            Foreground="{ThemeResource MutedBrush}"/>
                                 <TextBlock x:Name="FiLangs" FontSize="13" FontWeight="SemiBold"
@@ -603,7 +603,7 @@
                         </Button>
                     </StackPanel>
                     <Button x:Name="StickyPlayBtn" Click="OnPlay"
-                            Background="#A78BFA" Foreground="White"
+                            Background="#3B82F6" Foreground="White"
                             BorderThickness="0" CornerRadius="6" Padding="14,5">
                         <TextBlock Text="▶ Play"/>
                     </Button>

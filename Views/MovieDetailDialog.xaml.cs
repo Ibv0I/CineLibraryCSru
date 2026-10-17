@@ -679,7 +679,7 @@ public sealed partial class MovieDetailDialog : Window
         if (aspLabel != null) AddTechBadge(aspLabel, "#475569"); // slate
         // Video codec
         if (!string.IsNullOrWhiteSpace(m.VideoCodec))
-            AddTechBadge(m.VideoCodec.ToUpperInvariant(), "#7C3AED"); // violet
+            AddTechBadge(m.VideoCodec.ToUpperInvariant(), "#2563EB"); // violet
         // HDR
         if (!string.IsNullOrWhiteSpace(m.HdrType))
             AddTechBadge(m.HdrType.ToUpperInvariant(), "#EAB308"); // amber

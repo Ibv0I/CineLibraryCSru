@@ -431,7 +431,7 @@ public sealed partial class DrivesPage : Page
     // painted dark cards white on hover).
     private static Microsoft.UI.Xaml.Media.SolidColorBrush CardHoverBrush(FrameworkElement el) =>
         new(el.ActualTheme == ElementTheme.Light
-            ? Windows.UI.Color.FromArgb(0xFF, 0xED, 0xED, 0xFB)   // #EDEDFB
+            ? Windows.UI.Color.FromArgb(0xFF, 0xED, 0xED, 0xFB)   // #E7EFFB
             : Windows.UI.Color.FromArgb(0xFF, 0x1E, 0x1E, 0x2E)); // #1E1E2E
 
     private void OnCardPointerEntered(object sender, PointerRoutedEventArgs e)

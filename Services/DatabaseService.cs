@@ -23,6 +23,11 @@ public class DatabaseService : IDisposable
         var dbPath = Path.Combine(dataDir, "cinelibrary.db");
         _conn = new SqliteConnection($"Data Source={dbPath}");
         _conn.Open();
+        // SQLite LIKE/NOCASE does not case-fold Cyrillic reliably. Register a Unicode-aware
+        // substring matcher so movie search works regardless of upper/lowercase input.
+        _conn.CreateFunction<string?, string?, bool>("UNICASECONTAINS",
+            (value, query) => !string.IsNullOrEmpty(value) && !string.IsNullOrEmpty(query)
+                && value.Contains(query, StringComparison.OrdinalIgnoreCase));
         ExecutePragmas();
         CreateSchema();
         RunMigrations();
@@ -1508,16 +1513,16 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
                 for (int i = 0; i < tokens.Length; i++)
                 {
                     var p = $"@q{i}";
-                    var titleClause = $"m.title LIKE {p} ESCAPE '\\' OR m.original_title LIKE {p} ESCAPE '\\'";
+                    var titleClause = $"UNICASECONTAINS(m.title, {p}) OR UNICASECONTAINS(m.original_title, {p})";
                     var castClause =
-                        $"EXISTS (SELECT 1 FROM movie_actors ma JOIN actors a ON a.id=ma.actor_id WHERE ma.movie_id=m.id AND a.name LIKE {p} ESCAPE '\\')"
-                      + $" OR EXISTS (SELECT 1 FROM movie_directors md JOIN directors d ON d.id=md.director_id WHERE md.movie_id=m.id AND d.name LIKE {p} ESCAPE '\\')";
+                        $"EXISTS (SELECT 1 FROM movie_actors ma JOIN actors a ON a.id=ma.actor_id WHERE ma.movie_id=m.id AND UNICASECONTAINS(a.name, {p}))"
+                      + $" OR EXISTS (SELECT 1 FROM movie_directors md JOIN directors d ON d.id=md.director_id WHERE md.movie_id=m.id AND UNICASECONTAINS(d.name, {p}))";
                     string clause = opts.SearchScope switch
                     {
                         "title" => titleClause,
                         "cast"  => castClause,
-                        _        => $"{titleClause} OR CAST(m.year AS TEXT) LIKE {p} ESCAPE '\\' OR {castClause}"
-                                  + $" OR EXISTS (SELECT 1 FROM movie_sets ms JOIN sets s ON s.id=ms.set_id WHERE ms.movie_id=m.id AND s.name LIKE {p} ESCAPE '\\')",
+                        _        => $"{titleClause} OR UNICASECONTAINS(CAST(m.year AS TEXT), {p}) OR {castClause}"
+                                  + $" OR EXISTS (SELECT 1 FROM movie_sets ms JOIN sets s ON s.id=ms.set_id WHERE ms.movie_id=m.id AND UNICASECONTAINS(s.name, {p}))",
                     };
                     where.Add($"({clause})");
                 }
@@ -1564,7 +1569,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             {
                 var tokens = TokenizeSearch(opts.Search);
                 for (int i = 0; i < tokens.Length; i++)
-                    cmd.Parameters.AddWithValue($"@q{i}", $"%{EscapeLike(tokens[i])}%");
+                    cmd.Parameters.AddWithValue($"@q{i}", tokens[i]);
             }
         }
         if (opts.DriveSerial != null) cmd.Parameters.AddWithValue("@serial", opts.DriveSerial);

@@ -190,9 +190,9 @@ public partial class MainViewModel : ObservableObject
             var html = $@"<!DOCTYPE html><html><head><meta charset='utf-8'/><title>CineLibrary Export</title>
 <style>body{{background:#0a0a0c;color:#e0e0e0;font-family:system-ui;padding:20px}}
 table{{border-collapse:collapse;width:100%}}th,td{{border:1px solid #333;padding:8px;text-align:left}}
-th{{background:#1a1a2e;color:#a78bfa}}tr:nth-child(even){{background:#111122}}
+th{{background:#172033;color:#3B82F6}}tr:nth-child(even){{background:#111122}}
 tr:hover{{background:#1e1e3a}}</style></head>
-<body><h1 style='color:#a78bfa'>CineLibrary Export — {DateTime.Now:yyyy-MM-dd}</h1>
+<body><h1 style='color:#3B82F6'>CineLibrary Export — {DateTime.Now:yyyy-MM-dd}</h1>
 <table><thead><tr><th>#</th><th>Title</th><th>Year</th><th>Rating</th><th>Runtime</th><th>Genres</th><th>Drive</th><th>Watched</th><th>IMDb</th></tr></thead>
 <tbody>{rows}</tbody></table></body></html>";
             File.WriteAllText(filePath, html, System.Text.Encoding.UTF8);

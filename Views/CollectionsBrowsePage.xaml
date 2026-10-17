@@ -146,14 +146,14 @@
                                                     <TextBlock Text="{x:Bind CountText}"
                                                                FontSize="11" Foreground="#D8D8D8"/>
                                                     <TextBlock Grid.Column="1" Text="{x:Bind ProgressText}"
-                                                               FontSize="11" FontWeight="SemiBold" Foreground="#A78BFA"/>
+                                                               FontSize="11" FontWeight="SemiBold" Foreground="#3B82F6"/>
                                                 </Grid>
                                                 <Grid Height="4" CornerRadius="2" Background="#40FFFFFF" Margin="0,4,0,2">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="{x:Bind DoneWidth}"/>
                                                         <ColumnDefinition Width="{x:Bind LeftWidth}"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <Border CornerRadius="2" Background="#A78BFA"/>
+                                                    <Border CornerRadius="2" Background="#3B82F6"/>
                                                 </Grid>
                                             </StackPanel>
                                         </Border>

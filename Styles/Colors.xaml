@@ -19,7 +19,7 @@
             <SolidColorBrush x:Key="TextBrush"       Color="#E8E8F0"/>
             <SolidColorBrush x:Key="MutedBrush"      Color="#6B7280"/>
             <!-- v3.9.0: sidebar icon colour per section, as in Aryan -->
-            <SolidColorBrush x:Key="NavLibraryIconBrush"  Color="#A78BFA"/>
+            <SolidColorBrush x:Key="NavLibraryIconBrush"  Color="#3B82F6"/>
             <SolidColorBrush x:Key="NavDiscoverIconBrush" Color="#4CC9A4"/>
             <SolidColorBrush x:Key="NavBrowseIconBrush"   Color="#F5B83D"/>
             <SolidColorBrush x:Key="NavToolsIconBrush"    Color="#9CA3AF"/>
@@ -37,10 +37,10 @@
                             <GradientStop Offset="1.00" Color="#FF0A0A0C"/>
                         </LinearGradientBrush>
             <SolidColorBrush x:Key="OverlayBrush"    Color="#CC0A0A1C"/>
-            <SolidColorBrush x:Key="PlaceholderBgBrush" Color="#1A1A2E"/>
+            <SolidColorBrush x:Key="PlaceholderBgBrush" Color="#172033"/>
             <!-- v2.6 — poster-placeholder gradient stops for depth -->
-            <Color x:Key="PlaceholderTopColor">#1F1A2E</Color>
-            <Color x:Key="PlaceholderBottomColor">#0F0A1F</Color>
+            <Color x:Key="PlaceholderTopColor">#1A2233</Color>
+            <Color x:Key="PlaceholderBottomColor">#0B1220</Color>
             <SolidColorBrush x:Key="ToastBgBrush"    Color="#1E1E3A"/>
             <SolidColorBrush x:Key="SubtleBgBrush"   Color="#0A1A2A"/>
             <!-- Sidebar section header (orange-tinted) -->
@@ -52,11 +52,11 @@
                  the brand purple so hover feels like a soft glow rather than
                  a plain grey wash; active state stronger so the current
                  page is obvious at a glance. -->
-            <SolidColorBrush x:Key="NavHoverBgBrush"            Color="#26A78BFA"/>
-            <SolidColorBrush x:Key="NavPressedBgBrush"          Color="#3DA78BFA"/>
-            <SolidColorBrush x:Key="NavActiveBgBrush"           Color="#55A78BFA"/>
-            <SolidColorBrush x:Key="NavActiveHoverBgBrush"      Color="#66A78BFA"/>
-            <SolidColorBrush x:Key="NavHoverBorderBrush"        Color="#55A78BFA"/>
+            <SolidColorBrush x:Key="NavHoverBgBrush"            Color="#263B82F6"/>
+            <SolidColorBrush x:Key="NavPressedBgBrush"          Color="#3D3B82F6"/>
+            <SolidColorBrush x:Key="NavActiveBgBrush"           Color="#553B82F6"/>
+            <SolidColorBrush x:Key="NavActiveHoverBgBrush"      Color="#663B82F6"/>
+            <SolidColorBrush x:Key="NavHoverBorderBrush"        Color="#553B82F6"/>
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="Light">
@@ -67,19 +67,19 @@
             <SolidColorBrush x:Key="SidebarBrush"    Color="#99E3E3EE"/>
             <SolidColorBrush x:Key="SidebarGlassBrush" Color="#CCE3E3EE"/>
             <SolidColorBrush x:Key="CardBrush"       Color="#FFFFFF"/>
-            <SolidColorBrush x:Key="CardHoverBrush"  Color="#EDEDFB"/>
+            <SolidColorBrush x:Key="CardHoverBrush"  Color="#E7EFFB"/>
             <SolidColorBrush x:Key="BorderBrush"     Color="#C6C6DC"/>
             <SolidColorBrush x:Key="TextBrush"       Color="#15152A"/>
             <SolidColorBrush x:Key="MutedBrush"      Color="#5F6473"/>
             <!-- v3.9.0: sidebar icon colour per section (darker shades for light surfaces) -->
-            <SolidColorBrush x:Key="NavLibraryIconBrush"  Color="#7C5CE0"/>
+            <SolidColorBrush x:Key="NavLibraryIconBrush"  Color="#2563EB"/>
             <SolidColorBrush x:Key="NavDiscoverIconBrush" Color="#0E8566"/>
             <SolidColorBrush x:Key="NavBrowseIconBrush"   Color="#A86A00"/>
             <SolidColorBrush x:Key="NavToolsIconBrush"    Color="#5F6473"/>
             <SolidColorBrush x:Key="InputBgBrush"    Color="#FFFFFF"/>
             <SolidColorBrush x:Key="InputBorderBrush" Color="#BDBDD2"/>
-            <SolidColorBrush x:Key="ChipBrush"       Color="#E5E5F2"/>
-            <SolidColorBrush x:Key="HeroBgBrush"     Color="#99F0F0FF"/>
+            <SolidColorBrush x:Key="ChipBrush"       Color="#E2EAF5"/>
+            <SolidColorBrush x:Key="HeroBgBrush"     Color="#991D3A5C"/>
             <LinearGradientBrush x:Key="HeroFadeBrush" StartPoint="0,0" EndPoint="0,1">
                             <GradientStop Offset="0.00" Color="#00F6F6FA"/>
                             <GradientStop Offset="0.48" Color="#00F6F6FA"/>
@@ -90,11 +90,11 @@
                             <GradientStop Offset="0.94" Color="#DDF6F6FA"/>
                             <GradientStop Offset="1.00" Color="#FFF6F6FA"/>
                         </LinearGradientBrush>
-            <SolidColorBrush x:Key="OverlayBrush"    Color="#CCF0F0FF"/>
-            <SolidColorBrush x:Key="PlaceholderBgBrush" Color="#EEEEFF"/>
-            <Color x:Key="PlaceholderTopColor">#F0EEFB</Color>
-            <Color x:Key="PlaceholderBottomColor">#DCD8EE</Color>
-            <SolidColorBrush x:Key="ToastBgBrush"    Color="#E8E8FF"/>
+            <SolidColorBrush x:Key="OverlayBrush"    Color="#CC1D3A5C"/>
+            <SolidColorBrush x:Key="PlaceholderBgBrush" Color="#EEF4FF"/>
+            <Color x:Key="PlaceholderTopColor">#EFF5FF</Color>
+            <Color x:Key="PlaceholderBottomColor">#D7E5F7</Color>
+            <SolidColorBrush x:Key="ToastBgBrush"    Color="#E8F1FF"/>
             <SolidColorBrush x:Key="SubtleBgBrush"   Color="#E8F0FF"/>
             <!-- Sidebar section header (orange-tinted) -->
             <SolidColorBrush x:Key="SectionHeaderBgBrush"      Color="#FFF4E6"/>
@@ -104,11 +104,11 @@
             <!-- Nav item active / hover states (Light). v2.5.2 — same idea
                  as Dark: tint hover with a soft purple so the sidebar feels
                  alive instead of inert. -->
-            <SolidColorBrush x:Key="NavHoverBgBrush"            Color="#33A78BFA"/>
-            <SolidColorBrush x:Key="NavPressedBgBrush"          Color="#55A78BFA"/>
-            <SolidColorBrush x:Key="NavActiveBgBrush"           Color="#44A78BFA"/>
-            <SolidColorBrush x:Key="NavActiveHoverBgBrush"      Color="#55A78BFA"/>
-            <SolidColorBrush x:Key="NavHoverBorderBrush"        Color="#88A78BFA"/>
+            <SolidColorBrush x:Key="NavHoverBgBrush"            Color="#333B82F6"/>
+            <SolidColorBrush x:Key="NavPressedBgBrush"          Color="#553B82F6"/>
+            <SolidColorBrush x:Key="NavActiveBgBrush"           Color="#443B82F6"/>
+            <SolidColorBrush x:Key="NavActiveHoverBgBrush"      Color="#553B82F6"/>
+            <SolidColorBrush x:Key="NavHoverBorderBrush"        Color="#883B82F6"/>
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="Default">
@@ -126,7 +126,7 @@
             <SolidColorBrush x:Key="TextBrush"       Color="#E8E8F0"/>
             <SolidColorBrush x:Key="MutedBrush"      Color="#6B7280"/>
             <!-- v3.9.0: sidebar icon colour per section, as in Aryan -->
-            <SolidColorBrush x:Key="NavLibraryIconBrush"  Color="#A78BFA"/>
+            <SolidColorBrush x:Key="NavLibraryIconBrush"  Color="#3B82F6"/>
             <SolidColorBrush x:Key="NavDiscoverIconBrush" Color="#4CC9A4"/>
             <SolidColorBrush x:Key="NavBrowseIconBrush"   Color="#F5B83D"/>
             <SolidColorBrush x:Key="NavToolsIconBrush"    Color="#9CA3AF"/>
@@ -144,9 +144,9 @@
                             <GradientStop Offset="1.00" Color="#FF0A0A0C"/>
                         </LinearGradientBrush>
             <SolidColorBrush x:Key="OverlayBrush"    Color="#CC0A0A1C"/>
-            <SolidColorBrush x:Key="PlaceholderBgBrush" Color="#1A1A2E"/>
-            <Color x:Key="PlaceholderTopColor">#1F1A2E</Color>
-            <Color x:Key="PlaceholderBottomColor">#0F0A1F</Color>
+            <SolidColorBrush x:Key="PlaceholderBgBrush" Color="#172033"/>
+            <Color x:Key="PlaceholderTopColor">#1A2233</Color>
+            <Color x:Key="PlaceholderBottomColor">#0B1220</Color>
             <SolidColorBrush x:Key="ToastBgBrush"    Color="#1E1E3A"/>
             <SolidColorBrush x:Key="SubtleBgBrush"   Color="#0A1A2A"/>
             <!-- Sidebar section header (orange-tinted) -->
@@ -155,17 +155,17 @@
             <SolidColorBrush x:Key="SectionHeaderHoverBgBrush" Color="#4F2F15"/>
             <SolidColorBrush x:Key="SectionHeaderTextBrush"    Color="#FBBF77"/>
             <!-- Nav item active / hover states (Default = Dark fallback). -->
-            <SolidColorBrush x:Key="NavHoverBgBrush"            Color="#26A78BFA"/>
-            <SolidColorBrush x:Key="NavPressedBgBrush"          Color="#3DA78BFA"/>
-            <SolidColorBrush x:Key="NavActiveBgBrush"           Color="#55A78BFA"/>
-            <SolidColorBrush x:Key="NavActiveHoverBgBrush"      Color="#66A78BFA"/>
-            <SolidColorBrush x:Key="NavHoverBorderBrush"        Color="#55A78BFA"/>
+            <SolidColorBrush x:Key="NavHoverBgBrush"            Color="#263B82F6"/>
+            <SolidColorBrush x:Key="NavPressedBgBrush"          Color="#3D3B82F6"/>
+            <SolidColorBrush x:Key="NavActiveBgBrush"           Color="#553B82F6"/>
+            <SolidColorBrush x:Key="NavActiveHoverBgBrush"      Color="#663B82F6"/>
+            <SolidColorBrush x:Key="NavHoverBorderBrush"        Color="#553B82F6"/>
         </ResourceDictionary>
 
     </ResourceDictionary.ThemeDictionaries>
 
     <!-- ═══ BRAND COLOURS (fixed — same in all themes) ════════════════════ -->
-    <SolidColorBrush x:Key="BrandPurpleBrush" Color="#A78BFA"/>
+    <SolidColorBrush x:Key="BrandPurpleBrush" Color="#3B82F6"/>
     <SolidColorBrush x:Key="BrandGoldBrush"   Color="#F59E0B"/>
     <SolidColorBrush x:Key="AccentRedBrush"   Color="#EF4444"/>
     <SolidColorBrush x:Key="AccentGreenBrush" Color="#22C55E"/>

@@ -22,9 +22,9 @@
     <!-- Active (checked) toolbar toggles use the brand accent instead of the
          default system-accent fill, so grid/list and S/M/L/XL read the same on
          every page (v3.8.0: moved here from LibraryPage). -->
-    <SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="#A78BFA"/>
-    <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver" Color="#B49BFB"/>
-    <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPressed" Color="#9B7BF5"/>
+    <SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="#3B82F6"/>
+    <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver" Color="#60A5FA"/>
+    <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPressed" Color="#2563EB"/>
     <SolidColorBrush x:Key="ToggleButtonForegroundChecked" Color="White"/>
     <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPointerOver" Color="White"/>
     <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPressed" Color="White"/>
@@ -45,9 +45,9 @@
 
     <!-- Active pill -->
     <Style x:Key="PillButtonActiveStyle" TargetType="Button" BasedOn="{StaticResource PillButtonStyle}">
-        <Setter Property="Background"  Value="#A78BFA"/>
+        <Setter Property="Background"  Value="#3B82F6"/>
         <Setter Property="Foreground"  Value="#FFFFFF"/>
-        <Setter Property="BorderBrush" Value="#A78BFA"/>
+        <Setter Property="BorderBrush" Value="#3B82F6"/>
     </Style>
 
     <!-- Icon button -->

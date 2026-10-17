@@ -171,7 +171,7 @@
                                                 <TextBlock x:Name="ShowYear" FontSize="13" Foreground="#D8D8D8"/>
                                                 <TextBlock x:Name="ShowRating" FontSize="13" Foreground="#F59E0B"/>
                                                 <TextBlock x:Name="ShowMpaa" FontSize="13" Foreground="#D8D8D8"/>
-                                                <TextBlock x:Name="ShowStatus" FontSize="13" Foreground="#A78BFA"/>
+                                                <TextBlock x:Name="ShowStatus" FontSize="13" Foreground="#3B82F6"/>
                                                 <TextBlock x:Name="ShowProgress" FontSize="13" Foreground="#D8D8D8"/>
                                                 <TextBlock x:Name="ShowStudio" FontSize="13" Foreground="#D8D8D8"/>
                                             </controls:WrapPanel>

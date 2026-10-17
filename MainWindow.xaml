@@ -131,8 +131,8 @@
                                      deep indigo-violet base — echoes the app
                                      icon's rich purple body. -->
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0.4,1">
-                                    <GradientStop Offset="0" Color="#C13AEB"/>
-                                    <GradientStop Offset="1" Color="#5B21B6"/>
+                                    <GradientStop Offset="0" Color="#60A5FA"/>
+                                    <GradientStop Offset="1" Color="#1E40AF"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                             <!-- Child is clipped to the parent's corner radius. -->
@@ -158,7 +158,7 @@
                                     <Polygon.Fill>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                                             <GradientStop Offset="0" Color="#FFFFFF"/>
-                                            <GradientStop Offset="1" Color="#E9D5FF"/>
+                                            <GradientStop Offset="1" Color="#DBEAFE"/>
                                         </LinearGradientBrush>
                                     </Polygon.Fill>
                                 </Polygon>
@@ -166,10 +166,8 @@
                         </Border>
                         <StackPanel x:Name="LogoTextPanel" VerticalAlignment="Center"
                                     Orientation="Horizontal" Spacing="0">
-                            <TextBlock Text="Cine" FontSize="15" FontWeight="SemiBold"
+                            <TextBlock Text="CineLibrary" FontSize="15" FontWeight="SemiBold"
                                        Foreground="{ThemeResource TextBrush}"/>
-                            <TextBlock Text="Library" FontSize="15" FontWeight="SemiBold"
-                                       Foreground="{StaticResource BrandPurpleBrush}"/>
                         </StackPanel>
                     </StackPanel>
                 </Button>

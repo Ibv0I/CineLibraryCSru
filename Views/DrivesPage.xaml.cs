@@ -31,6 +31,13 @@ public sealed partial class DrivesPage : Page
         EmptyState.Visibility = _drives.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    private void OnDriveMenuOpened(object sender, object e)
+    {
+        if (sender is not MenuFlyout flyout) return;
+        foreach (var item in flyout.Items.OfType<MenuFlyoutItem>())
+            item.Text = LocalizationService.TranslateText(item.Text);
+    }
+
     // ── Add drive (no scan — just register it) ────────────────────────────
 
     private async void OnAddDrive(object sender, RoutedEventArgs e)
@@ -134,7 +141,7 @@ public sealed partial class DrivesPage : Page
             if (!connected.TryGetValue(serial, out var letter))
             {
                 await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Диск отключён"),
-                    "Подключите диск, чтобы добавлять или сканировать папки.");
+                    CineLibraryCS.Services.LocalizationService.TranslateText("This drive is not connected."));
                 return;
             }
             var driveRoot = $"{letter}:\\";
@@ -164,7 +171,7 @@ public sealed partial class DrivesPage : Page
             var existingRoots = AppState.Instance.Db.GetDriveRoots(serial);
             if (existingRoots.Any(x => x.RootPath == relPath))
             {
-                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Уже добавлено"), $"'{(relPath == "" ? CineLibraryCS.Services.LocalizationService.TranslateText("(drive root)") : relPath)}' is already tracked on this drive.");
+                await ShowInfoDialog(CineLibraryCS.Services.LocalizationService.TranslateText("Уже добавлено"), $"Папка «{(relPath == "" ? "корень диска" : relPath)}» уже добавлена на этот диск.");
                 return;
             }
 

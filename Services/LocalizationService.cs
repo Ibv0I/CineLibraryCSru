@@ -608,6 +608,8 @@ public static class LocalizationService
         ["To watch"] = "ToWatch",
         ["Refreshed — sidebar counts updated"] = "Step24_RefreshedCounts",
         ["Refreshed — removed {count} stray entries"] = "Step24_RefreshedStray",
+        ["Recently Watching"] = "RecentlyWatched",
+        ["The folder is already tracked on this drive."] = "FolderAlreadyTracked",
         ["CineLibrary backup"] = "Step24_BackupFileType",
 
         ["Show all"] = "Step25_ShowAll",
@@ -681,6 +683,8 @@ public static class LocalizationService
             }
             if (root is MenuFlyoutItem menuItem)
                 menuItem.Text = TranslateText(menuItem.Text);
+            if (root is RadioMenuFlyoutItem radioItem)
+                radioItem.Text = TranslateText(radioItem.Text);
 
             var tooltip = ToolTipService.GetToolTip(root);
             if (tooltip is string tip)

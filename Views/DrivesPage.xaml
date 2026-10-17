@@ -183,7 +183,7 @@
                                             <FontIcon Glyph="&#xE712;" FontSize="16"
                                                       FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
                                             <Button.Flyout>
-                                                <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                                <MenuFlyout Placement="BottomEdgeAlignedRight" Opened="OnDriveMenuOpened">
                                                     <MenuFlyoutItem Text="Browse movies"
                                                                     Tag="{x:Bind VolumeSerial}"
                                                                     Click="OnBrowseDrive">

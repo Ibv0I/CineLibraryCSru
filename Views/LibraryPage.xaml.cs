@@ -1,3 +1,4 @@
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -37,7 +38,17 @@ public sealed partial class LibraryPage : Page
 
         InitializeComponent();
         LocalizationService.TranslateTree(this);
-        Loaded += (_, _) => LocalizationService.TranslateTree(this);
+        Loaded += (_, _) =>
+        {
+            LocalizationService.TranslateTree(this);
+            DensityS.Text = LocalizationService.Get("SizeSmall");
+            DensityM.Text = LocalizationService.Get("SizeMedium");
+            DensityL.Text = LocalizationService.Get("SizeLarge");
+            DensityXL.Text = LocalizationService.Get("SizeExtraLarge");
+            ToolTipService.SetToolTip(DensityDropDown, LocalizationService.Get("PosterSize"));
+            AutomationProperties.SetName(DensityDropDown, LocalizationService.Get("PosterSize"));
+            DensityLabel.Text = LocalizationService.Get("SizeMLabel");
+        };
 
         // Assign ItemsSource once — ObservableCollection handles all future updates
         GridRepeater.ItemsSource = _vm.Movies;
@@ -1038,9 +1049,26 @@ public sealed partial class LibraryPage : Page
     /// <summary>"128 movies", plus " · 3 shows" when the shows row is showing (v4.0.0).</summary>
     private void UpdateCountText()
     {
-        var movies = _vm.FilterTotal == 1 ? "1 movie" : $"{_vm.FilterTotal:N0} movies";
-        MovieCountText.Text = _rowShowCount == 0 ? movies
-            : $"{movies} · {(_rowShowCount == 1 ? "1 show" : $"{_rowShowCount} shows")}";
+        var count = _vm.FilterTotal;
+        string movies;
+        if (count == 1)
+        {
+            movies = LocalizationService.TranslateText("1 movie");
+        }
+        else if (LocalizationService.Get("MoviesCount") == "фильмов")
+        {
+            var n100 = count % 100;
+            var n10 = count % 10;
+            var noun = n100 is >= 11 and <= 14 ? "фильмов"
+                : n10 == 1 ? "фильм"
+                : n10 is >= 2 and <= 4 ? "фильма" : "фильмов";
+            movies = $"{count:N0} {noun}";
+        }
+        else
+        {
+            movies = $"{count:N0} {LocalizationService.Get("MoviesCount")}";
+        }
+        MovieCountText.Text = movies;
     }
 
     /// <summary>

@@ -52,6 +52,13 @@ public sealed partial class MainWindow : Window
         RootGrid.RequestedTheme = ElementTheme.Dark;
         LocalizationService.TranslateTree(RootGrid);
         RootGrid.Loaded += (_, _) => LocalizationService.TranslateTree(RootGrid);
+        RootGrid.Loaded += (_, _) =>
+        {
+            LibrariesLabel.Text = LocalizationService.Get("Libraries");
+            ContinueWatchingLabel.Text = LocalizationService.Get("ContinueWatching");
+            RecentlyAddedLabel.Text = LocalizationService.Get("RecentlyAdded");
+            RecentlyWatchedLabel.Text = LocalizationService.Get("RecentlyWatched");
+        };
 
         // Extend content into titlebar for Mica effect + use our custom drag region
         ExtendsContentIntoTitleBar = true;
@@ -1681,7 +1688,11 @@ public sealed partial class MainWindow : Window
             Padding = new Thickness(14, 8, 14, 8),
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
         };
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
+        exportBtn.HorizontalAlignment = HorizontalAlignment.Stretch;
+        importBtn.HorizontalAlignment = HorizontalAlignment.Stretch;
+        exportBtn.HorizontalContentAlignment = HorizontalAlignment.Center;
+        importBtn.HorizontalContentAlignment = HorizontalAlignment.Center;
+        var row = new StackPanel { Orientation = Orientation.Vertical, Spacing = 8 };
         row.Children.Add(exportBtn);
         row.Children.Add(importBtn);
         panel.Children.Add(row);

@@ -58,7 +58,7 @@
                     <ComboBoxItem Tag="date_added:desc" Content="Date Added ↓"/>
                     <ComboBoxItem Tag="date_added:asc"  Content="Date Added ↑"/>
                 </ComboBox>
-                <DropDownButton Background="{ThemeResource InputBgBrush}"
+                <DropDownButton x:Name="CollDensityDropDown" Background="{ThemeResource InputBgBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource InputBorderBrush}"
                                 CornerRadius="8" Height="36" Padding="12,0,10,0"

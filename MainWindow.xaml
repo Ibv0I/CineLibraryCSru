@@ -309,7 +309,7 @@
                                     <FontIcon Foreground="{ThemeResource NavDiscoverIconBrush}" Glyph="&#xE768;" FontSize="15"
                                               FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="Continue Watching" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="ContinueWatchingLabel" Text="Continue Watching" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <Border Grid.Column="1" Style="{StaticResource BadgeStyle}">
                                     <TextBlock x:Name="ContinueWatchingBadge" Text="0" FontSize="11"
@@ -324,7 +324,7 @@
                                 <FontIcon Foreground="{ThemeResource NavDiscoverIconBrush}" Glyph="&#xE823;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Recently Added" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="RecentlyAddedLabel" Text="Recently Added" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
@@ -340,7 +340,7 @@
                                     <FontIcon Foreground="{ThemeResource NavDiscoverIconBrush}" Glyph="&#xE823;" FontSize="15"
                                               FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="Recently Watched" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="RecentlyWatchedLabel" Text="Recently Watched" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <Border Grid.Column="1" Style="{StaticResource BadgeStyle}">
                                     <TextBlock x:Name="RecentlyWatchedBadge" Text="0" FontSize="11"
@@ -525,7 +525,7 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="LIBRARIES" CharacterSpacing="150"/>
+                                    <TextBlock x:Name="LibrariesLabel" Text="LIBRARIES" CharacterSpacing="150"/>
                                     <TextBlock x:Name="LibrariesChevron" Grid.Column="1"
                                                Text="⌃" FontSize="11" Margin="6,0,0,0"/>
                                 </Grid>

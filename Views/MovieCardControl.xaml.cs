@@ -597,7 +597,7 @@ public sealed partial class MovieCardControl : UserControl
         catch
         {
             if (App.MainWindow is MainWindow mw)
-                mw.ShowToast("Couldn't launch the video player");
+                mw.ShowToast("Не удалось запустить видеоплеер.");
         }
     }
 
@@ -607,8 +607,8 @@ public sealed partial class MovieCardControl : UserControl
         {
             Title = CineLibraryCS.Services.LocalizationService.TranslateText("Can't play yet"),
             Content = string.IsNullOrEmpty(driveLabel)
-                ? $"\"{title}\" lives on a drive that isn't connected. Plug it in and try again."
-                : $"\"{title}\" lives on \"{driveLabel}\", which isn't connected. Plug it in and try again.",
+                ? $"Фильм «{title}» находится на диске, который сейчас не подключён. Подключите его и повторите попытку."
+                : $"Фильм «{title}» находится на диске «{driveLabel}», который сейчас не подключён. Подключите его и повторите попытку.",
             CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("OK"),
             XamlRoot = XamlRoot,
             RequestedTheme = MainWindow.CurrentTheme,

@@ -46,7 +46,7 @@ public partial class LibraryViewModel : ObservableObject
     [ObservableProperty] private bool _isLoading = false;
     [ObservableProperty] private bool _hasMore = false;
     [ObservableProperty] private int _totalCount = 0;
-    [ObservableProperty] private string _pageTitle = "All Movies";
+    [ObservableProperty] private string _pageTitle = CineLibraryCS.Services.LocalizationService.TranslateText("All Movies");
     [ObservableProperty] private int _watchlistCount = 0;
 
     public ObservableCollection<MovieListItem> Movies { get; } = new();

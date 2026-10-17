@@ -1065,7 +1065,7 @@
   <data name="ReleasedMoviesPlural" xml:space="preserve">
     <value>{0} movies</value>
   </data>
-<data name="ReleasedOnDate" xml:space="preserve">
+  <data name="ReleasedOnDate" xml:space="preserve">
     <value>🎬  RELEASED ON THIS DATE</value>
   </data>
   <data name="ReleasedOnDateHeader" xml:space="preserve">
@@ -1705,9 +1705,102 @@
   <data name="Step21_c49c29bb66" xml:space="preserve">
     <value>No results</value>
   </data>
-  <data name="Step24_AboutBrowse" xml:space="preserve"><value>Browse, search and play your movies across multiple external drives.</value></data><data name="Step24_AboutIntro" xml:space="preserve"><value>A fast, native movie catalog for MediaElch-scraped collections.</value></data><data name="Step24_BackupFileType" xml:space="preserve"><value>CineLibrary backup</value></data><data name="Step24_BuiltWith" xml:space="preserve"><value>Built with C# + WinUI 3.</value></data><data name="Step24_CardShortcutNote" xml:space="preserve"><value>Card shortcuts (F, W, Delete) act on the current selection — </value></data><data name="Step24_DeleteForever" xml:space="preserve"><value>Delete forever</value></data><data name="Step24_DeletePermanent" xml:space="preserve"><value>Delete record permanently</value></data><data name="Step24_DriveFilesUntouched" xml:space="preserve"><value>The actual files on the drive are not touched.
+  <data name="Step24_AboutBrowse" xml:space="preserve">
+    <value>Browse, search and play your movies across multiple external drives.</value>
+  </data>
+  <data name="Step24_AboutIntro" xml:space="preserve">
+    <value>A fast, native movie catalog for MediaElch-scraped collections.</value>
+  </data>
+  <data name="Step24_BackupFileType" xml:space="preserve">
+    <value>CineLibrary backup</value>
+  </data>
+  <data name="Step24_BuiltWith" xml:space="preserve">
+    <value>Built with C# + WinUI 3.</value>
+  </data>
+  <data name="Step24_CardShortcutNote" xml:space="preserve">
+    <value>Card shortcuts (F, W, Delete) act on the current selection — </value>
+  </data>
+  <data name="Step24_DeleteForever" xml:space="preserve">
+    <value>Delete forever</value>
+  </data>
+  <data name="Step24_DeletePermanent" xml:space="preserve">
+    <value>Delete record permanently</value>
+  </data>
+  <data name="Step24_DriveFilesUntouched" xml:space="preserve">
+    <value>The actual files on the drive are not touched.
 
-</value></data><data name="Step24_FocusSearch" xml:space="preserve"><value>Focus the search box</value></data><data name="Step24_HasNote" xml:space="preserve"><value>Has note</value></data><data name="Step24_ImportBackup" xml:space="preserve"><value>Import backup…</value></data><data name="Step24_JumpTopBottom" xml:space="preserve"><value>Jump to top / bottom</value></data><data name="Step24_Navigation" xml:space="preserve"><value>NAVIGATION</value></data><data name="Step24_OpenDetails" xml:space="preserve"><value>Open details</value></data><data name="Step24_QuitApp" xml:space="preserve"><value>Quit CineLibrary</value></data><data name="Step24_RangeSelect" xml:space="preserve"><value>Range-select from the last card</value></data><data name="Step24_RefreshCancelled" xml:space="preserve"><value>Refresh cancelled</value></data><data name="Step24_RefreshedCounts" xml:space="preserve"><value>Refreshed — sidebar counts updated</value></data><data name="Step24_RefreshedStray" xml:space="preserve"><value>Refreshed — removed {count} stray entries</value></data><data name="Step24_RefreshError" xml:space="preserve"><value>Refresh error</value></data><data name="Step24_RemoveFolderQuestion" xml:space="preserve"><value>Remove folder?</value></data><data name="Step24_ScrollRow" xml:space="preserve"><value>Scroll by one row of cards</value></data><data name="Step24_ScrollViewport" xml:space="preserve"><value>Scroll one viewport</value></data><data name="Step24_SearchGeneral" xml:space="preserve"><value>SEARCH &amp; GENERAL</value></data><data name="Step24_SelectionActions" xml:space="preserve"><value>SELECTION &amp; ACTIONS</value></data><data name="Step24_ShortcutNoteTail" xml:space="preserve"><value>click one or more cards first. They pause while you're typing in the search box.</value></data><data name="Step24_ShowShortcuts" xml:space="preserve"><value>Show this shortcuts dialog</value></data><data name="Step24_ToggleFavorite" xml:space="preserve"><value>Toggle favorite on the selection</value></data><data name="Step24_ToggleSidebar" xml:space="preserve"><value>Toggle the sidebar</value></data><data name="Step24_ToggleWatchlist" xml:space="preserve"><value>Toggle watchlist on the selection</value></data><data name="Step24_Undo" xml:space="preserve"><value>Undo</value></data><data name="Step7_02bce93bff" xml:space="preserve">
+</value>
+  </data>
+  <data name="Step24_FocusSearch" xml:space="preserve">
+    <value>Focus the search box</value>
+  </data>
+  <data name="Step24_HasNote" xml:space="preserve">
+    <value>Has note</value>
+  </data>
+  <data name="Step24_ImportBackup" xml:space="preserve">
+    <value>Import backup…</value>
+  </data>
+  <data name="Step24_JumpTopBottom" xml:space="preserve">
+    <value>Jump to top / bottom</value>
+  </data>
+  <data name="Step24_Navigation" xml:space="preserve">
+    <value>NAVIGATION</value>
+  </data>
+  <data name="Step24_OpenDetails" xml:space="preserve">
+    <value>Open details</value>
+  </data>
+  <data name="Step24_QuitApp" xml:space="preserve">
+    <value>Quit CineLibrary</value>
+  </data>
+  <data name="Step24_RangeSelect" xml:space="preserve">
+    <value>Range-select from the last card</value>
+  </data>
+  <data name="Step24_RefreshCancelled" xml:space="preserve">
+    <value>Refresh cancelled</value>
+  </data>
+  <data name="Step24_RefreshedCounts" xml:space="preserve">
+    <value>Refreshed — sidebar counts updated</value>
+  </data>
+  <data name="Step24_RefreshedStray" xml:space="preserve">
+    <value>Refreshed — removed {count} stray entries</value>
+  </data>
+  <data name="Step24_RefreshError" xml:space="preserve">
+    <value>Refresh error</value>
+  </data>
+  <data name="Step24_RemoveFolderQuestion" xml:space="preserve">
+    <value>Remove folder?</value>
+  </data>
+  <data name="Step24_ScrollRow" xml:space="preserve">
+    <value>Scroll by one row of cards</value>
+  </data>
+  <data name="Step24_ScrollViewport" xml:space="preserve">
+    <value>Scroll one viewport</value>
+  </data>
+  <data name="Step24_SearchGeneral" xml:space="preserve">
+    <value>SEARCH &amp; GENERAL</value>
+  </data>
+  <data name="Step24_SelectionActions" xml:space="preserve">
+    <value>SELECTION &amp; ACTIONS</value>
+  </data>
+  <data name="Step24_ShortcutNoteTail" xml:space="preserve">
+    <value>click one or more cards first. They pause while you're typing in the search box.</value>
+  </data>
+  <data name="Step24_ShowShortcuts" xml:space="preserve">
+    <value>Show this shortcuts dialog</value>
+  </data>
+  <data name="Step24_ToggleFavorite" xml:space="preserve">
+    <value>Toggle favorite on the selection</value>
+  </data>
+  <data name="Step24_ToggleSidebar" xml:space="preserve">
+    <value>Toggle the sidebar</value>
+  </data>
+  <data name="Step24_ToggleWatchlist" xml:space="preserve">
+    <value>Toggle watchlist on the selection</value>
+  </data>
+  <data name="Step24_Undo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="Step7_02bce93bff" xml:space="preserve">
     <value>Keep</value>
   </data>
   <data name="Step7_06a80d6e8d" xml:space="preserve">
@@ -2217,4 +2310,10 @@ Then try again.</value>
   <data name="ZeroMovies" xml:space="preserve">
     <value>0 movies</value>
   </data>
-  </root>
+  <data name="Step25_ShowAll" xml:space="preserve">
+    <value>Show all</value>
+  </data>
+  <data name="Step25_RestoreHint" xml:space="preserve">
+    <value>You can restore it from the Watched &amp; Gone page anytime.</value>
+  </data>
+</root>

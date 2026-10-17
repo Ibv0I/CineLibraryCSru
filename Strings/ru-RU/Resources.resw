@@ -1065,7 +1065,7 @@
   <data name="ReleasedMoviesPlural" xml:space="preserve">
     <value>{0} фильмов</value>
   </data>
-<data name="ReleasedOnDate" xml:space="preserve">
+  <data name="ReleasedOnDate" xml:space="preserve">
     <value>🎬  ВЫШЛО В ЭТОТ ДЕНЬ</value>
   </data>
   <data name="ReleasedOnDateHeader" xml:space="preserve">
@@ -1705,9 +1705,102 @@
   <data name="Step21_c49c29bb66" xml:space="preserve">
     <value>Ничего не найдено</value>
   </data>
-  <data name="Step24_AboutBrowse" xml:space="preserve"><value>Просматривайте, ищите и воспроизводите фильмы на нескольких внешних дисках.</value></data><data name="Step24_AboutIntro" xml:space="preserve"><value>Быстрый нативный каталог фильмов для коллекций, обработанных MediaElch.</value></data><data name="Step24_BackupFileType" xml:space="preserve"><value>Резервная копия CineLibrary</value></data><data name="Step24_BuiltWith" xml:space="preserve"><value>Создано на C# и WinUI 3.</value></data><data name="Step24_CardShortcutNote" xml:space="preserve"><value>Сочетания F, W и Delete действуют на выбранные карточки — </value></data><data name="Step24_DeleteForever" xml:space="preserve"><value>Удалить навсегда</value></data><data name="Step24_DeletePermanent" xml:space="preserve"><value>Удалить запись без возможности восстановления</value></data><data name="Step24_DriveFilesUntouched" xml:space="preserve"><value>Сами файлы на диске не изменяются.
+  <data name="Step24_AboutBrowse" xml:space="preserve">
+    <value>Просматривайте, ищите и воспроизводите фильмы на нескольких внешних дисках.</value>
+  </data>
+  <data name="Step24_AboutIntro" xml:space="preserve">
+    <value>Быстрый нативный каталог фильмов для коллекций, обработанных MediaElch.</value>
+  </data>
+  <data name="Step24_BackupFileType" xml:space="preserve">
+    <value>Резервная копия CineLibrary</value>
+  </data>
+  <data name="Step24_BuiltWith" xml:space="preserve">
+    <value>Создано на C# и WinUI 3.</value>
+  </data>
+  <data name="Step24_CardShortcutNote" xml:space="preserve">
+    <value>Сочетания F, W и Delete действуют на выбранные карточки — </value>
+  </data>
+  <data name="Step24_DeleteForever" xml:space="preserve">
+    <value>Удалить навсегда</value>
+  </data>
+  <data name="Step24_DeletePermanent" xml:space="preserve">
+    <value>Удалить запись без возможности восстановления</value>
+  </data>
+  <data name="Step24_DriveFilesUntouched" xml:space="preserve">
+    <value>Сами файлы на диске не изменяются.
 
-</value></data><data name="Step24_FocusSearch" xml:space="preserve"><value>Перейти к полю поиска</value></data><data name="Step24_HasNote" xml:space="preserve"><value>Есть заметка</value></data><data name="Step24_ImportBackup" xml:space="preserve"><value>Импортировать резервную копию…</value></data><data name="Step24_JumpTopBottom" xml:space="preserve"><value>Перейти в начало или конец</value></data><data name="Step24_Navigation" xml:space="preserve"><value>НАВИГАЦИЯ</value></data><data name="Step24_OpenDetails" xml:space="preserve"><value>Открыть подробности</value></data><data name="Step24_QuitApp" xml:space="preserve"><value>Выйти из CineLibrary</value></data><data name="Step24_RangeSelect" xml:space="preserve"><value>Выбрать диапазон от последней карточки</value></data><data name="Step24_RefreshCancelled" xml:space="preserve"><value>Обновление отменено</value></data><data name="Step24_RefreshedCounts" xml:space="preserve"><value>Обновлено — счётчики боковой панели обновлены</value></data><data name="Step24_RefreshedStray" xml:space="preserve"><value>Обновлено — удалено лишних записей: {count}</value></data><data name="Step24_RefreshError" xml:space="preserve"><value>Ошибка обновления</value></data><data name="Step24_RemoveFolderQuestion" xml:space="preserve"><value>Удалить папку?</value></data><data name="Step24_ScrollRow" xml:space="preserve"><value>Прокрутить на один ряд карточек</value></data><data name="Step24_ScrollViewport" xml:space="preserve"><value>Прокрутить на один экран</value></data><data name="Step24_SearchGeneral" xml:space="preserve"><value>ПОИСК И ОБЩИЕ ДЕЙСТВИЯ</value></data><data name="Step24_SelectionActions" xml:space="preserve"><value>ВЫБОР И ДЕЙСТВИЯ</value></data><data name="Step24_ShortcutNoteTail" xml:space="preserve"><value>сначала выберите одну или несколько карточек. Во время ввода в поле поиска сочетания не работают.</value></data><data name="Step24_ShowShortcuts" xml:space="preserve"><value>Показать это окно сочетаний клавиш</value></data><data name="Step24_ToggleFavorite" xml:space="preserve"><value>Добавить выбранные фильмы в избранное или убрать из него</value></data><data name="Step24_ToggleSidebar" xml:space="preserve"><value>Переключить боковую панель</value></data><data name="Step24_ToggleWatchlist" xml:space="preserve"><value>Добавить выбранные фильмы в список просмотра или убрать из него</value></data><data name="Step24_Undo" xml:space="preserve"><value>Отменить</value></data><data name="Step7_02bce93bff" xml:space="preserve">
+</value>
+  </data>
+  <data name="Step24_FocusSearch" xml:space="preserve">
+    <value>Перейти к полю поиска</value>
+  </data>
+  <data name="Step24_HasNote" xml:space="preserve">
+    <value>Есть заметка</value>
+  </data>
+  <data name="Step24_ImportBackup" xml:space="preserve">
+    <value>Импортировать резервную копию…</value>
+  </data>
+  <data name="Step24_JumpTopBottom" xml:space="preserve">
+    <value>Перейти в начало или конец</value>
+  </data>
+  <data name="Step24_Navigation" xml:space="preserve">
+    <value>НАВИГАЦИЯ</value>
+  </data>
+  <data name="Step24_OpenDetails" xml:space="preserve">
+    <value>Открыть подробности</value>
+  </data>
+  <data name="Step24_QuitApp" xml:space="preserve">
+    <value>Выйти из CineLibrary</value>
+  </data>
+  <data name="Step24_RangeSelect" xml:space="preserve">
+    <value>Выбрать диапазон от последней карточки</value>
+  </data>
+  <data name="Step24_RefreshCancelled" xml:space="preserve">
+    <value>Обновление отменено</value>
+  </data>
+  <data name="Step24_RefreshedCounts" xml:space="preserve">
+    <value>Обновлено — счётчики боковой панели обновлены</value>
+  </data>
+  <data name="Step24_RefreshedStray" xml:space="preserve">
+    <value>Обновлено — удалено лишних записей: {count}</value>
+  </data>
+  <data name="Step24_RefreshError" xml:space="preserve">
+    <value>Ошибка обновления</value>
+  </data>
+  <data name="Step24_RemoveFolderQuestion" xml:space="preserve">
+    <value>Удалить папку?</value>
+  </data>
+  <data name="Step24_ScrollRow" xml:space="preserve">
+    <value>Прокрутить на один ряд карточек</value>
+  </data>
+  <data name="Step24_ScrollViewport" xml:space="preserve">
+    <value>Прокрутить на один экран</value>
+  </data>
+  <data name="Step24_SearchGeneral" xml:space="preserve">
+    <value>ПОИСК И ОБЩИЕ ДЕЙСТВИЯ</value>
+  </data>
+  <data name="Step24_SelectionActions" xml:space="preserve">
+    <value>ВЫБОР И ДЕЙСТВИЯ</value>
+  </data>
+  <data name="Step24_ShortcutNoteTail" xml:space="preserve">
+    <value>сначала выберите одну или несколько карточек. Во время ввода в поле поиска сочетания не работают.</value>
+  </data>
+  <data name="Step24_ShowShortcuts" xml:space="preserve">
+    <value>Показать это окно сочетаний клавиш</value>
+  </data>
+  <data name="Step24_ToggleFavorite" xml:space="preserve">
+    <value>Добавить выбранные фильмы в избранное или убрать из него</value>
+  </data>
+  <data name="Step24_ToggleSidebar" xml:space="preserve">
+    <value>Переключить боковую панель</value>
+  </data>
+  <data name="Step24_ToggleWatchlist" xml:space="preserve">
+    <value>Добавить выбранные фильмы в список просмотра или убрать из него</value>
+  </data>
+  <data name="Step24_Undo" xml:space="preserve">
+    <value>Отменить</value>
+  </data>
+  <data name="Step7_02bce93bff" xml:space="preserve">
     <value>Оставить</value>
   </data>
   <data name="Step7_06a80d6e8d" xml:space="preserve">
@@ -2217,4 +2310,10 @@
   <data name="ZeroMovies" xml:space="preserve">
     <value>0 фильмов</value>
   </data>
-  </root>
+  <data name="Step25_ShowAll" xml:space="preserve">
+    <value>Показать всех</value>
+  </data>
+  <data name="Step25_RestoreHint" xml:space="preserve">
+    <value>Восстановить фильм можно в любое время на странице «Просмотрено и удалено».</value>
+  </data>
+</root>

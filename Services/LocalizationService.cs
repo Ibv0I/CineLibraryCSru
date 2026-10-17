@@ -609,6 +609,10 @@ public static class LocalizationService
         ["Refreshed — sidebar counts updated"] = "Step24_RefreshedCounts",
         ["Refreshed — removed {count} stray entries"] = "Step24_RefreshedStray",
         ["CineLibrary backup"] = "Step24_BackupFileType",
+
+        ["Show all"] = "Step25_ShowAll",
+
+        ["You can restore it from the Watched & Gone page anytime."] = "Step25_RestoreHint",
     };
 
     public static string TranslateText(string? text)

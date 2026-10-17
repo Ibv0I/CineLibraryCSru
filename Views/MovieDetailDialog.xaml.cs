@@ -193,7 +193,7 @@ public sealed partial class MovieDetailDialog : Window
             ChipsPanel.Children.Add(border);
         }
 
-        if (m.IsMissing) AddChip("MISSING", "#3A1010");
+        if (m.IsMissing) AddChip(CineLibraryCS.Services.LocalizationService.TranslateText("MISSING"), "#3A1010");
 
         // Drive
         DriveStatusDot.Fill = new SolidColorBrush(m.IsOnline

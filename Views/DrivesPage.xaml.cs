@@ -58,7 +58,7 @@ public sealed partial class DrivesPage : Page
             {
                 var sdi = SysDriveInfo.GetDrives()
                     .FirstOrDefault(d => d.Name.StartsWith(kv.Value, StringComparison.OrdinalIgnoreCase));
-                var label = sdi?.VolumeLabel is { Length: > 0 } vl ? vl : $"Drive ({kv.Value}:)";
+                var label = sdi?.VolumeLabel is { Length: > 0 } vl ? vl : $"{CineLibraryCS.Services.LocalizationService.TranslateText("Drive")} ({kv.Value}:)";
                 newDrives.Add((kv.Key, kv.Value, label));
             }
         }
@@ -117,7 +117,7 @@ public sealed partial class DrivesPage : Page
         if (selIdx < 0 || selIdx >= newDrives.Count) return;
         var (ser, let, _) = newDrives[selIdx];
 
-        var finalLabel = string.IsNullOrWhiteSpace(nameBox.Text) ? $"Drive ({let}:)" : nameBox.Text.Trim();
+        var finalLabel = string.IsNullOrWhiteSpace(nameBox.Text) ? $"{CineLibraryCS.Services.LocalizationService.TranslateText("Drive")} ({let}:)" : nameBox.Text.Trim();
         AppState.Instance.Db.AddDrive(ser, finalLabel, let);
         Refresh();
         RefreshRequested?.Invoke(this, EventArgs.Empty);

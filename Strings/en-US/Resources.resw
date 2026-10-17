@@ -12,9 +12,6 @@
   <data name="AddDriveHint" xml:space="preserve">
     <value>Click + Add Drive to get started.</value>
   </data>
-  <data name="AddedToWatchedGone" xml:space="preserve">
-    <value>Added to Watched &amp; Gone</value>
-  </data>
   <data name="AddFolder" xml:space="preserve">
     <value>Add folder</value>
   </data>
@@ -53,6 +50,9 @@
   </data>
   <data name="AddWatchedMovieTitle" xml:space="preserve">
     <value>Add a watched movie</value>
+  </data>
+  <data name="AddedToWatchedGone" xml:space="preserve">
+    <value>Added to Watched &amp; Gone</value>
   </data>
   <data name="AllMovies" xml:space="preserve">
     <value>All Movies</value>
@@ -102,6 +102,9 @@
   <data name="Auto_Avg_show_rating_013527fd" xml:space="preserve">
     <value>Avg show rating</value>
   </data>
+  <data name="Auto_BROWSE_c509cd6d" xml:space="preserve">
+    <value>BROWSE</value>
+  </data>
   <data name="Auto_Back_b52b36b7" xml:space="preserve">
     <value>Back</value>
   </data>
@@ -110,9 +113,6 @@
   </data>
   <data name="Auto_Best_copy_highest_quality_then_largest_Recommended_to_keep_bcdc8470" xml:space="preserve">
     <value>Best copy: highest quality, then largest. Recommended to keep.</value>
-  </data>
-  <data name="Auto_BROWSE_c509cd6d" xml:space="preserve">
-    <value>BROWSE</value>
   </data>
   <data name="Auto_Browse_movies_c8c84d6c" xml:space="preserve">
     <value>Browse movies</value>
@@ -165,6 +165,9 @@
   <data name="Auto_Create_a_new_list_334c0dd1" xml:space="preserve">
     <value>Create a new list</value>
   </data>
+  <data name="Auto_DISCOVER_d3f02e63" xml:space="preserve">
+    <value>DISCOVER</value>
+  </data>
   <data name="Auto_Date_Added_970b7b3d" xml:space="preserve">
     <value>Date Added ↑</value>
   </data>
@@ -173,9 +176,6 @@
   </data>
   <data name="Auto_Delete_this_record_f9187972" xml:space="preserve">
     <value>Delete this record?</value>
-  </data>
-  <data name="Auto_DISCOVER_d3f02e63" xml:space="preserve">
-    <value>DISCOVER</value>
   </data>
   <data name="Auto_Drives_13219b91" xml:space="preserve">
     <value>Drives</value>
@@ -216,6 +216,12 @@
   <data name="Auto_Keyboard_shortcuts_26669547" xml:space="preserve">
     <value>Keyboard shortcuts</value>
   </data>
+  <data name="Auto_LIBRARIES_538f1ef4" xml:space="preserve">
+    <value>LIBRARIES</value>
+  </data>
+  <data name="Auto_LIBRARY_7b8a89ce" xml:space="preserve">
+    <value>LIBRARY</value>
+  </data>
   <data name="Auto_Large_738fd1d2" xml:space="preserve">
     <value>Large</value>
   </data>
@@ -225,14 +231,11 @@
   <data name="Auto_Last_Watched_76eb93b3" xml:space="preserve">
     <value>Last Watched ↓</value>
   </data>
-  <data name="Auto_LIBRARIES_538f1ef4" xml:space="preserve">
-    <value>LIBRARIES</value>
-  </data>
-  <data name="Auto_LIBRARY_7b8a89ce" xml:space="preserve">
-    <value>LIBRARY</value>
-  </data>
   <data name="Auto_List_view_694bbd75" xml:space="preserve">
     <value>List view</value>
+  </data>
+  <data name="Auto_MY_LISTS_831efb6d" xml:space="preserve">
+    <value>MY LISTS</value>
   </data>
   <data name="Auto_Matched_by_title_year_only_no_TMDb_IMDb_id_Worth_a_quick_check_9ef823b6" xml:space="preserve">
     <value>Matched by title + year only, no TMDb/IMDb id. Worth a quick check.</value>
@@ -257,9 +260,6 @@
   </data>
   <data name="Auto_Movies_you_have_more_than_once_Copies_in_a_different_audio_language_or_1df5c4b6" xml:space="preserve">
     <value>Movies you have more than once. Copies in a different audio language or edition are kept on purpose. Other copies, including ones that differ only in quality or codec, are flagged as possible duplicates.</value>
-  </data>
-  <data name="Auto_MY_LISTS_831efb6d" xml:space="preserve">
-    <value>MY LISTS</value>
   </data>
   <data name="Auto_New_list_d44f1a8e" xml:space="preserve">
     <value>New list</value>
@@ -390,6 +390,18 @@
   <data name="Auto_Sync_to_drive_state_fetched_art_9639261a" xml:space="preserve">
     <value>Sync to drive (state + fetched art)</value>
   </data>
+  <data name="Auto_TOOLS_9d0e510b" xml:space="preserve">
+    <value>TOOLS</value>
+  </data>
+  <data name="Auto_TV_SHOWS_IN_THIS_LIST_141d563c" xml:space="preserve">
+    <value>TV SHOWS IN THIS LIST</value>
+  </data>
+  <data name="Auto_TV_SHOWS_MATCHING_cde047b4" xml:space="preserve">
+    <value>TV SHOWS MATCHING</value>
+  </data>
+  <data name="Auto_TV_shows_ac32c5b1" xml:space="preserve">
+    <value>TV shows</value>
+  </data>
   <data name="Auto_Title_3b20fb3a" xml:space="preserve">
     <value>Title ↓</value>
   </data>
@@ -401,9 +413,6 @@
   </data>
   <data name="Auto_To_Watch_22af52ea" xml:space="preserve">
     <value>To Watch</value>
-  </data>
-  <data name="Auto_TOOLS_9d0e510b" xml:space="preserve">
-    <value>TOOLS</value>
   </data>
   <data name="Auto_Top_actors_b95f0d23" xml:space="preserve">
     <value>🎭 Top actors</value>
@@ -423,15 +432,6 @@
   <data name="Auto_Try_clearing_the_search_or_choosing_All_watched_filter_7594092f" xml:space="preserve">
     <value>Try clearing the search or choosing 'All' watched filter.</value>
   </data>
-  <data name="Auto_TV_shows_ac32c5b1" xml:space="preserve">
-    <value>TV shows</value>
-  </data>
-  <data name="Auto_TV_SHOWS_IN_THIS_LIST_141d563c" xml:space="preserve">
-    <value>TV SHOWS IN THIS LIST</value>
-  </data>
-  <data name="Auto_TV_SHOWS_MATCHING_cde047b4" xml:space="preserve">
-    <value>TV SHOWS MATCHING</value>
-  </data>
   <data name="Auto_Unexpected_Error_d17c2e74" xml:space="preserve">
     <value>Unexpected Error</value>
   </data>
@@ -441,17 +441,14 @@
   <data name="Auto_Update_fb91e24f" xml:space="preserve">
     <value>Update</value>
   </data>
-  <data name="Auto_verify_86a4261d" xml:space="preserve">
-    <value>verify</value>
-  </data>
   <data name="Auto_Watch_progress_f3e0c41d" xml:space="preserve">
     <value>✓ Watch progress</value>
   </data>
-  <data name="Auto_Watched_de9a3242" xml:space="preserve">
-    <value>Watched</value>
-  </data>
   <data name="Auto_Watched_Gone_2150a2ad" xml:space="preserve">
     <value>Watched &amp; Gone</value>
+  </data>
+  <data name="Auto_Watched_de9a3242" xml:space="preserve">
+    <value>Watched</value>
   </data>
   <data name="Auto_What_the_search_matches_77819fdf" xml:space="preserve">
     <value>What the search matches</value>
@@ -464,6 +461,9 @@
   </data>
   <data name="Auto_Your_collection_at_a_glance_2b3901c6" xml:space="preserve">
     <value>Your collection at a glance</value>
+  </data>
+  <data name="Auto_verify_86a4261d" xml:space="preserve">
+    <value>verify</value>
   </data>
   <data name="AverageRating" xml:space="preserve">
     <value>Avg rating</value>
@@ -576,6 +576,12 @@
   <data name="CollectionNameDesc" xml:space="preserve">
     <value>Name ↓</value>
   </data>
+  <data name="CollectionYearAsc" xml:space="preserve">
+    <value>Year ↑</value>
+  </data>
+  <data name="CollectionYearDesc" xml:space="preserve">
+    <value>Year ↓</value>
+  </data>
   <data name="Collections" xml:space="preserve">
     <value>Collections</value>
   </data>
@@ -590,12 +596,6 @@
   </data>
   <data name="CollectionsWatchedTooltip" xml:space="preserve">
     <value>Collections you've watched every movie of</value>
-  </data>
-  <data name="CollectionYearAsc" xml:space="preserve">
-    <value>Year ↑</value>
-  </data>
-  <data name="CollectionYearDesc" xml:space="preserve">
-    <value>Year ↓</value>
   </data>
   <data name="ContinueWatching" xml:space="preserve">
     <value>Continue Watching</value>
@@ -648,11 +648,11 @@
   <data name="DriveOfflineNote" xml:space="preserve">
     <value>Drive offline — note saved locally; will sync to the movie folder when reconnected.</value>
   </data>
-  <data name="Drives" xml:space="preserve">
-    <value>Drives</value>
-  </data>
   <data name="DriveScanFolder" xml:space="preserve">
     <value>Rescan this drive's folders for new or changed movies</value>
+  </data>
+  <data name="Drives" xml:space="preserve">
+    <value>Drives</value>
   </data>
   <data name="DrivesDescription" xml:space="preserve">
     <value>External drives that hold your movies. Identified by hardware ID, so changing drive letters won't break anything.</value>
@@ -708,17 +708,20 @@
   <data name="ExportAsImage" xml:space="preserve">
     <value>Export as image…</value>
   </data>
-  <data name="ExportedRecordsCsv" xml:space="preserve">
-    <value>Exported records to CSV</value>
-  </data>
   <data name="ExportRecordsTooltip" xml:space="preserve">
     <value>Export the records list to CSV</value>
+  </data>
+  <data name="ExportedRecordsCsv" xml:space="preserve">
+    <value>Exported records to CSV</value>
   </data>
   <data name="Favorite" xml:space="preserve">
     <value>♡ Favorite</value>
   </data>
   <data name="FavoriteCard" xml:space="preserve">
     <value>Favorite</value>
+  </data>
+  <data name="FavoriteWithHeart" xml:space="preserve">
+    <value>♥ Favorite</value>
   </data>
   <data name="Favorited" xml:space="preserve">
     <value>♥ Favorited</value>
@@ -728,9 +731,6 @@
   </data>
   <data name="Favorites" xml:space="preserve">
     <value>Favorites</value>
-  </data>
-  <data name="FavoriteWithHeart" xml:space="preserve">
-    <value>♥ Favorite</value>
   </data>
   <data name="FileLocatedOn" xml:space="preserve">
     <value>Located on:</value>
@@ -768,11 +768,11 @@
   <data name="GridView" xml:space="preserve">
     <value>Grid view</value>
   </data>
-  <data name="IgnoreSet" xml:space="preserve">
-    <value>Ignore set</value>
-  </data>
   <data name="IMDb" xml:space="preserve">
     <value>IMDb</value>
+  </data>
+  <data name="IgnoreSet" xml:space="preserve">
+    <value>Ignore set</value>
   </data>
   <data name="KeepCopy" xml:space="preserve">
     <value>✓ keep</value>
@@ -858,14 +858,14 @@
   <data name="MovieDetailsTitle" xml:space="preserve">
     <value>Movie Details</value>
   </data>
+  <data name="MovieTitlePlaceholder" xml:space="preserve">
+    <value>Movie title…</value>
+  </data>
   <data name="MoviesByDecade" xml:space="preserve">
     <value>📅 Movies by decade</value>
   </data>
   <data name="MoviesCount" xml:space="preserve">
     <value>movies</value>
-  </data>
-  <data name="MovieTitlePlaceholder" xml:space="preserve">
-    <value>Movie title…</value>
   </data>
   <data name="MyLists" xml:space="preserve">
     <value>MY LISTS</value>
@@ -933,6 +933,12 @@
   <data name="NoRecordsYet" xml:space="preserve">
     <value>No records yet</value>
   </data>
+  <data name="NoTvShowsYet" xml:space="preserve">
+    <value>No TV shows yet</value>
+  </data>
+  <data name="NoYearData" xml:space="preserve">
+    <value>No year data yet.</value>
+  </data>
   <data name="NotePlaceholder" xml:space="preserve">
     <value>Why you liked it, where you watched it…</value>
   </data>
@@ -948,11 +954,8 @@
   <data name="NothingToBrowse" xml:space="preserve">
     <value>Nothing to browse yet</value>
   </data>
-  <data name="NoTvShowsYet" xml:space="preserve">
-    <value>No TV shows yet</value>
-  </data>
-  <data name="NoYearData" xml:space="preserve">
-    <value>No year data yet.</value>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
   </data>
   <data name="Off" xml:space="preserve">
     <value>Off</value>
@@ -960,20 +963,11 @@
   <data name="OffLabel" xml:space="preserve">
     <value>Off</value>
   </data>
-  <data name="OK" xml:space="preserve">
-    <value>OK</value>
-  </data>
   <data name="On" xml:space="preserve">
     <value>On</value>
   </data>
-  <data name="OneMovie" xml:space="preserve">
-    <value>1 movie</value>
-  </data>
   <data name="OnLabel" xml:space="preserve">
     <value>On</value>
-  </data>
-  <data name="OnlyPossibleDuplicates" xml:space="preserve">
-    <value>Only possible duplicates</value>
   </data>
   <data name="OnThisDay" xml:space="preserve">
     <value>On This Day</value>
@@ -983,6 +977,12 @@
   </data>
   <data name="OnThisDayTitle" xml:space="preserve">
     <value>On This Day</value>
+  </data>
+  <data name="OneMovie" xml:space="preserve">
+    <value>1 movie</value>
+  </data>
+  <data name="OnlyPossibleDuplicates" xml:space="preserve">
+    <value>Only possible duplicates</value>
   </data>
   <data name="OpenFolder" xml:space="preserve">
     <value>Open folder</value>
@@ -1002,14 +1002,14 @@
   <data name="Play" xml:space="preserve">
     <value>Play</value>
   </data>
+  <data name="PlayWithIcon" xml:space="preserve">
+    <value>▶ Play</value>
+  </data>
   <data name="Playback" xml:space="preserve">
     <value>PLAYBACK</value>
   </data>
   <data name="PlayerDescription" xml:space="preserve">
     <value>Play opens videos in this program, for example VLC, MPC-HC, PotPlayer or mpv. With none chosen, Play uses whatever Windows opens video files with.</value>
-  </data>
-  <data name="PlayWithIcon" xml:space="preserve">
-    <value>▶ Play</value>
   </data>
   <data name="PngImage" xml:space="preserve">
     <value>PNG image</value>
@@ -1170,14 +1170,14 @@
   <data name="SelectedLabel" xml:space="preserve">
     <value>selected</value>
   </data>
+  <data name="SendToWGShort" xml:space="preserve">
+    <value>→ W&amp;G</value>
+  </data>
   <data name="SendToWatchedGone" xml:space="preserve">
     <value>Send to Watched and Gone</value>
   </data>
   <data name="SendToWatchedGoneTooltip" xml:space="preserve">
     <value>Send this copy to Watched &amp; Gone (keeps a record, removes it from the library)</value>
-  </data>
-  <data name="SendToWGShort" xml:space="preserve">
-    <value>→ W&amp;G</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Settings</value>
@@ -1197,11 +1197,11 @@
   <data name="SizeLarge" xml:space="preserve">
     <value>Large</value>
   </data>
-  <data name="SizeMedium" xml:space="preserve">
-    <value>Medium</value>
-  </data>
   <data name="SizeMLabel" xml:space="preserve">
     <value>Size: M</value>
+  </data>
+  <data name="SizeMedium" xml:space="preserve">
+    <value>Medium</value>
   </data>
   <data name="SizeSmall" xml:space="preserve">
     <value>Small</value>
@@ -1758,14 +1758,14 @@
   <data name="Step24_RefreshCancelled" xml:space="preserve">
     <value>Refresh cancelled</value>
   </data>
+  <data name="Step24_RefreshError" xml:space="preserve">
+    <value>Refresh error</value>
+  </data>
   <data name="Step24_RefreshedCounts" xml:space="preserve">
     <value>Refreshed — sidebar counts updated</value>
   </data>
   <data name="Step24_RefreshedStray" xml:space="preserve">
     <value>Refreshed — removed {count} stray entries</value>
-  </data>
-  <data name="Step24_RefreshError" xml:space="preserve">
-    <value>Refresh error</value>
   </data>
   <data name="Step24_RemoveFolderQuestion" xml:space="preserve">
     <value>Remove folder?</value>
@@ -1800,7 +1800,13 @@
   <data name="Step24_Undo" xml:space="preserve">
     <value>Undo</value>
   </data>
-  <data name="Step7_02bce93bff" xml:space="preserve">
+  <data name="Step25_RestoreHint" xml:space="preserve">
+    <value>You can restore it from the Watched &amp; Gone page anytime.</value>
+  </data>
+<data name="Step25_ShowAll" xml:space="preserve">
+    <value>Show all</value>
+  </data>
+  <data name="Step26_BackupDescription" xml:space="preserve"><value>Save or restore personal data: favorites, watchlist, notes, lists, tags, watched flags, and watch history. The JSON file can be moved to another PC and merged with existing data.</value></data><data name="Step26_ChangesSaved" xml:space="preserve"><value>Changes saved.</value></data><data name="Step26_ChooseMovieFolder" xml:space="preserve"><value>Choose a folder that contains your movie files.</value></data><data name="Step26_CopyFilePath" xml:space="preserve"><value>Copy file path</value></data><data name="Step26_CouldNotCopyPath" xml:space="preserve"><value>Could not copy the file path.</value></data><data name="Step26_CouldNotSaveChanges" xml:space="preserve"><value>Could not save changes.</value></data><data name="Step26_EmptyMovieList" xml:space="preserve"><value>No movies have been added to this list yet.</value></data><data name="Step26_ExportComplete" xml:space="preserve"><value>Export complete.</value></data><data name="Step26_FilePathCopied" xml:space="preserve"><value>File path copied to clipboard.</value></data><data name="Step26_ImportComplete" xml:space="preserve"><value>Import complete.</value></data><data name="Step26_NoDriveFolders" xml:space="preserve"><value>No folders have been added to this drive yet.</value></data><data name="Step26_NoMoviesOnDrive" xml:space="preserve"><value>No movies found on this drive.</value></data><data name="Step26_NoRecordsMatch" xml:space="preserve"><value>No records match your search.</value></data><data name="Step26_OpenMovieFolderTooltip" xml:space="preserve"><value>Open the folder containing this movie</value></data><data name="Step7_02bce93bff" xml:space="preserve">
     <value>Keep</value>
   </data>
   <data name="Step7_06a80d6e8d" xml:space="preserve">
@@ -2178,6 +2184,9 @@ Then try again.</value>
   <data name="Theme" xml:space="preserve">
     <value>Theme</value>
   </data>
+  <data name="ToWatch" xml:space="preserve">
+    <value>To Watch</value>
+  </data>
   <data name="ToolsGroup" xml:space="preserve">
     <value>TOOLS</value>
   </data>
@@ -2198,9 +2207,6 @@ Then try again.</value>
   </data>
   <data name="TotalShows" xml:space="preserve">
     <value>Total shows</value>
-  </data>
-  <data name="ToWatch" xml:space="preserve">
-    <value>To Watch</value>
   </data>
   <data name="TvShows" xml:space="preserve">
     <value>TV Shows</value>
@@ -2250,6 +2256,9 @@ Then try again.</value>
   <data name="ViewDetails" xml:space="preserve">
     <value>View Details</value>
   </data>
+  <data name="WatchProgress" xml:space="preserve">
+    <value>✓ Watch progress</value>
+  </data>
   <data name="Watched" xml:space="preserve">
     <value>✓ Watched</value>
   </data>
@@ -2283,9 +2292,6 @@ Then try again.</value>
   <data name="WatchlistWithPin" xml:space="preserve">
     <value>📌 Watchlist</value>
   </data>
-  <data name="WatchProgress" xml:space="preserve">
-    <value>✓ Watch progress</value>
-  </data>
   <data name="WelcomeTitle" xml:space="preserve">
     <value>Welcome to CineLibrary</value>
   </data>
@@ -2310,10 +2316,4 @@ Then try again.</value>
   <data name="ZeroMovies" xml:space="preserve">
     <value>0 movies</value>
   </data>
-  <data name="Step25_ShowAll" xml:space="preserve">
-    <value>Show all</value>
-  </data>
-  <data name="Step25_RestoreHint" xml:space="preserve">
-    <value>You can restore it from the Watched &amp; Gone page anytime.</value>
-  </data>
-</root>
+  </root>

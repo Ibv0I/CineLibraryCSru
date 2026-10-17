@@ -1647,9 +1647,7 @@ public sealed partial class MainWindow : Window
         var panel = new StackPanel { Spacing = 12 };
         panel.Children.Add(new TextBlock
         {
-            Text = CineLibraryCS.Services.LocalizationService.TranslateText("Save or restore everything personal — favorites, watchlist, notes, ") +
-                   "lists, tags, watched flags, and watch history. The exported JSON file " +
-                   "is portable: import it on another PC to merge your state in.",
+            Text = CineLibraryCS.Services.LocalizationService.TranslateText("Save or restore everything personal — favorites, watchlist, notes, lists, tags, watched flags, and watch history. The exported JSON file is portable: import it on another PC to merge your state in."),
             TextWrapping = TextWrapping.Wrap,
             FontSize = 13,
             Foreground = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush"),

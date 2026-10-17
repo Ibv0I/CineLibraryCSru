@@ -613,6 +613,20 @@ public static class LocalizationService
         ["Show all"] = "Step25_ShowAll",
 
         ["You can restore it from the Watched & Gone page anytime."] = "Step25_RestoreHint",
+        ["Save or restore everything personal — favorites, watchlist, notes, lists, tags, watched flags, and watch history. The exported JSON file is portable: import it on another PC to merge your state in."] = "Step26_BackupDescription",
+        ["No records match your search."] = "Step26_NoRecordsMatch",
+        ["No movies have been added to this list yet."] = "Step26_EmptyMovieList",
+        ["No folders have been added to this drive yet."] = "Step26_NoDriveFolders",
+        ["Choose a folder that contains your movie files."] = "Step26_ChooseMovieFolder",
+        ["Changes saved."] = "Step26_ChangesSaved",
+        ["Could not save changes."] = "Step26_CouldNotSaveChanges",
+        ["No movies found on this drive."] = "Step26_NoMoviesOnDrive",
+        ["Open the folder containing this movie"] = "Step26_OpenMovieFolderTooltip",
+        ["Copy file path"] = "Step26_CopyFilePath",
+        ["File path copied to clipboard."] = "Step26_FilePathCopied",
+        ["Could not copy the file path."] = "Step26_CouldNotCopyPath",
+        ["Export complete."] = "Step26_ExportComplete",
+        ["Import complete."] = "Step26_ImportComplete",
     };
 
     public static string TranslateText(string? text)

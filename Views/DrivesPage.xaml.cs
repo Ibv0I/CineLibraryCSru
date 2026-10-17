@@ -367,8 +367,8 @@ public sealed partial class DrivesPage : Page
                 strayCleaned += AppState.Instance.Db.RemoveMoviesOutsideDriveRoots(d.VolumeSerial);
 
             ScanStatusText.Text = strayCleaned > 0
-                ? $"Refreshed — removed {strayCleaned} stray entries"
-                : "Refreshed — sidebar counts updated";
+                ? $"Обновлено — удалено лишних записей: {strayCleaned}"
+                : CineLibraryCS.Services.LocalizationService.TranslateText("Refreshed — sidebar counts updated");
             await Task.Delay(1500);
         }
         catch (OperationCanceledException)
@@ -479,7 +479,7 @@ public sealed partial class DrivesPage : Page
                 });
                 var bits = new List<string>();
                 if (m.Year != null) bits.Add(m.Year.ToString()!);
-                bits.Add(m.IsWatched ? CineLibraryCS.Services.LocalizationService.TranslateText("Watched") : "Unwatched");
+                bits.Add(m.IsWatched ? CineLibraryCS.Services.LocalizationService.TranslateText("Watched") : CineLibraryCS.Services.LocalizationService.TranslateText("Unwatched"));
                 if (m.HasNote) bits.Add(CineLibraryCS.Services.LocalizationService.TranslateText("Has note"));
                 info.Children.Add(new TextBlock { Text = string.Join("  ·  ", bits), FontSize = 11, Foreground = muted });
                 Grid.SetColumn(info, 1);

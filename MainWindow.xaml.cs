@@ -1613,7 +1613,7 @@ public sealed partial class MainWindow : Window
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.ShowContinueWatching();
-        _libraryPage?.UpdatePageTitle("Continue watching");   // v4.0.0: it said CineLibraryCS.Services.LocalizationService.TranslateText("All movies")
+        _libraryPage?.UpdatePageTitle(CineLibraryCS.Services.LocalizationService.TranslateText("Continue watching"));   // v4.0.0: it said CineLibraryCS.Services.LocalizationService.TranslateText("All movies")
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
         ClearLibraryBack();
         SetActiveNav(sender as Button ?? BtnContinueWatching);
@@ -1623,7 +1623,7 @@ public sealed partial class MainWindow : Window
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.ShowRecentlyAdded();
-        _libraryPage?.UpdatePageTitle("Recently added");
+        _libraryPage?.UpdatePageTitle(CineLibraryCS.Services.LocalizationService.TranslateText("Recently added"));
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
         ClearLibraryBack();
         SetActiveNav(sender as Button ?? BtnRecentlyAdded);
@@ -1633,7 +1633,7 @@ public sealed partial class MainWindow : Window
     {
         if (_libraryPage == null) NavigateTo("library");
         _libraryPage?.ViewModel.ShowRecentlyWatched();
-        _libraryPage?.UpdatePageTitle("Recently watched");
+        _libraryPage?.UpdatePageTitle(CineLibraryCS.Services.LocalizationService.TranslateText("Recently watched"));
         if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
         ClearLibraryBack();
         SetActiveNav(sender as Button ?? BtnRecentlyWatched);
@@ -1698,7 +1698,7 @@ public sealed partial class MainWindow : Window
                     SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary,
                     SuggestedFileName = $"cinelibrary-backup-{DateTime.Now:yyyyMMdd-HHmmss}",
                 };
-                picker.FileTypeChoices.Add("CineLibrary backup", new List<string> { ".json" });
+                picker.FileTypeChoices.Add(CineLibraryCS.Services.LocalizationService.TranslateText("CineLibrary backup"), new List<string> { ".json" });
                 WinRT.Interop.InitializeWithWindow.Initialize(picker,
                     WinRT.Interop.WindowNative.GetWindowHandle(this));
                 var file = await picker.PickSaveFileAsync();
@@ -1791,7 +1791,7 @@ public sealed partial class MainWindow : Window
         var id = AppState.Instance.Db.GetRandomUnwatchedId(AppState.Instance.Connected);
         if (id == null)
         {
-            ShowToast("Nothing unwatched left — fully caught up 🎉");
+            ShowToast(CineLibraryCS.Services.LocalizationService.TranslateText("Nothing unwatched left — fully caught up 🎉"));
             return;
         }
         var dialog = new MovieDetailDialog(id.Value);
@@ -1847,7 +1847,7 @@ public sealed partial class MainWindow : Window
         {
             vm.ShowWatchlist();
             NavigateTo("library");
-            _libraryPage?.UpdatePageTitle("To watch");
+            _libraryPage?.UpdatePageTitle(CineLibraryCS.Services.LocalizationService.TranslateText("To watch"));
         }
         SetActiveNav(sender as Button ?? BtnWatchlist);
     }
@@ -1943,30 +1943,30 @@ public sealed partial class MainWindow : Window
             });
         }
 
-        AddHeader("SEARCH & GENERAL");
+        AddHeader(CineLibraryCS.Services.LocalizationService.TranslateText("SEARCH & GENERAL"));
         AddRow("Ctrl + F   ·   /", CineLibraryCS.Services.LocalizationService.TranslateText("Focus the search box"));
-        AddRow("Esc",              "Clear search, then clear selection");
-        AddRow("Ctrl + B",         "Toggle the sidebar");
-        AddRow("Ctrl + Shift + /", "Show this shortcuts dialog");
-        AddRow("Ctrl + Q",         "Quit CineLibrary");
+        AddRow("Esc",              CineLibraryCS.Services.LocalizationService.TranslateText("Clear search, then clear selection"));
+        AddRow("Ctrl + B",         CineLibraryCS.Services.LocalizationService.TranslateText("Toggle the sidebar"));
+        AddRow("Ctrl + Shift + /", CineLibraryCS.Services.LocalizationService.TranslateText("Show this shortcuts dialog"));
+        AddRow("Ctrl + Q",         CineLibraryCS.Services.LocalizationService.TranslateText("Quit CineLibrary"));
 
-        AddHeader("SELECTION & ACTIONS");
-        AddRow("Ctrl + A",     "Select every card on screen");
-        AddRow("Ctrl + click", "Add / remove a single card");
-        AddRow("Shift + click","Range-select from the last card");
-        AddRow("F",            "Toggle favorite on the selection");
-        AddRow("W",            "Toggle watchlist on the selection");
+        AddHeader(CineLibraryCS.Services.LocalizationService.TranslateText("SELECTION & ACTIONS"));
+        AddRow("Ctrl + A",     CineLibraryCS.Services.LocalizationService.TranslateText("Select every card on screen"));
+        AddRow("Ctrl + click", CineLibraryCS.Services.LocalizationService.TranslateText("Add / remove a single card"));
+        AddRow("Shift + click",CineLibraryCS.Services.LocalizationService.TranslateText("Range-select from the last card"));
+        AddRow("F",            CineLibraryCS.Services.LocalizationService.TranslateText("Toggle favorite on the selection"));
+        AddRow("W",            CineLibraryCS.Services.LocalizationService.TranslateText("Toggle watchlist on the selection"));
         AddRow("Delete",       CineLibraryCS.Services.LocalizationService.TranslateText("Remove selection from the current list"));
 
-        AddHeader("NAVIGATION");
-        AddRow("PgDn / PgUp",  "Scroll one viewport");
-        AddRow("Home / End",   "Jump to top / bottom");
-        AddRow("↑ / ↓", "Scroll by one row of cards");
+        AddHeader(CineLibraryCS.Services.LocalizationService.TranslateText("NAVIGATION"));
+        AddRow("PgDn / PgUp",  CineLibraryCS.Services.LocalizationService.TranslateText("Scroll one viewport"));
+        AddRow("Home / End",   CineLibraryCS.Services.LocalizationService.TranslateText("Jump to top / bottom"));
+        AddRow("↑ / ↓", CineLibraryCS.Services.LocalizationService.TranslateText("Scroll by one row of cards"));
 
         var note = new TextBlock
         {
             Text = CineLibraryCS.Services.LocalizationService.TranslateText("Card shortcuts (F, W, Delete) act on the current selection — ")
-                 + "click one or more cards first. They pause while you're typing in the search box.",
+                 + CineLibraryCS.Services.LocalizationService.TranslateText("click one or more cards first. They pause while you're typing in the search box."),
             FontSize = 12,
             Opacity = 0.75,
             TextWrapping = TextWrapping.Wrap,

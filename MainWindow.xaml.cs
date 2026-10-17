@@ -52,16 +52,7 @@ public sealed partial class MainWindow : Window
         RootGrid.RequestedTheme = ElementTheme.Dark;
         LocalizationService.TranslateTree(RootGrid);
         RootGrid.Loaded += (_, _) => LocalizationService.TranslateTree(RootGrid);
-        RootGrid.Loaded += (_, _) =>
-        {
-            LibrariesLabel.Text = LocalizationService.Get("Libraries");
-            ContinueWatchingLabel.Text = LocalizationService.Get("ContinueWatching");
-            RecentlyAddedLabel.Text = LocalizationService.Get("RecentlyAdded");
-            RecentlyWatchedLabel.Text = LocalizationService.Get("RecentlyWatched");
-            // Explicitly set this late-created sidebar label after localization
-            // preferences and the visual tree are both ready.
-            OnThisDayNavLabel.Text = LocalizationService.Get("OnThisDay");
-        };
+        RootGrid.Loaded += (_, _) => ApplySidebarLocalization();
 
         // Extend content into titlebar for Mica effect + use our custom drag region
         ExtendsContentIntoTitleBar = true;
@@ -2097,8 +2088,23 @@ public sealed partial class MainWindow : Window
             SidebarCard.Visibility = Visibility.Visible;
             ContentCard.Margin = new Thickness(4, 4, 8, 8);
             SidebarReopenBtn.Visibility = Visibility.Collapsed;
+
+            // When the sidebar was collapsed at shutdown, its subtree may not
+            // have participated in the first visual-tree localization pass.
+            // Re-translate it every time it becomes visible.
+            DispatcherQueue.TryEnqueue(() => ApplySidebarLocalization());
         }
         AppState.Instance.SetPref("sidebarCollapsed", collapsed ? "true" : "false");
+    }
+
+    private void ApplySidebarLocalization()
+    {
+        LocalizationService.TranslateTree(SidebarGrid);
+        LibrariesLabel.Text = LocalizationService.Get("Libraries");
+        ContinueWatchingLabel.Text = LocalizationService.Get("ContinueWatching");
+        RecentlyAddedLabel.Text = LocalizationService.Get("RecentlyAdded");
+        RecentlyWatchedLabel.Text = LocalizationService.Get("RecentlyWatched");
+        OnThisDayNavLabel.Text = LocalizationService.Get("OnThisDay");
     }
 }
 

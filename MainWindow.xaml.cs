@@ -73,7 +73,7 @@ public sealed partial class MainWindow : Window
         var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
         var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
         appWindow.Resize(new SizeInt32(1400, 900));   // restore-size used when the user un-maximizes
-        appWindow.Title = CineLibraryCS.Services.LocalizationService.TranslateText("CineLibrary");
+        appWindow.Title = "Movie Library";
 
         // v2.9 — start maximized. The 1400×900 above becomes the size the
         // window restores to when the user clicks the restore button.
@@ -448,7 +448,7 @@ public sealed partial class MainWindow : Window
 
     private void ShowUpdateToast(string version)
     {
-        ToastText.Text = $"Доступна версия CineLibrary {version}";
+        ToastText.Text = $"Доступна версия Movie Library {version}";
         ToastActionBtn.Content = CineLibraryCS.Services.LocalizationService.TranslateText("Download");
         ToastActionBtn.Visibility = Visibility.Visible;
         ToastBorder.Visibility = Visibility.Visible;
@@ -1678,9 +1678,9 @@ public sealed partial class MainWindow : Window
                 var picker = new Windows.Storage.Pickers.FileSavePicker
                 {
                     SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary,
-                    SuggestedFileName = $"cinelibrary-backup-{DateTime.Now:yyyyMMdd-HHmmss}",
+                    SuggestedFileName = $"movielibrary-backup-{DateTime.Now:yyyyMMdd-HHmmss}",
                 };
-                picker.FileTypeChoices.Add(CineLibraryCS.Services.LocalizationService.TranslateText("CineLibrary backup"), new List<string> { ".json" });
+                picker.FileTypeChoices.Add(CineLibraryCS.Services.LocalizationService.TranslateText("Movie Library backup"), new List<string> { ".json" });
                 WinRT.Interop.InitializeWithWindow.Initialize(picker,
                     WinRT.Interop.WindowNative.GetWindowHandle(this));
                 var file = await picker.PickSaveFileAsync();
@@ -1723,7 +1723,7 @@ public sealed partial class MainWindow : Window
                 await Task.Run(() =>
                 {
                     var b = BackupService.ReadFromFile(file.Path);
-                    if (b == null) throw new InvalidOperationException("Файл не является резервной копией CineLibrary");
+                    if (b == null) throw new InvalidOperationException("Файл не является резервной копией Movie Library");
                     result = BackupService.Import(AppState.Instance.Db, b);
                 });
                 if (result != null)
@@ -1930,7 +1930,7 @@ public sealed partial class MainWindow : Window
         AddRow("Esc",              CineLibraryCS.Services.LocalizationService.TranslateText("Clear search, then clear selection"));
         AddRow("Ctrl + B",         CineLibraryCS.Services.LocalizationService.TranslateText("Toggle the sidebar"));
         AddRow("Ctrl + Shift + /", CineLibraryCS.Services.LocalizationService.TranslateText("Show this shortcuts dialog"));
-        AddRow("Ctrl + Q",         CineLibraryCS.Services.LocalizationService.TranslateText("Quit CineLibrary"));
+        AddRow("Ctrl + Q",         CineLibraryCS.Services.LocalizationService.TranslateText("Quit Movie Library"));
 
         AddHeader(CineLibraryCS.Services.LocalizationService.TranslateText("SELECTION & ACTIONS"));
         AddRow("Ctrl + A",     CineLibraryCS.Services.LocalizationService.TranslateText("Select every card on screen"));
@@ -2008,7 +2008,7 @@ public sealed partial class MainWindow : Window
 
         var dialog = new ContentDialog
         {
-            Title = $"CineLibrary v{versionText}",
+            Title = $"Movie Library v{versionText}",
             Content = panel,
             CloseButtonText = Services.LocalizationService.Get("OK"),
             XamlRoot = Content.XamlRoot,

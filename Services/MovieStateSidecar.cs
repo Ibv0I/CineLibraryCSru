@@ -9,7 +9,7 @@ namespace CineLibraryCS.Services;
 /// <c>cinelibrary-state.json</c> placed next to the movie's <c>.nfo</c>.
 ///
 /// The sidecar travels with the movie folder, so removing a drive in
-/// CineLibrary (which cascades and deletes the movie rows) and then
+/// Movie Library (which cascades and deletes the movie rows) and then
 /// re-adding it later still gets your Watched / Favorite / Watchlist /
 /// last-played / list-membership back — the next scan reads the JSON
 /// and merges it into the freshly-inserted movie row.
@@ -38,7 +38,7 @@ public static class MovieStateSidecar
         [JsonPropertyName("tags")]          public List<string> Tags { get; set; } = new();
         [JsonPropertyName("note")]          public string? Note { get; set; }
         /// <summary>v3.4 — TMDB-fetched metadata (only written for movies whose
-        /// info was filled in CineLibrary), so a rescan can recover it without
+        /// info was filled in Movie Library), so a rescan can recover it without
         /// rewriting the user's NFO. Null for state-only sidecars.</summary>
         [JsonPropertyName("meta")]          public Meta? Meta { get; set; }
         [JsonPropertyName("updated")]       public string Updated { get; set; } =
@@ -55,7 +55,7 @@ public static class MovieStateSidecar
     }
 
     /// <summary>v3.4 — fetched metadata carried in the sidecar so the drive,
-    /// not just CineLibrary's DB, holds it. Applied fill-only on the next scan.</summary>
+    /// not just Movie Library's DB, holds it. Applied fill-only on the next scan.</summary>
     public class Meta
     {
         [JsonPropertyName("year")]      public int? Year { get; set; }

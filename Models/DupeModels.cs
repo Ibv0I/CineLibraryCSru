@@ -85,7 +85,7 @@ public class DupeCopy
 }
 
 /// <summary>
-/// A set of copies CineLibrary believes are the same film (matched by TMDb/IMDb
+/// A set of copies Movie Library believes are the same film (matched by TMDb/IMDb
 /// id, else title + year). <see cref="PossibleDuplicate"/> is the conservative
 /// flag: only true when the copies look like the SAME version — same audio
 /// languages, resolution, HDR, codec and edition. Copies that differ (a dub vs

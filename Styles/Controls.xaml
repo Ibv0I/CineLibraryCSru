@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ═══════════════════════════════════════════════════════════════════
-         CINELIBRARY DESIGN SYSTEM — v2.6
+         MOVIE LIBRARY DESIGN SYSTEM — v2.6
          ═══════════════════════════════════════════════════════════════════
 
          Corner-radius scale. Pick from this ladder when adding new controls:

@@ -799,7 +799,7 @@
     <value>The app must restart to apply the selected language throughout the interface.</value>
   </data>
   <data name="LanguageRestartTitle" xml:space="preserve">
-    <value>Restart CineLibrary?</value>
+    <value>Restart Movie Library?</value>
   </data>
   <data name="Libraries" xml:space="preserve">
     <value>LIBRARIES</value>
@@ -1318,7 +1318,7 @@
     <value>📂 Copy movies to folder…</value>
   </data>
   <data name="Step12_4994a8ffeb" xml:space="preserve">
-    <value>Language</value>
+    <value>АУДИО</value>
   </data>
   <data name="Step12_57dfa476c0" xml:space="preserve">
     <value>Copy movies to folder</value>
@@ -1372,7 +1372,7 @@
     <value>One movie released on this date in a past year.</value>
   </data>
   <data name="Step13_0fb3372859" xml:space="preserve">
-    <value>Removing them will delete their entries (and cached posters/fanart) from the CineLibrary database. </value>
+    <value>Removing them will delete their entries (and cached posters/fanart) from the Movie Library database. </value>
   </data>
   <data name="Step13_1063e38cb5" xml:space="preserve">
     <value>Remove</value>
@@ -1583,7 +1583,7 @@
     <value>OK</value>
   </data>
   <data name="Step15_e2a791de17" xml:space="preserve">
-    <value>Welcome to CineLibrary</value>
+    <value>Welcome to Movie Library</value>
   </data>
   <data name="Step15_ea4788705e" xml:space="preserve">
     <value>Cancel</value>
@@ -1637,7 +1637,7 @@
     <value>A list named “{name}” already exists</value>
   </data>
   <data name="Step18_65e6aa8be6" xml:space="preserve">
-    <value>will be permanently removed from CineLibrary. This can't be undone.</value>
+    <value>will be permanently removed from Movie Library. This can't be undone.</value>
   </data>
   <data name="Step18_6bcd150c72" xml:space="preserve">
     <value>In Watchlist</value>
@@ -1712,7 +1712,7 @@
     <value>A fast, native movie catalog for MediaElch-scraped collections.</value>
   </data>
   <data name="Step24_BackupFileType" xml:space="preserve">
-    <value>CineLibrary backup</value>
+    <value>Movie Library backup</value>
   </data>
   <data name="Step24_BuiltWith" xml:space="preserve">
     <value>Built with C# + WinUI 3.</value>
@@ -1750,7 +1750,7 @@
     <value>Open details</value>
   </data>
   <data name="Step24_QuitApp" xml:space="preserve">
-    <value>Quit CineLibrary</value>
+    <value>Quit Movie Library</value>
   </data>
   <data name="Step24_RangeSelect" xml:space="preserve">
     <value>Range-select from the last card</value>
@@ -1948,7 +1948,7 @@
     <value>Preparing…</value>
   </data>
   <data name="Step7_ce30dce6a9" xml:space="preserve">
-    <value>CineLibrary</value>
+    <value>Movie Library</value>
   </data>
   <data name="Step7_ce5d56dd33" xml:space="preserve">
     <value>Browse, search and play your movies across multiple external drives.</value>
@@ -1975,7 +1975,7 @@
     <value>Delete record permanently</value>
   </data>
   <data name="Step7_e2a791de17" xml:space="preserve">
-    <value>Welcome to CineLibrary</value>
+    <value>Welcome to Movie Library</value>
   </data>
   <data name="Step7_ec211f7c20" xml:space="preserve">
     <value>Add</value>
@@ -2293,7 +2293,7 @@ Then try again.</value>
     <value>📌 Watchlist</value>
   </data>
   <data name="WelcomeTitle" xml:space="preserve">
-    <value>Welcome to CineLibrary</value>
+    <value>Welcome to Movie Library</value>
   </data>
   <data name="WindowsDefaultPlayer" xml:space="preserve">
     <value>Windows default player</value>

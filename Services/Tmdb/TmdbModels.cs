@@ -3,8 +3,8 @@ using System.Text.Json.Serialization;
 namespace CineLibraryCS.Services.Tmdb;
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Movie-only TMDb models, ported (trimmed) from CineLibrary Essentials.
-//  CineLibrary stays an offline browser; the ONLY place these are used is the
+//  Movie-only TMDb models, ported (trimmed) from Movie Library Essentials.
+//  Movie Library stays an offline browser; the ONLY place these are used is the
 //  "Add watched movie" dialog, which lets the user record a film they watched
 //  but never had on disk straight into Watched & Gone. TV / cast / crew fields
 //  from the original Essentials model are intentionally dropped — we only need

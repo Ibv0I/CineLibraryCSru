@@ -10,7 +10,7 @@ namespace CineLibraryCS.Views;
 /// v3.4 — lets the user record a film they watched but never had in the
 /// library (no file on disk) straight into Watched &amp; Gone. Searches TMDb,
 /// the user picks the match, the poster + details are pulled and stored as a
-/// phantom archived record. This is the ONLY place CineLibrary touches the
+/// phantom archived record. This is the ONLY place Movie Library touches the
 /// network — and only when the user clicks Search / Add.
 /// </summary>
 public sealed partial class AddWatchedMovieDialog : ContentDialog

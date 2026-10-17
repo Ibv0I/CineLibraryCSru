@@ -779,7 +779,7 @@ public sealed partial class MovieCardControl : UserControl
             {
                 Title = CineLibraryCS.Services.LocalizationService.TranslateText("Delete this record?"),
                 Content = $"«{m.Title}» — запись, сохранённый постер, заметки и история просмотров " +
-                          CineLibraryCS.Services.LocalizationService.TranslateText("will be permanently removed from CineLibrary. This can't be undone."),
+                          CineLibraryCS.Services.LocalizationService.TranslateText("will be permanently removed from Movie Library. This can't be undone."),
                 PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Delete forever"),
                 CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
                 DefaultButton = ContentDialogButton.Close,

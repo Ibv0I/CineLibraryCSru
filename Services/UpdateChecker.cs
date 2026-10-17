@@ -23,7 +23,7 @@ public static class UpdateChecker
     private static HttpClient CreateClient()
     {
         var c = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
-        c.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CineLibrary", CurrentVersion()));
+        c.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Movie Library", CurrentVersion()));
         c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         return c;
     }

@@ -37,7 +37,7 @@ public static class BackupService
     public class Backup
     {
         [JsonPropertyName("schema")]     public int Schema { get; set; } = CurrentSchemaVersion;
-        [JsonPropertyName("app")]        public string App { get; set; } = "CineLibrary";
+        [JsonPropertyName("app")]        public string App { get; set; } = "Movie Library";
         [JsonPropertyName("appVersion")] public string AppVersion { get; set; } = "";
         [JsonPropertyName("createdUtc")] public string CreatedUtc { get; set; } =
             DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);

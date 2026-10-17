@@ -79,7 +79,7 @@
     <value>Применить язык и перезапустить</value>
   </data>
   <data name="Audio" xml:space="preserve">
-    <value>Аудио</value>
+    <value>АУДИО</value>
   </data>
   <data name="Auto_Add_Drive_ac6361ea" xml:space="preserve">
     <value>Добавить диск</value>
@@ -799,7 +799,7 @@
     <value>Чтобы применить выбранный язык ко всему интерфейсу, приложение нужно перезапустить.</value>
   </data>
   <data name="LanguageRestartTitle" xml:space="preserve">
-    <value>Перезапустить CineLibrary?</value>
+    <value>Перезапустить Movie Library?</value>
   </data>
   <data name="Libraries" xml:space="preserve">
     <value>БИБЛИОТЕКИ</value>
@@ -1318,7 +1318,7 @@
     <value>📂 Копировать фильмы в папку…</value>
   </data>
   <data name="Step12_4994a8ffeb" xml:space="preserve">
-    <value>Язык</value>
+    <value>АУДИО</value>
   </data>
   <data name="Step12_57dfa476c0" xml:space="preserve">
     <value>Копировать фильмы в папку</value>
@@ -1372,7 +1372,7 @@
     <value>Один фильм, вышедший в этот день в прошлом.</value>
   </data>
   <data name="Step13_0fb3372859" xml:space="preserve">
-    <value>Удаление уберёт их записи и кэшированные постеры и фоны из базы CineLibrary. </value>
+    <value>Удаление уберёт их записи и кэшированные постеры и фоны из базы Movie Library. </value>
   </data>
   <data name="Step13_1063e38cb5" xml:space="preserve">
     <value>Удалить</value>
@@ -1583,7 +1583,7 @@
     <value>ОК</value>
   </data>
   <data name="Step15_e2a791de17" xml:space="preserve">
-    <value>Добро пожаловать в CineLibrary</value>
+    <value>Добро пожаловать в Movie Library</value>
   </data>
   <data name="Step15_ea4788705e" xml:space="preserve">
     <value>Отмена</value>
@@ -1637,7 +1637,7 @@
     <value>Список с названием «{name}» уже существует</value>
   </data>
   <data name="Step18_65e6aa8be6" xml:space="preserve">
-    <value>будут окончательно удалены из CineLibrary. Это действие нельзя отменить.</value>
+    <value>будут окончательно удалены из Movie Library. Это действие нельзя отменить.</value>
   </data>
   <data name="Step18_6bcd150c72" xml:space="preserve">
     <value>В списке «К просмотру»</value>
@@ -1712,7 +1712,7 @@
     <value>Быстрый нативный каталог фильмов для коллекций, обработанных MediaElch.</value>
   </data>
   <data name="Step24_BackupFileType" xml:space="preserve">
-    <value>Резервная копия CineLibrary</value>
+    <value>Резервная копия Movie Library</value>
   </data>
   <data name="Step24_BuiltWith" xml:space="preserve">
     <value>Создано на C# и WinUI 3.</value>
@@ -1750,7 +1750,7 @@
     <value>Открыть подробности</value>
   </data>
   <data name="Step24_QuitApp" xml:space="preserve">
-    <value>Выйти из CineLibrary</value>
+    <value>Выйти из Movie Library</value>
   </data>
   <data name="Step24_RangeSelect" xml:space="preserve">
     <value>Выбрать диапазон от последней карточки</value>
@@ -1948,7 +1948,7 @@
     <value>Подготовка…</value>
   </data>
   <data name="Step7_ce30dce6a9" xml:space="preserve">
-    <value>CineLibrary</value>
+    <value>Movie Library</value>
   </data>
   <data name="Step7_ce5d56dd33" xml:space="preserve">
     <value>Просматривайте, ищите и запускайте фильмы с нескольких внешних дисков.</value>
@@ -1975,7 +1975,7 @@
     <value>Удалить запись навсегда</value>
   </data>
   <data name="Step7_e2a791de17" xml:space="preserve">
-    <value>Добро пожаловать в CineLibrary</value>
+    <value>Добро пожаловать в Movie Library</value>
   </data>
   <data name="Step7_ec211f7c20" xml:space="preserve">
     <value>Добавить</value>
@@ -2293,7 +2293,7 @@
     <value>📌 К просмотру</value>
   </data>
   <data name="WelcomeTitle" xml:space="preserve">
-    <value>Добро пожаловать в CineLibrary</value>
+    <value>Добро пожаловать в Movie Library</value>
   </data>
   <data name="WindowsDefaultPlayer" xml:space="preserve">
     <value>Плеер Windows по умолчанию</value>

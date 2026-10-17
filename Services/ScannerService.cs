@@ -261,7 +261,7 @@ public class ScannerService
                 // Only writes DB if DB note is currently empty — DB is the source
                 // of truth once the user has saved a note inside the app. This way
                 // a reinstall + rescan can recover notes from sidecars; subsequent
-                // edits in CineLibrary won't be reverted by the next scan.
+                // edits in Movie Library won't be reverted by the next scan.
                 ImportSidecarNoteIfNeeded(conn, tx, rowId, folder);
 
                 // v2.7 — full personal-state sidecar (cinelibrary-state.json):

@@ -10,7 +10,7 @@ namespace CineLibraryCS.Services;
 /// merged <c>ThemeDictionaries</c> against <c>Application.RequestedTheme</c>
 /// (which follows the <b>system</b> theme), not the in-app theme the user
 /// picked. For anyone whose Windows theme differs from their chosen
-/// CineLibrary theme, that returns the wrong variant — e.g. a light (white)
+/// Movie Library theme, that returns the wrong variant — e.g. a light (white)
 /// card brush behind a dark dialog, which made the shortcuts dialog's key
 /// chips render as white boxes with invisible text.</para>
 ///

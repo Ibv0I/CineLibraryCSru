@@ -759,7 +759,7 @@ public sealed partial class LibraryPage : Page
         var hasAnyDrive = AppState.Instance.Db.GetDrives().Count > 0;
         if (!hasAnyDrive)
         {
-            EmptyTitle.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Добро пожаловать в CineLibrary");
+            EmptyTitle.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Добро пожаловать в Movie Library");
             EmptyStateHint.Text =
                 "Укажите папку, в которой MediaElch сохранил данные фильмов " +
                 "(каждый фильм должен находиться в отдельной папке с файлом .nfo и постером). " +

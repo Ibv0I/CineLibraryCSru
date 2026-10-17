@@ -513,7 +513,7 @@ public sealed partial class DrivesPage : Page
             {
                 Text = $"При последнем сканировании на диске «{drive?.Label}» не найдено фильмов: {missing.Count}. " +
                        "Отметьте фильмы, записи о которых нужно сохранить в разделе «Просмотрено и убрано»: постер, сведения, заметки и " +
-                       "история просмотров останутся. Неотмеченные записи будут удалены из CineLibrary. Сами файлы не изменяются.",
+                       "история просмотров останутся. Неотмеченные записи будут удалены из Movie Library. Сами файлы не изменяются.",
                 TextWrapping = TextWrapping.Wrap, FontSize = 13, Foreground = muted, Margin = new Thickness(0, 0, 0, 4),
             });
             var keepAll = new HyperlinkButton { Content = CineLibraryCS.Services.LocalizationService.TranslateText("Keep all") };
@@ -570,7 +570,7 @@ public sealed partial class DrivesPage : Page
                 Content =
                     $"При последнем сканировании на диске «{drive.Label}» не найдено ранее добавленных фильмов: {drive.MissingCount}. " +
                     CineLibraryCS.Services.LocalizationService.TranslateText("Their folders may have been renamed or deleted on the drive.\n\n") +
-                    CineLibraryCS.Services.LocalizationService.TranslateText("Removing them will delete their entries (and cached posters/fanart) from the CineLibrary database. ") +
+                    CineLibraryCS.Services.LocalizationService.TranslateText("Removing them will delete their entries (and cached posters/fanart) from the Movie Library database. ") +
                     CineLibraryCS.Services.LocalizationService.TranslateText("The actual files on the drive are not touched.\n\n") +
                     CineLibraryCS.Services.LocalizationService.TranslateText("Tip: if the drive was only partially connected or you scanned the wrong folder, ") +
                     "Отмените удаление и запустите сканирование повторно, иначе эти записи снова будут обработаны при следующем обновлении.",
@@ -661,7 +661,7 @@ public sealed partial class DrivesPage : Page
             var panel = new StackPanel { Spacing = 10 };
             panel.Children.Add(new TextBlock
             {
-                Text = $"Удалить диск «{drive?.Label}» и все его фильмы ({drive?.MovieCount}) из CineLibrary? Сами файлы на диске не будут удалены.",
+                Text = $"Удалить диск «{drive?.Label}» и все его фильмы ({drive?.MovieCount}) из Movie Library? Сами файлы на диске не будут удалены.",
                 TextWrapping = TextWrapping.Wrap,
             });
             CheckBox? syncBox = null;

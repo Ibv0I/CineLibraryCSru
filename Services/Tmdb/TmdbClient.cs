@@ -5,14 +5,14 @@ using System.Text.Json;
 namespace CineLibraryCS.Services.Tmdb;
 
 /// <summary>
-/// Minimal TMDb client — a trimmed port of CineLibrary Essentials' scraper.
-/// CineLibrary is otherwise fully offline; this client is reached only when the
+/// Minimal TMDb client — a trimmed port of Movie Library Essentials' scraper.
+/// Movie Library is otherwise fully offline; this client is reached only when the
 /// user asks for it: "Add watched movie" in Watched &amp; Gone, and "Fetch missing
 /// info" on a movie or (v3.10.0) a TV show. Search → pick → details → poster.
 /// </summary>
 public sealed class TmdbClient : IDisposable
 {
-    // Shared embedded key (same one CineLibrary Essentials ships). Works out of
+    // Shared embedded key (same one Movie Library Essentials ships). Works out of
     // the box; a user can swap in their own via TMDb if they ever want to.
     public const string DefaultApiKey = "bbbafb01eb3938531c9270a7147fbb5f";
 

@@ -76,8 +76,8 @@ public static class ListImageExporter
             Foreground = new SolidColorBrush(Colors.White),
         });
         var subText = movies.Count == capped.Count
-            ? $"{movies.Count} movie{(movies.Count == 1 ? "" : "s")}  ·  CineLibrary"
-            : $"{capped.Count} of {movies.Count} movies  ·  CineLibrary";
+            ? $"{movies.Count} movie{(movies.Count == 1 ? "" : "s")}  ·  Movie Library"
+            : $"{capped.Count} of {movies.Count} movies  ·  Movie Library";
         header.Children.Add(new TextBlock
         {
             Text = subText,

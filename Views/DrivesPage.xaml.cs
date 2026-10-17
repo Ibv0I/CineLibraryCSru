@@ -19,6 +19,11 @@ public sealed partial class DrivesPage : Page
     public DrivesPage()
     {
         InitializeComponent();
+        // ItemsRepeater creates drive-card controls after the page's first Loaded event.
+        // Translate every card as it is prepared so Add folder / Update and other
+        // template labels are localized on the very first visit, not only after navigation.
+        DrivesRepeater.ElementPrepared += (_, args) =>
+            CineLibraryCS.Services.LocalizationService.TranslateTree(args.Element);
         Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         Refresh();
     }

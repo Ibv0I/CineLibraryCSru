@@ -640,63 +640,34 @@ public sealed partial class MainWindow : Window
     {
         try
         {
-            TagsItemsPanel.Children.Clear();
             var tags = AppState.Instance.Db.GetAllTags();
-            if (tags.Count == 0)
-            {
-                TagsHeader.Visibility = Visibility.Collapsed;
-                return;
-            }
-            TagsHeader.Visibility = Visibility.Visible;
-            foreach (var t in tags)
-                TagsItemsPanel.Children.Add(BuildTagButton(t));
+            TagsRepeater.ItemsSource = tags;
+            TagsHeader.Visibility = tags.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         }
         catch { /* sidebar refresh must never throw — table may not exist mid-migration */ }
     }
 
-    private Button BuildTagButton(DatabaseService.TagSummary t)
+    private void OnNavTagItem(object sender, RoutedEventArgs e)
     {
-        var btn = new Button
-        {
-            Style = (Style)Application.Current.Resources["NavItemStyle"],
-            Tag = t.Id,
-        };
-        btn.Click += (_, _) =>
-        {
-            if (_libraryPage == null) NavigateTo("library");
-            _libraryPage?.ViewModel.FilterByTag(t.Id, t.Name);
-            if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
-            ClearLibraryBack();
-            SetActiveNav(btn);
-        };
+        if (sender is not Button { DataContext: DatabaseService.TagSummary t } btn) return;
+        if (_libraryPage == null) NavigateTo("library");
+        _libraryPage?.ViewModel.FilterByTag(t.Id, t.Name);
+        if (!ReferenceEquals(ContentFrame.Content, _libraryPage)) NavigateTo("library");
+        ClearLibraryBack();
+        SetActiveNav(btn, t.Id);
+    }
 
-        var grid = new Grid { HorizontalAlignment = HorizontalAlignment.Stretch };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-        var sp = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
-        sp.Children.Add(new TextBlock { Text = "🏷", FontSize = 13, VerticalAlignment = VerticalAlignment.Center });
-        sp.Children.Add(new TextBlock
+    // ItemsRepeater reuses tag buttons while scrolling, so restore the active highlight by tag ID.
+    private void OnTagPrepared(ItemsRepeater sender, ItemsRepeaterElementPreparedEventArgs args)
+    {
+        if (args.Element is not Button btn) return;
+        if (sender.ItemsSourceView.GetAt(args.Index) is DatabaseService.TagSummary t && t.Id == _activeTagId)
+            SetActiveNav(btn, t.Id);
+        else if (ReferenceEquals(btn, _activeNavBtn))
         {
-            Text = t.Name,
-            VerticalAlignment = VerticalAlignment.Center,
-            TextTrimming = Microsoft.UI.Xaml.TextTrimming.CharacterEllipsis,
-        });
-        grid.Children.Add(sp);
-
-        var badge = new Border { Style = (Style)Application.Current.Resources["BadgeStyle"] };
-        Grid.SetColumn(badge, 1);
-        var total = t.MovieCount + t.ShowCount;
-        badge.Child = new TextBlock
-        {
-            Text = total.ToString(),
-            FontSize = 11,
-            HorizontalAlignment = HorizontalAlignment.Center,
-        };
-        grid.Children.Add(badge);
-
-        btn.Content = grid;
-        return btn;
+            btn.Style = _navItemStyleCached;
+            _activeNavBtn = null;
+        }
     }
 
     private Button BuildUserListButton(DatabaseService.UserList ul)
@@ -1177,7 +1148,7 @@ public sealed partial class MainWindow : Window
             // "Genres" and "Collections" sub-sections removed in v2.1 — their
             // BROWSE pages replace them. Map kept tolerant of missing keys.
             "UserLists"   => (UserListsItemsPanel,                   UserListsChevron),
-            "Tags"        => (TagsItemsPanel,                        TagsChevron),
+            "Tags"        => ((FrameworkElement)TagsRepeater,        TagsChevron),
             _             => (null!,                                  null!),
         };
         if (repeater == null) return;
@@ -1414,8 +1385,9 @@ public sealed partial class MainWindow : Window
     private Button? _activeNavBtn;
     private Style? _navItemStyleCached;
     private Style? _navItemActiveStyleCached;
+    private int? _activeTagId;   // Which tag is active; ItemsRepeater may recycle its button.
 
-    private void SetActiveNav(Button? btn)
+    private void SetActiveNav(Button? btn, int? tagId = null)
     {
         _navItemStyleCached       ??= (Style)Application.Current.Resources["NavItemStyle"];
         _navItemActiveStyleCached ??= (Style)Application.Current.Resources["NavItemActiveStyle"];
@@ -1423,15 +1395,16 @@ public sealed partial class MainWindow : Window
             _activeNavBtn.Style = _navItemStyleCached;
         if (btn != null) btn.Style = _navItemActiveStyleCached;
         _activeNavBtn = btn;
+        _activeTagId = tagId;
     }
 
     // v4.2.0 (#15): Backup and Export open a dialog or a menu rather than a page,
     // so they light up while it is open, then the page you are on lights up again.
     private Action HighlightWhileOpen(Button btn)
     {
-        var page = _activeNavBtn;
+        var (page, pageTag) = (_activeNavBtn, _activeTagId);
         SetActiveNav(btn);
-        return () => { if (ReferenceEquals(_activeNavBtn, btn)) SetActiveNav(page); };
+        return () => { if (ReferenceEquals(_activeNavBtn, btn)) SetActiveNav(page, pageTag); };
     }
 
     private void OnNavAllMovies(object sender, RoutedEventArgs e)

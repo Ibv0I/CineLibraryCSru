@@ -367,7 +367,7 @@
                                 <FontIcon Foreground="{ThemeResource NavDiscoverIconBrush}" Glyph="&#xE787;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="On This Day" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="OnThisDayNavLabel" Text="On This Day" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 

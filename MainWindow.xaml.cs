@@ -58,6 +58,9 @@ public sealed partial class MainWindow : Window
             ContinueWatchingLabel.Text = LocalizationService.Get("ContinueWatching");
             RecentlyAddedLabel.Text = LocalizationService.Get("RecentlyAdded");
             RecentlyWatchedLabel.Text = LocalizationService.Get("RecentlyWatched");
+            // Explicitly set this late-created sidebar label after localization
+            // preferences and the visual tree are both ready.
+            OnThisDayNavLabel.Text = LocalizationService.Get("OnThisDay");
         };
 
         // Extend content into titlebar for Mica effect + use our custom drag region

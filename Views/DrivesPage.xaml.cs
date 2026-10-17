@@ -71,6 +71,9 @@ public sealed partial class DrivesPage : Page
                 var sdi = SysDriveInfo.GetDrives()
                     .FirstOrDefault(d => d.Name.StartsWith(kv.Value, StringComparison.OrdinalIgnoreCase));
                 var label = sdi?.VolumeLabel is { Length: > 0 } vl ? vl : $"{CineLibraryCS.Services.LocalizationService.TranslateText("Drive")} ({kv.Value}:)";
+                // Windows often assigns English generic labels to newly formatted
+                // volumes. Localize those defaults, while preserving custom labels.
+                label = CineLibraryCS.Services.LocalizationService.TranslateText(label);
                 newDrives.Add((kv.Key, kv.Value, label));
             }
         }

@@ -8,9 +8,9 @@
     CloseButtonText="Отмена"
     DefaultButton="Primary"
     RequestedTheme="Dark"
-    Width="1120"
+    Width="1600"
     MinWidth="1000"
-    MaxWidth="1120"
+    MaxWidth="3000"
     IsPrimaryButtonEnabled="False">
 
     <Grid MinWidth="960" MinHeight="620" RowSpacing="14" RequestedTheme="Dark">

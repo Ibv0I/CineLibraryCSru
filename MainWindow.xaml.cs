@@ -416,6 +416,9 @@ public sealed partial class MainWindow : Window
 
         await _vm.InitializeAsync();
         RefreshSidebarImmediate();
+        // Sidebar contents are populated asynchronously; translate after the
+        // dynamic items have been added, not only during the initial XAML load.
+        ApplySidebarLocalization();
 
         // Automatic update checks are disabled by user preference.
     }
@@ -607,6 +610,10 @@ public sealed partial class MainWindow : Window
             // as BROWSE pages now (Collections grid, По жанру banners).
 
             RefreshUserLists();
+
+            // RefreshTags, DrivesRepeater and RefreshUserLists can introduce
+            // new visual elements after the first localization pass.
+            ApplySidebarLocalization();
         }
     }
 
@@ -2089,10 +2096,15 @@ public sealed partial class MainWindow : Window
             ContentCard.Margin = new Thickness(4, 4, 8, 8);
             SidebarReopenBtn.Visibility = Visibility.Collapsed;
 
-            // When the sidebar was collapsed at shutdown, its subtree may not
-            // have participated in the first visual-tree localization pass.
-            // Re-translate it every time it becomes visible.
-            DispatcherQueue.TryEnqueue(() => ApplySidebarLocalization());
+            // When startup begins collapsed, WinUI may not finish creating
+            // the sidebar's visual descendants until after this visibility
+            // change has been laid out. Translate now and once more on the
+            // next dispatcher turn, after the newly-visible tree is ready.
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                ApplySidebarLocalization();
+                DispatcherQueue.TryEnqueue(ApplySidebarLocalization);
+            });
         }
         AppState.Instance.SetPref("sidebarCollapsed", collapsed ? "true" : "false");
     }

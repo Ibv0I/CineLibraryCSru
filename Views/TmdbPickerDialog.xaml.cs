@@ -22,6 +22,10 @@ public sealed partial class TmdbPickerDialog : ContentDialog
     public TmdbPickerDialog(TmdbClient client, string? initialTitle, int? year, bool tvShows = false)
     {
         InitializeComponent();
+        // Override WinUI's built-in ContentDialog width cap before the first layout pass.
+        // Setting Width/MaxWidth alone is not enough: the default template resource can
+        // still constrain the visible dialog to a narrow card.
+        Resources["ContentDialogMaxWidth"] = 1800.0;
         Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         // ContentDialog otherwise measures itself from the search controls (about 500 px),
         // even when MaxWidth is large. Set an explicit width from the host window's
@@ -35,7 +39,7 @@ public sealed partial class TmdbPickerDialog : ContentDialog
                 {
                     Width = Math.Max(900, Math.Min(1800, availableWidth - 48));
                     MinWidth = Math.Min(900, Width);
-                    MaxWidth = Math.Max(Width, availableWidth - 24);
+                    MaxWidth = Math.Min(1800, Math.Max(Width, availableWidth - 24));
                 }
                 else
                 {

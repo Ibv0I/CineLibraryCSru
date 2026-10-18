@@ -23,18 +23,29 @@ public sealed partial class TmdbPickerDialog : ContentDialog
     {
         InitializeComponent();
         Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
-        // ContentDialog has a narrow default width in its WinUI template. Set the
-        // actual dialog width from the available app window after XamlRoot is attached.
+        // ContentDialog otherwise measures itself from the search controls (about 500 px),
+        // even when MaxWidth is large. Set an explicit width from the host window's
+        // available XamlRoot width so the result descriptions have room to wrap.
         Loaded += (_, _) =>
         {
-            if (XamlRoot is not null)
+            try
             {
-                var availableWidth = XamlRoot.Size.Width;
+                var availableWidth = XamlRoot?.Size.Width ?? 0;
                 if (availableWidth > 0)
                 {
-                    Width = Math.Max(800, availableWidth - 32);
-                    MaxWidth = availableWidth - 16;
+                    Width = Math.Max(900, Math.Min(1800, availableWidth - 48));
+                    MinWidth = Math.Min(900, Width);
+                    MaxWidth = Math.Max(Width, availableWidth - 24);
                 }
+                else
+                {
+                    Width = 1400;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"TMDb picker sizing failed: {ex.Message}");
+                Width = 1400;
             }
         };
         _client = client;
@@ -48,19 +59,6 @@ public sealed partial class TmdbPickerDialog : ContentDialog
         TitleBox.Text = initialTitle ?? "";
         if (year is int y && y > 0) YearBox.Text = y.ToString();
         Loaded += async (_, _) => { if (!string.IsNullOrWhiteSpace(TitleBox.Text)) await DoSearchAsync(); };
-    }
-
-    private void OnTitleTextChanged(object sender, TextChangedEventArgs e)
-    {
-        TitleClearBtn.Visibility = string.IsNullOrEmpty(TitleBox.Text)
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-    }
-
-    private void OnClearTitle(object sender, RoutedEventArgs e)
-    {
-        TitleBox.Text = string.Empty;
-        TitleBox.Focus(FocusState.Programmatic);
     }
 
     private void OnTitleKeyDown(object sender, KeyRoutedEventArgs e)

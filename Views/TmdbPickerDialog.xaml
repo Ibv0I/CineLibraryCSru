@@ -9,8 +9,10 @@
     DefaultButton="Primary"
     RequestedTheme="Dark"
     FullSizeDesired="True"
-    MinWidth="0"
+    Width="1400"
+    MinWidth="900"
     MaxWidth="10000"
+    HorizontalAlignment="Stretch"
     Background="{ThemeResource BgBrush}"
     CornerRadius="12"
     IsPrimaryButtonEnabled="False">
@@ -32,16 +34,8 @@
                 <ColumnDefinition Width="100" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <Grid Grid.Column="0">
-                <TextBox x:Name="TitleBox" PlaceholderText="Название фильма…"
-                         KeyDown="OnTitleKeyDown" TextChanged="OnTitleTextChanged"
-                         IsClearButtonEnabled="False" MinWidth="300" Padding="12,0,44,0" />
-                <Button x:Name="TitleClearBtn" Content="×" HorizontalAlignment="Right"
-                        VerticalAlignment="Center" Margin="0,0,10,0" Width="28" Height="28"
-                        Padding="0" FontSize="20" Background="Transparent"
-                        BorderThickness="0" Visibility="Collapsed"
-                        Click="OnClearTitle" AutomationProperties.Name="Очистить поиск" />
-            </Grid>
+            <TextBox x:Name="TitleBox" Grid.Column="0" PlaceholderText="Название фильма…"
+                     KeyDown="OnTitleKeyDown" MinWidth="300" />
             <TextBox x:Name="YearBox" Grid.Column="1" PlaceholderText="Год" Width="100"
                      MaxLength="4" InputScope="Number" />
             <Button x:Name="SearchBtn" Grid.Column="2" Content="Найти" Click="OnSearch"

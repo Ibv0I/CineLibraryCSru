@@ -23,18 +23,7 @@ public sealed partial class TmdbPickerDialog : ContentDialog
     {
         InitializeComponent();
         Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
-        // Use nearly the full available app-window width so long film descriptions
-        // and search results have room to display. ContentDialog is centered by WinUI.
-        Loaded += (_, _) =>
-        {
-            var availableWidth = XamlRoot?.Size.Width ?? 0;
-            if (availableWidth > 0)
-            {
-                var dialogWidth = Math.Max(1000, availableWidth - 32);
-                Width = dialogWidth;
-                MaxWidth = dialogWidth;
-            }
-        };
+        // FullSizeDesired in XAML makes the dialog use the full app-window width.
         _client = client;
         _tvShows = tvShows;
         if (tvShows)

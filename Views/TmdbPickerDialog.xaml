@@ -8,12 +8,14 @@
     CloseButtonText="Отмена"
     DefaultButton="Primary"
     RequestedTheme="Dark"
-    Width="1600"
-    MinWidth="1000"
-    MaxWidth="3000"
+    FullSizeDesired="True"
+    MinWidth="0"
+    MaxWidth="10000"
+    Background="{ThemeResource BgBrush}"
+    CornerRadius="12"
     IsPrimaryButtonEnabled="False">
 
-    <Grid MinWidth="960" MinHeight="620" RowSpacing="14" RequestedTheme="Dark">
+    <Grid MinWidth="0" MinHeight="620" RowSpacing="14" RequestedTheme="Dark" HorizontalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />

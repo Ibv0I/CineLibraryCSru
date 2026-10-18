@@ -18,9 +18,9 @@ public sealed partial class MainWindow : Window
     private readonly MainViewModel _vm;
     private LibraryPage? _libraryPage;
     private DrivesPage? _drivesPage;
-    private MediaPreparationPage? _mediaPreparationPage;
     private StatisticsPage? _statisticsPage;
     private DupesPage? _dupesPage;
+    private MoviePreparationPage? _moviePreparationPage;
     private BrowsePage? _browsePage;
     private CollectionsBrowsePage? _collectionsPage;
     private OnThisDayPage? _onThisDayPage;
@@ -1281,10 +1281,10 @@ public sealed partial class MainWindow : Window
             _drivesPage.Refresh();
             ContentFrame.Content = _drivesPage;
         }
-        else if (page == "media-preparation")
+        else if (page == "moviepreparation")
         {
-            _mediaPreparationPage ??= new MediaPreparationPage();
-            ContentFrame.Content = _mediaPreparationPage;
+            _moviePreparationPage ??= new MoviePreparationPage();
+            ContentFrame.Content = _moviePreparationPage;
         }
         else if (page == "statistics")
         {
@@ -1418,13 +1418,6 @@ public sealed partial class MainWindow : Window
     {
         NavigateTo("library", new LibraryNavParam());
         SetActiveNav(sender as Button ?? BtnAllMovies);
-    }
-
-
-    private void OnNavMediaPreparation(object sender, RoutedEventArgs e)
-    {
-        NavigateTo("media-preparation");
-        SetActiveNav(sender as Button);
     }
 
     private void OnNavFavorites(object sender, RoutedEventArgs e)
@@ -1878,6 +1871,12 @@ public sealed partial class MainWindow : Window
         SetActiveNav(sender as Button ?? BtnDupes);
     }
 
+    private void OnNavMoviePreparation(object sender, RoutedEventArgs e)
+    {
+        NavigateTo("moviepreparation");
+        SetActiveNav(sender as Button ?? BtnMoviePreparation);
+    }
+
     // ── v1.4.1 Keyboard shortcuts dialog ──────────────────────────────────
 
     private async void OnHelpClick(object sender, RoutedEventArgs e)
@@ -2130,7 +2129,6 @@ public sealed partial class MainWindow : Window
         LocalizationService.TranslateTree(SidebarGrid);
         SetSidebarText(SidebarLibraryGroupLabel, "LibraryGroup");
         SetSidebarText(SidebarAllMoviesLabel, "AllMovies");
-        SetSidebarText(SidebarMediaPreparationLabel, "MediaPreparation");
         SetSidebarText(SidebarToWatchLabel, "ToWatch");
         SetSidebarText(SidebarDiscoverGroupLabel, "DiscoverGroup");
         SetSidebarText(ContinueWatchingLabel, "ContinueWatching");

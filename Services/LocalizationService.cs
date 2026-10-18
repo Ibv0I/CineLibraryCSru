@@ -18,8 +18,6 @@ public static class LocalizationService
     private static Dictionary<string, string> _strings = new(StringComparer.Ordinal);
     private static string _language = "ru-RU";
 
-    public static string CurrentLanguage { get { lock (Sync) return _language; } }
-
     public static void ApplyLanguage(string language)
     {
         var normalized = language.Equals("en-US", StringComparison.OrdinalIgnoreCase)

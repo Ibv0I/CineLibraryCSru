@@ -1,0 +1,23 @@
+# Build output
+bin/
+obj/
+publish/
+*.zip
+
+# Local data
+CineLibrary-Data/
+
+# VS / Rider
+.vs/
+.idea/
+*.user
+*.suo
+
+# Misc
+_*.ps1
+dist/
+
+# Stray root-level art files (e.g. accidental icon → PNG conversions).
+# Real artwork lives under Assets\.
+/*.png
+/icon.ico

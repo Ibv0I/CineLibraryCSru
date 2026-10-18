@@ -17,7 +17,7 @@ public sealed partial class MoviePreparationPage : Page
         FoldersList.ItemsSource = _candidates;
     }
 
-    private async void OnScanClick(object sender, RoutedEventArgs e)
+    private void OnScanClick(object sender, RoutedEventArgs e)
     {
         var root = (RootPathBox.Text ?? string.Empty).Trim().Trim('"');
         if (!Directory.Exists(root))

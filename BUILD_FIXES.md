@@ -1,7 +1,13 @@
-# Исправления сборки GitHub Actions
+# Movie Library — fixes for media preparation UI
 
-Основная причина многочисленных ошибок компиляции — архив содержал полную вторую копию проекта в каталоге `mlfix/` одновременно с файлами проекта в корне. SDK-style `CineLibraryCS.csproj` автоматически включает вложенные файлы `.cs`, поэтому одни и те же классы и partial-методы компилировались дважды (CS0101, CS0111, CS0102, CS0756, CS0757, CS8863 и другие).
+This archive includes the TMDb media-preparation UI changes:
 
-В этом архиве каталог `mlfix/` удалён; оставлена одна копия проекта в корне. Корневой `Views/MoviePreparationPage.xaml.cs` содержит изменения для двух предыдущих ошибок: убрано обращение к `LocalizationService.CurrentLanguage`, отсутствующему в сервисе, и использован `PickerLocationId.ComputerFolder` вместо отсутствующего `PickerLocationId.Videos`.
+- Removed the **Clear** button from the media preparation page.
+- Replaced manual root-path entry with the standard Windows folder picker, matching the picker used by the Drives page.
+- Enlarged the TMDb match dialog and set it to dark theme.
+- Improved spacing for title/year/search fields, and increased result row/poster sizing.
+- Made result titles, years/subtitles, and descriptions readable on the dark background; changed the cancel button label to Russian.
 
-Проверки структуры: `CineLibraryCS.csproj` находится в корне; дубликатов файлов в `mlfix/` нет. Полную сборку WinUI здесь выполнить нельзя: в среде отсутствует .NET SDK. Поэтому результат сборки GitHub Actions ещё должен быть подтверждён CI.
+The TMDb selection still only records the match for the current session; this stage does not write NFO or image files.
+
+Build validation in this environment was limited to source/archive checks and XML parsing of the edited XAML files. A .NET build was not run here.

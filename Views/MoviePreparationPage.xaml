@@ -11,9 +11,9 @@
         </StackPanel>
         <Grid Grid.Row="1" ColumnSpacing="8">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-            <TextBox x:Name="RootPathBox" PlaceholderText="Путь к папке с фильмами, например D:\Фильмы" VerticalAlignment="Center"/>
-            <Button Grid.Column="1" Content="Найти папки" Click="OnScanClick"/>
-            <Button Grid.Column="2" Content="Очистить" Click="OnClearClick"/>
+            <TextBox x:Name="RootPathBox" PlaceholderText="Выберите папку с фильмами" IsReadOnly="True" VerticalAlignment="Center"/>
+            <Button Grid.Column="1" Content="Выбрать папку…" Click="OnChooseFolderClick"/>
+            <Button Grid.Column="2" Content="Найти папки" Click="OnScanClick"/>
         </Grid>
         <TextBlock x:Name="StatusText" Grid.Row="2" Text="Укажите папку и нажмите «Найти папки»." TextWrapping="Wrap" Foreground="{ThemeResource MutedBrush}"/>
         <ListView x:Name="FoldersList" Grid.Row="3" SelectionMode="None" IsItemClickEnabled="False">

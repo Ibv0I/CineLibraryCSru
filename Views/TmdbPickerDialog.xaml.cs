@@ -27,9 +27,9 @@ public sealed partial class TmdbPickerDialog : ContentDialog
         _tvShows = tvShows;
         if (tvShows)
         {
-            Title = CineLibraryCS.Services.LocalizationService.TranslateText("Match this show on TMDb");
-            HintText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Pick the correct show so the missing details are filled from the right entry.");
-            TitleBox.PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("Show title…");
+            Title = CineLibraryCS.Services.LocalizationService.TranslateText("Выбор сериала в TMDb");
+            HintText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Выберите правильный сериал, чтобы сопоставить его с записью TMDb.");
+            TitleBox.PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("Название сериала…");
         }
         TitleBox.Text = initialTitle ?? "";
         if (year is int y && y > 0) YearBox.Text = y.ToString();

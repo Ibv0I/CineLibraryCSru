@@ -17,6 +17,30 @@ public sealed partial class MoviePreparationPage : Page
         FoldersList.ItemsSource = _candidates;
     }
 
+    private async void OnChooseFolderClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var picker = new Windows.Storage.Pickers.FolderPicker
+            {
+                SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.ComputerFolder
+            };
+            picker.FileTypeFilter.Add("*");
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+            var folder = await picker.PickSingleFolderAsync();
+            if (folder != null)
+            {
+                RootPathBox.Text = folder.Path;
+                StatusText.Text = "Папка выбрана. Нажмите «Найти папки», чтобы просканировать её.";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = "Не удалось открыть выбор папки: " + ex.Message;
+        }
+    }
+
     private void OnScanClick(object sender, RoutedEventArgs e)
     {
         var root = (RootPathBox.Text ?? string.Empty).Trim().Trim('"');
@@ -50,12 +74,6 @@ public sealed partial class MoviePreparationPage : Page
                 : $"Найдено папок: {_candidates.Count}. Выберите правильное совпадение TMDb для каждого фильма.";
         }
         catch (Exception ex) { StatusText.Text = "Не удалось просканировать папку: " + ex.Message; }
-    }
-
-    private void OnClearClick(object sender, RoutedEventArgs e)
-    {
-        _candidates.Clear();
-        StatusText.Text = "Список очищен. Укажите папку и нажмите «Найти папки».";
     }
 
     private async void OnPickMovieClick(object sender, RoutedEventArgs e)

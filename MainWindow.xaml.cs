@@ -2111,12 +2111,36 @@ public sealed partial class MainWindow : Window
 
     private void ApplySidebarLocalization()
     {
+        // Translate the sidebar's fixed labels explicitly. TranslateTree relies on
+        // the visual tree, which can be incomplete when the window starts with the
+        // sidebar collapsed; recently-added was the only label reliably translated.
         LocalizationService.TranslateTree(SidebarGrid);
-        LibrariesLabel.Text = LocalizationService.Get("Libraries");
-        ContinueWatchingLabel.Text = LocalizationService.Get("ContinueWatching");
-        RecentlyAddedLabel.Text = LocalizationService.Get("RecentlyAdded");
-        RecentlyWatchedLabel.Text = LocalizationService.Get("RecentlyWatched");
-        OnThisDayNavLabel.Text = LocalizationService.Get("OnThisDay");
+        SetSidebarText(SidebarLibraryGroupLabel, "LibraryGroup");
+        SetSidebarText(SidebarAllMoviesLabel, "AllMovies");
+        SetSidebarText(SidebarToWatchLabel, "ToWatch");
+        SetSidebarText(SidebarDiscoverGroupLabel, "DiscoverGroup");
+        SetSidebarText(ContinueWatchingLabel, "ContinueWatching");
+        SetSidebarText(RecentlyAddedLabel, "RecentlyAdded");
+        SetSidebarText(RecentlyWatchedLabel, "RecentlyWatched");
+        SetSidebarText(OnThisDayNavLabel, "OnThisDay");
+        SetSidebarText(SidebarSurpriseMeLabel, "SurpriseMe");
+        SetSidebarText(SidebarBrowseGroupLabel, "BrowseGroup");
+        SetSidebarText(SidebarByGenreLabel, "ByGenre");
+        SetSidebarText(SidebarByDecadeLabel, "ByDecade");
+        SetSidebarText(SidebarByRatingLabel, "ByRating");
+        SetSidebarText(SidebarCollectionsLabel, "Collections");
+        SetSidebarText(SidebarToolsGroupLabel, "ToolsGroup");
+        SetSidebarText(SidebarStatisticsLabel, "Statistics");
+        SetSidebarText(SidebarDupesLabel, "Dupes");
+        SetSidebarText(SidebarBackupLabel, "Backup");
+        SetSidebarText(SidebarExportLabel, "Export");
+        SetSidebarText(SidebarMyListsLabel, "MyLists");
+        SetSidebarText(LibrariesLabel, "Libraries");
+    }
+
+    private static void SetSidebarText(TextBlock label, string resourceKey)
+    {
+        label.Text = LocalizationService.Get(resourceKey);
     }
 }
 

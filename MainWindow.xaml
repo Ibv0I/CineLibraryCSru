@@ -177,7 +177,7 @@
                     <StackPanel x:Name="NavPanel" Padding="8,0">
 
                         <!-- LIBRARY group (v1.9.3) -->
-                        <TextBlock Text="LIBRARY" Style="{StaticResource SidebarGroupLabelStyle}"/>
+                        <TextBlock x:Name="SidebarLibraryGroupLabel" Text="LIBRARY" Style="{StaticResource SidebarGroupLabelStyle}"/>
 
                         <!-- All Movies -->
                         <Button x:Name="BtnAllMovies" Style="{StaticResource NavItemStyle}"
@@ -191,7 +191,7 @@
                                     <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE786;" FontSize="15"
                                               FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="All Movies" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="SidebarAllMoviesLabel" Text="All Movies" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <Border Grid.Column="1" Style="{StaticResource BadgeStyle}">
                                     <TextBlock x:Name="TotalBadge" Text="0" FontSize="11"
@@ -241,7 +241,7 @@
                                     <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE74C;" FontSize="15"
                                               FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="To Watch" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="SidebarToWatchLabel" Text="To Watch" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <Border Grid.Column="1" Style="{StaticResource BadgeStyle}">
                                     <TextBlock x:Name="WatchlistBadge" Text="0" FontSize="11"
@@ -293,7 +293,7 @@
                         </Button>
 
                         <!-- DISCOVER group (v1.9.3) -->
-                        <TextBlock Text="DISCOVER" Style="{StaticResource SidebarGroupLabelStyle}"/>
+                        <TextBlock x:Name="SidebarDiscoverGroupLabel" Text="DISCOVER" Style="{StaticResource SidebarGroupLabelStyle}"/>
 
                         <!-- Continue Watching (v1.8) -->
                         <Button x:Name="BtnContinueWatching" Style="{StaticResource NavItemStyle}"
@@ -353,7 +353,7 @@
                                 <FontIcon Foreground="{ThemeResource NavDiscoverIconBrush}" Glyph="&#xE8B1;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Surprise me" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="SidebarSurpriseMeLabel" Text="Surprise me" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
@@ -372,7 +372,7 @@
                         </Button>
 
                         <!-- BROWSE group (v2.1) — banner-style category pages -->
-                        <TextBlock Text="BROWSE" Style="{StaticResource SidebarGroupLabelStyle}"/>
+                        <TextBlock x:Name="SidebarBrowseGroupLabel" Text="BROWSE" Style="{StaticResource SidebarGroupLabelStyle}"/>
 
                         <Button x:Name="BtnBrowseGenre" Style="{StaticResource NavItemStyle}"
                                 Click="OnNavBrowseGenre">
@@ -380,7 +380,7 @@
                                 <FontIcon Foreground="{ThemeResource NavBrowseIconBrush}" Glyph="&#xE8EC;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="By Genre" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="SidebarByGenreLabel" Text="By Genre" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button x:Name="BtnBrowseDecade" Style="{StaticResource NavItemStyle}"
@@ -389,7 +389,7 @@
                                 <FontIcon Foreground="{ThemeResource NavBrowseIconBrush}" Glyph="&#xE787;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="By Decade" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="SidebarByDecadeLabel" Text="By Decade" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button x:Name="BtnBrowseRating" Style="{StaticResource NavItemStyle}"
@@ -398,7 +398,7 @@
                                 <FontIcon Foreground="{ThemeResource NavBrowseIconBrush}" Glyph="&#xE735;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="By Rating" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="SidebarByRatingLabel" Text="By Rating" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button x:Name="BtnCollections" Style="{StaticResource NavItemStyle}"
@@ -407,12 +407,12 @@
                                 <FontIcon Foreground="{ThemeResource NavBrowseIconBrush}" Glyph="&#xE8B7;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Collections" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="SidebarCollectionsLabel" Text="Collections" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
                         <!-- TOOLS group (v1.9.3) -->
-                        <TextBlock Text="TOOLS" Style="{StaticResource SidebarGroupLabelStyle}"/>
+                        <TextBlock x:Name="SidebarToolsGroupLabel" Text="TOOLS" Style="{StaticResource SidebarGroupLabelStyle}"/>
 
                         <!-- Statistics (v1.4.1) -->
                         <Button x:Name="BtnStatistics" Style="{StaticResource NavItemStyle}" Click="OnNavStatistics">
@@ -420,7 +420,7 @@
                                 <FontIcon Foreground="{ThemeResource NavToolsIconBrush}" Glyph="&#xE9D9;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Statistics" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="SidebarStatisticsLabel" Text="Statistics" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
@@ -430,7 +430,7 @@
                                 <FontIcon Foreground="{ThemeResource NavToolsIconBrush}" Glyph="&#xE8C8;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Dupes" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="SidebarDupesLabel" Text="Dupes" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
@@ -443,7 +443,7 @@
                                 <FontIcon Foreground="{ThemeResource NavToolsIconBrush}" Glyph="&#xE74E;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Backup" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="SidebarBackupLabel" Text="Backup" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
@@ -455,7 +455,7 @@
                                 <FontIcon Foreground="{ThemeResource NavToolsIconBrush}" Glyph="&#xEDE1;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Export" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="SidebarExportLabel" Text="Export" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
@@ -475,7 +475,7 @@
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="MY LISTS" CharacterSpacing="150"/>
+                                        <TextBlock x:Name="SidebarMyListsLabel" Text="MY LISTS" CharacterSpacing="150"/>
                                         <TextBlock x:Name="UserListsChevron" Grid.Column="1"
                                                    Text="⌃" FontSize="11" Margin="6,0,0,0"/>
                                     </Grid>

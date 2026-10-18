@@ -200,6 +200,15 @@
                             </Grid>
                         </Button>
 
+                        <!-- Media preparation: first stage of the NFO/artwork workflow -->
+                        <Button x:Name="BtnMediaPreparation" Style="{StaticResource NavItemStyle}" Click="OnNavMediaPreparation">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE8B7;" FontSize="15"
+                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="SidebarMediaPreparationLabel" Text="Подготовка медиатеки" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
                         <!-- All TV Shows (v2.8) -->
                         <Button x:Name="BtnTvShows" Style="{StaticResource NavItemStyle}" Click="OnNavTvShows" Visibility="Collapsed">
                             <Grid HorizontalAlignment="Stretch">

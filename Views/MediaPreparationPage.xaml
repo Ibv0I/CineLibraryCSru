@@ -1,0 +1,58 @@
+<Page
+    x:Class="CineLibraryCS.Views.MediaPreparationPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="Transparent">
+    <Grid Padding="28" RowSpacing="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Spacing="5">
+            <TextBlock x:Name="PageTitle" Text="Подготовка медиатеки" FontSize="28" FontWeight="SemiBold"/>
+            <TextBlock x:Name="PageDescription" Text="Первый этап: найдите папки с видео, для которых ещё не создан NFO. Файлы фильмов не изменяются." Foreground="{ThemeResource MutedBrush}" TextWrapping="Wrap"/>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
+            <Button x:Name="ChooseRootButton" Content="Выбрать папку" Click="ChooseRoot_Click"/>
+            <Button x:Name="ScanButton" Content="Найти папки без NFO" Click="Scan_Click" IsEnabled="False"/>
+            <ProgressRing x:Name="BusyRing" Width="24" Height="24" IsActive="False" VerticalAlignment="Center"/>
+        </StackPanel>
+        <Border Grid.Row="2" Background="{ThemeResource SidebarBrush}" BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="12">
+            <StackPanel Spacing="4">
+                <TextBlock x:Name="RootLabel" Text="Корневая папка не выбрана" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                <TextBlock x:Name="StatusText" Text="Выберите папку с фильмами, чтобы начать поиск." Foreground="{ThemeResource MutedBrush}" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+        <Grid Grid.Row="3">
+            <ListView x:Name="ResultsList" SelectionMode="Single" IsItemClickEnabled="False">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="8,6" ColumnSpacing="14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="220"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="{Binding FolderName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding FolderPath}" FontSize="12" Foreground="{ThemeResource MutedBrush}" TextWrapping="WrapWholeWords"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding VideoSummary}" FontSize="13"/>
+                                <TextBlock Text="NFO не найден" FontSize="12" Foreground="#FFB98A"/>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <StackPanel x:Name="EmptyState" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8" MaxWidth="460">
+                <FontIcon Glyph="&#xE8B7;" FontSize="34" HorizontalAlignment="Center" Foreground="{ThemeResource MutedBrush}"/>
+                <TextBlock x:Name="EmptyTitle" Text="Пока ничего не найдено" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="EmptyDescription" Text="Выберите корневую папку и запустите поиск. Будут показаны папки с видео без NFO." TextWrapping="Wrap" TextAlignment="Center" Foreground="{ThemeResource MutedBrush}"/>
+            </StackPanel>
+        </Grid>
+        <TextBlock Grid.Row="4" x:Name="FooterNote" Text="Ничего не записывается и не переименовывается. Сопоставление с TMDb и создание NFO будут добавлены на следующих этапах." Foreground="{ThemeResource MutedBrush}" TextWrapping="Wrap" FontSize="12"/>
+    </Grid>
+</Page>

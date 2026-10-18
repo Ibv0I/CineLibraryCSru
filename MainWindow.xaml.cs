@@ -18,6 +18,7 @@ public sealed partial class MainWindow : Window
     private readonly MainViewModel _vm;
     private LibraryPage? _libraryPage;
     private DrivesPage? _drivesPage;
+    private MediaPreparationPage? _mediaPreparationPage;
     private StatisticsPage? _statisticsPage;
     private DupesPage? _dupesPage;
     private BrowsePage? _browsePage;
@@ -1280,6 +1281,11 @@ public sealed partial class MainWindow : Window
             _drivesPage.Refresh();
             ContentFrame.Content = _drivesPage;
         }
+        else if (page == "media-preparation")
+        {
+            _mediaPreparationPage ??= new MediaPreparationPage();
+            ContentFrame.Content = _mediaPreparationPage;
+        }
         else if (page == "statistics")
         {
             _statisticsPage ??= new StatisticsPage();
@@ -1412,6 +1418,13 @@ public sealed partial class MainWindow : Window
     {
         NavigateTo("library", new LibraryNavParam());
         SetActiveNav(sender as Button ?? BtnAllMovies);
+    }
+
+
+    private void OnNavMediaPreparation(object sender, RoutedEventArgs e)
+    {
+        NavigateTo("media-preparation");
+        SetActiveNav(sender as Button);
     }
 
     private void OnNavFavorites(object sender, RoutedEventArgs e)
@@ -2117,6 +2130,7 @@ public sealed partial class MainWindow : Window
         LocalizationService.TranslateTree(SidebarGrid);
         SetSidebarText(SidebarLibraryGroupLabel, "LibraryGroup");
         SetSidebarText(SidebarAllMoviesLabel, "AllMovies");
+        SetSidebarText(SidebarMediaPreparationLabel, "MediaPreparation");
         SetSidebarText(SidebarToWatchLabel, "ToWatch");
         SetSidebarText(SidebarDiscoverGroupLabel, "DiscoverGroup");
         SetSidebarText(ContinueWatchingLabel, "ContinueWatching");

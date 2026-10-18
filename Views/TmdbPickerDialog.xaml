@@ -8,11 +8,12 @@
     CloseButtonText="Отмена"
     DefaultButton="Primary"
     RequestedTheme="Dark"
-    Width="900"
-    MaxWidth="900"
+    Width="1120"
+    MinWidth="1000"
+    MaxWidth="1120"
     IsPrimaryButtonEnabled="False">
 
-    <Grid MinWidth="760" MinHeight="500" RowSpacing="12" RequestedTheme="Dark">
+    <Grid MinWidth="960" MinHeight="620" RowSpacing="14" RequestedTheme="Dark">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -47,7 +48,7 @@
                        Foreground="{ThemeResource TextBrush}" VerticalAlignment="Center"
                        TextWrapping="Wrap" Visibility="Collapsed" />
         </Grid>
-        <ListView x:Name="ResultsList" Grid.Row="3" MinHeight="340"
+        <ListView x:Name="ResultsList" Grid.Row="3" MinHeight="440"
                   SelectionMode="Single" SelectionChanged="OnResultSelected"
                   Background="{ThemeResource ControlFillColorDefaultBrush}"
                   BorderBrush="{ThemeResource InputBorderBrush}" BorderThickness="1"
@@ -71,7 +72,7 @@
                                        Foreground="{ThemeResource TextBrush}" />
                             <TextBlock Text="{x:Bind Overview}" FontSize="13"
                                        Foreground="{ThemeResource TextBrush}" TextWrapping="Wrap"
-                                       MaxLines="3" TextTrimming="CharacterEllipsis" />
+                                       MaxLines="6" TextTrimming="None" />
                         </StackPanel>
                     </Grid>
                 </DataTemplate>

@@ -32,7 +32,8 @@ public sealed partial class MoviePreparationPage : Page
             if (folder != null)
             {
                 RootPathBox.Text = folder.Path;
-                StatusText.Text = "Папка выбрана. Нажмите «Найти папки», чтобы просканировать её.";
+                // Scan immediately after the user chooses a folder.
+                OnScanClick(this, new RoutedEventArgs());
             }
         }
         catch (Exception ex)

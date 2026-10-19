@@ -53,6 +53,8 @@ public sealed partial class TmdbPickerDialog : Window
         // Configure the final dimensions and position before the first Activate().
         ConfigureForAvailableWidth(0);
         RootGrid.Loaded += async (_, _) => { if (!string.IsNullOrWhiteSpace(TitleBox.Text)) await DoSearchAsync(); };
+        // Keep Esc as a keyboard shortcut without showing a floating key tip.
+        RootGrid.KeyboardAcceleratorPlacementMode = KeyboardAcceleratorPlacementMode.Hidden;
         var esc = new KeyboardAccelerator { Key = Windows.System.VirtualKey.Escape };
         esc.Invoked += (_, e) => { e.Handled = true; CloseWithResult(ContentDialogResult.None); };
         RootGrid.KeyboardAccelerators.Add(esc);
@@ -63,6 +65,25 @@ public sealed partial class TmdbPickerDialog : Window
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
         var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
         var appWindow = AppWindow.GetFromWindowId(windowId);
+
+        // Native title bar follows the app's dark theme, including the caption buttons.
+        var titleBar = appWindow.TitleBar;
+        var titleBarColor = Windows.UI.Color.FromArgb(255, 18, 18, 20);
+        var titleTextColor = Windows.UI.Color.FromArgb(255, 235, 235, 238);
+        var titleHoverColor = Windows.UI.Color.FromArgb(255, 55, 55, 60);
+        var titlePressedColor = Windows.UI.Color.FromArgb(255, 70, 70, 76);
+        titleBar.BackgroundColor = titleBarColor;
+        titleBar.ForegroundColor = titleTextColor;
+        titleBar.InactiveBackgroundColor = titleBarColor;
+        titleBar.InactiveForegroundColor = Windows.UI.Color.FromArgb(255, 165, 165, 170);
+        titleBar.ButtonBackgroundColor = titleBarColor;
+        titleBar.ButtonForegroundColor = titleTextColor;
+        titleBar.ButtonInactiveBackgroundColor = titleBarColor;
+        titleBar.ButtonInactiveForegroundColor = Windows.UI.Color.FromArgb(255, 165, 165, 170);
+        titleBar.ButtonHoverBackgroundColor = titleHoverColor;
+        titleBar.ButtonHoverForegroundColor = titleTextColor;
+        titleBar.ButtonPressedBackgroundColor = titlePressedColor;
+        titleBar.ButtonPressedForegroundColor = titleTextColor;
 
         var owner = App.MainWindow;
         var ownerHwnd = WinRT.Interop.WindowNative.GetWindowHandle(owner);

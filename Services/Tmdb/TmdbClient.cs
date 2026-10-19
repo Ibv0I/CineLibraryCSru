@@ -109,7 +109,14 @@ public sealed class TmdbClient : IDisposable
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
         if (root.TryGetProperty("release_dates", out var rd))
-            movie.Certification = ParseUsCertification(rd);
+        {
+            movie.RussianReleaseDate = ParseRegionalReleaseDate(rd, "RU");
+            movie.Certification = ParseRegionalCertification(rd, "RU");
+            if (string.IsNullOrWhiteSpace(movie.Certification))
+                movie.Certification = ParseRegionalCertification(rd, "US");
+            if (string.IsNullOrWhiteSpace(movie.Certification))
+                movie.Certification = ParseAnyCertification(rd);
+        }
         if (root.TryGetProperty("credits", out var credits))
         {
             movie.Cast = ParseCast(credits);
@@ -264,32 +271,57 @@ public sealed class TmdbClient : IDisposable
         }
     }
 
-    /// <summary>Prefers the US theatrical certification; falls back to the first non-empty one.</summary>
-    private static string ParseUsCertification(JsonElement rd)
+    /// <summary>Returns a release date for the requested country, if TMDb has one.</summary>
+    private static string ParseRegionalReleaseDate(JsonElement rd, string countryCode)
     {
         if (!rd.TryGetProperty("results", out var results)) return string.Empty;
-
         foreach (var region in results.EnumerateArray())
         {
-            if (!region.TryGetProperty("iso_3166_1", out var iso)) continue;
-            if (!string.Equals(iso.GetString(), "US", StringComparison.OrdinalIgnoreCase)) continue;
+            if (!region.TryGetProperty("iso_3166_1", out var iso) ||
+                !string.Equals(iso.GetString(), countryCode, StringComparison.OrdinalIgnoreCase)) continue;
             if (!region.TryGetProperty("release_dates", out var dates)) continue;
             foreach (var d in dates.EnumerateArray())
-                if (d.TryGetProperty("certification", out var cert))
-                {
-                    var s = cert.GetString();
-                    if (!string.IsNullOrWhiteSpace(s)) return s!;
-                }
+            {
+                if (!d.TryGetProperty("release_date", out var date)) continue;
+                var value = date.GetString();
+                if (!string.IsNullOrWhiteSpace(value) && value!.Length >= 10) return value[..10];
+            }
         }
+        return string.Empty;
+    }
+
+    private static string ParseRegionalCertification(JsonElement rd, string countryCode)
+    {
+        if (!rd.TryGetProperty("results", out var results)) return string.Empty;
+        foreach (var region in results.EnumerateArray())
+        {
+            if (!region.TryGetProperty("iso_3166_1", out var iso) ||
+                !string.Equals(iso.GetString(), countryCode, StringComparison.OrdinalIgnoreCase)) continue;
+            if (!region.TryGetProperty("release_dates", out var dates)) continue;
+            foreach (var d in dates.EnumerateArray())
+            {
+                if (!d.TryGetProperty("certification", out var cert)) continue;
+                var value = cert.GetString();
+                if (!string.IsNullOrWhiteSpace(value)) return value!;
+            }
+        }
+        return string.Empty;
+    }
+
+    private static string ParseAnyCertification(JsonElement rd)
+    {
+        if (!rd.TryGetProperty("results", out var results)) return string.Empty;
         foreach (var region in results.EnumerateArray())
         {
             if (!region.TryGetProperty("release_dates", out var dates)) continue;
             foreach (var d in dates.EnumerateArray())
+            {
                 if (d.TryGetProperty("certification", out var cert))
                 {
-                    var s = cert.GetString();
-                    if (!string.IsNullOrWhiteSpace(s)) return s!;
+                    var value = cert.GetString();
+                    if (!string.IsNullOrWhiteSpace(value)) return value!;
                 }
+            }
         }
         return string.Empty;
     }

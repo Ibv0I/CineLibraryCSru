@@ -62,6 +62,9 @@ public class TmdbMovie
     /// client-side from the appended release_dates block. Empty if none.</summary>
     public string Certification { get; set; } = string.Empty;
 
+    /// <summary>Russian theatrical/official release date, when TMDb provides one.</summary>
+    public string RussianReleaseDate { get; set; } = string.Empty;
+
     /// <summary>Top-billed cast, parsed client-side from the appended credits
     /// block (sorted by billing order). Empty until details are fetched.</summary>
     public List<TmdbCastMember> Cast { get; set; } = new();

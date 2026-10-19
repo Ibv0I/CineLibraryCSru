@@ -4,6 +4,7 @@ using CineLibraryCS.Services.Tmdb;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Xml;
+using MediaInfo;
 
 namespace CineLibraryCS.Views;
 
@@ -151,14 +152,17 @@ public sealed partial class MoviePreparationPage : Page
             if (!await client.DownloadImageAsync(client.GetImageUrl(backdropFile, "original"), tempFanart))
                 throw new IOException("Не удалось загрузить фоновое изображение из TMDb.");
 
-            WriteMovieNfo(tempNfo, movie);
+            var technicalInfo = AnalyzeMediaFile(candidate.Videos.OrderByDescending(GetFileSizeSafe).FirstOrDefault() ?? string.Empty);
+            WriteMovieNfo(tempNfo, movie, technicalInfo);
             File.Move(tempPoster, posterPath, true);
             File.Move(tempFanart, fanartPath, true);
             File.Move(tempNfo, nfoPath, true); // Write NFO last, so scanner only sees completed preparation.
 
             candidate.MatchSummary = $"Сохранено: {movie.Title}{(movie.Year > 0 ? $" ({movie.Year})" : string.Empty)} · movie.nfo, poster.jpg, fanart.jpg";
             RefreshCandidates();
-            StatusText.Text = $"Файлы успешно сохранены в папке «{candidate.FolderName}».";
+            StatusText.Text = technicalInfo == null
+                ? $"Файлы сохранены в папке «{candidate.FolderName}», но технические параметры видео не удалось прочитать. Проверьте формат файла."
+                : $"Файлы успешно сохранены в папке «{candidate.FolderName}» вместе с длительностью, видеопараметрами, аудиодорожками и языками субтитров.";
         }
         catch (Exception ex)
         {
@@ -170,7 +174,7 @@ public sealed partial class MoviePreparationPage : Page
         }
     }
 
-    private static void WriteMovieNfo(string path, TmdbMovie movie)
+    private static void WriteMovieNfo(string path, TmdbMovie movie, MediaTechnicalInfo? technicalInfo)
     {
         var settings = new XmlWriterSettings { Indent = true, Encoding = new System.Text.UTF8Encoding(false), CloseOutput = true };
         using var writer = XmlWriter.Create(path, settings);
@@ -191,7 +195,11 @@ public sealed partial class MoviePreparationPage : Page
             WriteElement(writer, "premiered", movie.ReleaseDate);
             WriteElement(writer, "releasedate", movie.ReleaseDate);
         }
-        if (movie.Runtime > 0) WriteElement(writer, "runtime", movie.Runtime.ToString(CultureInfo.InvariantCulture));
+        var durationSeconds = technicalInfo?.DurationSeconds;
+        var runtimeMinutes = durationSeconds.HasValue && durationSeconds.Value > 0
+            ? (int)Math.Round(durationSeconds.Value / 60.0)
+            : movie.Runtime;
+        if (runtimeMinutes > 0) WriteElement(writer, "runtime", runtimeMinutes.ToString(CultureInfo.InvariantCulture));
         WriteElement(writer, "rating", movie.Rating.ToString("0.0", CultureInfo.InvariantCulture));
         WriteElement(writer, "votes", movie.VoteCount.ToString(CultureInfo.InvariantCulture));
         if (!string.IsNullOrWhiteSpace(movie.Certification)) WriteElement(writer, "mpaa", movie.Certification);
@@ -211,6 +219,58 @@ public sealed partial class MoviePreparationPage : Page
         WriteElement(writer, "value", movie.Rating.ToString("0.0", CultureInfo.InvariantCulture));
         WriteElement(writer, "votes", movie.VoteCount.ToString(CultureInfo.InvariantCulture));
         writer.WriteEndElement(); writer.WriteEndElement();
+        if (technicalInfo != null)
+        {
+            writer.WriteStartElement("fileinfo");
+            writer.WriteStartElement("streamdetails");
+            if (technicalInfo.Video != null)
+            {
+                var video = technicalInfo.Video;
+                writer.WriteStartElement("video");
+                WriteElement(writer, "codec", video.Codec);
+                if (video.Width > 0) WriteElement(writer, "width", video.Width.ToString(CultureInfo.InvariantCulture));
+                if (video.Height > 0) WriteElement(writer, "height", video.Height.ToString(CultureInfo.InvariantCulture));
+                if (video.Width > 0 && video.Height > 0)
+                {
+                    var aspect = video.AspectRatio;
+                    if (string.IsNullOrWhiteSpace(aspect) && video.Height > 0)
+                        aspect = (video.Width / (double)video.Height).ToString("0.000", CultureInfo.InvariantCulture);
+                    WriteElement(writer, "aspect", aspect);
+                    WriteElement(writer, "format", $"{video.Height}p");
+                }
+                if (technicalInfo.DurationSeconds > 0)
+                    WriteElement(writer, "durationinseconds", technicalInfo.DurationSeconds.Value.ToString(CultureInfo.InvariantCulture));
+                WriteElement(writer, "bitrate", ConvertValue(video.BitRate));
+                WriteElement(writer, "framerate", ConvertValue(video.FrameRate));
+                WriteElement(writer, "hdrtype", video.Hdr);
+                WriteElement(writer, "profile", video.Profile);
+                WriteElement(writer, "scantype", video.ScanType);
+                writer.WriteEndElement();
+            }
+            foreach (var audio in technicalInfo.AudioTracks)
+            {
+                writer.WriteStartElement("audio");
+                WriteElement(writer, "codec", audio.Codec);
+                WriteElement(writer, "language", audio.Language);
+                WriteElement(writer, "title", audio.Title);
+                WriteElement(writer, "channels", audio.Channels);
+                WriteElement(writer, "channel", audio.ChannelLayout);
+                WriteElement(writer, "bitrate", audio.BitRate);
+                WriteElement(writer, "samplingrate", audio.SamplingRate);
+                WriteElement(writer, "bitdepth", audio.BitDepth);
+                writer.WriteEndElement();
+            }
+            foreach (var subtitle in technicalInfo.SubtitleTracks)
+            {
+                writer.WriteStartElement("subtitle");
+                WriteElement(writer, "language", subtitle.Language);
+                WriteElement(writer, "codec", subtitle.Codec);
+                WriteElement(writer, "title", subtitle.Title);
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
+            writer.WriteEndElement();
+        }
         foreach (var actor in movie.Cast)
         {
             writer.WriteStartElement("actor");
@@ -225,6 +285,80 @@ public sealed partial class MoviePreparationPage : Page
         writer.WriteEndElement();
         writer.WriteEndDocument();
     }
+
+    private static long GetFileSizeSafe(string path)
+    {
+        try { return File.Exists(path) ? new FileInfo(path).Length : 0; }
+        catch { return 0; }
+    }
+
+    private static MediaTechnicalInfo? AnalyzeMediaFile(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return null;
+        try
+        {
+            using var media = new MediaInfoWrapper(path);
+            if (!media.Success) return null;
+
+            var videoStreams = media.VideoStreams;
+            var videoStream = videoStreams.FirstOrDefault();
+            var durationMs = media.Duration;
+            var durationSeconds = durationMs > 0 ? (long?)Math.Round(durationMs / 1000.0) : null;
+            var video = videoStream == null ? null : new MediaVideoInfo(
+                Width: videoStream.Width,
+                Height: videoStream.Height,
+                Codec: videoStream.Codec,
+                AspectRatio: videoStream.AspectRatio,
+                BitRate: videoStream.BitRate,
+                FrameRate: videoStream.FrameRate,
+                Hdr: videoStream.Hdr,
+                Profile: videoStream.Profile,
+                ScanType: ReadStringProperty(videoStream, "ScanType"));
+
+            var audio = media.AudioStreams.Select(a => new MediaAudioInfo(
+                Codec: a.Codec,
+                Language: a.Language,
+                Title: a.Title,
+                Channels: ConvertValue(a.Channels),
+                ChannelLayout: a.ChannelLayout,
+                BitRate: ConvertValue(a.BitRate),
+                SamplingRate: ConvertValue(a.SamplingRate),
+                BitDepth: ConvertValue(a.BitDepth))).ToList();
+            var subtitles = media.SubtitleStreams.Select(s => new MediaSubtitleInfo(
+                Language: s.Language,
+                Codec: s.Codec,
+                Title: s.Title)).ToList();
+
+            if (video == null && audio.Count == 0 && subtitles.Count == 0 && durationSeconds == null) return null;
+            return new MediaTechnicalInfo(durationSeconds, video, audio, subtitles);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MediaInfo analysis failed for '{path}': {ex.Message}");
+            return null;
+        }
+    }
+
+    private static string? ConvertValue(object? value)
+    {
+        if (value == null) return null;
+        var text = Convert.ToString(value, CultureInfo.InvariantCulture);
+        return string.IsNullOrWhiteSpace(text) || text == "0" ? null : text;
+    }
+
+    private static string? ReadStringProperty(object source, string propertyName)
+    {
+        try { return ConvertValue(source.GetType().GetProperty(propertyName)?.GetValue(source)); }
+        catch { return null; }
+    }
+
+    private sealed record MediaTechnicalInfo(long? DurationSeconds, MediaVideoInfo? Video,
+        List<MediaAudioInfo> AudioTracks, List<MediaSubtitleInfo> SubtitleTracks);
+    private sealed record MediaVideoInfo(int Width, int Height, string? Codec, string? AspectRatio,
+        object? BitRate, object? FrameRate, string? Hdr, string? Profile, string? ScanType);
+    private sealed record MediaAudioInfo(string? Codec, string? Language, string? Title,
+        string? Channels, string? ChannelLayout, string? BitRate, string? SamplingRate, string? BitDepth);
+    private sealed record MediaSubtitleInfo(string? Language, string? Codec, string? Title);
 
     private static void WriteElement(XmlWriter writer, string name, string? value)
     {

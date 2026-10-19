@@ -1,56 +1,126 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Windowing;
+using Windows.Graphics;
 using CineLibraryCS.Services.Tmdb;
+using System.Runtime.InteropServices;
 
 namespace CineLibraryCS.Views;
 
 /// <summary>
-/// v3.4 — lightweight TMDb match picker used by "Fetch missing info" when a
-/// movie has no stored tmdb_id, so the user confirms the right film before any
-/// blanks are filled. Reuses <see cref="TmdbResultItem"/>.
+/// Resizable, centered native window for manually matching a movie to TMDb.
+/// Unlike ContentDialog, Window allows an explicit client size before first paint.
 /// </summary>
-public sealed partial class TmdbPickerDialog : ContentDialog
+public sealed partial class TmdbPickerDialog : Window
 {
     private readonly TmdbClient _client;
     private readonly bool _tvShows;
+    private readonly TaskCompletionSource<ContentDialogResult> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private bool _shown;
+    private bool _ownerDisabled;
+    private nint _ownerHandle;
 
-    /// <summary>The film (or, with tvShows, the show) the user chose, or null if
-    /// cancelled. A show comes back movie-shaped; its TmdbId is the show's id.</summary>
     public TmdbMovie? Picked { get; private set; }
+    public bool IsPrimaryButtonEnabled
+    {
+        get => SelectBtn?.IsEnabled ?? false;
+        set { if (SelectBtn != null) SelectBtn.IsEnabled = value; }
+    }
 
     public TmdbPickerDialog(TmdbClient client, string? initialTitle, int? year, bool tvShows = false)
     {
-        InitializeComponent();
-        // Apply width before ShowAsync so the dialog never appears as a small card
-        // and then resizes after TMDb results arrive. The host sets XamlRoot first.
-        Resources["ContentDialogMaxWidth"] = 1600.0;
-        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         _client = client;
         _tvShows = tvShows;
+        InitializeComponent();
+        RootGrid.RequestedTheme = ElementTheme.Dark;
+        RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+            Windows.UI.Color.FromArgb(255, 18, 18, 20));
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(RootGrid);
+        Closed += OnWindowClosed;
+
         if (tvShows)
         {
             Title = CineLibraryCS.Services.LocalizationService.TranslateText("Выбор сериала в TMDb");
             HintText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Выберите правильный сериал, чтобы сопоставить его с записью TMDb.");
             TitleBox.PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("Название сериала…");
+            SelectBtn.Content = CineLibraryCS.Services.LocalizationService.TranslateText("Выбрать сериал");
         }
         TitleBox.Text = initialTitle ?? "";
         if (year is int y && y > 0) YearBox.Text = y.ToString();
+
+        // Configure the final dimensions and position before the first Activate().
+        ConfigureForAvailableWidth(0);
         Loaded += async (_, _) => { if (!string.IsNullOrWhiteSpace(TitleBox.Text)) await DoSearchAsync(); };
+        var esc = new KeyboardAccelerator { Key = Windows.System.VirtualKey.Escape };
+        esc.Invoked += (_, e) => { e.Handled = true; CloseWithResult(ContentDialogResult.None); };
+        RootGrid.KeyboardAccelerators.Add(esc);
     }
 
     public void ConfigureForAvailableWidth(double availableWidth)
     {
-        // ContentDialog is centered by WinUI relative to XamlRoot. Set its final
-        // dimensions before it is shown to avoid the small-window-then-grow effect.
-        var targetWidth = availableWidth > 0
-            ? Math.Max(900, Math.Min(1600, availableWidth - 64))
-            : 1400;
-        Resources["ContentDialogMaxWidth"] = targetWidth;
-        Width = targetWidth;
-        MinWidth = Math.Min(900, targetWidth);
-        MaxWidth = targetWidth;
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
+        var appWindow = AppWindow.GetFromWindowId(windowId);
+
+        var owner = App.MainWindow;
+        var ownerHwnd = WinRT.Interop.WindowNative.GetWindowHandle(owner);
+        var ownerId = Win32Interop.GetWindowIdFromWindow(ownerHwnd);
+        var ownerWindow = AppWindow.GetFromWindowId(ownerId);
+        _ownerHandle = ownerHwnd;
+
+        // Slightly smaller than the previous build, but wide enough for readable overviews.
+        int width = Math.Min(1500, Math.Max(900, ownerWindow.Size.Width - 100));
+        int height = Math.Min(820, Math.Max(620, ownerWindow.Size.Height - 100));
+        if (availableWidth > 0) width = Math.Min(width, Math.Max(900, (int)availableWidth - 48));
+        appWindow.Resize(new SizeInt32(width, height));
+        appWindow.Title = Title;
+        appWindow.Move(new PointInt32(
+            ownerWindow.Position.X + Math.Max(0, (ownerWindow.Size.Width - width) / 2),
+            ownerWindow.Position.Y + Math.Max(0, (ownerWindow.Size.Height - height) / 2)));
+        if (appWindow.Presenter is OverlappedPresenter presenter)
+        {
+            presenter.IsResizable = true;
+            presenter.IsMaximizable = true;
+        }
     }
+
+    public Task<ContentDialogResult> ShowAsync()
+    {
+        if (_shown) return _completion.Task;
+        _shown = true;
+        if (_ownerHandle != 0)
+        {
+            EnableWindow(_ownerHandle, false);
+            _ownerDisabled = true;
+        }
+        Activate();
+        return _completion.Task;
+    }
+
+    private void OnWindowClosed(object sender, WindowEventArgs args)
+    {
+        if (_ownerDisabled && _ownerHandle != 0)
+        {
+            EnableWindow(_ownerHandle, true);
+            _ownerDisabled = false;
+            try { App.MainWindow.Activate(); } catch { }
+        }
+        if (!_completion.Task.IsCompleted) _completion.TrySetResult(ContentDialogResult.None);
+    }
+
+    private void CloseWithResult(ContentDialogResult result)
+    {
+        _completion.TrySetResult(result);
+        Close();
+    }
+
+    private void OnChooseClick(object sender, RoutedEventArgs e)
+    {
+        if (Picked != null) CloseWithResult(ContentDialogResult.Primary);
+    }
+
+    private void OnCancelClick(object sender, RoutedEventArgs e) => CloseWithResult(ContentDialogResult.None);
 
     private void OnTitleKeyDown(object sender, KeyRoutedEventArgs e)
     {
@@ -64,7 +134,6 @@ public sealed partial class TmdbPickerDialog : ContentDialog
         var title = (TitleBox.Text ?? "").Trim();
         if (title.Length == 0) return;
         int? year = int.TryParse((YearBox.Text ?? "").Trim(), out var y) && y > 1800 ? y : null;
-
         SearchBtn.IsEnabled = false;
         Busy.IsActive = true;
         StatusText.Visibility = Visibility.Collapsed;
@@ -104,4 +173,7 @@ public sealed partial class TmdbPickerDialog : ContentDialog
         Picked = (ResultsList.SelectedItem as TmdbResultItem)?.Source;
         IsPrimaryButtonEnabled = Picked != null;
     }
+
+    [DllImport("user32.dll")]
+    private static extern bool EnableWindow(nint hWnd, bool bEnable);
 }

@@ -82,8 +82,7 @@ public sealed partial class MoviePreparationPage : Page
         if ((sender as Button)?.Tag is not MovieFolderCandidate candidate) return;
         var year = candidate.Year;
         using var client = new TmdbClient(language: "ru-RU");
-        var picker = new TmdbPickerDialog(client, candidate.SearchTitle, year) { XamlRoot = XamlRoot };
-        picker.ConfigureForAvailableWidth(XamlRoot?.Size.Width ?? 0);
+        var picker = new TmdbPickerDialog(client, candidate.SearchTitle, year);
         var result = await picker.ShowAsync();
         if (result != ContentDialogResult.Primary || picker.Picked == null) return;
         candidate.SelectedMovie = picker.Picked;

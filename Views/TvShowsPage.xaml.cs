@@ -731,7 +731,7 @@ public sealed partial class TvShowsPage : Page
             }
             else
             {
-                var picker = new TmdbPickerDialog(client, show.Title, show.Year, tvShows: true) { XamlRoot = XamlRoot };
+                var picker = new TmdbPickerDialog(client, show.Title, show.Year, tvShows: true);
                 if (await picker.ShowAsync() != ContentDialogResult.Primary || picker.Picked == null)
                 {
                     ShowTmdbBusy.IsActive = false;

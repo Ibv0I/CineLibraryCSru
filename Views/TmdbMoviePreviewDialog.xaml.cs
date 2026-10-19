@@ -74,13 +74,11 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             MovieTitleText.Text = $"{details.Title}{(details.Year > 0 ? $" ({details.Year})" : string.Empty)}";
             var genres = string.Join(", ", details.Genres.Select(g => g.Name));
             var countries = string.Join(", ", details.ProductionCountries.Select(c => c.Name));
-            MovieFactsText.Text = $"TMDb ID: {details.TmdbId} · Рейтинг: {details.Rating:0.0}/10 ({details.VoteCount} голосов) · Длительность: {(details.Runtime > 0 ? $"{details.Runtime} мин." : "не указана")}
-Дата выхода: {(string.IsNullOrWhiteSpace(details.ReleaseDate) ? "не указана" : details.ReleaseDate)} · Жанры: {(string.IsNullOrWhiteSpace(genres) ? "не указаны" : genres)} · Страны: {(string.IsNullOrWhiteSpace(countries) ? "не указаны" : countries)}";
+            MovieFactsText.Text = $"TMDb ID: {details.TmdbId} · Рейтинг: {details.Rating:0.0}/10 ({details.VoteCount} голосов) · Длительность: {(details.Runtime > 0 ? $"{details.Runtime} мин." : "не указана")}\nДата выхода: {(string.IsNullOrWhiteSpace(details.ReleaseDate) ? "не указана" : details.ReleaseDate)} · Жанры: {(string.IsNullOrWhiteSpace(genres) ? "не указаны" : genres)} · Страны: {(string.IsNullOrWhiteSpace(countries) ? "не указаны" : countries)}";
             MovieOverviewText.Text = string.IsNullOrWhiteSpace(details.Overview) ? "Описание отсутствует в TMDb." : details.Overview;
             var directors = string.Join(", ", details.Directors);
             var cast = string.Join(", ", details.Cast.Take(8).Select(c => c.Name));
-            MovieCreditsText.Text = $"Режиссёр: {(string.IsNullOrWhiteSpace(directors) ? "не указан" : directors)}
-В ролях: {(string.IsNullOrWhiteSpace(cast) ? "не указаны" : cast)}";
+            MovieCreditsText.Text = $"Режиссёр: {(string.IsNullOrWhiteSpace(directors) ? "не указан" : directors)}\nВ ролях: {(string.IsNullOrWhiteSpace(cast) ? "не указаны" : cast)}";
 
             var images = await _client.GetMovieImagesAsync(details.TmdbId);
             if (images.Posters.Count == 0 && !string.IsNullOrWhiteSpace(details.PosterPath)) images.Posters.Add(details.PosterPath!);

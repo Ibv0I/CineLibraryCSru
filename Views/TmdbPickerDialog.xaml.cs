@@ -27,31 +27,9 @@ public sealed partial class TmdbPickerDialog : ContentDialog
         // still constrain the visible dialog to a narrow card.
         Resources["ContentDialogMaxWidth"] = 1800.0;
         Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
-        // ContentDialog otherwise measures itself from the search controls (about 500 px),
-        // even when MaxWidth is large. Set an explicit width from the host window's
-        // available XamlRoot width so the result descriptions have room to wrap.
-        Loaded += (_, _) =>
-        {
-            try
-            {
-                var availableWidth = XamlRoot?.Size.Width ?? 0;
-                if (availableWidth > 0)
-                {
-                    Width = Math.Max(900, Math.Min(1800, availableWidth - 48));
-                    MinWidth = Math.Min(900, Width);
-                    MaxWidth = Math.Min(1800, Math.Max(Width, availableWidth - 24));
-                }
-                else
-                {
-                    Width = 1400;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"TMDb picker sizing failed: {ex.Message}");
-                Width = 1400;
-            }
-        };
+        // Width is configured by PrepareForDisplay() before ShowAsync, so the dialog
+        // is created at its final size instead of appearing as a small card first.
+        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
         _client = client;
         _tvShows = tvShows;
         if (tvShows)
@@ -63,6 +41,36 @@ public sealed partial class TmdbPickerDialog : ContentDialog
         TitleBox.Text = initialTitle ?? "";
         if (year is int y && y > 0) YearBox.Text = y.ToString();
         Loaded += async (_, _) => { if (!string.IsNullOrWhiteSpace(TitleBox.Text)) await DoSearchAsync(); };
+    }
+
+    /// <summary>Set the final width before the dialog is shown, avoiding a visible resize.</summary>
+    public void PrepareForDisplay()
+    {
+        try
+        {
+            var availableWidth = XamlRoot?.Size.Width ?? 0;
+            if (availableWidth > 0)
+            {
+                // Keep the dialog centered by letting ContentDialog perform its normal
+                // placement, while giving it most of the host window's usable width.
+                var targetWidth = Math.Max(900, Math.Min(1800, availableWidth - 64));
+                Width = targetWidth;
+                MinWidth = Math.Min(900, targetWidth);
+                MaxWidth = targetWidth;
+                Resources["ContentDialogMaxWidth"] = targetWidth;
+            }
+            else
+            {
+                Width = 1400;
+                Resources["ContentDialogMaxWidth"] = 1400.0;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"TMDb picker sizing failed: {ex.Message}");
+            Width = 1400;
+            Resources["ContentDialogMaxWidth"] = 1400.0;
+        }
     }
 
     private void OnTitleKeyDown(object sender, KeyRoutedEventArgs e)

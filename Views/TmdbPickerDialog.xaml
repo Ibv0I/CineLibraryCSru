@@ -11,7 +11,7 @@
     FullSizeDesired="True"
     Width="1400"
     MinWidth="900"
-    MaxWidth="10000"
+    MaxWidth="1800"
     HorizontalAlignment="Stretch"
     Background="{ThemeResource BgBrush}"
     CornerRadius="12"
@@ -28,18 +28,18 @@
                    Text="Выберите правильный фильм, чтобы сопоставить папку с записью TMDb."
                    TextWrapping="Wrap" FontSize="13"
                    Foreground="{ThemeResource TextBrush}" />
-        <Grid Grid.Row="1" ColumnSpacing="10">
+        <Grid Grid.Row="1" ColumnSpacing="12" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="110" />
                 <ColumnDefinition Width="100" />
-                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBox x:Name="TitleBox" Grid.Column="0" PlaceholderText="Название фильма…"
-                     KeyDown="OnTitleKeyDown" MinWidth="300" />
-            <TextBox x:Name="YearBox" Grid.Column="1" PlaceholderText="Год" Width="100"
-                     MaxLength="4" InputScope="Number" />
+                     KeyDown="OnTitleKeyDown" MinWidth="0" HorizontalAlignment="Stretch" />
+            <TextBox x:Name="YearBox" Grid.Column="1" PlaceholderText="Год"
+                     MaxLength="4" InputScope="Number" MinWidth="0" HorizontalAlignment="Stretch" />
             <Button x:Name="SearchBtn" Grid.Column="2" Content="Найти" Click="OnSearch"
-                    MinWidth="92" Style="{ThemeResource AccentButtonStyle}" />
+                    MinWidth="0" HorizontalAlignment="Stretch" Style="{ThemeResource AccentButtonStyle}" />
         </Grid>
         <Grid Grid.Row="2" ColumnSpacing="8" MinHeight="24">
             <Grid.ColumnDefinitions>
@@ -76,7 +76,7 @@
                                        Foreground="{ThemeResource TextBrush}" />
                             <TextBlock Text="{x:Bind Overview}" FontSize="13"
                                        Foreground="{ThemeResource TextBrush}" TextWrapping="Wrap"
-                                       MaxLines="6" TextTrimming="None" />
+                                       MaxLines="10" TextTrimming="None" />
                         </StackPanel>
                     </Grid>
                 </DataTemplate>

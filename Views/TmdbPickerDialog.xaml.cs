@@ -1,3 +1,4 @@
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -36,7 +37,7 @@ public sealed partial class TmdbPickerDialog : Window
         RootGrid.RequestedTheme = ElementTheme.Dark;
         RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
             Windows.UI.Color.FromArgb(255, 18, 18, 20));
-        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(RootGrid);
+        RootGrid.Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(RootGrid);
         Closed += OnWindowClosed;
 
         if (tvShows)
@@ -51,7 +52,7 @@ public sealed partial class TmdbPickerDialog : Window
 
         // Configure the final dimensions and position before the first Activate().
         ConfigureForAvailableWidth(0);
-        Loaded += async (_, _) => { if (!string.IsNullOrWhiteSpace(TitleBox.Text)) await DoSearchAsync(); };
+        RootGrid.Loaded += async (_, _) => { if (!string.IsNullOrWhiteSpace(TitleBox.Text)) await DoSearchAsync(); };
         var esc = new KeyboardAccelerator { Key = Windows.System.VirtualKey.Escape };
         esc.Invoked += (_, e) => { e.Handled = true; CloseWithResult(ContentDialogResult.None); };
         RootGrid.KeyboardAccelerators.Add(esc);

@@ -126,7 +126,7 @@ public sealed partial class TmdbPickerDialog : Window
         {
             EnableWindow(_ownerHandle, true);
             _ownerDisabled = false;
-            try { App.MainWindow.Activate(); } catch { }
+            try { App.MainWindow?.Activate(); } catch { }
         }
         if (!_completion.Task.IsCompleted) _completion.TrySetResult(ContentDialogResult.None);
     }

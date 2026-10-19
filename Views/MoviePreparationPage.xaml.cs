@@ -200,6 +200,16 @@ public sealed partial class MoviePreparationPage : Page
             ? (int)Math.Round(durationSeconds.Value / 60.0)
             : movie.Runtime;
         if (runtimeMinutes > 0) WriteElement(writer, "runtime", runtimeMinutes.ToString(CultureInfo.InvariantCulture));
+        // Human-readable duration in hours and minutes; runtime above remains in Kodi's standard minutes format.
+        if (durationSeconds.HasValue && durationSeconds.Value > 0)
+        {
+            var totalMinutes = (long)Math.Round(durationSeconds.Value / 60.0);
+            var hours = totalMinutes / 60;
+            var minutes = totalMinutes % 60;
+            WriteElement(writer, "duration", hours > 0
+                ? $"{hours} ч {minutes:D2} мин"
+                : $"{minutes} мин");
+        }
         WriteElement(writer, "rating", movie.Rating.ToString("0.0", CultureInfo.InvariantCulture));
         WriteElement(writer, "votes", movie.VoteCount.ToString(CultureInfo.InvariantCulture));
         if (!string.IsNullOrWhiteSpace(movie.Certification)) WriteElement(writer, "mpaa", movie.Certification);
@@ -297,37 +307,37 @@ public sealed partial class MoviePreparationPage : Page
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return null;
         try
         {
-            using var media = new MediaInfoWrapper(path);
+            // MediaInfoWrapper 26.1.0 is not IDisposable; do not use a using statement.
+            var media = new MediaInfoWrapper(path);
             if (!media.Success) return null;
 
-            var videoStreams = media.VideoStreams;
-            var videoStream = videoStreams.FirstOrDefault();
+            var videoStream = media.VideoStreams.FirstOrDefault();
             var durationMs = media.Duration;
             var durationSeconds = durationMs > 0 ? (long?)Math.Round(durationMs / 1000.0) : null;
             var video = videoStream == null ? null : new MediaVideoInfo(
                 Width: videoStream.Width,
                 Height: videoStream.Height,
-                Codec: videoStream.Codec,
-                AspectRatio: videoStream.AspectRatio,
-                BitRate: videoStream.BitRate,
+                Codec: ConvertValue(videoStream.Codec),
+                AspectRatio: ConvertValue(videoStream.AspectRatio),
+                BitRate: ReadStringProperty(videoStream, "BitRate") ?? ReadStringProperty(videoStream, "Bitrate"),
                 FrameRate: videoStream.FrameRate,
-                Hdr: videoStream.Hdr,
-                Profile: videoStream.Profile,
+                Hdr: ConvertValue(videoStream.Hdr),
+                Profile: ReadStringProperty(videoStream, "Profile"),
                 ScanType: ReadStringProperty(videoStream, "ScanType"));
 
             var audio = media.AudioStreams.Select(a => new MediaAudioInfo(
-                Codec: a.Codec,
+                Codec: ConvertValue(a.Codec),
                 Language: a.Language,
-                Title: a.Title,
-                Channels: ConvertValue(a.Channels),
-                ChannelLayout: a.ChannelLayout,
-                BitRate: ConvertValue(a.BitRate),
+                Title: ReadStringProperty(a, "Name") ?? ReadStringProperty(a, "Title"),
+                Channels: ReadStringProperty(a, "AudioChannelsFriendly") ?? ConvertValue(ReadProperty(a, "Channel")) ?? ConvertValue(ReadProperty(a, "Channels")),
+                ChannelLayout: ReadStringProperty(a, "ChannelLayout"),
+                BitRate: ConvertValue(ReadProperty(a, "Bitrate")) ?? ConvertValue(ReadProperty(a, "BitRate")),
                 SamplingRate: ConvertValue(a.SamplingRate),
                 BitDepth: ConvertValue(a.BitDepth))).ToList();
-            var subtitles = media.SubtitleStreams.Select(s => new MediaSubtitleInfo(
-                Language: s.Language,
-                Codec: s.Codec,
-                Title: s.Title)).ToList();
+            var subtitles = media.Subtitles.Select(sub => new MediaSubtitleInfo(
+                Language: sub.Language,
+                Codec: ConvertValue(sub.Codec),
+                Title: ReadStringProperty(sub, "Name") ?? ReadStringProperty(sub, "Title"))).ToList();
 
             if (video == null && audio.Count == 0 && subtitles.Count == 0 && durationSeconds == null) return null;
             return new MediaTechnicalInfo(durationSeconds, video, audio, subtitles);
@@ -339,6 +349,12 @@ public sealed partial class MoviePreparationPage : Page
         }
     }
 
+    private static object? ReadProperty(object source, string propertyName)
+    {
+        try { return source.GetType().GetProperty(propertyName)?.GetValue(source); }
+        catch { return null; }
+    }
+
     private static string? ConvertValue(object? value)
     {
         if (value == null) return null;
@@ -348,8 +364,7 @@ public sealed partial class MoviePreparationPage : Page
 
     private static string? ReadStringProperty(object source, string propertyName)
     {
-        try { return ConvertValue(source.GetType().GetProperty(propertyName)?.GetValue(source)); }
-        catch { return null; }
+        return ConvertValue(ReadProperty(source, propertyName));
     }
 
     private sealed record MediaTechnicalInfo(long? DurationSeconds, MediaVideoInfo? Video,

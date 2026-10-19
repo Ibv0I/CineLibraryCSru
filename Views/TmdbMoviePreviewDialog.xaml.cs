@@ -17,7 +17,6 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     private nint _ownerHandle;
     private bool _ownerDisabled;
     private bool _shown;
-    private bool _loading = true;
 
     public TmdbMovie? Movie { get; private set; }
     public string? SelectedPosterPath { get; private set; }
@@ -95,7 +94,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         {
             ImageStatusText.Text = "Не удалось загрузить подробности или изображения TMDb: " + ex.Message;
         }
-        finally { _loading = false; Busy.IsActive = false; }
+        finally { Busy.IsActive = false; }
     }
 
     private void OnPosterSelected(object sender, SelectionChangedEventArgs e)
@@ -118,7 +117,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     private void CloseWithResult(ContentDialogResult result) { _completion.TrySetResult(result); Close(); }
     private void OnClosed(object sender, WindowEventArgs args)
     {
-        if (_ownerDisabled && _ownerHandle != 0) { EnableWindow(_ownerHandle, true); _ownerDisabled = false; try { App.MainWindow.Activate(); } catch { } }
+        if (_ownerDisabled && _ownerHandle != 0) { EnableWindow(_ownerHandle, true); _ownerDisabled = false; try { App.MainWindow?.Activate(); } catch { } }
         if (!_completion.Task.IsCompleted) _completion.TrySetResult(ContentDialogResult.None);
     }
     [DllImport("user32.dll")] private static extern bool EnableWindow(nint hWnd, bool bEnable);

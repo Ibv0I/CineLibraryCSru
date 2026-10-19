@@ -110,12 +110,12 @@ public sealed class TmdbClient : IDisposable
         var root = doc.RootElement;
         if (root.TryGetProperty("release_dates", out var rd))
         {
-            movie.RussianReleaseDate = ParseRegionalReleaseDate(rd, "RU");
-            movie.Certification = ParseRegionalCertification(rd, "RU");
-            if (string.IsNullOrWhiteSpace(movie.Certification))
-                movie.Certification = ParseRegionalCertification(rd, "US");
-            if (string.IsNullOrWhiteSpace(movie.Certification))
-                movie.Certification = ParseAnyCertification(rd);
+            var russianRelease = ParseRussianReleaseInfo(rd);
+            if (!string.IsNullOrWhiteSpace(russianRelease.ReleaseDate))
+                movie.ReleaseDate = russianRelease.ReleaseDate;
+            movie.Certification = !string.IsNullOrWhiteSpace(russianRelease.Certification)
+                ? russianRelease.Certification
+                : ParseUsCertification(rd);
         }
         if (root.TryGetProperty("credits", out var credits))
         {
@@ -271,57 +271,69 @@ public sealed class TmdbClient : IDisposable
         }
     }
 
-    /// <summary>Returns a release date for the requested country, if TMDb has one.</summary>
-    private static string ParseRegionalReleaseDate(JsonElement rd, string countryCode)
+    /// <summary>Prefers the Russian theatrical release date and age certification when TMDb has them.</summary>
+    private static (string ReleaseDate, string Certification) ParseRussianReleaseInfo(JsonElement rd)
     {
-        if (!rd.TryGetProperty("results", out var results)) return string.Empty;
+        if (!rd.TryGetProperty("results", out var results) || results.ValueKind != JsonValueKind.Array)
+            return (string.Empty, string.Empty);
+
+        string releaseDate = string.Empty;
+        string certification = string.Empty;
         foreach (var region in results.EnumerateArray())
         {
             if (!region.TryGetProperty("iso_3166_1", out var iso) ||
-                !string.Equals(iso.GetString(), countryCode, StringComparison.OrdinalIgnoreCase)) continue;
-            if (!region.TryGetProperty("release_dates", out var dates)) continue;
-            foreach (var d in dates.EnumerateArray())
-            {
-                if (!d.TryGetProperty("release_date", out var date)) continue;
-                var value = date.GetString();
-                if (!string.IsNullOrWhiteSpace(value) && value!.Length >= 10) return value[..10];
-            }
-        }
-        return string.Empty;
-    }
+                !string.Equals(iso.GetString(), "RU", StringComparison.OrdinalIgnoreCase)) continue;
+            if (!region.TryGetProperty("release_dates", out var dates) || dates.ValueKind != JsonValueKind.Array) break;
 
-    private static string ParseRegionalCertification(JsonElement rd, string countryCode)
-    {
-        if (!rd.TryGetProperty("results", out var results)) return string.Empty;
-        foreach (var region in results.EnumerateArray())
-        {
-            if (!region.TryGetProperty("iso_3166_1", out var iso) ||
-                !string.Equals(iso.GetString(), countryCode, StringComparison.OrdinalIgnoreCase)) continue;
-            if (!region.TryGetProperty("release_dates", out var dates)) continue;
-            foreach (var d in dates.EnumerateArray())
+            foreach (var item in dates.EnumerateArray())
             {
-                if (!d.TryGetProperty("certification", out var cert)) continue;
-                var value = cert.GetString();
-                if (!string.IsNullOrWhiteSpace(value)) return value!;
-            }
-        }
-        return string.Empty;
-    }
-
-    private static string ParseAnyCertification(JsonElement rd)
-    {
-        if (!rd.TryGetProperty("results", out var results)) return string.Empty;
-        foreach (var region in results.EnumerateArray())
-        {
-            if (!region.TryGetProperty("release_dates", out var dates)) continue;
-            foreach (var d in dates.EnumerateArray())
-            {
-                if (d.TryGetProperty("certification", out var cert))
+                var type = item.TryGetProperty("type", out var typeValue) && typeValue.TryGetInt32(out var parsedType)
+                    ? parsedType : 0;
+                if (string.IsNullOrWhiteSpace(certification) && item.TryGetProperty("certification", out var cert))
+                    certification = cert.GetString() ?? string.Empty;
+                if (item.TryGetProperty("release_date", out var dateValue))
                 {
-                    var value = cert.GetString();
-                    if (!string.IsNullOrWhiteSpace(value)) return value!;
+                    var raw = dateValue.GetString();
+                    if (!string.IsNullOrWhiteSpace(raw) && DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var parsedDate))
+                    {
+                        // Prefer theatrical release (type 3), but keep the first valid Russian date as fallback.
+                        if (string.IsNullOrWhiteSpace(releaseDate) || type == 3)
+                            releaseDate = parsedDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                        if (type == 3) break;
+                    }
                 }
             }
+            break;
+        }
+        return (releaseDate, certification);
+    }
+
+    /// <summary>Prefers the US theatrical certification; falls back to the first non-empty one.</summary>
+    private static string ParseUsCertification(JsonElement rd)
+    {
+        if (!rd.TryGetProperty("results", out var results)) return string.Empty;
+
+        foreach (var region in results.EnumerateArray())
+        {
+            if (!region.TryGetProperty("iso_3166_1", out var iso)) continue;
+            if (!string.Equals(iso.GetString(), "US", StringComparison.OrdinalIgnoreCase)) continue;
+            if (!region.TryGetProperty("release_dates", out var dates)) continue;
+            foreach (var d in dates.EnumerateArray())
+                if (d.TryGetProperty("certification", out var cert))
+                {
+                    var s = cert.GetString();
+                    if (!string.IsNullOrWhiteSpace(s)) return s!;
+                }
+        }
+        foreach (var region in results.EnumerateArray())
+        {
+            if (!region.TryGetProperty("release_dates", out var dates)) continue;
+            foreach (var d in dates.EnumerateArray())
+                if (d.TryGetProperty("certification", out var cert))
+                {
+                    var s = cert.GetString();
+                    if (!string.IsNullOrWhiteSpace(s)) return s!;
+                }
         }
         return string.Empty;
     }

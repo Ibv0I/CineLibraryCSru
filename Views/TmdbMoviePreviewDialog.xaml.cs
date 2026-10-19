@@ -73,7 +73,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             MovieTitleText.Text = $"{details.Title}{(details.Year > 0 ? $" ({details.Year})" : string.Empty)}";
             var genres = string.Join(", ", details.Genres.Select(g => g.Name));
             var countries = string.Join(", ", details.ProductionCountries.Select(c => c.Name));
-            MovieFactsText.Text = $"TMDb ID: {details.TmdbId} · Рейтинг: {details.Rating:0.0}/10 ({details.VoteCount} голосов) · Длительность: {(details.Runtime > 0 ? $"{details.Runtime} мин." : "не указана")}\nДата выхода: {(string.IsNullOrWhiteSpace(details.RussianReleaseDate) ? (string.IsNullOrWhiteSpace(details.ReleaseDate) ? "не указана" : details.ReleaseDate) : details.RussianReleaseDate)} · Жанры: {(string.IsNullOrWhiteSpace(genres) ? "не указаны" : genres)} · Страны: {(string.IsNullOrWhiteSpace(countries) ? "не указаны" : countries)}";
+            MovieFactsText.Text = $"TMDb ID: {details.TmdbId} · Рейтинг: {details.Rating:0.0}/10 ({details.VoteCount} голосов) · Длительность: {(details.Runtime > 0 ? $"{details.Runtime} мин." : "не указана")}\nДата выхода: {(string.IsNullOrWhiteSpace(details.ReleaseDate) ? "не указана" : details.ReleaseDate)} · Жанры: {(string.IsNullOrWhiteSpace(genres) ? "не указаны" : genres)} · Страны: {(string.IsNullOrWhiteSpace(countries) ? "не указаны" : countries)}";
             MovieOverviewText.Text = string.IsNullOrWhiteSpace(details.Overview) ? "Описание отсутствует в TMDb." : details.Overview;
             var directors = string.Join(", ", details.Directors);
             var cast = string.Join(", ", details.Cast.Take(8).Select(c => c.Name));

@@ -63,6 +63,30 @@ public sealed class TmdbClient : IDisposable
         return result?.Results ?? new List<TmdbMovie>();
     }
 
+    /// <summary>Returns available poster and backdrop file paths for a movie.</summary>
+    public async Task<TmdbMovieImages> GetMovieImagesAsync(int tmdbId)
+    {
+        await RateLimitAsync();
+        var url = $"{BaseUrl}/movie/{tmdbId}/images?api_key={_apiKey}&include_image_language=ru,null,en";
+        var response = await _http.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var root = doc.RootElement;
+        static List<string> ReadPaths(JsonElement parent, string property)
+        {
+            var paths = new List<string>();
+            if (!parent.TryGetProperty(property, out var array) || array.ValueKind != JsonValueKind.Array) return paths;
+            foreach (var item in array.EnumerateArray())
+                if (item.TryGetProperty("file_path", out var path) && path.ValueKind == JsonValueKind.String)
+                {
+                    var value = path.GetString();
+                    if (!string.IsNullOrWhiteSpace(value)) paths.Add(value!);
+                }
+            return paths.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        }
+        return new TmdbMovieImages(ReadPaths(root, "posters"), ReadPaths(root, "backdrops"));
+    }
+
     /// <summary>
     /// Full details for one movie — runtime, genres, studios, countries, imdb id,
     /// tagline, plus US certification parsed from the appended release_dates block.

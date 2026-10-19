@@ -179,3 +179,7 @@ public class TmdbTvSearchResult
     [JsonPropertyName("results")]
     public List<TmdbTvShow> Results { get; set; } = new();
 }
+
+
+/// <summary>Available TMDb image file paths for the media-preparation workflow.</summary>
+public sealed record TmdbMovieImages(List<string> Posters, List<string> Backdrops);

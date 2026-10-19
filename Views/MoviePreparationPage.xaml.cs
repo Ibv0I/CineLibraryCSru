@@ -85,11 +85,17 @@ public sealed partial class MoviePreparationPage : Page
         var picker = new TmdbPickerDialog(client, candidate.SearchTitle, year);
         var result = await picker.ShowAsync();
         if (result != ContentDialogResult.Primary || picker.Picked == null) return;
-        candidate.SelectedMovie = picker.Picked;
-        candidate.MatchSummary = $"Выбрано: {picker.Picked.Title}{(picker.Picked.Year > 0 ? $" ({picker.Picked.Year})" : string.Empty)} · TMDb ID: {picker.Picked.TmdbId}";
+        var preview = new TmdbMoviePreviewDialog(client, picker.Picked);
+        var previewResult = await preview.ShowAsync();
+        if (previewResult != ContentDialogResult.Primary || preview.Movie == null) return;
+
+        candidate.SelectedMovie = preview.Movie;
+        candidate.SelectedPosterPath = preview.SelectedPosterPath;
+        candidate.SelectedBackdropPath = preview.SelectedBackdropPath;
+        candidate.MatchSummary = $"Выбрано: {preview.Movie.Title}{(preview.Movie.Year > 0 ? $" ({preview.Movie.Year})" : string.Empty)} · TMDb ID: {preview.Movie.TmdbId} · постер и фон выбраны";
         FoldersList.ItemsSource = null;
         FoldersList.ItemsSource = _candidates;
-        StatusText.Text = $"Сопоставление сохранено в текущем сеансе для папки «{candidate.FolderName}». Файлы пока не записываются.";
+        StatusText.Text = $"Метаданные и изображения сохранены в текущем сеансе для папки «{candidate.FolderName}». Файлы пока не записываются.";
     }
 }
 
@@ -102,6 +108,8 @@ public sealed class MovieFolderCandidate
     public string SearchTitle { get; }
     public int? Year { get; }
     public TmdbMovie? SelectedMovie { get; set; }
+    public string? SelectedPosterPath { get; set; }
+    public string? SelectedBackdropPath { get; set; }
     public string MatchSummary { get; set; } = "Совпадение TMDb не выбрано";
 
     public MovieFolderCandidate(string path, string[] videos)

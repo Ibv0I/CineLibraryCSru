@@ -1,0 +1,47 @@
+<Window
+    x:Class="CineLibraryCS.Views.TmdbMoviePreviewDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:CineLibraryCS.Views"
+    Title="Метаданные и изображения фильма">
+    <Grid x:Name="RootGrid" RequestedTheme="Dark" Background="#121214" Padding="18">
+        <Grid RowSpacing="12">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <StackPanel Spacing="5">
+                <TextBlock x:Name="MovieTitleText" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="White"/>
+                <TextBlock x:Name="MovieFactsText" FontSize="13" TextWrapping="Wrap" Foreground="#C8C8CC"/>
+                <TextBlock x:Name="MovieOverviewText" FontSize="14" TextWrapping="Wrap" Foreground="#E5E5E8" MaxLines="5"/>
+                <TextBlock x:Name="MovieCreditsText" FontSize="13" TextWrapping="Wrap" Foreground="#C8C8CC"/>
+            </StackPanel>
+            <TextBlock Grid.Row="1" x:Name="ImageStatusText" Text="Выберите постер и фоновое изображение. Выбранные варианты будут использованы на следующем этапе." TextWrapping="Wrap" Foreground="#C8C8CC"/>
+            <Grid Grid.Row="2" ColumnSpacing="16">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <Grid Grid.Column="0" RowSpacing="8">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="180"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <TextBlock Text="Предварительный просмотр постера" FontWeight="SemiBold" Foreground="White"/>
+                    <Border Grid.Row="1" Background="#252529" CornerRadius="6" HorizontalAlignment="Left" Padding="2">
+                        <Image x:Name="PosterPreview" Width="116" Height="174" Stretch="UniformToFill"/>
+                    </Border>
+                    <GridView x:Name="PosterGrid" Grid.Row="2" SelectionMode="Single" SelectionChanged="OnPosterSelected" IsItemClickEnabled="False" ScrollViewer.HorizontalScrollMode="Enabled" ScrollViewer.VerticalScrollMode="Disabled" Height="150">
+                        <GridView.ItemTemplate><DataTemplate x:DataType="local:TmdbImageChoice"><Border Padding="3" CornerRadius="5" Background="#252529"><Image Source="{x:Bind Thumbnail}" Width="78" Height="117" Stretch="UniformToFill"/></Border></DataTemplate></GridView.ItemTemplate>
+                    </GridView>
+                </Grid>
+                <Grid Grid.Column="1" RowSpacing="8">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="180"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <TextBlock Text="Предварительный просмотр фона" FontWeight="SemiBold" Foreground="White"/>
+                    <Border Grid.Row="1" Background="#252529" CornerRadius="6" Padding="2" VerticalAlignment="Top">
+                        <Image x:Name="BackdropPreview" Width="300" Height="169" Stretch="UniformToFill"/>
+                    </Border>
+                    <GridView x:Name="BackdropGrid" Grid.Row="2" SelectionMode="Single" SelectionChanged="OnBackdropSelected" IsItemClickEnabled="False" ScrollViewer.HorizontalScrollMode="Enabled" ScrollViewer.VerticalScrollMode="Disabled" Height="150">
+                        <GridView.ItemTemplate><DataTemplate x:DataType="local:TmdbImageChoice"><Border Padding="3" CornerRadius="5" Background="#252529"><Image Source="{x:Bind Thumbnail}" Width="150" Height="84" Stretch="UniformToFill"/></Border></DataTemplate></GridView.ItemTemplate>
+                    </GridView>
+                </Grid>
+            </Grid>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                <Button Content="Отмена" Click="OnCancelClick" MinWidth="110"/>
+                <Button x:Name="UseSelectionButton" Content="Подтвердить выбор" Click="OnConfirmClick" MinWidth="170" Style="{ThemeResource AccentButtonStyle}" IsEnabled="False"/>
+            </StackPanel>
+            <ProgressRing x:Name="Busy" IsActive="False" Width="34" Height="34" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Grid>
+    </Grid>
+</Window>

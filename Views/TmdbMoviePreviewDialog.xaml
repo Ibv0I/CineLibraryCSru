@@ -7,11 +7,19 @@
     <Grid x:Name="RootGrid" RequestedTheme="Dark" Background="#121214" Padding="18">
         <Grid RowSpacing="12">
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-            <StackPanel Spacing="5">
-                <TextBlock x:Name="MovieTitleText" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="White"/>
-                <TextBlock x:Name="MovieFactsText" FontSize="13" TextWrapping="Wrap" Foreground="#C8C8CC"/>
-                <TextBlock x:Name="MovieOverviewText" FontSize="14" TextWrapping="Wrap" Foreground="#E5E5E8" MaxLines="5"/>
-                <TextBlock x:Name="MovieCreditsText" FontSize="13" TextWrapping="Wrap" Foreground="#C8C8CC"/>
+            <StackPanel Spacing="0">
+                <Border Padding="0,0,0,9" BorderBrush="#45454B" BorderThickness="0,0,0,1">
+                    <TextBlock x:Name="MovieTitleText" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="White"/>
+                </Border>
+                <Border Padding="0,9,0,9" BorderBrush="#45454B" BorderThickness="0,0,0,1">
+                    <TextBlock x:Name="MovieFactsText" FontSize="13" TextWrapping="Wrap" Foreground="#C8C8CC"/>
+                </Border>
+                <Border Padding="0,9,0,9" BorderBrush="#45454B" BorderThickness="0,0,0,1">
+                    <TextBlock x:Name="MovieOverviewText" FontSize="14" TextWrapping="Wrap" Foreground="#E5E5E8" MaxLines="5"/>
+                </Border>
+                <Border Padding="0,9,0,0">
+                    <TextBlock x:Name="MovieCreditsText" FontSize="13" TextWrapping="Wrap" Foreground="#C8C8CC"/>
+                </Border>
             </StackPanel>
             <TextBlock Grid.Row="1" x:Name="ImageStatusText" Text="Выберите постер и фоновое изображение. Выбранные варианты будут использованы на следующем этапе." TextWrapping="Wrap" Foreground="#C8C8CC"/>
             <Grid Grid.Row="2" ColumnSpacing="16">
@@ -22,7 +30,7 @@
                     <Border Grid.Row="1" Background="#252529" CornerRadius="6" HorizontalAlignment="Left" Padding="2">
                         <Image x:Name="PosterPreview" Width="116" Height="174" Stretch="UniformToFill"/>
                     </Border>
-                    <GridView x:Name="PosterGrid" Grid.Row="2" SelectionMode="Single" SelectionChanged="OnPosterSelected" IsItemClickEnabled="False" ScrollViewer.HorizontalScrollMode="Enabled" ScrollViewer.VerticalScrollMode="Disabled" Height="150">
+                    <GridView x:Name="PosterGrid" Grid.Row="2" SelectionMode="Single" SelectionChanged="OnPosterSelected" IsItemClickEnabled="False" ScrollViewer.HorizontalScrollMode="Disabled" ScrollViewer.VerticalScrollMode="Enabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.IsVerticalScrollChainingEnabled="True" Height="150">
                         <GridView.ItemTemplate><DataTemplate x:DataType="local:TmdbImageChoice"><Border Padding="3" CornerRadius="5" Background="#252529"><Image Source="{x:Bind Thumbnail}" Width="78" Height="117" Stretch="UniformToFill"/></Border></DataTemplate></GridView.ItemTemplate>
                     </GridView>
                 </Grid>
@@ -32,7 +40,7 @@
                     <Border Grid.Row="1" Background="#252529" CornerRadius="6" Padding="2" VerticalAlignment="Top">
                         <Image x:Name="BackdropPreview" Width="300" Height="169" Stretch="UniformToFill"/>
                     </Border>
-                    <GridView x:Name="BackdropGrid" Grid.Row="2" SelectionMode="Single" SelectionChanged="OnBackdropSelected" IsItemClickEnabled="False" ScrollViewer.HorizontalScrollMode="Enabled" ScrollViewer.VerticalScrollMode="Disabled" Height="150">
+                    <GridView x:Name="BackdropGrid" Grid.Row="2" SelectionMode="Single" SelectionChanged="OnBackdropSelected" IsItemClickEnabled="False" ScrollViewer.HorizontalScrollMode="Disabled" ScrollViewer.VerticalScrollMode="Enabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.IsVerticalScrollChainingEnabled="True" Height="150">
                         <GridView.ItemTemplate><DataTemplate x:DataType="local:TmdbImageChoice"><Border Padding="3" CornerRadius="5" Background="#252529"><Image Source="{x:Bind Thumbnail}" Width="150" Height="84" Stretch="UniformToFill"/></Border></DataTemplate></GridView.ItemTemplate>
                     </GridView>
                 </Grid>

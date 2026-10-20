@@ -65,6 +65,7 @@ public sealed partial class TmdbPickerDialog : Window
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
         var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
         var appWindow = AppWindow.GetFromWindowId(windowId);
+        SetApplicationIcon(appWindow);
 
         // Native title bar follows the app's dark theme, including the caption buttons.
         var titleBar = appWindow.TitleBar;
@@ -105,6 +106,16 @@ public sealed partial class TmdbPickerDialog : Window
             presenter.IsResizable = true;
             presenter.IsMaximizable = true;
         }
+    }
+
+    private static void SetApplicationIcon(AppWindow appWindow)
+    {
+        try
+        {
+            var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "icon.ico");
+            if (File.Exists(iconPath)) appWindow.SetIcon(iconPath);
+        }
+        catch { }
     }
 
     public Task<ContentDialogResult> ShowAsync()

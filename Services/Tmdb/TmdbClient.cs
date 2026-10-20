@@ -24,10 +24,10 @@ public sealed class TmdbClient : IDisposable
     private readonly string _language;
     private DateTime _lastRequest = DateTime.MinValue;
 
-    public TmdbClient(string? apiKey = null, string language = "en")
+    public TmdbClient(string? apiKey = null, string language = "ru-RU")
     {
         _apiKey = string.IsNullOrWhiteSpace(apiKey) ? DefaultApiKey : apiKey!;
-        _language = string.IsNullOrWhiteSpace(language) ? "en" : language;
+        _language = string.IsNullOrWhiteSpace(language) ? "ru-RU" : language;
 
         // TMDb's CDN returns gzip even unasked; without auto-decompression the
         // raw bytes fail JSON parsing and every search silently returns nothing.

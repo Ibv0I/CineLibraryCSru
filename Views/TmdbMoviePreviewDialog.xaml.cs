@@ -37,6 +37,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
         var id = Win32Interop.GetWindowIdFromWindow(hwnd);
         var window = AppWindow.GetFromWindowId(id);
+        SetApplicationIcon(window);
         var ownerHwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
         var owner = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(ownerHwnd));
         _ownerHandle = ownerHwnd;
@@ -51,6 +52,16 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         window.Resize(new SizeInt32(Math.Min(1450, Math.Max(1000, owner.Size.Width - 80)), Math.Min(920, Math.Max(720, owner.Size.Height - 80))));
         window.Move(new PointInt32(owner.Position.X + Math.Max(0, (owner.Size.Width - window.Size.Width) / 2), owner.Position.Y + Math.Max(0, (owner.Size.Height - window.Size.Height) / 2)));
         if (window.Presenter is OverlappedPresenter presenter) { presenter.IsResizable = true; presenter.IsMaximizable = true; }
+    }
+
+    private static void SetApplicationIcon(AppWindow appWindow)
+    {
+        try
+        {
+            var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "icon.ico");
+            if (File.Exists(iconPath)) appWindow.SetIcon(iconPath);
+        }
+        catch { }
     }
 
     public Task<ContentDialogResult> ShowAsync()

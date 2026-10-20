@@ -1115,7 +1115,7 @@ public sealed partial class MovieDetailDialog : Window
             var noId = new ContentDialog
             {
                 Title = "Нет идентификатора TMDb",
-                Content = "Для выбора постера и баннера у фильма должен быть указан TMDb ID.",
+                Content = "Для выбора постера или баннера у фильма должен быть указан TMDb ID.",
                 CloseButtonText = "ОК",
                 XamlRoot = RootGrid.XamlRoot
             };
@@ -1123,52 +1123,61 @@ public sealed partial class MovieDetailDialog : Window
             return;
         }
 
+        var choose = new ContentDialog
+        {
+            Title = "Что изменить?",
+            Content = "Выберите, какое изображение нужно заменить. Второе изображение останется без изменений.",
+            PrimaryButtonText = "Постер",
+            SecondaryButtonText = "Баннер",
+            CloseButtonText = "Отмена",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = RootGrid.XamlRoot
+        };
+        var choice = await choose.ShowAsync();
+        if (choice == ContentDialogResult.None) return;
+        bool editPoster = choice == ContentDialogResult.Primary;
+
         try
         {
-            using var client = new TmdbClient();
+            using var client = new TmdbClient(language: "ru-RU");
             var searchHit = new TmdbMovie { TmdbId = tmdbId, Title = movie.Title };
             var picker = new TmdbMoviePreviewDialog(client, searchHit);
             var result = await picker.ShowAsync();
             if (result != ContentDialogResult.Primary || picker.Movie == null) return;
 
-            var posterFile = picker.SelectedPosterPath ?? picker.Movie.PosterPath;
-            var backdropFile = picker.SelectedBackdropPath ?? picker.Movie.BackdropPath;
-            if (string.IsNullOrWhiteSpace(posterFile) || string.IsNullOrWhiteSpace(backdropFile))
+            string? newPosterRel = movie.LocalPoster;
+            string? newFanartRel = movie.LocalFanart;
+            if (editPoster)
             {
-                var missing = new ContentDialog
-                {
-                    Title = "Не выбраны изображения",
-                    Content = "Выберите и постер, и баннер, затем подтвердите выбор.",
-                    CloseButtonText = "ОК",
-                    XamlRoot = RootGrid.XamlRoot
-                };
-                await missing.ShowAsync();
-                return;
+                var posterFile = picker.SelectedPosterPath ?? picker.Movie.PosterPath;
+                if (string.IsNullOrWhiteSpace(posterFile))
+                    throw new InvalidOperationException("TMDb не предоставил постер для этого фильма.");
+                newPosterRel = await DownloadArtAsync(client, posterFile, "posters", tmdbId);
+                if (newPosterRel == null) throw new IOException("Не удалось загрузить постер из TMDb.");
+            }
+            else
+            {
+                var backdropFile = picker.SelectedBackdropPath ?? picker.Movie.BackdropPath;
+                if (string.IsNullOrWhiteSpace(backdropFile))
+                    throw new InvalidOperationException("TMDb не предоставил баннер для этого фильма.");
+                newFanartRel = await DownloadArtAsync(client, backdropFile, "fanart", tmdbId);
+                if (newFanartRel == null) throw new IOException("Не удалось загрузить баннер из TMDb.");
             }
 
-            var posterRel = await DownloadArtAsync(client, posterFile, "posters", tmdbId);
-            var fanartRel = await DownloadArtAsync(client, backdropFile, "fanart", tmdbId);
-            if (posterRel == null || fanartRel == null)
+            AppState.Instance.Db.UpdateMovieArtwork(movie.Id, newPosterRel ?? string.Empty, newFanartRel ?? string.Empty);
+            movie.LocalPoster = newPosterRel;
+            movie.LocalFanart = newFanartRel;
+            if (editPoster)
             {
-                var failed = new ContentDialog
-                {
-                    Title = "Не удалось загрузить изображения",
-                    Content = "Проверьте подключение к интернету и попробуйте ещё раз.",
-                    CloseButtonText = "ОК",
-                    XamlRoot = RootGrid.XamlRoot
-                };
-                await failed.ShowAsync();
-                return;
+                PosterImage.Source = null;
+                PosterPlaceholder.Visibility = Visibility.Visible;
+                LoadImageAsync(movie.LocalPoster, PosterImage, PosterPlaceholder, 520);
             }
-
-            AppState.Instance.Db.UpdateMovieArtwork(movie.Id, posterRel, fanartRel);
-            movie.LocalPoster = posterRel;
-            movie.LocalFanart = fanartRel;
-            PosterImage.Source = null;
-            HeroImage.Source = null;
-            PosterPlaceholder.Visibility = Visibility.Visible;
-            LoadImageAsync(movie.LocalPoster, PosterImage, PosterPlaceholder, 520);
-            LoadImageAsync(movie.LocalFanart, HeroImage, null, Math.Clamp(Microsoft.UI.Windowing.AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(WinRT.Interop.WindowNative.GetWindowHandle(this))).Size.Width, 1920, 3840));
+            else
+            {
+                HeroImage.Source = null;
+                LoadImageAsync(movie.LocalFanart, HeroImage, null, Math.Clamp(Microsoft.UI.Windowing.AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(WinRT.Interop.WindowNative.GetWindowHandle(this))).Size.Width, 1920, 3840));
+            }
         }
         catch (Exception ex)
         {

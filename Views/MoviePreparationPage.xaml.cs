@@ -59,7 +59,7 @@ public sealed partial class MoviePreparationPage : Page
 
         int added = 0;
         var knownPaths = new HashSet<string>(_candidates.Select(c => c.FolderPath), StringComparer.OrdinalIgnoreCase);
-        StatusText.Text = "Поиск папок с видео без movie.nfo…";
+        StatusText.Text = "Проверка папок с видео и статуса файлов подготовки…";
         try
         {
             foreach (var root in _scanRoots.ToArray())
@@ -76,15 +76,17 @@ public sealed partial class MoviePreparationPage : Page
                     string[] videos;
                     try { videos = Directory.EnumerateFiles(dir).Where(f => VideoExtensions.Contains(Path.GetExtension(f))).ToArray(); }
                     catch { continue; }
-                    if (videos.Length == 0 || File.Exists(Path.Combine(dir, "movie.nfo"))) continue;
+                    if (videos.Length == 0) continue;
                     _candidates.Add(new MovieFolderCandidate(dir, videos));
                     knownPaths.Add(dir);
                     added++;
                 }
             }
+            foreach (var candidate in _candidates) candidate.RefreshFileStatus();
+            RefreshCandidates();
             StatusText.Text = _candidates.Count == 0
-                ? "В добавленных папках не найдены видео без movie.nfo."
-                : $"Добавлено корневых папок: {_scanRoots.Count}. Фильмов к подготовке: {_candidates.Count}. Новых при последнем поиске: {added}.";
+                ? "В добавленных папках не найдены видеофайлы."
+                : $"Добавлено корневых папок: {_scanRoots.Count}. Папок с фильмами: {_candidates.Count}. Новых при последнем поиске: {added}.";
         }
         catch (Exception ex) { StatusText.Text = "Не удалось просканировать папки: " + ex.Message; }
     }
@@ -370,7 +372,8 @@ public sealed partial class MoviePreparationPage : Page
             File.Move(tempFanart, fanartPath, true);
             File.Move(tempNfo, nfoPath, true); // Write NFO last, so scanner only sees completed preparation.
 
-            candidate.MatchSummary = $"Сохранено: {movie.Title}{(movie.Year > 0 ? $" ({movie.Year})" : string.Empty)} · movie.nfo, poster.jpg, fanart.jpg";
+            candidate.MatchSummary = $"Сохранено: {movie.Title}{(movie.Year > 0 ? $" ({movie.Year})" : string.Empty)}";
+            candidate.RefreshFileStatus();
             RefreshCandidates();
             StatusText.Text = technicalInfo == null
                 ? $"Файлы сохранены в папке «{candidate.FolderName}», но технические параметры видео не удалось прочитать. Проверьте формат файла."
@@ -684,11 +687,21 @@ public sealed class MovieFolderCandidate
     public string? SelectedPosterPath { get; set; }
     public string? SelectedBackdropPath { get; set; }
     public string MatchSummary { get; set; } = "Совпадение TMDb не выбрано";
+    public string FileStatus { get; private set; } = string.Empty;
+
+    public void RefreshFileStatus()
+    {
+        bool nfo = File.Exists(Path.Combine(FolderPath, "movie.nfo"));
+        bool poster = File.Exists(Path.Combine(FolderPath, "poster.jpg"));
+        bool fanart = File.Exists(Path.Combine(FolderPath, "fanart.jpg"));
+        FileStatus = $"{(poster ? "✓" : "○")} Постер  {(fanart ? "✓" : "○")} Баннер  {(nfo ? "✓" : "○")} NFO";
+    }
 
     public MovieFolderCandidate(string path, string[] videos)
     {
         FolderPath = path;
         Videos = videos;
+        RefreshFileStatus();
         var name = FolderName;
         var match = System.Text.RegularExpressions.Regex.Match(name, @"\((19|20)\d{2}\)\s*$");
         if (match.Success && int.TryParse(match.Value.Trim('(', ')'), out var y))

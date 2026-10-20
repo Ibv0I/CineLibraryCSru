@@ -32,6 +32,7 @@
                                 <TextBlock Text="{Binding FolderPath}" FontSize="12" TextWrapping="Wrap" Foreground="{ThemeResource MutedBrush}"/>
                                 <TextBlock Text="{Binding VideoSummary}" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
                                 <TextBlock Text="{Binding MatchSummary}" FontSize="13" TextWrapping="Wrap" Foreground="{ThemeResource TextBrush}"/>
+                                <TextBlock Text="{Binding FileStatus}" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"><Button Content="Выбрать фильм в TMDb" Click="OnPickMovieClick" Tag="{Binding}"/><Button Content="Сохранить файлы" Click="OnSavePreparedMovieClick" Tag="{Binding}" Style="{ThemeResource AccentButtonStyle}"/></StackPanel>
                         </Grid>

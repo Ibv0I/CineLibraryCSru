@@ -110,13 +110,12 @@ public sealed class TmdbClient : IDisposable
         var root = doc.RootElement;
         if (root.TryGetProperty("release_dates", out var rd))
         {
-            var russianRelease = ParseRussianReleaseInfo(rd);
-            if (!string.IsNullOrWhiteSpace(russianRelease.ReleaseDate))
-                movie.ReleaseDate = russianRelease.ReleaseDate;
-            movie.Certification = !string.IsNullOrWhiteSpace(russianRelease.Certification)
-                ? russianRelease.Certification
-                : ParseUsCertification(rd);
+            movie.RussianCertification = ParseCertification(rd, "RU");
+            movie.RussianReleaseDate = ParseReleaseDate(rd, "RU");
+            movie.Certification = ParseCertification(rd, "US");
         }
+        if (string.IsNullOrWhiteSpace(movie.RussianCertification))
+            movie.RussianCertification = movie.Certification;
         if (root.TryGetProperty("credits", out var credits))
         {
             movie.Cast = ParseCast(credits);
@@ -271,69 +270,41 @@ public sealed class TmdbClient : IDisposable
         }
     }
 
-    /// <summary>Prefers the Russian theatrical release date and age certification when TMDb has them.</summary>
-    private static (string ReleaseDate, string Certification) ParseRussianReleaseInfo(JsonElement rd)
+    /// <summary>Reads the first non-empty certification for the requested country.</summary>
+    private static string ParseCertification(JsonElement releaseDates, string countryCode)
     {
-        if (!rd.TryGetProperty("results", out var results) || results.ValueKind != JsonValueKind.Array)
-            return (string.Empty, string.Empty);
-
-        string releaseDate = string.Empty;
-        string certification = string.Empty;
+        if (!releaseDates.TryGetProperty("results", out var results) || results.ValueKind != JsonValueKind.Array)
+            return string.Empty;
         foreach (var region in results.EnumerateArray())
         {
             if (!region.TryGetProperty("iso_3166_1", out var iso) ||
-                !string.Equals(iso.GetString(), "RU", StringComparison.OrdinalIgnoreCase)) continue;
-            if (!region.TryGetProperty("release_dates", out var dates) || dates.ValueKind != JsonValueKind.Array) break;
-
-            foreach (var item in dates.EnumerateArray())
-            {
-                var type = item.TryGetProperty("type", out var typeValue) && typeValue.TryGetInt32(out var parsedType)
-                    ? parsedType : 0;
-                if (string.IsNullOrWhiteSpace(certification) && item.TryGetProperty("certification", out var cert))
-                    certification = cert.GetString() ?? string.Empty;
-                if (item.TryGetProperty("release_date", out var dateValue))
+                !string.Equals(iso.GetString(), countryCode, StringComparison.OrdinalIgnoreCase)) continue;
+            if (!region.TryGetProperty("release_dates", out var dates) || dates.ValueKind != JsonValueKind.Array) continue;
+            foreach (var d in dates.EnumerateArray())
+                if (d.TryGetProperty("certification", out var cert) && cert.ValueKind == JsonValueKind.String)
                 {
-                    var raw = dateValue.GetString();
-                    if (!string.IsNullOrWhiteSpace(raw) && DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var parsedDate))
-                    {
-                        // Prefer theatrical release (type 3), but keep the first valid Russian date as fallback.
-                        if (string.IsNullOrWhiteSpace(releaseDate) || type == 3)
-                            releaseDate = parsedDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-                        if (type == 3) break;
-                    }
+                    var value = cert.GetString();
+                    if (!string.IsNullOrWhiteSpace(value)) return value.Trim();
                 }
-            }
-            break;
         }
-        return (releaseDate, certification);
+        return string.Empty;
     }
 
-    /// <summary>Prefers the US theatrical certification; falls back to the first non-empty one.</summary>
-    private static string ParseUsCertification(JsonElement rd)
+    /// <summary>Uses the earliest Russian release date if available.</summary>
+    private static string ParseReleaseDate(JsonElement releaseDates, string countryCode)
     {
-        if (!rd.TryGetProperty("results", out var results)) return string.Empty;
-
+        if (!releaseDates.TryGetProperty("results", out var results) || results.ValueKind != JsonValueKind.Array)
+            return string.Empty;
         foreach (var region in results.EnumerateArray())
         {
-            if (!region.TryGetProperty("iso_3166_1", out var iso)) continue;
-            if (!string.Equals(iso.GetString(), "US", StringComparison.OrdinalIgnoreCase)) continue;
-            if (!region.TryGetProperty("release_dates", out var dates)) continue;
+            if (!region.TryGetProperty("iso_3166_1", out var iso) ||
+                !string.Equals(iso.GetString(), countryCode, StringComparison.OrdinalIgnoreCase)) continue;
+            if (!region.TryGetProperty("release_dates", out var dates) || dates.ValueKind != JsonValueKind.Array) continue;
+            var candidates = new List<DateTime>();
             foreach (var d in dates.EnumerateArray())
-                if (d.TryGetProperty("certification", out var cert))
-                {
-                    var s = cert.GetString();
-                    if (!string.IsNullOrWhiteSpace(s)) return s!;
-                }
-        }
-        foreach (var region in results.EnumerateArray())
-        {
-            if (!region.TryGetProperty("release_dates", out var dates)) continue;
-            foreach (var d in dates.EnumerateArray())
-                if (d.TryGetProperty("certification", out var cert))
-                {
-                    var s = cert.GetString();
-                    if (!string.IsNullOrWhiteSpace(s)) return s!;
-                }
+                if (d.TryGetProperty("release_date", out var date) && DateTime.TryParse(date.GetString(), out var parsed))
+                    candidates.Add(parsed.Date);
+            if (candidates.Count > 0) return candidates.Min().ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
         }
         return string.Empty;
     }

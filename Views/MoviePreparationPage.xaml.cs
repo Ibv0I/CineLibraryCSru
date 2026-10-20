@@ -4,6 +4,7 @@ using CineLibraryCS.Services.Tmdb;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Xml;
+using System.Text.RegularExpressions;
 using MediaInfo;
 
 namespace CineLibraryCS.Views;
@@ -153,7 +154,29 @@ public sealed partial class MoviePreparationPage : Page
                 throw new IOException("Не удалось загрузить фоновое изображение из TMDb.");
 
             var technicalInfo = AnalyzeMediaFile(candidate.Videos.OrderByDescending(GetFileSizeSafe).FirstOrDefault() ?? string.Empty);
-            WriteMovieNfo(tempNfo, movie, technicalInfo);
+            var actorThumbs = new Dictionary<int, string>();
+            if (DownloadActorPhotosCheckBox.IsChecked == true)
+            {
+                var actorsDirectory = Path.Combine(candidate.FolderPath, ".actors");
+                foreach (var actor in movie.Cast.Where(a => !string.IsNullOrWhiteSpace(a.ProfilePath)))
+                {
+                    var safeName = MakeSafeFileName(actor.Name);
+                    var actorFile = $"{actor.Order:D2}_{safeName}.jpg";
+                    var actorPath = Path.Combine(actorsDirectory, actorFile);
+                    if (!File.Exists(actorPath))
+                    {
+                        var tempActor = actorPath + tempSuffix;
+                        if (await client.DownloadImageAsync(client.GetImageUrl(actor.ProfilePath, "original"), tempActor))
+                        {
+                            Directory.CreateDirectory(actorsDirectory);
+                            File.Move(tempActor, actorPath, true);
+                        }
+                        TryDelete(tempActor);
+                    }
+                    if (File.Exists(actorPath)) actorThumbs[actor.Order] = ".actors/" + actorFile;
+                }
+            }
+            WriteMovieNfo(tempNfo, movie, technicalInfo, actorThumbs);
             File.Move(tempPoster, posterPath, true);
             File.Move(tempFanart, fanartPath, true);
             File.Move(tempNfo, nfoPath, true); // Write NFO last, so scanner only sees completed preparation.
@@ -174,7 +197,7 @@ public sealed partial class MoviePreparationPage : Page
         }
     }
 
-    private static void WriteMovieNfo(string path, TmdbMovie movie, MediaTechnicalInfo? technicalInfo)
+    private static void WriteMovieNfo(string path, TmdbMovie movie, MediaTechnicalInfo? technicalInfo, IReadOnlyDictionary<int, string>? actorThumbs = null)
     {
         var settings = new XmlWriterSettings { Indent = true, Encoding = new System.Text.UTF8Encoding(false), CloseOutput = true };
         using var writer = XmlWriter.Create(path, settings);
@@ -190,10 +213,12 @@ public sealed partial class MoviePreparationPage : Page
             WriteElement(writer, "plot", movie.Overview);
             WriteElement(writer, "outline", movie.Overview);
         }
-        if (!string.IsNullOrWhiteSpace(movie.ReleaseDate))
+        var preferredReleaseDate = !string.IsNullOrWhiteSpace(movie.RussianReleaseDate)
+            ? movie.RussianReleaseDate : movie.ReleaseDate;
+        if (!string.IsNullOrWhiteSpace(preferredReleaseDate))
         {
-            WriteElement(writer, "premiered", movie.ReleaseDate);
-            WriteElement(writer, "releasedate", movie.ReleaseDate);
+            WriteElement(writer, "premiered", preferredReleaseDate);
+            WriteElement(writer, "releasedate", preferredReleaseDate);
         }
         var durationSeconds = technicalInfo?.DurationSeconds;
         var runtimeMinutes = durationSeconds.HasValue && durationSeconds.Value > 0
@@ -212,7 +237,8 @@ public sealed partial class MoviePreparationPage : Page
         }
         WriteElement(writer, "rating", movie.Rating.ToString("0.0", CultureInfo.InvariantCulture));
         WriteElement(writer, "votes", movie.VoteCount.ToString(CultureInfo.InvariantCulture));
-        if (!string.IsNullOrWhiteSpace(movie.Certification)) WriteElement(writer, "mpaa", movie.Certification);
+        var ageRating = !string.IsNullOrWhiteSpace(movie.RussianCertification) ? movie.RussianCertification : movie.Certification;
+        if (!string.IsNullOrWhiteSpace(ageRating)) WriteElement(writer, "mpaa", ageRating);
         foreach (var genre in movie.Genres) WriteElement(writer, "genre", genre.Name);
         foreach (var director in movie.Directors) WriteElement(writer, "director", director);
         foreach (var writerName in movie.Writers) WriteElement(writer, "credits", writerName);
@@ -237,13 +263,14 @@ public sealed partial class MoviePreparationPage : Page
             {
                 var video = technicalInfo.Video;
                 writer.WriteStartElement("video");
-                WriteElement(writer, "codec", NormalizeVideoCodec(video.Codec));
+                WriteElement(writer, "codec", video.Codec);
                 if (video.Width > 0) WriteElement(writer, "width", video.Width.ToString(CultureInfo.InvariantCulture));
                 if (video.Height > 0) WriteElement(writer, "height", video.Height.ToString(CultureInfo.InvariantCulture));
                 if (video.Width > 0 && video.Height > 0)
                 {
-                    // MediaInfo's AspectRatio enum may stringify as "Opaque"; calculate the ratio from dimensions.
-                    var aspect = (video.Width / (double)video.Height).ToString("0.000", CultureInfo.InvariantCulture);
+                    var aspect = video.AspectRatio;
+                    if (string.IsNullOrWhiteSpace(aspect) && video.Height > 0)
+                        aspect = (video.Width / (double)video.Height).ToString("0.000", CultureInfo.InvariantCulture);
                     WriteElement(writer, "aspect", aspect);
                     WriteElement(writer, "format", $"{video.Height}p");
                 }
@@ -259,10 +286,10 @@ public sealed partial class MoviePreparationPage : Page
             foreach (var audio in technicalInfo.AudioTracks)
             {
                 writer.WriteStartElement("audio");
-                WriteElement(writer, "codec", NormalizeAudioCodec(audio.Codec));
-                WriteElement(writer, "language", NormalizeLanguageCode(audio.Language));
+                WriteElement(writer, "codec", audio.Codec);
+                WriteElement(writer, "language", audio.Language);
                 WriteElement(writer, "title", audio.Title);
-                WriteElement(writer, "channels", NormalizeChannels(audio.Channels));
+                WriteElement(writer, "channels", audio.Channels);
                 WriteElement(writer, "channel", audio.ChannelLayout);
                 WriteElement(writer, "bitrate", audio.BitRate);
                 WriteElement(writer, "samplingrate", audio.SamplingRate);
@@ -272,7 +299,7 @@ public sealed partial class MoviePreparationPage : Page
             foreach (var subtitle in technicalInfo.SubtitleTracks)
             {
                 writer.WriteStartElement("subtitle");
-                WriteElement(writer, "language", NormalizeLanguageCode(subtitle.Language));
+                WriteElement(writer, "language", subtitle.Language);
                 WriteElement(writer, "codec", subtitle.Codec);
                 WriteElement(writer, "title", subtitle.Title);
                 writer.WriteEndElement();
@@ -285,7 +312,10 @@ public sealed partial class MoviePreparationPage : Page
             writer.WriteStartElement("actor");
             WriteElement(writer, "name", actor.Name);
             if (!string.IsNullOrWhiteSpace(actor.Character)) WriteElement(writer, "role", actor.Character);
-            if (!string.IsNullOrWhiteSpace(actor.ProfilePath)) WriteElement(writer, "thumb", "https://image.tmdb.org/t/p/original" + actor.ProfilePath);
+            if (actorThumbs != null && actorThumbs.TryGetValue(actor.Order, out var localThumb))
+                WriteElement(writer, "thumb", localThumb);
+            else if (!string.IsNullOrWhiteSpace(actor.ProfilePath))
+                WriteElement(writer, "thumb", "https://image.tmdb.org/t/p/original" + actor.ProfilePath);
             WriteElement(writer, "order", actor.Order.ToString(CultureInfo.InvariantCulture));
             writer.WriteEndElement();
         }
@@ -293,6 +323,71 @@ public sealed partial class MoviePreparationPage : Page
         writer.WriteStartElement("fanart"); writer.WriteStartElement("thumb"); writer.WriteString("fanart.jpg"); writer.WriteEndElement(); writer.WriteEndElement();
         writer.WriteEndElement();
         writer.WriteEndDocument();
+    }
+
+    private static string MakeSafeFileName(string? value)
+    {
+        var name = string.IsNullOrWhiteSpace(value) ? "actor" : value.Trim();
+        foreach (var c in Path.GetInvalidFileNameChars()) name = name.Replace(c, '_');
+        name = Regex.Replace(name, @"\s+", "_");
+        return name.Length > 80 ? name[..80] : name;
+    }
+
+    private static string? NormalizeLanguage(string? language)
+    {
+        if (string.IsNullOrWhiteSpace(language)) return null;
+        var value = language.Trim().ToLowerInvariant();
+        if (value is "ru" or "rus" or "russian" or "русский") return "rus";
+        if (value is "en" or "eng" or "english" or "английский") return "eng";
+        if (value.Length >= 3 && value.All(char.IsLetter)) return value[..3];
+        return value;
+    }
+
+    private static string? NormalizeChannels(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        value = Regex.Replace(value, @"\s*(кан\.?|channels?)\s*$", "", RegexOptions.IgnoreCase).Trim();
+        value = value.Replace(',', '.');
+        return value;
+    }
+
+    private static string? NormalizeVideoCodec(string? codec)
+    {
+        if (string.IsNullOrWhiteSpace(codec)) return codec;
+        var v = codec.ToUpperInvariant();
+        if (v.Contains("HEVC") || v.Contains("H265") || v.Contains("H.265") || v.Contains("MPEGHISO")) return "hevc";
+        if (v.Contains("AVC") || v.Contains("H264") || v.Contains("H.264")) return "h264";
+        if (v.Contains("AV1")) return "av1";
+        if (v.Contains("VP9")) return "vp9";
+        if (v.Contains("MPEG-4") || v.Contains("MPEG4")) return "mpeg4";
+        if (v.Contains("MPEG-2") || v.Contains("MPEG2")) return "mpeg2video";
+        return codec.ToLowerInvariant();
+    }
+
+    private static string? NormalizeAudioCodec(string? codec)
+    {
+        if (string.IsNullOrWhiteSpace(codec)) return codec;
+        var v = codec.ToUpperInvariant();
+        if (v.Contains("E-AC-3") || v.Contains("EAC3")) return "eac3";
+        if (v.Contains("AC-3") || v == "AC3") return "ac3";
+        if (v.Contains("DTS")) return "dts";
+        if (v.Contains("TRUEHD")) return "truehd";
+        if (v.Contains("FLAC")) return "flac";
+        if (v.Contains("AAC")) return "aac";
+        if (v.Contains("OPUS")) return "opus";
+        if (v.Contains("MP3")) return "mp3";
+        if (v.Contains("PCM")) return "pcm";
+        if (v.Contains("ATMOS")) return "atmos";
+        return codec.ToLowerInvariant();
+    }
+
+    private static string GetRussianCountryName(string? isoCode, string? fallback)
+    {
+        var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["US"]="США", ["GB"]="Великобритания", ["UK"]="Великобритания", ["RU"]="Россия", ["FR"]="Франция", ["DE"]="Германия", ["IT"]="Италия", ["ES"]="Испания", ["JP"]="Япония", ["CN"]="Китай", ["KR"]="Южная Корея", ["IN"]="Индия", ["CA"]="Канада", ["AU"]="Австралия", ["NZ"]="Новая Зеландия", ["BR"]="Бразилия", ["MX"]="Мексика", ["AR"]="Аргентина", ["TR"]="Турция", ["PL"]="Польша", ["NL"]="Нидерланды", ["BE"]="Бельгия", ["SE"]="Швеция", ["NO"]="Норвегия", ["DK"]="Дания", ["FI"]="Финляндия", ["CH"]="Швейцария", ["AT"]="Австрия", ["IE"]="Ирландия", ["UA"]="Украина", ["CZ"]="Чехия", ["HK"]="Гонконг", ["TW"]="Тайвань", ["TH"]="Таиланд", ["ID"]="Индонезия", ["ZA"]="ЮАР", ["AE"]="ОАЭ", ["IL"]="Израиль", ["GR"]="Греция", ["PT"]="Португалия", ["IS"]="Исландия", ["LU"]="Люксембург", ["SG"]="Сингапур", ["PH"]="Филиппины", ["MY"]="Малайзия", ["VN"]="Вьетнам", ["IR"]="Иран", ["PK"]="Пакистан", ["EG"]="Египет", ["CO"]="Колумбия", ["CL"]="Чили", ["PE"]="Перу", ["VE"]="Венесуэла", ["NG"]="Нигерия", ["KE"]="Кения", ["MA"]="Марокко", ["TN"]="Тунис", ["SA"]="Саудовская Аравия", ["QA"]="Катар", ["KZ"]="Казахстан", ["GE"]="Грузия", ["AM"]="Армения", ["AZ"]="Азербайджан", ["BY"]="Беларусь", ["RS"]="Сербия", ["HR"]="Хорватия", ["RO"]="Румыния", ["HU"]="Венгрия", ["BG"]="Болгария", ["SK"]="Словакия", ["SI"]="Словения", ["EE"]="Эстония", ["LV"]="Латвия", ["LT"]="Литва", ["BD"]="Бангладеш", ["NP"]="Непал", ["LK"]="Шри-Ланка", ["MM"]="Мьянма", ["KH"]="Камбоджа", ["CU"]="Куба", ["DO"]="Доминиканская Республика", ["CR"]="Коста-Рика", ["UY"]="Уругвай", ["BO"]="Боливия", ["EC"]="Эквадор"
+        };
+        return !string.IsNullOrWhiteSpace(isoCode) && names.TryGetValue(isoCode, out var name) ? name : (fallback ?? string.Empty);
     }
 
     private static long GetFileSizeSafe(string path)
@@ -316,8 +411,8 @@ public sealed partial class MoviePreparationPage : Page
             var video = videoStream == null ? null : new MediaVideoInfo(
                 Width: videoStream.Width,
                 Height: videoStream.Height,
-                Codec: ConvertValue(videoStream.Codec),
-                AspectRatio: ConvertValue(videoStream.AspectRatio),
+                Codec: NormalizeVideoCodec(ConvertValue(videoStream.Codec)),
+                AspectRatio: null,
                 BitRate: ReadStringProperty(videoStream, "BitRate") ?? ReadStringProperty(videoStream, "Bitrate"),
                 FrameRate: videoStream.FrameRate,
                 Hdr: ConvertValue(videoStream.Hdr),
@@ -325,16 +420,16 @@ public sealed partial class MoviePreparationPage : Page
                 ScanType: ReadStringProperty(videoStream, "ScanType"));
 
             var audio = media.AudioStreams.Select(a => new MediaAudioInfo(
-                Codec: ConvertValue(a.Codec),
-                Language: a.Language,
+                Codec: NormalizeAudioCodec(ConvertValue(a.Codec)),
+                Language: NormalizeLanguage(a.Language),
                 Title: ReadStringProperty(a, "Name") ?? ReadStringProperty(a, "Title"),
-                Channels: ReadStringProperty(a, "AudioChannelsFriendly") ?? ConvertValue(ReadProperty(a, "Channel")) ?? ConvertValue(ReadProperty(a, "Channels")),
+                Channels: NormalizeChannels(ReadStringProperty(a, "AudioChannelsFriendly") ?? ConvertValue(ReadProperty(a, "Channel")) ?? ConvertValue(ReadProperty(a, "Channels"))),
                 ChannelLayout: ReadStringProperty(a, "ChannelLayout"),
                 BitRate: ConvertValue(ReadProperty(a, "Bitrate")) ?? ConvertValue(ReadProperty(a, "BitRate")),
                 SamplingRate: ConvertValue(a.SamplingRate),
                 BitDepth: ConvertValue(a.BitDepth))).ToList();
             var subtitles = media.Subtitles.Select(sub => new MediaSubtitleInfo(
-                Language: sub.Language,
+                Language: NormalizeLanguage(sub.Language),
                 Codec: ConvertValue(sub.Codec),
                 Title: ReadStringProperty(sub, "Name") ?? ReadStringProperty(sub, "Title"))).ToList();
 
@@ -373,92 +468,6 @@ public sealed partial class MoviePreparationPage : Page
     private sealed record MediaAudioInfo(string? Codec, string? Language, string? Title,
         string? Channels, string? ChannelLayout, string? BitRate, string? SamplingRate, string? BitDepth);
     private sealed record MediaSubtitleInfo(string? Language, string? Codec, string? Title);
-
-    private static string? NormalizeVideoCodec(string? codec)
-    {
-        if (string.IsNullOrWhiteSpace(codec)) return codec;
-        var value = codec.Trim();
-        var upper = value.ToUpperInvariant();
-        if (upper.Contains("HEVC") || upper.Contains("MPEGHISO")) return "hevc";
-        if (upper.Contains("AVC") || upper.Contains("H264")) return "h264";
-        if (upper.Contains("AV1")) return "av1";
-        if (upper.Contains("MPEG4")) return "mpeg4";
-        if (upper.Contains("MPEG2")) return "mpeg2video";
-        if (upper.Contains("VC1") || upper.Contains("VC-1")) return "vc1";
-        if (upper.Contains("VP9")) return "vp9";
-        if (upper.Contains("VP8")) return "vp8";
-        return value.ToLowerInvariant();
-    }
-
-    private static string? NormalizeAudioCodec(string? codec)
-    {
-        if (string.IsNullOrWhiteSpace(codec)) return codec;
-        var upper = codec.Trim().ToUpperInvariant();
-        if (upper.Contains("AC-3") || upper == "AC3" || upper.Contains("A_AC3")) return "ac3";
-        if (upper.Contains("E-AC-3") || upper.Contains("EAC3")) return "eac3";
-        if (upper.Contains("DTS-HD MA") || upper.Contains("DTSHDMA")) return "dts-hd ma";
-        if (upper.Contains("DTS")) return "dts";
-        if (upper.Contains("TRUEHD") || upper.Contains("TRUE HD")) return "truehd";
-        if (upper.Contains("AAC")) return "aac";
-        if (upper.Contains("FLAC")) return "flac";
-        if (upper.Contains("OPUS")) return "opus";
-        if (upper.Contains("VORBIS")) return "vorbis";
-        if (upper.Contains("PCM")) return "pcm";
-        return codec.Trim().ToLowerInvariant();
-    }
-
-    private static string? NormalizeChannels(string? channels)
-    {
-        if (string.IsNullOrWhiteSpace(channels)) return channels;
-        var value = channels.Trim();
-        value = System.Text.RegularExpressions.Regex.Replace(value, @"\s*(кан\.?|каналов?|channels?)\s*$", string.Empty,
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
-        return value.Trim();
-    }
-
-    private static string? NormalizeLanguageCode(string? language)
-    {
-        if (string.IsNullOrWhiteSpace(language)) return language;
-        var value = language.Trim().ToLowerInvariant();
-        var code = value switch
-        {
-            "ru" or "rus" or "russian" or "русский" or "рус" => "rus",
-            "en" or "eng" or "english" or "английский" or "англ" => "eng",
-            "uk" or "ukr" or "ukrainian" or "украинский" => "ukr",
-            "de" or "deu" or "ger" or "german" or "немецкий" => "deu",
-            "fr" or "fra" or "fre" or "french" or "французский" => "fra",
-            "es" or "spa" or "spanish" or "испанский" => "spa",
-            "it" or "ita" or "italian" or "итальянский" => "ita",
-            "ja" or "jpn" or "japanese" or "японский" => "jpn",
-            "zh" or "zho" or "chi" or "chinese" or "китайский" => "zho",
-            "ko" or "kor" or "korean" or "корейский" => "kor",
-            "pt" or "por" or "portuguese" or "португальский" => "por",
-            "pl" or "pol" or "polish" or "польский" => "pol",
-            "und" or "undefined" or "unknown" => "und",
-            _ => value.Length >= 3 ? value[..3] : value
-        };
-        return code;
-    }
-
-    private static string GetRussianCountryName(string? isoCode, string fallback)
-    {
-        var code = (isoCode ?? string.Empty).ToUpperInvariant();
-        return code switch
-        {
-            "RU" => "Россия", "US" => "США", "GB" => "Великобритания", "UK" => "Великобритания",
-            "FR" => "Франция", "DE" => "Германия", "IT" => "Италия", "ES" => "Испания",
-            "JP" => "Япония", "CN" => "Китай", "KR" => "Южная Корея", "IN" => "Индия",
-            "CA" => "Канада", "AU" => "Австралия", "NZ" => "Новая Зеландия", "BR" => "Бразилия",
-            "MX" => "Мексика", "AR" => "Аргентина", "PL" => "Польша", "UA" => "Украина",
-            "TR" => "Турция", "NL" => "Нидерланды", "BE" => "Бельгия", "CH" => "Швейцария",
-            "AT" => "Австрия", "SE" => "Швеция", "NO" => "Норвегия", "DK" => "Дания",
-            "FI" => "Финляндия", "IE" => "Ирландия", "CZ" => "Чехия", "HU" => "Венгрия",
-            "RO" => "Румыния", "GR" => "Греция", "PT" => "Португалия", "ZA" => "ЮАР",
-            "HK" => "Гонконг", "TW" => "Тайвань", "TH" => "Таиланд", "ID" => "Индонезия",
-            "IL" => "Израиль", "IR" => "Иран", "AE" => "ОАЭ", "SA" => "Саудовская Аравия",
-            _ => string.IsNullOrWhiteSpace(fallback) ? code : fallback
-        };
-    }
 
     private static void WriteElement(XmlWriter writer, string name, string? value)
     {

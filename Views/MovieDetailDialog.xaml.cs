@@ -789,16 +789,22 @@ public sealed partial class MovieDetailDialog : Window
         if (!string.IsNullOrWhiteSpace(codec)) parts.Add(codec.ToUpperInvariant());
         if (!string.IsNullOrWhiteSpace(channels))
         {
-            var lbl = channels switch
+            // MediaInfo can return either a channel count ("6") or a friendly
+            // value that already contains a layout/suffix ("5.1 кан.").
+            var normalized = System.Text.RegularExpressions.Regex.Replace(
+                channels.Trim(), @"\s*(кан\.?|channels?)\s*$", "",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase).Trim().Replace(',', '.');
+            var lbl = normalized switch
             {
                 "8" => "7.1",
                 "7" => "6.1",
                 "6" => "5.1",
                 "2" => CineLibraryCS.Services.LocalizationService.TranslateText("Stereo"),
                 "1" => "Mono",
-                _ => $"{channels} кан.",
+                "7.1" or "6.1" or "5.1" or "4.1" or "3.1" or "2.1" => normalized,
+                _ => normalized,
             };
-            parts.Add(lbl);
+            if (!string.IsNullOrWhiteSpace(lbl)) parts.Add(lbl);
         }
         return parts.Count == 0 ? null : string.Join(" ", parts);
     }

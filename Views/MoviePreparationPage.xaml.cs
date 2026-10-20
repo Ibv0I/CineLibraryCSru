@@ -161,7 +161,7 @@ public sealed partial class MoviePreparationPage : Page
                 foreach (var actor in movie.Cast.Where(a => !string.IsNullOrWhiteSpace(a.ProfilePath)))
                 {
                     var safeName = MakeSafeFileName(actor.Name);
-                    var actorFile = $"{actor.Order:D2}_{safeName}.jpg";
+                    var actorFile = $"{safeName}.jpg";
                     var actorPath = Path.Combine(actorsDirectory, actorFile);
                     if (!File.Exists(actorPath))
                     {

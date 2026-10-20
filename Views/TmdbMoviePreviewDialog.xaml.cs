@@ -85,7 +85,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             RuntimeEditor.Text = details.Runtime > 0 ? details.Runtime.ToString(CultureInfo.InvariantCulture) : string.Empty;
             RatingEditor.Text = details.Rating.ToString("0.0", CultureInfo.InvariantCulture);
             GenresEditor.Text = string.Join(", ", details.Genres.Select(g => g.Name));
-            CountriesEditor.Text = string.Join(", ", details.ProductionCountries.Select(c => c.Name));
+            CountriesEditor.Text = string.Join(", ", details.ProductionCountries.Select(GetRussianCountryName));
             DirectorEditor.Text = string.Join(", ", details.Directors);
             WritersEditor.Text = string.Join(", ", details.Writers);
             CastEditor.Text = string.Join(", ", details.Cast.Select(c => c.Name));
@@ -147,6 +147,38 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         var oldCast = Movie.Cast.GroupBy(c => c.Name, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
         Movie.Cast = SplitNames(CastEditor.Text).Select((name, index) => oldCast.TryGetValue(name, out var existing)
             ? existing : new TmdbCastMember { Name = name, Order = index }).ToList();
+    }
+
+    private static string GetRussianCountryName(TmdbCountry country)
+    {
+        // TMDb supplies an ISO 3166-1 code even when its country name is not localized.
+        // Use Russian names for common production countries; retain TMDb name as a safe fallback.
+        var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["US"] = "США", ["GB"] = "Великобритания", ["RU"] = "Россия", ["SU"] = "СССР",
+            ["FR"] = "Франция", ["DE"] = "Германия", ["IT"] = "Италия", ["ES"] = "Испания",
+            ["JP"] = "Япония", ["KR"] = "Южная Корея", ["CN"] = "Китай", ["HK"] = "Гонконг",
+            ["IN"] = "Индия", ["CA"] = "Канада", ["AU"] = "Австралия", ["NZ"] = "Новая Зеландия",
+            ["MX"] = "Мексика", ["BR"] = "Бразилия", ["AR"] = "Аргентина", ["CL"] = "Чили",
+            ["SE"] = "Швеция", ["NO"] = "Норвегия", ["DK"] = "Дания", ["FI"] = "Финляндия",
+            ["NL"] = "Нидерланды", ["BE"] = "Бельгия", ["CH"] = "Швейцария", ["AT"] = "Австрия",
+            ["PL"] = "Польша", ["CZ"] = "Чехия", ["SK"] = "Словакия", ["HU"] = "Венгрия",
+            ["RO"] = "Румыния", ["BG"] = "Болгария", ["GR"] = "Греция", ["PT"] = "Португалия",
+            ["IE"] = "Ирландия", ["IS"] = "Исландия", ["TR"] = "Турция", ["IL"] = "Израиль",
+            ["IR"] = "Иран", ["TH"] = "Таиланд", ["ID"] = "Индонезия", ["SG"] = "Сингапур",
+            ["TW"] = "Тайвань", ["ZA"] = "ЮАР", ["EG"] = "Египет", ["UA"] = "Украина",
+            ["RS"] = "Сербия", ["HR"] = "Хорватия", ["BA"] = "Босния и Герцеговина",
+            ["SI"] = "Словения", ["EE"] = "Эстония", ["LV"] = "Латвия", ["LT"] = "Литва",
+            ["GE"] = "Грузия", ["AM"] = "Армения", ["KZ"] = "Казахстан", ["AE"] = "ОАЭ",
+            ["SA"] = "Саудовская Аравия", ["PK"] = "Пакистан", ["BD"] = "Бангладеш",
+            ["PH"] = "Филиппины", ["MY"] = "Малайзия", ["CO"] = "Колумбия", ["PE"] = "Перу",
+            ["VE"] = "Венесуэла", ["UY"] = "Уругвай", ["NG"] = "Нигерия", ["KE"] = "Кения",
+            ["MA"] = "Марокко", ["TN"] = "Тунис", ["LU"] = "Люксембург", ["CY"] = "Кипр",
+            ["MT"] = "Мальта", ["QA"] = "Катар", ["LB"] = "Ливан", ["IS"] = "Исландия"
+        };
+        if (!string.IsNullOrWhiteSpace(country.IsoCode) && names.TryGetValue(country.IsoCode, out var russianName))
+            return russianName;
+        return string.IsNullOrWhiteSpace(country.Name) ? country.IsoCode : country.Name;
     }
 
     private static List<string> SplitNames(string text) => text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where(s => !string.IsNullOrWhiteSpace(s)).ToList();

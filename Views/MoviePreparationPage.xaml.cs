@@ -156,20 +156,38 @@ public sealed partial class MoviePreparationPage : Page
         {
             var root = (RootPathBox.Text ?? string.Empty).Trim().Trim('"');
             var driveRoot = Path.GetPathRoot(root);
+            var libraryUpdated = false;
             if (!string.IsNullOrWhiteSpace(driveRoot) && Directory.Exists(root))
             {
                 var serial = CineLibraryCS.Services.DatabaseService.GetVolumeSerial(driveRoot);
                 if (!string.IsNullOrWhiteSpace(serial))
                 {
+                    // The preparation page can be used on a folder whose drive has never
+                    // been added to CineLibrary. Scanner inserts movies with a FK to drives,
+                    // so register the parent drive row before starting the scan.
+                    var db = CineLibraryCS.Services.AppState.Instance.Db;
+                    var letter = driveRoot.TrimEnd('\\', ':');
+                    var label = $"Диск ({letter}:)";
+                    db.AddDrive(serial, label, letter);
+
+                    // Register the selected scan root too. This is idempotent and makes the
+                    // folder visible to the regular drive/library workflow after preparation.
+                    var relativeRoot = Path.GetRelativePath(driveRoot, root).Replace('\\', '/').TrimEnd('/');
+                    if (relativeRoot == ".") relativeRoot = string.Empty;
+                    if (!db.GetDriveRoots(serial).Any(r => string.Equals(r.RootPath, relativeRoot, StringComparison.OrdinalIgnoreCase)))
+                        db.AddDriveRoot(serial, relativeRoot);
+
                     var progress = new Progress<CineLibraryCS.Services.ScanProgress>(p =>
                     {
                         if (!p.Done) StatusText.Text = $"Обновление медиатеки… найдено: {p.Found}";
                     });
                     await CineLibraryCS.Services.AppState.Instance.Scanner.ScanAsync(
                         serial, driveRoot, progress, CancellationToken.None, root, incremental: false);
+                    libraryUpdated = true;
                 }
             }
-            StatusText.Text = $"Пакетная подготовка завершена. Успешно: {saved}, ошибок/отмен: {failed}. Медиатека обновлена.";
+            StatusText.Text = $"Пакетная подготовка завершена. Успешно: {saved}, ошибок/отмен: {failed}. " +
+                (libraryUpdated ? "Медиатека обновлена." : "Файлы сохранены, но папка не добавлена в медиатеку: не удалось определить локальный диск." );
         }
         catch (Exception ex)
         {

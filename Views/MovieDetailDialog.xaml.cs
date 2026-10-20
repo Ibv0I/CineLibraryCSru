@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using CineLibraryCS.Models;
 using CineLibraryCS.Services;
+using CineLibraryCS.Services.Tmdb;
 using Windows.Graphics;
 using Windows.System;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -308,7 +309,7 @@ public sealed partial class MovieDetailDialog : Window
         // v4.2.0: decoded for the bigger poster and the full-width banner (the
         // window opens maximised, so its width is about the banner's in pixels)
         LoadImageAsync(m.LocalPoster, PosterImage, PosterPlaceholder, 520);
-        LoadImageAsync(m.LocalFanart, HeroImage, null, Math.Clamp(AppWindow.Size.Width, 1920, 3840));
+        LoadImageAsync(m.LocalFanart, HeroImage, null, Math.Clamp(Microsoft.UI.Windowing.AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(WinRT.Interop.WindowNative.GetWindowHandle(this))).Size.Width, 1920, 3840));
 
         // v3.4 — "Fetch missing info from TMDB" (and, later, Sync to drive).
     }
@@ -681,7 +682,9 @@ public sealed partial class MovieDetailDialog : Window
         if (!string.IsNullOrWhiteSpace(m.VideoCodec))
             AddTechBadge(m.VideoCodec.ToUpperInvariant(), "#2563EB"); // violet
         // HDR
-        if (!string.IsNullOrWhiteSpace(m.HdrType))
+        if (!string.IsNullOrWhiteSpace(m.HdrType) &&
+            !m.HdrType.Equals("NONE", StringComparison.OrdinalIgnoreCase) &&
+            !m.HdrType.Equals("None", StringComparison.OrdinalIgnoreCase))
             AddTechBadge(m.HdrType.ToUpperInvariant(), "#EAB308"); // amber
         // Audio codec + channels
         var aud = AudioLabel(m.AudioCodec, m.AudioChannels);
@@ -1100,6 +1103,83 @@ public sealed partial class MovieDetailDialog : Window
             // Tell the host so its sidebar badge updates
             WatchlistChanged?.Invoke(this, EventArgs.Empty);
             await VideoPlayer.PlayAsync(videoPath);
+        }
+    }
+
+    private async void OnEditArtwork(object sender, RoutedEventArgs e)
+    {
+        var movie = _movie;
+        if (movie == null) return;
+        if (!int.TryParse(movie.TmdbId, out var tmdbId) || tmdbId <= 0)
+        {
+            var noId = new ContentDialog
+            {
+                Title = "Нет идентификатора TMDb",
+                Content = "Для выбора постера и баннера у фильма должен быть указан TMDb ID.",
+                CloseButtonText = "ОК",
+                XamlRoot = RootGrid.XamlRoot
+            };
+            await noId.ShowAsync();
+            return;
+        }
+
+        try
+        {
+            using var client = new TmdbClient();
+            var searchHit = new TmdbMovie { TmdbId = tmdbId, Title = movie.Title };
+            var picker = new TmdbMoviePreviewDialog(client, searchHit);
+            var result = await picker.ShowAsync();
+            if (result != ContentDialogResult.Primary || picker.Movie == null) return;
+
+            var posterFile = picker.SelectedPosterPath ?? picker.Movie.PosterPath;
+            var backdropFile = picker.SelectedBackdropPath ?? picker.Movie.BackdropPath;
+            if (string.IsNullOrWhiteSpace(posterFile) || string.IsNullOrWhiteSpace(backdropFile))
+            {
+                var missing = new ContentDialog
+                {
+                    Title = "Не выбраны изображения",
+                    Content = "Выберите и постер, и баннер, затем подтвердите выбор.",
+                    CloseButtonText = "ОК",
+                    XamlRoot = RootGrid.XamlRoot
+                };
+                await missing.ShowAsync();
+                return;
+            }
+
+            var posterRel = await DownloadArtAsync(client, posterFile, "posters", tmdbId);
+            var fanartRel = await DownloadArtAsync(client, backdropFile, "fanart", tmdbId);
+            if (posterRel == null || fanartRel == null)
+            {
+                var failed = new ContentDialog
+                {
+                    Title = "Не удалось загрузить изображения",
+                    Content = "Проверьте подключение к интернету и попробуйте ещё раз.",
+                    CloseButtonText = "ОК",
+                    XamlRoot = RootGrid.XamlRoot
+                };
+                await failed.ShowAsync();
+                return;
+            }
+
+            AppState.Instance.Db.UpdateMovieArtwork(movie.Id, posterRel, fanartRel);
+            movie.LocalPoster = posterRel;
+            movie.LocalFanart = fanartRel;
+            PosterImage.Source = null;
+            HeroImage.Source = null;
+            PosterPlaceholder.Visibility = Visibility.Visible;
+            LoadImageAsync(movie.LocalPoster, PosterImage, PosterPlaceholder, 520);
+            LoadImageAsync(movie.LocalFanart, HeroImage, null, Math.Clamp(Microsoft.UI.Windowing.AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(WinRT.Interop.WindowNative.GetWindowHandle(this))).Size.Width, 1920, 3840));
+        }
+        catch (Exception ex)
+        {
+            var error = new ContentDialog
+            {
+                Title = "Ошибка изменения оформления",
+                Content = ex.Message,
+                CloseButtonText = "ОК",
+                XamlRoot = RootGrid.XamlRoot
+            };
+            await error.ShowAsync();
         }
     }
 

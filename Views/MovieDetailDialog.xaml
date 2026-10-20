@@ -184,13 +184,26 @@
                         <Button x:Name="PlayBtn" Click="OnPlay"
                                 Background="#3B82F6" Foreground="White"
                                 BorderThickness="0" CornerRadius="8" Padding="16,8">
-                            <TextBlock Text="▶ Play"/>
+                            <TextBlock Text="▶ Смотреть"/>
                         </Button>
-                        <Button x:Name="FolderBtn" Content="📂 Open Folder" Click="OnOpenFolder"
+                        <Button x:Name="FolderBtn" Click="OnOpenFolder"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
-                                CornerRadius="8" Padding="12,8"/>
+                                CornerRadius="8" Padding="12,8"
+                                ToolTipService.ToolTip="Открыть папку фильма"
+                                AutomationProperties.Name="Открыть папку фильма">
+                            <FontIcon Glyph="&#xE8B7;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="16"/>
+                        </Button>
+                        <Button x:Name="EditArtworkBtn" Click="OnEditArtwork"
+                                Background="{ThemeResource CardBrush}"
+                                Foreground="{ThemeResource TextBrush}"
+                                BorderBrush="{ThemeResource BorderBrush}"
+                                CornerRadius="8" Padding="12,8"
+                                ToolTipService.ToolTip="Изменить постер и баннер"
+                                AutomationProperties.Name="Изменить постер и баннер">
+                            <FontIcon Glyph="&#xE70F;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="16"/>
+                        </Button>
                         <Button x:Name="FavBtn" Click="OnToggleFav"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
@@ -605,7 +618,7 @@
                     <Button x:Name="StickyPlayBtn" Click="OnPlay"
                             Background="#3B82F6" Foreground="White"
                             BorderThickness="0" CornerRadius="6" Padding="14,5">
-                        <TextBlock Text="▶ Play"/>
+                        <TextBlock Text="▶ Смотреть"/>
                     </Button>
                     <Button Click="OnStickyClose"
                             Background="Transparent"

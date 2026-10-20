@@ -3976,6 +3976,18 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         return ids;
     }
 
+    /// <summary>Updates the cached poster and fanart paths for a movie.</summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public void UpdateMovieArtwork(int movieId, string localPoster, string localFanart)
+    {
+        using var cmd = _conn.CreateCommand();
+        cmd.CommandText = "UPDATE movies SET local_poster=@poster, local_fanart=@fanart WHERE id=@id";
+        cmd.Parameters.AddWithValue("@poster", localPoster);
+        cmd.Parameters.AddWithValue("@fanart", localFanart);
+        cmd.Parameters.AddWithValue("@id", movieId);
+        cmd.ExecuteNonQuery();
+    }
+
     /// <summary>
     /// Save user note to the row. Empty/null clears it.
     /// Sidecar file write is handled by the caller (needs the drive letter).

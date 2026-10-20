@@ -687,14 +687,15 @@ public sealed class MovieFolderCandidate
     public string? SelectedPosterPath { get; set; }
     public string? SelectedBackdropPath { get; set; }
     public string MatchSummary { get; set; } = "Совпадение TMDb не выбрано";
-    public string FileStatus { get; private set; } = string.Empty;
+    public string PosterGlyph { get; private set; } = "○";
+    public string FanartGlyph { get; private set; } = "○";
+    public string NfoGlyph { get; private set; } = "○";
 
     public void RefreshFileStatus()
     {
-        bool nfo = File.Exists(Path.Combine(FolderPath, "movie.nfo"));
-        bool poster = File.Exists(Path.Combine(FolderPath, "poster.jpg"));
-        bool fanart = File.Exists(Path.Combine(FolderPath, "fanart.jpg"));
-        FileStatus = $"{(poster ? "✓" : "○")} Постер  {(fanart ? "✓" : "○")} Баннер  {(nfo ? "✓" : "○")} NFO";
+        NfoGlyph = File.Exists(Path.Combine(FolderPath, "movie.nfo")) ? "✓" : "○";
+        PosterGlyph = File.Exists(Path.Combine(FolderPath, "poster.jpg")) ? "✓" : "○";
+        FanartGlyph = File.Exists(Path.Combine(FolderPath, "fanart.jpg")) ? "✓" : "○";
     }
 
     public MovieFolderCandidate(string path, string[] videos)

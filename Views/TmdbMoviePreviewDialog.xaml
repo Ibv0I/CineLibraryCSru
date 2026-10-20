@@ -6,54 +6,44 @@
     Title="Метаданные и изображения фильма">
     <Grid x:Name="RootGrid" RequestedTheme="Dark" Background="#121214" Padding="18">
         <Grid RowSpacing="12">
-            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-            <StackPanel Spacing="8">
-                <Border Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" CornerRadius="8" Padding="12,9">
-                    <TextBlock x:Name="MovieTitleText" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="White"/>
-                </Border>
-                <Border Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" CornerRadius="8" Padding="12,9">
-                    <TextBlock x:Name="MovieFactsText" FontSize="13" TextWrapping="Wrap" Foreground="#C8C8CC"/>
-                </Border>
-                <Border Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" CornerRadius="8" Padding="12,9">
-                    <TextBlock x:Name="MovieOverviewText" FontSize="14" TextWrapping="Wrap" Foreground="#E5E5E8" MaxLines="5"/>
-                </Border>
-                <Border Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" CornerRadius="8" Padding="12,9">
-                    <TextBlock x:Name="MovieCreditsText" FontSize="13" TextWrapping="Wrap" Foreground="#C8C8CC"/>
-                </Border>
-            </StackPanel>
-            <TextBlock Grid.Row="1" x:Name="ImageStatusText" Text="Выберите постер и фоновое изображение. Выбранные варианты будут использованы на следующем этапе." TextWrapping="Wrap" Foreground="#C8C8CC"/>
-            <Grid Grid.Row="2" ColumnSpacing="16">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                <Grid Grid.Column="0" RowSpacing="8">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="180"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                    <TextBlock Text="Предварительный просмотр постера" FontWeight="SemiBold" Foreground="White"/>
-                    <Border Grid.Row="1" Background="#252529" CornerRadius="6" HorizontalAlignment="Left" Padding="2">
-                        <Image x:Name="PosterPreview" Width="116" Height="174" Stretch="UniformToFill"/>
-                    </Border>
-                    <GridView x:Name="PosterGrid" Grid.Row="2" SelectionMode="Single" SelectionChanged="OnPosterSelected" IsItemClickEnabled="False"
-                              ScrollViewer.HorizontalScrollMode="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                              ScrollViewer.VerticalScrollMode="Enabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
-                              ScrollViewer.IsVerticalRailEnabled="True" ScrollViewer.IsHorizontalRailEnabled="False"
-                              Padding="4" MinHeight="220">
-                        <GridView.ItemsPanel><ItemsPanelTemplate><ItemsWrapGrid Orientation="Horizontal"/></ItemsPanelTemplate></GridView.ItemsPanel>
-                        <GridView.ItemTemplate><DataTemplate x:DataType="local:TmdbImageChoice"><Border Padding="3" CornerRadius="5" Background="#252529"><Image Source="{x:Bind Thumbnail}" Width="78" Height="117" Stretch="UniformToFill"/></Border></DataTemplate></GridView.ItemTemplate>
-                    </GridView>
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="220"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <TextBox x:Name="MovieTitleEditor" FontSize="25" FontWeight="SemiBold" PlaceholderText="Название фильма" Header="Название фильма" />
+            <Button Grid.Row="1" Click="OnBackdropPreviewClick" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="0" Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" ToolTipService.ToolTip="Нажмите, чтобы выбрать фоновое изображение">
+                <Grid>
+                    <Image x:Name="BackdropPreview" Height="210" Stretch="UniformToFill"/>
+                    <Border VerticalAlignment="Bottom" Background="#B8000000" Padding="8"><TextBlock Text="Фоновое изображение · нажмите, чтобы изменить" Foreground="White" HorizontalAlignment="Center"/></Border>
                 </Grid>
-                <Grid Grid.Column="1" RowSpacing="8">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="180"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                    <TextBlock Text="Предварительный просмотр фона" FontWeight="SemiBold" Foreground="White"/>
-                    <Border Grid.Row="1" Background="#252529" CornerRadius="6" Padding="2" VerticalAlignment="Top">
-                        <Image x:Name="BackdropPreview" Width="300" Height="169" Stretch="UniformToFill"/>
-                    </Border>
-                    <GridView x:Name="BackdropGrid" Grid.Row="2" SelectionMode="Single" SelectionChanged="OnBackdropSelected" IsItemClickEnabled="False"
-                              ScrollViewer.HorizontalScrollMode="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                              ScrollViewer.VerticalScrollMode="Enabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
-                              ScrollViewer.IsVerticalRailEnabled="True" ScrollViewer.IsHorizontalRailEnabled="False"
-                              Padding="4" MinHeight="220">
-                        <GridView.ItemsPanel><ItemsPanelTemplate><ItemsWrapGrid Orientation="Horizontal"/></ItemsPanelTemplate></GridView.ItemsPanel>
-                        <GridView.ItemTemplate><DataTemplate x:DataType="local:TmdbImageChoice"><Border Padding="3" CornerRadius="5" Background="#252529"><Image Source="{x:Bind Thumbnail}" Width="150" Height="84" Stretch="UniformToFill"/></Border></DataTemplate></GridView.ItemTemplate>
-                    </GridView>
-                </Grid>
+            </Button>
+            <Grid Grid.Row="2" ColumnSpacing="18">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="190"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Постер" FontWeight="SemiBold" Foreground="White"/>
+                    <Button x:Name="PosterPreviewButton" Click="OnPosterPreviewClick" Padding="0" Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" ToolTipService.ToolTip="Нажмите, чтобы выбрать постер">
+                        <Grid>
+                            <Image x:Name="PosterPreview" Width="176" Height="264" Stretch="UniformToFill"/>
+                            <Border VerticalAlignment="Bottom" Background="#B8000000" Padding="6"><TextBlock Text="Изменить постер" Foreground="White" HorizontalAlignment="Center"/></Border>
+                        </Grid>
+                    </Button>
+                    <TextBlock Text="Нажмите на изображение, чтобы открыть варианты TMDb." TextWrapping="Wrap" FontSize="12" Foreground="#A8A8B0"/>
+                </StackPanel>
+                <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="9">
+                        <TextBox x:Name="TaglineEditor" Header="Слоган" PlaceholderText="Слоган фильма"/>
+                        <TextBox x:Name="OverviewEditor" Header="Описание" PlaceholderText="Описание фильма" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" MaxHeight="180"/>
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBox x:Name="ReleaseDateEditor" Header="Дата выхода" PlaceholderText="ГГГГ-ММ-ДД"/>
+                            <TextBox x:Name="RuntimeEditor" Grid.Column="1" Header="Длительность, мин." PlaceholderText="Минуты"/>
+                            <TextBox x:Name="RatingEditor" Grid.Column="2" Header="Рейтинг TMDb" PlaceholderText="0–10"/>
+                        </Grid>
+                        <TextBox x:Name="GenresEditor" Header="Жанры" PlaceholderText="Жанры через запятую"/>
+                        <TextBox x:Name="CountriesEditor" Header="Страны производства" PlaceholderText="Страны через запятую"/>
+                        <TextBox x:Name="DirectorEditor" Header="Режиссёр(ы)" PlaceholderText="Имена через запятую"/>
+                        <TextBox x:Name="WritersEditor" Header="Сценаристы" PlaceholderText="Имена через запятую"/>
+                        <TextBox x:Name="CastEditor" Header="Актёры" PlaceholderText="Имена через запятую"/>
+                        <TextBlock x:Name="ImageStatusText" Text="Изменения метаданных и изображений будут применены при сохранении." TextWrapping="Wrap" Foreground="#A8A8B0"/>
+                    </StackPanel>
+                </ScrollViewer>
             </Grid>
             <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
                 <Button Content="Отмена" Click="OnCancelClick" MinWidth="110"/>

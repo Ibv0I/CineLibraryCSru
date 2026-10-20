@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Graphics;
 using CineLibraryCS.Services.Tmdb;
+using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace CineLibraryCS.Views;
@@ -14,6 +15,8 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     private readonly TmdbClient _client;
     private readonly TmdbMovie _searchHit;
     private readonly TaskCompletionSource<ContentDialogResult> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private List<TmdbImageChoice> _posterChoices = new();
+    private List<TmdbImageChoice> _backdropChoices = new();
     private nint _ownerHandle;
     private bool _ownerDisabled;
     private bool _shown;
@@ -35,8 +38,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     private void ConfigureWindow()
     {
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-        var id = Win32Interop.GetWindowIdFromWindow(hwnd);
-        var window = AppWindow.GetFromWindowId(id);
+        var window = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(hwnd));
         SetApplicationIcon(window);
         var ownerHwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
         var owner = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(ownerHwnd));
@@ -49,19 +51,14 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         titleBar.ForegroundColor = fg; titleBar.ButtonForegroundColor = fg;
         titleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(255, 55, 55, 60);
         titleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(255, 70, 70, 76);
-        window.Resize(new SizeInt32(Math.Min(1450, Math.Max(1000, owner.Size.Width - 80)), Math.Min(920, Math.Max(720, owner.Size.Height - 80))));
+        window.Resize(new SizeInt32(Math.Min(1450, Math.Max(1050, owner.Size.Width - 80)), Math.Min(1050, Math.Max(800, owner.Size.Height - 60))));
         window.Move(new PointInt32(owner.Position.X + Math.Max(0, (owner.Size.Width - window.Size.Width) / 2), owner.Position.Y + Math.Max(0, (owner.Size.Height - window.Size.Height) / 2)));
         if (window.Presenter is OverlappedPresenter presenter) { presenter.IsResizable = true; presenter.IsMaximizable = true; }
     }
 
     private static void SetApplicationIcon(AppWindow appWindow)
     {
-        try
-        {
-            var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "icon.ico");
-            if (File.Exists(iconPath)) appWindow.SetIcon(iconPath);
-        }
-        catch { }
+        try { var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "icon.ico"); if (File.Exists(iconPath)) appWindow.SetIcon(iconPath); } catch { }
     }
 
     public Task<ContentDialogResult> ShowAsync()
@@ -81,48 +78,84 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             var details = await _client.GetMovieDetailsAsync(_searchHit.TmdbId);
             if (details == null) throw new InvalidOperationException("TMDb не вернул подробности фильма.");
             Movie = details;
-            MovieTitleText.Text = $"{details.Title}{(details.Year > 0 ? $" ({details.Year})" : string.Empty)}";
-            var genres = string.Join(", ", details.Genres.Select(g => g.Name));
-            var countries = string.Join(", ", details.ProductionCountries.Select(c => c.Name));
-            MovieFactsText.Text = $"TMDb ID: {details.TmdbId} · Рейтинг: {details.Rating:0.0}/10 ({details.VoteCount} голосов) · Длительность: {(details.Runtime > 0 ? $"{details.Runtime} мин." : "не указана")}\nДата выхода: {(string.IsNullOrWhiteSpace(details.ReleaseDate) ? "не указана" : details.ReleaseDate)} · Жанры: {(string.IsNullOrWhiteSpace(genres) ? "не указаны" : genres)} · Страны: {(string.IsNullOrWhiteSpace(countries) ? "не указаны" : countries)}";
-            MovieOverviewText.Text = string.IsNullOrWhiteSpace(details.Overview) ? "Описание отсутствует в TMDb." : details.Overview;
-            var directors = string.Join(", ", details.Directors);
-            var cast = string.Join(", ", details.Cast.Take(8).Select(c => c.Name));
-            MovieCreditsText.Text = $"Режиссёр: {(string.IsNullOrWhiteSpace(directors) ? "не указан" : directors)}\nВ ролях: {(string.IsNullOrWhiteSpace(cast) ? "не указаны" : cast)}";
+            MovieTitleEditor.Text = details.Title;
+            TaglineEditor.Text = details.Tagline;
+            OverviewEditor.Text = details.Overview;
+            ReleaseDateEditor.Text = details.ReleaseDate;
+            RuntimeEditor.Text = details.Runtime > 0 ? details.Runtime.ToString(CultureInfo.InvariantCulture) : string.Empty;
+            RatingEditor.Text = details.Rating.ToString("0.0", CultureInfo.InvariantCulture);
+            GenresEditor.Text = string.Join(", ", details.Genres.Select(g => g.Name));
+            CountriesEditor.Text = string.Join(", ", details.ProductionCountries.Select(c => c.Name));
+            DirectorEditor.Text = string.Join(", ", details.Directors);
+            WritersEditor.Text = string.Join(", ", details.Writers);
+            CastEditor.Text = string.Join(", ", details.Cast.Select(c => c.Name));
 
             var images = await _client.GetMovieImagesAsync(details.TmdbId);
             if (images.Posters.Count == 0 && !string.IsNullOrWhiteSpace(details.PosterPath)) images.Posters.Add(details.PosterPath!);
             if (images.Backdrops.Count == 0 && !string.IsNullOrWhiteSpace(details.BackdropPath)) images.Backdrops.Add(details.BackdropPath!);
-            PosterGrid.ItemsSource = images.Posters.Select(p => new TmdbImageChoice(p, _client.GetImageUrl(p, "w185"))).ToList();
-            BackdropGrid.ItemsSource = images.Backdrops.Select(p => new TmdbImageChoice(p, _client.GetImageUrl(p, "w300"))).ToList();
-            if (PosterGrid.Items.Count > 0) PosterGrid.SelectedIndex = 0;
-            if (BackdropGrid.Items.Count > 0) BackdropGrid.SelectedIndex = 0;
-            if (PosterGrid.Items.Count == 0) ImageStatusText.Text = "TMDb не предоставил варианты постеров. Выбор постера можно будет повторить позже.";
-            if (BackdropGrid.Items.Count == 0) ImageStatusText.Text = "TMDb не предоставил варианты фоновых изображений. Выбор фона можно будет повторить позже.";
+            _posterChoices = images.Posters.Select(p => new TmdbImageChoice(p, _client.GetImageUrl(p, "w185"))).ToList();
+            _backdropChoices = images.Backdrops.Select(p => new TmdbImageChoice(p, _client.GetImageUrl(p, "w300"))).ToList();
+            SelectedPosterPath = images.Posters.FirstOrDefault() ?? details.PosterPath;
+            SelectedBackdropPath = images.Backdrops.FirstOrDefault() ?? details.BackdropPath;
+            RefreshPosterPreview(); RefreshBackdropPreview();
+            if (SelectedPosterPath == null || SelectedBackdropPath == null)
+                ImageStatusText.Text = "Некоторые изображения отсутствуют в TMDb. Метаданные можно редактировать независимо от изображений.";
             UseSelectionButton.IsEnabled = true;
         }
-        catch (Exception ex)
-        {
-            ImageStatusText.Text = "Не удалось загрузить подробности или изображения TMDb: " + ex.Message;
-        }
+        catch (Exception ex) { ImageStatusText.Text = "Не удалось загрузить подробности или изображения TMDb: " + ex.Message; }
         finally { Busy.IsActive = false; }
     }
 
-    private void OnPosterSelected(object sender, SelectionChangedEventArgs e)
+    private async void OnPosterPreviewClick(object sender, RoutedEventArgs e)
     {
-        if (PosterGrid.SelectedItem is TmdbImageChoice choice)
-        { SelectedPosterPath = choice.FilePath; PosterPreview.Source = new BitmapImage(new Uri(_client.GetImageUrl(choice.FilePath, "w500"))); }
+        if (_posterChoices.Count == 0) { ImageStatusText.Text = "TMDb не предоставил варианты постеров для этого фильма."; return; }
+        var picker = new TmdbImagePickerWindow(_posterChoices, true, this);
+        var path = await picker.ShowAsync();
+        if (!string.IsNullOrWhiteSpace(path)) { SelectedPosterPath = path; RefreshPosterPreview(); }
     }
 
-    private void OnBackdropSelected(object sender, SelectionChangedEventArgs e)
+    private async void OnBackdropPreviewClick(object sender, RoutedEventArgs e)
     {
-        if (BackdropGrid.SelectedItem is TmdbImageChoice choice)
-        { SelectedBackdropPath = choice.FilePath; BackdropPreview.Source = new BitmapImage(new Uri(_client.GetImageUrl(choice.FilePath, "w780"))); }
+        if (_backdropChoices.Count == 0) { ImageStatusText.Text = "TMDb не предоставил варианты фоновых изображений для этого фильма."; return; }
+        var picker = new TmdbImagePickerWindow(_backdropChoices, false, this);
+        var path = await picker.ShowAsync();
+        if (!string.IsNullOrWhiteSpace(path)) { SelectedBackdropPath = path; RefreshBackdropPreview(); }
     }
+
+    private void RefreshPosterPreview()
+    {
+        try { PosterPreview.Source = !string.IsNullOrWhiteSpace(SelectedPosterPath) ? new BitmapImage(new Uri(_client.GetImageUrl(SelectedPosterPath, "w500"))) : null; } catch { PosterPreview.Source = null; }
+    }
+    private void RefreshBackdropPreview()
+    {
+        try { BackdropPreview.Source = !string.IsNullOrWhiteSpace(SelectedBackdropPath) ? new BitmapImage(new Uri(_client.GetImageUrl(SelectedBackdropPath, "w1280"))) : null; } catch { BackdropPreview.Source = null; }
+    }
+
+    private void ApplyEditedMetadata()
+    {
+        if (Movie == null) return;
+        Movie.Title = MovieTitleEditor.Text.Trim();
+        Movie.Tagline = TaglineEditor.Text.Trim();
+        Movie.Overview = OverviewEditor.Text.Trim();
+        Movie.ReleaseDate = ReleaseDateEditor.Text.Trim();
+        if (int.TryParse(RuntimeEditor.Text, out var runtime)) Movie.Runtime = Math.Max(0, runtime);
+        if (double.TryParse(RatingEditor.Text.Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out var rating)) Movie.Rating = Math.Clamp(rating, 0, 10);
+        Movie.Genres = SplitNames(GenresEditor.Text).Select(name => new TmdbNamed { Name = name }).ToList();
+        Movie.ProductionCountries = SplitNames(CountriesEditor.Text).Select(name => new TmdbCountry { Name = name }).ToList();
+        Movie.Directors = SplitNames(DirectorEditor.Text);
+        Movie.Writers = SplitNames(WritersEditor.Text);
+        var oldCast = Movie.Cast.GroupBy(c => c.Name, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+        Movie.Cast = SplitNames(CastEditor.Text).Select((name, index) => oldCast.TryGetValue(name, out var existing)
+            ? existing : new TmdbCastMember { Name = name, Order = index }).ToList();
+    }
+
+    private static List<string> SplitNames(string text) => text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
 
     private void OnConfirmClick(object sender, RoutedEventArgs e)
     {
-        if (Movie != null) CloseWithResult(ContentDialogResult.Primary);
+        ApplyEditedMetadata();
+        if (Movie != null && !string.IsNullOrWhiteSpace(Movie.Title)) CloseWithResult(ContentDialogResult.Primary);
+        else ImageStatusText.Text = "Укажите название фильма перед подтверждением.";
     }
     private void OnCancelClick(object sender, RoutedEventArgs e) => CloseWithResult(ContentDialogResult.None);
     private void CloseWithResult(ContentDialogResult result) { _completion.TrySetResult(result); Close(); }

@@ -109,17 +109,88 @@ public sealed partial class MoviePreparationPage : Page
 
     private async void OnSavePreparedMovieClick(object sender, RoutedEventArgs e)
     {
-        if ((sender as Button)?.Tag is not MovieFolderCandidate candidate || candidate.SelectedMovie is not TmdbMovie movie)
+        if ((sender as Button)?.Tag is not MovieFolderCandidate candidate || candidate.SelectedMovie is not TmdbMovie)
         {
             StatusText.Text = "Сначала выберите совпадение фильма в TMDb.";
             return;
         }
+        await SaveCandidateAsync(candidate, confirmOverwrite: true);
+    }
+
+    private async void OnSaveAllPreparedMoviesClick(object sender, RoutedEventArgs e)
+    {
+        var selected = _candidates.Where(c => c.SelectedMovie != null).ToList();
+        if (selected.Count == 0)
+        {
+            StatusText.Text = "Сначала выберите совпадение TMDb хотя бы для одного фильма.";
+            return;
+        }
+
+        var existingCount = selected.Sum(c => new[] { "movie.nfo", "poster.jpg", "fanart.jpg" }
+            .Count(name => File.Exists(Path.Combine(c.FolderPath, name))));
+        var warning = existingCount > 0
+            ? $"\n\nОбнаружено существующих файлов, которые могут быть заменены: {existingCount}."
+            : string.Empty;
+        var confirm = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = "Пакетная подготовка",
+            Content = $"Будут подготовлены {selected.Count} фильм(ов). Для выбранных фильмов будут созданы movie.nfo, poster.jpg и fanart.jpg.{warning}\n\nПродолжить?",
+            PrimaryButtonText = "Начать",
+            CloseButtonText = "Отмена",
+            DefaultButton = ContentDialogButton.Primary
+        };
+        if (await confirm.ShowAsync() != ContentDialogResult.Primary) return;
+
+        int saved = 0, failed = 0;
+        for (int i = 0; i < selected.Count; i++)
+        {
+            var candidate = selected[i];
+            StatusText.Text = $"Пакетная подготовка: {i + 1}/{selected.Count} — {candidate.FolderName}…";
+            var ok = await SaveCandidateAsync(candidate, confirmOverwrite: false);
+            if (ok) saved++; else failed++;
+        }
+
+        // Re-scan only the selected root so the freshly written NFO files are picked up immediately.
+        try
+        {
+            var root = (RootPathBox.Text ?? string.Empty).Trim().Trim('"');
+            var driveRoot = Path.GetPathRoot(root);
+            if (!string.IsNullOrWhiteSpace(driveRoot) && Directory.Exists(root))
+            {
+                var serial = CineLibraryCS.Services.DatabaseService.GetVolumeSerial(driveRoot);
+                if (!string.IsNullOrWhiteSpace(serial))
+                {
+                    var progress = new Progress<CineLibraryCS.Services.ScanProgress>(p =>
+                    {
+                        if (!p.Done) StatusText.Text = $"Обновление медиатеки… найдено: {p.Found}";
+                    });
+                    await CineLibraryCS.Services.AppState.Instance.Scanner.ScanAsync(
+                        serial, driveRoot, progress, CancellationToken.None, root, incremental: false);
+                }
+            }
+            StatusText.Text = $"Пакетная подготовка завершена. Успешно: {saved}, ошибок/отмен: {failed}. Медиатека обновлена.";
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Пакетная подготовка завершена. Успешно: {saved}, ошибок/отмен: {failed}. Не удалось обновить медиатеку: {ex.Message}";
+        }
+    }
+
+    private async Task<bool> SaveCandidateAsync(MovieFolderCandidate candidate, bool confirmOverwrite)
+    {
+        if (candidate.SelectedMovie is not TmdbMovie movie)
+        {
+            StatusText.Text = $"Для папки «{candidate.FolderName}» не выбрано совпадение TMDb.";
+            return false;
+        }
+
 
         var nfoPath = Path.Combine(candidate.FolderPath, "movie.nfo");
         var posterPath = Path.Combine(candidate.FolderPath, "poster.jpg");
         var fanartPath = Path.Combine(candidate.FolderPath, "fanart.jpg");
         var existing = new[] { nfoPath, posterPath, fanartPath }.Where(File.Exists).Select(Path.GetFileName).ToArray();
-        if (existing.Length > 0)
+        if (confirmOverwrite && existing.Length > 0)
         {
             var confirm = new ContentDialog
             {
@@ -130,7 +201,7 @@ public sealed partial class MoviePreparationPage : Page
                 CloseButtonText = "Отмена",
                 DefaultButton = ContentDialogButton.Close
             };
-            if (await confirm.ShowAsync() != ContentDialogResult.Primary) return;
+            if (await confirm.ShowAsync() != ContentDialogResult.Primary) return false;
         }
 
         var tempSuffix = ".tmp-" + Guid.NewGuid().ToString("N");
@@ -186,10 +257,12 @@ public sealed partial class MoviePreparationPage : Page
             StatusText.Text = technicalInfo == null
                 ? $"Файлы сохранены в папке «{candidate.FolderName}», но технические параметры видео не удалось прочитать. Проверьте формат файла."
                 : $"Файлы успешно сохранены в папке «{candidate.FolderName}» вместе с длительностью, видеопараметрами, аудиодорожками и языками субтитров.";
+            return true;
         }
         catch (Exception ex)
         {
             StatusText.Text = "Не удалось сохранить подготовку фильма: " + ex.Message;
+            return false;
         }
         finally
         {

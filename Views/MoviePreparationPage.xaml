@@ -7,12 +7,13 @@
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
         <StackPanel Spacing="5">
             <TextBlock Text="Подготовка медиатеки" FontSize="28" FontWeight="SemiBold" Foreground="{ThemeResource TextBrush}"/>
-            <TextBlock Text="Найдите папки с видео без movie.nfo и вручную сопоставьте каждый фильм с записью TMDb. После выбора совпадения сохраните movie.nfo, poster.jpg и fanart.jpg в папку фильма." TextWrapping="Wrap" Foreground="{ThemeResource MutedBrush}"/>
+            <TextBlock Text="Найдите папки с видео без movie.nfo и вручную сопоставьте каждый фильм с записью TMDb. Можно сохранять фильмы по одному или подготовить все фильмы с выбранными совпадениями одной операцией." TextWrapping="Wrap" Foreground="{ThemeResource MutedBrush}"/>
         </StackPanel>
         <Grid Grid.Row="1" ColumnSpacing="8">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <TextBox x:Name="RootPathBox" PlaceholderText="Выберите папку с фильмами" IsReadOnly="True" VerticalAlignment="Center"/>
             <Button Grid.Column="1" Content="Выбрать папку…" Click="OnChooseFolderClick"/>
+            <Button Grid.Column="2" Content="Сохранить выбранные фильмы" Click="OnSaveAllPreparedMoviesClick" Style="{ThemeResource AccentButtonStyle}"/>
         </Grid>
         <CheckBox x:Name="DownloadActorPhotosCheckBox" Grid.Row="2" Content="Скачивать фотографии актёров в папку .actors" IsChecked="True"/>
         <TextBlock x:Name="StatusText" Grid.Row="3" Text="Выберите папку с фильмами — поиск начнётся автоматически." TextWrapping="Wrap" Foreground="{ThemeResource MutedBrush}"/>

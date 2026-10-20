@@ -14,6 +14,8 @@ public sealed partial class MoviePreparationPage : Page
     private static readonly HashSet<string> VideoExtensions = new(StringComparer.OrdinalIgnoreCase)
     { ".mkv", ".mp4", ".avi", ".m4v", ".mov", ".wmv", ".mpg", ".mpeg", ".ts", ".m2ts", ".webm", ".vob" };
     private readonly ObservableCollection<MovieFolderCandidate> _candidates = new();
+    private readonly List<string> _scanRoots = new();
+    private bool _isBusy;
 
     public MoviePreparationPage()
     {
@@ -23,6 +25,7 @@ public sealed partial class MoviePreparationPage : Page
 
     private async void OnChooseFolderClick(object sender, RoutedEventArgs e)
     {
+        if (_isBusy) return;
         try
         {
             var picker = new Windows.Storage.Pickers.FolderPicker
@@ -33,12 +36,12 @@ public sealed partial class MoviePreparationPage : Page
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
             WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
             var folder = await picker.PickSingleFolderAsync();
-            if (folder != null)
-            {
-                RootPathBox.Text = folder.Path;
-                // Scan immediately after the user chooses a folder.
-                OnScanClick(this, new RoutedEventArgs());
-            }
+            if (folder == null) return;
+
+            if (!_scanRoots.Contains(folder.Path, StringComparer.OrdinalIgnoreCase))
+                _scanRoots.Add(folder.Path);
+            RootPathBox.Text = string.Join("; ", _scanRoots);
+            ScanAllRoots();
         }
         catch (Exception ex)
         {
@@ -46,43 +49,49 @@ public sealed partial class MoviePreparationPage : Page
         }
     }
 
-    private void OnScanClick(object sender, RoutedEventArgs e)
+    private void ScanAllRoots()
     {
-        var root = (RootPathBox.Text ?? string.Empty).Trim().Trim('"');
-        if (!Directory.Exists(root))
+        if (_scanRoots.Count == 0)
         {
-            StatusText.Text = "Указанная папка не существует или недоступна.";
+            StatusText.Text = "Добавьте хотя бы одну папку с фильмами.";
             return;
         }
 
-        _candidates.Clear();
+        int added = 0;
+        var knownPaths = new HashSet<string>(_candidates.Select(c => c.FolderPath), StringComparer.OrdinalIgnoreCase);
         StatusText.Text = "Поиск папок с видео без movie.nfo…";
         try
         {
-            var dirs = new List<string> { root };
-            try { dirs.AddRange(Directory.EnumerateDirectories(root, "*", SearchOption.AllDirectories)); }
-            catch (UnauthorizedAccessException) { }
-            catch (IOException) { }
-
-            foreach (var dir in dirs.Distinct(StringComparer.OrdinalIgnoreCase))
+            foreach (var root in _scanRoots.ToArray())
             {
-                string[] videos;
-                try { videos = Directory.EnumerateFiles(dir).Where(f => VideoExtensions.Contains(Path.GetExtension(f))).ToArray(); }
-                catch { continue; }
-                if (videos.Length == 0) continue;
-                // A folder is already prepared if Kodi's standard NFO exists.
-                if (File.Exists(Path.Combine(dir, "movie.nfo"))) continue;
-                _candidates.Add(new MovieFolderCandidate(dir, videos));
+                if (!Directory.Exists(root)) continue;
+                var dirs = new List<string> { root };
+                try { dirs.AddRange(Directory.EnumerateDirectories(root, "*", SearchOption.AllDirectories)); }
+                catch (UnauthorizedAccessException) { }
+                catch (IOException) { }
+
+                foreach (var dir in dirs.Distinct(StringComparer.OrdinalIgnoreCase))
+                {
+                    if (knownPaths.Contains(dir)) continue;
+                    string[] videos;
+                    try { videos = Directory.EnumerateFiles(dir).Where(f => VideoExtensions.Contains(Path.GetExtension(f))).ToArray(); }
+                    catch { continue; }
+                    if (videos.Length == 0 || File.Exists(Path.Combine(dir, "movie.nfo"))) continue;
+                    _candidates.Add(new MovieFolderCandidate(dir, videos));
+                    knownPaths.Add(dir);
+                    added++;
+                }
             }
             StatusText.Text = _candidates.Count == 0
-                ? "Папки с видео без movie.nfo не найдены."
-                : $"Найдено папок: {_candidates.Count}. Выберите правильное совпадение TMDb для каждого фильма.";
+                ? "В добавленных папках не найдены видео без movie.nfo."
+                : $"Добавлено корневых папок: {_scanRoots.Count}. Фильмов к подготовке: {_candidates.Count}. Новых при последнем поиске: {added}.";
         }
-        catch (Exception ex) { StatusText.Text = "Не удалось просканировать папку: " + ex.Message; }
+        catch (Exception ex) { StatusText.Text = "Не удалось просканировать папки: " + ex.Message; }
     }
 
     private async void OnPickMovieClick(object sender, RoutedEventArgs e)
     {
+        if (_isBusy) return;
         if ((sender as Button)?.Tag is not MovieFolderCandidate candidate) return;
         var year = candidate.Year;
         using var client = new TmdbClient(language: "ru-RU");
@@ -109,6 +118,7 @@ public sealed partial class MoviePreparationPage : Page
 
     private async void OnSavePreparedMovieClick(object sender, RoutedEventArgs e)
     {
+        if (_isBusy) return;
         if ((sender as Button)?.Tag is not MovieFolderCandidate candidate || candidate.SelectedMovie is not TmdbMovie)
         {
             StatusText.Text = "Сначала выберите совпадение фильма в TMDb.";
@@ -117,8 +127,95 @@ public sealed partial class MoviePreparationPage : Page
         await SaveCandidateAsync(candidate, confirmOverwrite: true);
     }
 
+    private async void OnAutoPrepareAllClick(object sender, RoutedEventArgs e)
+    {
+        if (_isBusy) return;
+        var pending = _candidates.ToList();
+        if (pending.Count == 0)
+        {
+            StatusText.Text = "Сначала добавьте папки с фильмами.";
+            return;
+        }
+
+        var existingCount = pending.Sum(c => new[] { "movie.nfo", "poster.jpg", "fanart.jpg" }
+            .Count(name => File.Exists(Path.Combine(c.FolderPath, name))));
+        var warning = existingCount > 0 ? $"\n\nНайдено файлов, которые могут быть заменены: {existingCount}." : string.Empty;
+        var confirm = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = "Автоматическая подготовка",
+            Content = $"Для {pending.Count} фильмов будет выбрано первое совпадение TMDb, загружены постер, фон и фотографии актёров, создан movie.nfo и выполнено обновление медиатеки.{warning}\n\nПервый результат может оказаться неверным — после подготовки проверьте названия и годы фильмов. Продолжить?",
+            PrimaryButtonText = "Начать",
+            CloseButtonText = "Отмена",
+            DefaultButton = ContentDialogButton.Primary
+        };
+        if (await confirm.ShowAsync() != ContentDialogResult.Primary) return;
+
+        _isBusy = true;
+        int saved = 0, failed = 0, noMatch = 0;
+        try
+        {
+            using var client = new TmdbClient(language: "ru-RU");
+            for (int i = 0; i < pending.Count; i++)
+            {
+                var candidate = pending[i];
+                StatusText.Text = $"Автоподготовка: поиск {i + 1}/{pending.Count} — {candidate.FolderName}…";
+                try
+                {
+                    if (candidate.SelectedMovie == null)
+                    {
+                        var results = await client.SearchMovieAsync(candidate.SearchTitle, candidate.Year);
+                        if (results.Count == 0 && candidate.Year.HasValue)
+                            results = await client.SearchMovieAsync(candidate.SearchTitle);
+                        if (results.Count == 0)
+                        {
+                            candidate.MatchSummary = "Совпадений TMDb не найдено — требуется ручной выбор";
+                            noMatch++;
+                            RefreshCandidates();
+                            continue;
+                        }
+
+                        // Automatically accept the first TMDb search result, then load full details
+                        // so NFO contains credits, certifications and actor profile paths.
+                        var first = results[0];
+                        var details = await client.GetMovieDetailsAsync(first.TmdbId);
+                        if (details == null) throw new InvalidOperationException("TMDb не вернул подробности фильма.");
+                        var images = await client.GetMovieImagesAsync(details.TmdbId);
+                        var poster = !string.IsNullOrWhiteSpace(first.PosterPath) ? first.PosterPath : details.PosterPath;
+                        var backdrop = !string.IsNullOrWhiteSpace(first.BackdropPath) ? first.BackdropPath : details.BackdropPath;
+                        if (string.IsNullOrWhiteSpace(poster) && images.Posters.Count > 0) poster = images.Posters[0];
+                        if (string.IsNullOrWhiteSpace(backdrop) && images.Backdrops.Count > 0) backdrop = images.Backdrops[0];
+                        if (string.IsNullOrWhiteSpace(poster) || string.IsNullOrWhiteSpace(backdrop))
+                            throw new InvalidOperationException("У первого совпадения TMDb отсутствует постер или фоновое изображение.");
+
+                        candidate.SelectedMovie = details;
+                        candidate.SelectedPosterPath = poster;
+                        candidate.SelectedBackdropPath = backdrop;
+                        candidate.MatchSummary = $"Автоматически выбрано: {details.Title}{(details.Year > 0 ? $" ({details.Year})" : string.Empty)} · TMDb ID: {details.TmdbId}";
+                        RefreshCandidates();
+                    }
+                    StatusText.Text = $"Автоподготовка: сохранение {i + 1}/{pending.Count} — {candidate.FolderName}…";
+                    if (await SaveCandidateAsync(candidate, confirmOverwrite: false)) saved++;
+                    else failed++;
+                }
+                catch (Exception ex)
+                {
+                    candidate.MatchSummary = "Ошибка автоподготовки: " + ex.Message;
+                    failed++;
+                    RefreshCandidates();
+                }
+            }
+
+            var libraryUpdated = await UpdateLibraryAsync();
+            StatusText.Text = $"Автоподготовка завершена. Успешно: {saved}; ошибок: {failed}; совпадений не найдено: {noMatch}. " +
+                (libraryUpdated ? "Медиатека обновлена." : "Файлы сохранены, но обновить медиатеку не удалось.");
+        }
+        finally { _isBusy = false; }
+    }
+
     private async void OnSaveAllPreparedMoviesClick(object sender, RoutedEventArgs e)
     {
+        if (_isBusy) return;
         var selected = _candidates.Where(c => c.SelectedMovie != null).ToList();
         if (selected.Count == 0)
         {
@@ -142,58 +239,61 @@ public sealed partial class MoviePreparationPage : Page
         };
         if (await confirm.ShowAsync() != ContentDialogResult.Primary) return;
 
+        _isBusy = true;
         int saved = 0, failed = 0;
-        for (int i = 0; i < selected.Count; i++)
-        {
-            var candidate = selected[i];
-            StatusText.Text = $"Пакетная подготовка: {i + 1}/{selected.Count} — {candidate.FolderName}…";
-            var ok = await SaveCandidateAsync(candidate, confirmOverwrite: false);
-            if (ok) saved++; else failed++;
-        }
-
-        // Re-scan only the selected root so the freshly written NFO files are picked up immediately.
         try
         {
-            var root = (RootPathBox.Text ?? string.Empty).Trim().Trim('"');
-            var driveRoot = Path.GetPathRoot(root);
-            var libraryUpdated = false;
-            if (!string.IsNullOrWhiteSpace(driveRoot) && Directory.Exists(root))
+            for (int i = 0; i < selected.Count; i++)
             {
-                var serial = CineLibraryCS.Services.DatabaseService.GetVolumeSerial(driveRoot);
-                if (!string.IsNullOrWhiteSpace(serial))
-                {
-                    // The preparation page can be used on a folder whose drive has never
-                    // been added to CineLibrary. Scanner inserts movies with a FK to drives,
-                    // so register the parent drive row before starting the scan.
-                    var db = CineLibraryCS.Services.AppState.Instance.Db;
-                    var letter = driveRoot.TrimEnd('\\', ':');
-                    var label = $"Диск ({letter}:)";
-                    db.AddDrive(serial, label, letter);
-
-                    // Register the selected scan root too. This is idempotent and makes the
-                    // folder visible to the regular drive/library workflow after preparation.
-                    var relativeRoot = Path.GetRelativePath(driveRoot, root).Replace('\\', '/').TrimEnd('/');
-                    if (relativeRoot == ".") relativeRoot = string.Empty;
-                    if (!db.GetDriveRoots(serial).Any(r => string.Equals(r.RootPath, relativeRoot, StringComparison.OrdinalIgnoreCase)))
-                        db.AddDriveRoot(serial, relativeRoot);
-
-                    var progress = new Progress<CineLibraryCS.Services.ScanProgress>(p =>
-                    {
-                        if (!p.Done) StatusText.Text = $"Обновление медиатеки… найдено: {p.Found}";
-                    });
-                    await CineLibraryCS.Services.AppState.Instance.Scanner.ScanAsync(
-                        serial, driveRoot, progress, CancellationToken.None, root, incremental: false);
-                    libraryUpdated = true;
-                }
+                var candidate = selected[i];
+                StatusText.Text = $"Пакетная подготовка: {i + 1}/{selected.Count} — {candidate.FolderName}…";
+                var ok = await SaveCandidateAsync(candidate, confirmOverwrite: false);
+                if (ok) saved++; else failed++;
             }
-            StatusText.Text = $"Пакетная подготовка завершена. Успешно: {saved}, ошибок/отмен: {failed}. " +
-                (libraryUpdated ? "Медиатека обновлена." : "Файлы сохранены, но папка не добавлена в медиатеку: не удалось определить локальный диск." );
+
+            try
+            {
+                var libraryUpdated = await UpdateLibraryAsync();
+                StatusText.Text = $"Пакетная подготовка завершена. Успешно: {saved}, ошибок/отмен: {failed}. " +
+                    (libraryUpdated ? "Медиатека обновлена." : "Файлы сохранены, но обновить медиатеку не удалось." );
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = $"Пакетная подготовка завершена. Успешно: {saved}, ошибок/отмен: {failed}. Не удалось обновить медиатеку: {ex.Message}";
+            }
         }
-        catch (Exception ex)
-        {
-            StatusText.Text = $"Пакетная подготовка завершена. Успешно: {saved}, ошибок/отмен: {failed}. Не удалось обновить медиатеку: {ex.Message}";
-        }
+        finally { _isBusy = false; }
     }
+
+    private async Task<bool> UpdateLibraryAsync()
+    {
+        var roots = _scanRoots.Where(Directory.Exists).ToList();
+        if (roots.Count == 0) return false;
+        var updated = false;
+        foreach (var root in roots)
+        {
+            var driveRoot = Path.GetPathRoot(root);
+            if (string.IsNullOrWhiteSpace(driveRoot)) continue;
+            var serial = CineLibraryCS.Services.DatabaseService.GetVolumeSerial(driveRoot);
+            if (string.IsNullOrWhiteSpace(serial)) continue;
+            var db = CineLibraryCS.Services.AppState.Instance.Db;
+            var letter = driveRoot.TrimEnd('\\', ':');
+            db.AddDrive(serial, $"Диск ({letter}:)", letter);
+            var relativeRoot = Path.GetRelativePath(driveRoot, root).Replace('\\', '/').TrimEnd('/');
+            if (relativeRoot == ".") relativeRoot = string.Empty;
+            if (!db.GetDriveRoots(serial).Any(r => string.Equals(r.RootPath, relativeRoot, StringComparison.OrdinalIgnoreCase)))
+                db.AddDriveRoot(serial, relativeRoot);
+            var progress = new Progress<CineLibraryCS.Services.ScanProgress>(p =>
+            {
+                if (!p.Done) StatusText.Text = $"Обновление медиатеки: {root} — найдено: {p.Found}";
+            });
+            await CineLibraryCS.Services.AppState.Instance.Scanner.ScanAsync(
+                serial, driveRoot, progress, CancellationToken.None, root, incremental: false);
+            updated = true;
+        }
+        return updated;
+    }
+
 
     private async Task<bool> SaveCandidateAsync(MovieFolderCandidate candidate, bool confirmOverwrite)
     {

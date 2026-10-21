@@ -100,9 +100,25 @@ public sealed partial class TmdbImagePickerWindow : Window
     }
     private void OnImageItemClick(object sender, ItemClickEventArgs e)
     {
-        // Explicitly set selection on the first click, including clicks directly on the image.
-        if (e.ClickedItem is TmdbImageChoice choice)
-            ImagesGrid.SelectedItem = choice;
+        if (e.ClickedItem is TmdbImageChoice choice) SelectImage(choice);
+    }
+
+    private void OnImageTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    {
+        if (sender is FrameworkElement element && element.DataContext is TmdbImageChoice choice)
+        {
+            SelectImage(choice);
+            e.Handled = true;
+        }
+    }
+
+    private void SelectImage(TmdbImageChoice choice)
+    {
+        ImagesGrid.SelectedItem = choice;
+        // Make the first click visually apparent even though the card template is custom.
+        ImagesGrid.UpdateLayout();
+        if (ImagesGrid.ContainerFromItem(choice) is GridViewItem item)
+            item.IsSelected = true;
     }
 
     private void OnChooseClick(object sender, RoutedEventArgs e)

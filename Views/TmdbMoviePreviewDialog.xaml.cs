@@ -18,20 +18,23 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     private List<TmdbImageChoice> _posterChoices = new();
     private List<TmdbImageChoice> _backdropChoices = new();
     private nint _ownerHandle;
+    private readonly Window _ownerWindow;
     private bool _ownerDisabled;
     private bool _shown;
     private readonly string? _initialPosterLocalPath;
     private readonly string? _initialBackdropLocalPath;
     public bool PosterWasChanged { get; private set; }
     public bool BackdropWasChanged { get; private set; }
+    public bool DownloadActorPhotos => DownloadActorPhotosCheckBox.IsChecked == true;
 
     public TmdbMovie? Movie { get; private set; }
     public string? SelectedPosterPath { get; private set; }
     public string? SelectedBackdropPath { get; private set; }
 
-    public TmdbMoviePreviewDialog(TmdbClient client, TmdbMovie searchHit, string? initialPosterLocalPath = null, string? initialBackdropLocalPath = null)
+    public TmdbMoviePreviewDialog(TmdbClient client, TmdbMovie searchHit, string? initialPosterLocalPath = null, string? initialBackdropLocalPath = null, Window? ownerWindow = null)
     {
         _client = client;
+        _ownerWindow = ownerWindow ?? App.MainWindow;
         _searchHit = searchHit;
         _initialPosterLocalPath = initialPosterLocalPath;
         _initialBackdropLocalPath = initialBackdropLocalPath;
@@ -46,7 +49,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
         var window = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(hwnd));
         SetApplicationIcon(window);
-        var ownerHwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+        var ownerHwnd = WinRT.Interop.WindowNative.GetWindowHandle(_ownerWindow);
         var owner = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(ownerHwnd));
         _ownerHandle = ownerHwnd;
         var titleBar = window.TitleBar;
@@ -214,7 +217,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     private void CloseWithResult(ContentDialogResult result) { _completion.TrySetResult(result); Close(); }
     private void OnClosed(object sender, WindowEventArgs args)
     {
-        if (_ownerDisabled && _ownerHandle != 0) { EnableWindow(_ownerHandle, true); _ownerDisabled = false; try { App.MainWindow?.Activate(); } catch { } }
+        if (_ownerDisabled && _ownerHandle != 0) { EnableWindow(_ownerHandle, true); _ownerDisabled = false; try { _ownerWindow.Activate(); } catch { } }
         if (!_completion.Task.IsCompleted) _completion.TrySetResult(ContentDialogResult.None);
     }
     [DllImport("user32.dll")] private static extern bool EnableWindow(nint hWnd, bool bEnable);

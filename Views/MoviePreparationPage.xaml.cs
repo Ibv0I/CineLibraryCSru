@@ -4,6 +4,7 @@ using CineLibraryCS.Services.Tmdb;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Xml;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using MediaInfo;
 
@@ -15,12 +16,16 @@ public sealed partial class MoviePreparationPage : Page
     { ".mkv", ".mp4", ".avi", ".m4v", ".mov", ".wmv", ".mpg", ".mpeg", ".ts", ".m2ts", ".webm", ".vob" };
     private readonly ObservableCollection<MovieFolderCandidate> _candidates = new();
     private readonly List<string> _scanRoots = new();
+    private readonly List<string> _excludedFolders = new();
+    private static string SettingsPath => Path.Combine(AppContext.BaseDirectory, "MoviePreparationSettings.json");
     private bool _isBusy;
 
     public MoviePreparationPage()
     {
         InitializeComponent();
         FoldersList.ItemsSource = _candidates;
+        LoadPreparationSettings();
+        RefreshRootFolders();
     }
 
     private async void OnChooseFolderClick(object sender, RoutedEventArgs e)
@@ -40,7 +45,7 @@ public sealed partial class MoviePreparationPage : Page
 
             if (!_scanRoots.Contains(folder.Path, StringComparer.OrdinalIgnoreCase))
                 _scanRoots.Add(folder.Path);
-            RootPathBox.Text = string.Join("; ", _scanRoots);
+            RefreshRootFolders();
             ScanAllRoots();
         }
         catch (Exception ex)
@@ -48,6 +53,124 @@ public sealed partial class MoviePreparationPage : Page
             StatusText.Text = "Не удалось открыть выбор папки: " + ex.Message;
         }
     }
+
+    private void RefreshRootFolders()
+    {
+        RootFoldersList.ItemsSource = null;
+        RootFoldersList.ItemsSource = _scanRoots.Select(path => new RootFolderEntry(path)).ToList();
+    }
+
+    private void OnRemoveRootClick(object sender, RoutedEventArgs e)
+    {
+        if ((sender as Button)?.Tag is not string path) return;
+        _scanRoots.RemoveAll(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase));
+        var removed = _candidates.Where(c => !_scanRoots.Any(root => IsSameOrChildPath(c.FolderPath, root)) || IsExcluded(c.FolderPath)).ToList();
+        foreach (var candidate in removed) _candidates.Remove(candidate);
+        RefreshRootFolders();
+        RefreshCandidates();
+        StatusText.Text = $"Удалена корневая папка «{path}» и исключено из списка папок фильмов: {removed.Count}.";
+    }
+
+    private async void OnManageExclusionsClick(object sender, RoutedEventArgs e)
+    {
+        var list = new ListView { SelectionMode = ListViewSelectionMode.None, MaxHeight = 360 };
+        void RefreshExclusionList()
+        {
+            list.ItemsSource = null;
+            list.ItemsSource = _excludedFolders.Select(path => new ExclusionFolderEntry(path)).ToList();
+        }
+        list.ItemTemplate = (DataTemplate)Microsoft.UI.Xaml.Markup.XamlReader.Load(
+            "<DataTemplate xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"><Grid Padding=\"4\" ColumnSpacing=\"8\"><Grid.ColumnDefinitions><ColumnDefinition Width=\"*\"/><ColumnDefinition Width=\"Auto\"/></Grid.ColumnDefinitions><TextBlock Text=\"{Binding Path}\" TextWrapping=\"Wrap\" VerticalAlignment=\"Center\"/><Button Grid.Column=\"1\" Content=\"✕\" Tag=\"{Binding Path}\"/></Grid></DataTemplate>");
+        list.AddHandler(Button.ClickEvent, new RoutedEventHandler((s, args) =>
+        {
+            var button = args.OriginalSource as Button ?? args.Source as Button;
+            if (button?.Tag is string path)
+            {
+                _excludedFolders.RemoveAll(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase));
+                SavePreparationSettings();
+                RefreshExclusionList();
+            }
+        }), true);
+        RefreshExclusionList();
+        var addButton = new Button { Content = "Добавить папку исключения…", HorizontalAlignment = HorizontalAlignment.Left };
+        addButton.Click += async (_, _) =>
+        {
+            try
+            {
+                var picker = new Windows.Storage.Pickers.FolderPicker { SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.ComputerFolder };
+                picker.FileTypeFilter.Add("*");
+                WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow));
+                var folder = await picker.PickSingleFolderAsync();
+                if (folder == null) return;
+                if (!_excludedFolders.Contains(folder.Path, StringComparer.OrdinalIgnoreCase))
+                    _excludedFolders.Add(folder.Path);
+                SavePreparationSettings();
+                RefreshExclusionList();
+            }
+            catch (Exception ex) { StatusText.Text = "Не удалось добавить папку исключения: " + ex.Message; }
+        };
+        var content = new StackPanel { Spacing = 10, MinWidth = 520 };
+        content.Children.Add(new TextBlock { Text = "Папки из этого списка и все их вложенные папки будут пропускаться при сканировании. Список сохраняется в MoviePreparationSettings.json рядом с программой.", TextWrapping = TextWrapping.Wrap });
+        content.Children.Add(addButton);
+        content.Children.Add(list);
+        var dialog = new ContentDialog { XamlRoot = XamlRoot, Title = "Папки исключения", Content = content, PrimaryButtonText = "Готово", RequestedTheme = ElementTheme.Dark };
+        await dialog.ShowAsync();
+        ScanAllRoots();
+    }
+
+    private void LoadPreparationSettings()
+    {
+        try
+        {
+            if (!File.Exists(SettingsPath)) return;
+            var settings = JsonSerializer.Deserialize<MoviePreparationSettings>(File.ReadAllText(SettingsPath));
+            if (settings?.ExcludedFolders != null)
+                _excludedFolders.AddRange(settings.ExcludedFolders.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct(StringComparer.OrdinalIgnoreCase));
+        }
+        catch { }
+    }
+
+    private void SavePreparationSettings()
+    {
+        try { File.WriteAllText(SettingsPath, JsonSerializer.Serialize(new MoviePreparationSettings { ExcludedFolders = _excludedFolders }, new JsonSerializerOptions { WriteIndented = true })); }
+        catch (Exception ex) { StatusText.Text = "Не удалось сохранить список исключений в папке программы: " + ex.Message; }
+    }
+
+    private IEnumerable<string> EnumerateDirectoriesSkippingExclusions(string root)
+    {
+        var pending = new Stack<string>();
+        pending.Push(root);
+        while (pending.Count > 0)
+        {
+            var current = pending.Pop();
+            if (IsExcluded(current)) continue;
+            yield return current;
+            IEnumerable<string> children;
+            try { children = Directory.EnumerateDirectories(current).ToArray(); }
+            catch { continue; }
+            foreach (var child in children)
+                if (!IsExcluded(child)) pending.Push(child);
+        }
+    }
+
+    private bool IsExcluded(string path) => _excludedFolders.Any(excluded => IsSameOrChildPath(path, excluded));
+
+    private static bool IsSameOrChildPath(string path, string parent)
+    {
+        try
+        {
+            var fullPath = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var fullParent = Path.GetFullPath(parent).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            return string.Equals(fullPath, fullParent, StringComparison.OrdinalIgnoreCase) ||
+                fullPath.StartsWith(fullParent + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
+                fullPath.StartsWith(fullParent + Path.AltDirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+        }
+        catch { return false; }
+    }
+
+    private sealed record RootFolderEntry(string Path);
+    private sealed record ExclusionFolderEntry(string Path);
+    private sealed class MoviePreparationSettings { public List<string> ExcludedFolders { get; set; } = new(); }
 
     private void ScanAllRoots()
     {
@@ -57,6 +180,8 @@ public sealed partial class MoviePreparationPage : Page
             return;
         }
 
+        var excludedCandidates = _candidates.Where(c => IsExcluded(c.FolderPath)).ToList();
+        foreach (var excluded in excludedCandidates) _candidates.Remove(excluded);
         int added = 0;
         var knownPaths = new HashSet<string>(_candidates.Select(c => c.FolderPath), StringComparer.OrdinalIgnoreCase);
         StatusText.Text = "Проверка папок с видео и статуса файлов подготовки…";
@@ -65,12 +190,7 @@ public sealed partial class MoviePreparationPage : Page
             foreach (var root in _scanRoots.ToArray())
             {
                 if (!Directory.Exists(root)) continue;
-                var dirs = new List<string> { root };
-                try { dirs.AddRange(Directory.EnumerateDirectories(root, "*", SearchOption.AllDirectories)); }
-                catch (UnauthorizedAccessException) { }
-                catch (IOException) { }
-
-                foreach (var dir in dirs.Distinct(StringComparer.OrdinalIgnoreCase))
+                foreach (var dir in EnumerateDirectoriesSkippingExclusions(root))
                 {
                     if (knownPaths.Contains(dir)) continue;
                     string[] videos;
@@ -107,6 +227,7 @@ public sealed partial class MoviePreparationPage : Page
         candidate.SelectedMovie = preview.Movie;
         candidate.SelectedPosterPath = preview.SelectedPosterPath ?? preview.Movie.PosterPath;
         candidate.SelectedBackdropPath = preview.SelectedBackdropPath ?? preview.Movie.BackdropPath;
+        candidate.DownloadActorPhotos = preview.DownloadActorPhotos;
         candidate.MatchSummary = $"Готово к сохранению: {preview.Movie.Title}{(preview.Movie.Year > 0 ? $" ({preview.Movie.Year})" : string.Empty)} · TMDb ID: {preview.Movie.TmdbId}";
         RefreshCandidates();
         StatusText.Text = $"Для папки «{candidate.FolderName}» выбраны метаданные и изображения. Нажмите «Сохранить файлы», чтобы создать movie.nfo, poster.jpg и fanart.jpg.";
@@ -351,7 +472,7 @@ public sealed partial class MoviePreparationPage : Page
 
             var technicalInfo = AnalyzeMediaFile(candidate.Videos.OrderByDescending(GetFileSizeSafe).FirstOrDefault() ?? string.Empty);
             var actorThumbs = new Dictionary<int, string>();
-            if (DownloadActorPhotosCheckBox.IsChecked == true)
+            if (candidate.DownloadActorPhotos)
             {
                 var actorsDirectory = Path.Combine(candidate.FolderPath, ".actors");
                 foreach (var actor in movie.Cast.Where(a => !string.IsNullOrWhiteSpace(a.ProfilePath)))
@@ -691,6 +812,7 @@ public sealed class MovieFolderCandidate
     public TmdbMovie? SelectedMovie { get; set; }
     public string? SelectedPosterPath { get; set; }
     public string? SelectedBackdropPath { get; set; }
+    public bool DownloadActorPhotos { get; set; } = true;
     public string MatchSummary { get; set; } = "Совпадение TMDb не выбрано";
     public string PosterGlyph { get; private set; } = "○";
     public string FanartGlyph { get; private set; } = "○";

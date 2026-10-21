@@ -1131,7 +1131,8 @@ public sealed partial class MovieDetailDialog : Window
             // is only replaced if the user opens its picker and selects a different image.
             var picker = new TmdbMoviePreviewDialog(client, searchHit,
                 localPoster != null && File.Exists(localPoster) ? localPoster : null,
-                localFanart != null && File.Exists(localFanart) ? localFanart : null);
+                localFanart != null && File.Exists(localFanart) ? localFanart : null,
+                ownerWindow: this);
             var result = await picker.ShowAsync();
             if (result != ContentDialogResult.Primary || picker.Movie == null) return;
             if (!picker.PosterWasChanged && !picker.BackdropWasChanged) return;

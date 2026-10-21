@@ -195,13 +195,13 @@
                                 AutomationProperties.Name="Открыть папку фильма">
                             <FontIcon Glyph="&#xE8B7;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="16"/>
                         </Button>
-                        <Button x:Name="EditArtworkBtn" Click="OnEditArtwork"
+                        <Button x:Name="EditArtworkBtn" Click="OnEditArtwork" IsTabStop="False" UseSystemFocusVisuals="False"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
                                 CornerRadius="8" Padding="12,8"
-                                ToolTipService.ToolTip="Изменить постер и баннер"
-                                AutomationProperties.Name="Изменить постер и баннер">
+                                ToolTipService.ToolTip="Изменить метаданные, постер и баннер"
+                                AutomationProperties.Name="Изменить метаданные, постер и баннер">
                             <FontIcon Glyph="&#xE70F;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="16"/>
                         </Button>
                         <Button x:Name="FavBtn" Click="OnToggleFav"

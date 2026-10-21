@@ -3998,6 +3998,97 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         cmd.ExecuteNonQuery();
     }
 
+    /// <summary>Persists edited TMDb metadata from the movie details editor.</summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public void UpdateMovieMetadata(int movieId, string title, string? originalTitle, string? tagline,
+        string? plot, string? premiered, int? year, int? runtime, double? rating,
+        string? country, string? studio, string? imdbId, string? tmdbId,
+        IReadOnlyList<string> genres, IReadOnlyList<string> directors,
+        IReadOnlyList<string> writers, IReadOnlyList<string> actors)
+    {
+        using (var cmd = _conn.CreateCommand())
+        {
+            cmd.CommandText = @"UPDATE movies SET title=@title, original_title=@originalTitle, tagline=@tagline,
+                plot=@plot, premiered=@premiered, year=@year, runtime=@runtime, rating=@rating,
+                country=@country, studio=@studio, imdb_id=@imdb, tmdb_id=@tmdb,
+                date_modified=strftime('%s','now') WHERE id=@id";
+            cmd.Parameters.AddWithValue("@title", title);
+            cmd.Parameters.AddWithValue("@originalTitle", (object?)originalTitle ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@tagline", (object?)tagline ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@plot", (object?)plot ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@premiered", (object?)premiered ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@year", (object?)year ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@runtime", (object?)runtime ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@rating", (object?)rating ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@country", (object?)country ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@studio", (object?)studio ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@imdb", (object?)imdbId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@tmdb", (object?)tmdbId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@id", movieId);
+            cmd.ExecuteNonQuery();
+        }
+        ReplaceMovieNamedRelation(movieId, genres, "genres", "movie_genres", "genre_id");
+        ReplaceMovieNamedRelation(movieId, directors, "directors", "movie_directors", "director_id");
+        ReplaceMovieNamedRelation(movieId, writers, "writers", "movie_writers", "writer_id");
+        using (var del = _conn.CreateCommand())
+        {
+            del.CommandText = "DELETE FROM movie_actors WHERE movie_id=@id";
+            del.Parameters.AddWithValue("@id", movieId);
+            del.ExecuteNonQuery();
+        }
+        var order = 0;
+        foreach (var name in actors.Where(n => !string.IsNullOrWhiteSpace(n)).Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            int actorId;
+            using (var actor = _conn.CreateCommand())
+            {
+                actor.CommandText = "INSERT OR IGNORE INTO actors(name) VALUES(@name)";
+                actor.Parameters.AddWithValue("@name", name.Trim());
+                actor.ExecuteNonQuery();
+            }
+            using (var find = _conn.CreateCommand())
+            {
+                find.CommandText = "SELECT id FROM actors WHERE name=@name COLLATE NOCASE";
+                find.Parameters.AddWithValue("@name", name.Trim());
+                actorId = Convert.ToInt32(find.ExecuteScalar());
+            }
+            using var link = _conn.CreateCommand();
+            link.CommandText = "INSERT OR IGNORE INTO movie_actors(movie_id, actor_id, role, sort_order) VALUES(@movie,@actor,NULL,@order)";
+            link.Parameters.AddWithValue("@movie", movieId);
+            link.Parameters.AddWithValue("@actor", actorId);
+            link.Parameters.AddWithValue("@order", order++);
+            link.ExecuteNonQuery();
+        }
+    }
+
+    private void ReplaceMovieNamedRelation(int movieId, IReadOnlyList<string> names, string nameTable, string joinTable, string fkColumn)
+    {
+        using (var del = _conn.CreateCommand())
+        {
+            del.CommandText = $"DELETE FROM {joinTable} WHERE movie_id=@id";
+            del.Parameters.AddWithValue("@id", movieId);
+            del.ExecuteNonQuery();
+        }
+        foreach (var name in names.Where(n => !string.IsNullOrWhiteSpace(n)).Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            using (var insert = _conn.CreateCommand())
+            {
+                insert.CommandText = $"INSERT OR IGNORE INTO {nameTable}(name) VALUES(@name)";
+                insert.Parameters.AddWithValue("@name", name.Trim());
+                insert.ExecuteNonQuery();
+            }
+            using var find = _conn.CreateCommand();
+            find.CommandText = $"SELECT id FROM {nameTable} WHERE name=@name COLLATE NOCASE";
+            find.Parameters.AddWithValue("@name", name.Trim());
+            var relationId = Convert.ToInt32(find.ExecuteScalar());
+            using var link = _conn.CreateCommand();
+            link.CommandText = $"INSERT OR IGNORE INTO {joinTable}(movie_id,{fkColumn}) VALUES(@movie,@relation)";
+            link.Parameters.AddWithValue("@movie", movieId);
+            link.Parameters.AddWithValue("@relation", relationId);
+            link.ExecuteNonQuery();
+        }
+    }
+
     /// <summary>
     /// Save user note to the row. Empty/null clears it.
     /// Sidecar file write is handled by the caller (needs the drive letter).

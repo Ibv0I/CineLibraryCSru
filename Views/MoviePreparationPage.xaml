@@ -44,7 +44,7 @@
                                     <TextBlock Text="{Binding NfoGlyph}" FontSize="13" Foreground="#399BFF" Margin="7,0,0,0"/><TextBlock Text="NFO" FontSize="12" Foreground="{ThemeResource MutedBrush}"/><TextBlock Text="{Binding LibraryGlyph}" FontSize="13" Foreground="#399BFF" Margin="12,0,0,0"/><TextBlock Text="{Binding LibraryStatusText}" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
                                 </StackPanel>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"><Button Content="Выбрать фильм в TMDb" Click="OnPickMovieClick" Tag="{Binding}"/><Button Content="Сохранить файлы" Click="OnSavePreparedMovieClick" Tag="{Binding}" Style="{ThemeResource AccentButtonStyle}"/></StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"><Button Content="Выбрать фильм в TMDb" Click="OnPickMovieClick" Tag="{Binding}"/><Button Content="Сохранить файлы" Click="OnSavePreparedMovieClick" Tag="{Binding}" Style="{ThemeResource AccentButtonStyle}"/><Button Content="✕" Click="OnRemoveMovieFolderClick" Tag="{Binding}" ToolTipService.ToolTip="Убрать папку фильма из списка" Padding="8,4" MinWidth="36"/></StackPanel>
                         </Grid>
                     </Border>
                 </DataTemplate>

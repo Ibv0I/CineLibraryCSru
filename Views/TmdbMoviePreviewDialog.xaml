@@ -24,7 +24,7 @@
                 <TextBox x:Name="GenresEditor" Header="Жанры" PlaceholderText="Жанры через запятую"/><TextBox x:Name="CountriesEditor" Header="Страны производства" PlaceholderText="Страны через запятую"/><TextBox x:Name="DirectorEditor" Header="Режиссёр(ы)" PlaceholderText="Имена через запятую"/><TextBox x:Name="WritersEditor" Header="Сценаристы" PlaceholderText="Имена через запятую"/><TextBox x:Name="CastEditor" Header="Актёры" PlaceholderText="Имена через запятую"/><CheckBox x:Name="DownloadActorPhotosCheckBox" Content="Скачивать фотографии актёров в папку .actors" IsChecked="True"/>
                 <TextBlock x:Name="ImageStatusText" Text="Изменения метаданных и изображений будут применены при сохранении." TextWrapping="Wrap" Foreground="#A8A8B0"/>
             </StackPanel></ScrollViewer>
-            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10"><Button Content="Отмена" Click="OnCancelClick" MinWidth="110"/><Button x:Name="UseSelectionButton" Content="Подтвердить выбор" Click="OnConfirmClick" MinWidth="170" Style="{ThemeResource AccentButtonStyle}" IsEnabled="False"/></StackPanel>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10"><Button x:Name="UseSelectionButton" Content="Подтвердить выбор" Click="OnConfirmClick" MinWidth="170" Style="{ThemeResource AccentButtonStyle}" IsEnabled="False"/><Button Content="Отмена" Click="OnCancelClick" MinWidth="110"/></StackPanel>
             <ProgressRing x:Name="Busy" IsActive="False" Width="34" Height="34" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
     </Grid>

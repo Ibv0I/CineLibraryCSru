@@ -34,7 +34,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     public TmdbMoviePreviewDialog(TmdbClient client, TmdbMovie searchHit, string? initialPosterLocalPath = null, string? initialBackdropLocalPath = null, Window? ownerWindow = null)
     {
         _client = client;
-        _ownerWindow = ownerWindow ?? App.MainWindow;
+        _ownerWindow = ownerWindow ?? App.MainWindow ?? throw new InvalidOperationException("Главное окно приложения ещё не создано.");
         _searchHit = searchHit;
         _initialPosterLocalPath = initialPosterLocalPath;
         _initialBackdropLocalPath = initialBackdropLocalPath;

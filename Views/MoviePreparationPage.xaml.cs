@@ -76,21 +76,37 @@ public sealed partial class MoviePreparationPage : Page
         var list = new ListView { SelectionMode = ListViewSelectionMode.None, MaxHeight = 360 };
         void RefreshExclusionList()
         {
-            list.ItemsSource = null;
-            list.ItemsSource = _excludedFolders.Select(path => new ExclusionFolderEntry(path)).ToList();
-        }
-        list.ItemTemplate = (DataTemplate)Microsoft.UI.Xaml.Markup.XamlReader.Load(
-            "<DataTemplate xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"><Grid Padding=\"4\" ColumnSpacing=\"8\"><Grid.ColumnDefinitions><ColumnDefinition Width=\"*\"/><ColumnDefinition Width=\"Auto\"/></Grid.ColumnDefinitions><TextBlock Text=\"{Binding Path}\" TextWrapping=\"Wrap\" VerticalAlignment=\"Center\"/><Button Grid.Column=\"1\" Content=\"✕\" Tag=\"{Binding Path}\"/></Grid></DataTemplate>");
-        list.AddHandler(Button.ClickEvent, new RoutedEventHandler((s, args) =>
-        {
-            var button = args.OriginalSource as Button ?? args.Source as Button;
-            if (button?.Tag is string path)
+            list.Items.Clear();
+            foreach (var folderPath in _excludedFolders.ToList())
             {
-                _excludedFolders.RemoveAll(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase));
-                SavePreparationSettings();
-                RefreshExclusionList();
+                var row = new Grid { Padding = new Thickness(4), ColumnSpacing = 8 };
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                var pathText = new TextBlock
+                {
+                    Text = folderPath,
+                    TextWrapping = TextWrapping.Wrap,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                var removeButton = new Button
+                {
+                    Content = "✕",
+                    Tag = folderPath,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    MinWidth = 36
+                };
+                removeButton.Click += (_, _) =>
+                {
+                    _excludedFolders.RemoveAll(p => string.Equals(p, folderPath, StringComparison.OrdinalIgnoreCase));
+                    SavePreparationSettings();
+                    RefreshExclusionList();
+                };
+                Grid.SetColumn(removeButton, 1);
+                row.Children.Add(pathText);
+                row.Children.Add(removeButton);
+                list.Items.Add(row);
             }
-        }), true);
+        }
         RefreshExclusionList();
         var addButton = new Button { Content = "Добавить папку исключения…", HorizontalAlignment = HorizontalAlignment.Left };
         addButton.Click += async (_, _) =>

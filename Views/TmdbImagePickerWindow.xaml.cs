@@ -20,7 +20,6 @@ public sealed partial class TmdbImagePickerWindow : Window
         InitializeComponent();
         HeaderText.Text = isPoster ? "Выберите постер" : "Выберите фоновое изображение";
         ImagesGrid.ItemsSource = choices.ToList();
-        if (ImagesGrid.Items.Count > 0) ImagesGrid.SelectedIndex = 0;
         ConfigureWindow(isPoster, ownerWindow);
         Closed += (_, _) =>
         {
@@ -54,14 +53,14 @@ public sealed partial class TmdbImagePickerWindow : Window
         Activate();
         return _completion.Task;
     }
-    private void OnImageClick(object sender, ItemClickEventArgs e)
+    private void OnChooseClick(object sender, RoutedEventArgs e)
     {
-        if (e.ClickedItem is TmdbImageChoice choice) { SelectedPath = choice.FilePath; _completion.TrySetResult(SelectedPath); Close(); }
-    }
-    private void OnConfirmClick(object sender, RoutedEventArgs e)
-    {
-        if (ImagesGrid.SelectedItem is TmdbImageChoice choice) SelectedPath = choice.FilePath;
-        _completion.TrySetResult(SelectedPath); Close();
+        if (ImagesGrid.SelectedItem is TmdbImageChoice choice)
+        {
+            SelectedPath = choice.FilePath;
+            _completion.TrySetResult(SelectedPath);
+            Close();
+        }
     }
     private void OnCancelClick(object sender, RoutedEventArgs e) { _completion.TrySetResult(null); Close(); }
     [DllImport("user32.dll")] private static extern bool EnableWindow(nint hWnd, bool bEnable);

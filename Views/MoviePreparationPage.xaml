@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Background="Transparent">
     <Grid Padding="28" RowSpacing="16">
-        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
         <StackPanel Spacing="5">
             <TextBlock Text="Подготовка медиатеки" FontSize="28" FontWeight="SemiBold" Foreground="{ThemeResource TextBrush}"/>
             <TextBlock Text="Добавляйте несколько папок с фильмами. Можно вручную выбрать совпадения TMDb или автоматически подготовить фильмы по первому результату поиска." TextWrapping="Wrap" Foreground="{ThemeResource MutedBrush}"/>
@@ -13,21 +13,13 @@
             <Button Content="Добавить папку…" Click="OnChooseFolderClick"/>
             <Button Content="Папки исключения…" Click="OnManageExclusionsClick"/>
         </StackPanel>
-        <ListView x:Name="RootFoldersList" Grid.Row="2" MaxHeight="100" SelectionMode="None" IsItemClickEnabled="False" BorderThickness="1" BorderBrush="{ThemeResource InputBorderBrush}">
-            <ListView.ItemTemplate><DataTemplate>
-                <Grid ColumnSpacing="8" Padding="4"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                    <TextBlock Text="{Binding Path}" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{ThemeResource TextBrush}"/>
-                    <Button Grid.Column="1" Content="✕" Tag="{Binding Path}" Click="OnRemoveRootClick" ToolTipService.ToolTip="Удалить папку из списка" Padding="8,2"/>
-                </Grid>
-            </DataTemplate></ListView.ItemTemplate>
-        </ListView>
-        <Grid Grid.Row="3" ColumnSpacing="8">
+        <Grid Grid.Row="2" ColumnSpacing="8">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <Button Grid.Column="0" Content="Автоподготовка всех фильмов" Click="OnAutoPrepareAllClick" Style="{ThemeResource AccentButtonStyle}" HorizontalAlignment="Left"/>
             <Button Grid.Column="1" Content="Добавить в медиатеку" Click="OnSaveAllPreparedMoviesClick"/>
         </Grid>
-        <TextBlock x:Name="StatusText" Grid.Row="4" Text="Добавьте одну или несколько папок. Поиск начнётся автоматически." TextWrapping="Wrap" Foreground="{ThemeResource MutedBrush}"/>
-        <ListView x:Name="FoldersList" Grid.Row="5" SelectionMode="None" IsItemClickEnabled="False">
+        <TextBlock x:Name="StatusText" Grid.Row="3" Text="Добавьте одну или несколько папок. Поиск начнётся автоматически." TextWrapping="Wrap" Foreground="{ThemeResource MutedBrush}"/>
+        <ListView x:Name="FoldersList" Grid.Row="4" SelectionMode="None" IsItemClickEnabled="False">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Border Padding="14" Margin="0,0,0,8" CornerRadius="8" BorderThickness="1" BorderBrush="{ThemeResource InputBorderBrush}" Background="{ThemeResource ControlFillColorSecondaryBrush}">

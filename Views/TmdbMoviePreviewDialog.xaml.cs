@@ -5,7 +5,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Graphics;
 using CineLibraryCS.Services.Tmdb;
-using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace CineLibraryCS.Views;
@@ -88,16 +87,6 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             if (details == null) throw new InvalidOperationException("TMDb не вернул подробности фильма.");
             Movie = details;
             MovieTitleEditor.Text = details.Title;
-            TaglineEditor.Text = details.Tagline;
-            OverviewEditor.Text = details.Overview;
-            ReleaseDateEditor.Text = details.ReleaseDate;
-            RuntimeEditor.Text = details.Runtime > 0 ? details.Runtime.ToString(CultureInfo.InvariantCulture) : string.Empty;
-            RatingEditor.Text = details.Rating.ToString("0.0", CultureInfo.InvariantCulture);
-            GenresEditor.Text = string.Join(", ", details.Genres.Select(g => g.Name));
-            CountriesEditor.Text = string.Join(", ", details.ProductionCountries.Select(GetRussianCountryName));
-            DirectorEditor.Text = string.Join(", ", details.Directors);
-            WritersEditor.Text = string.Join(", ", details.Writers);
-            CastEditor.Text = string.Join(", ", details.Cast.Select(c => c.Name));
 
             var images = await _client.GetMovieImagesAsync(details.TmdbId);
             if (images.Posters.Count == 0 && !string.IsNullOrWhiteSpace(details.PosterPath)) images.Posters.Add(details.PosterPath!);
@@ -159,53 +148,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     {
         if (Movie == null) return;
         Movie.Title = MovieTitleEditor.Text.Trim();
-        Movie.Tagline = TaglineEditor.Text.Trim();
-        Movie.Overview = OverviewEditor.Text.Trim();
-        Movie.ReleaseDate = ReleaseDateEditor.Text.Trim();
-        if (int.TryParse(RuntimeEditor.Text, out var runtime)) Movie.Runtime = Math.Max(0, runtime);
-        if (double.TryParse(RatingEditor.Text.Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out var rating)) Movie.Rating = Math.Clamp(rating, 0, 10);
-        Movie.Genres = SplitNames(GenresEditor.Text).Select(name => new TmdbNamed { Name = name }).ToList();
-        Movie.ProductionCountries = SplitNames(CountriesEditor.Text).Select(name => new TmdbCountry { Name = name }).ToList();
-        Movie.Directors = SplitNames(DirectorEditor.Text);
-        Movie.Writers = SplitNames(WritersEditor.Text);
-        var oldCast = Movie.Cast.GroupBy(c => c.Name, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
-        Movie.Cast = SplitNames(CastEditor.Text).Select((name, index) => oldCast.TryGetValue(name, out var existing)
-            ? existing : new TmdbCastMember { Name = name, Order = index }).ToList();
     }
-
-    private static string GetRussianCountryName(TmdbCountry country)
-    {
-        // TMDb supplies an ISO 3166-1 code even when its country name is not localized.
-        // Use Russian names for common production countries; retain TMDb name as a safe fallback.
-        var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["US"] = "США", ["GB"] = "Великобритания", ["RU"] = "Россия", ["SU"] = "СССР",
-            ["FR"] = "Франция", ["DE"] = "Германия", ["IT"] = "Италия", ["ES"] = "Испания",
-            ["JP"] = "Япония", ["KR"] = "Южная Корея", ["CN"] = "Китай", ["HK"] = "Гонконг",
-            ["IN"] = "Индия", ["CA"] = "Канада", ["AU"] = "Австралия", ["NZ"] = "Новая Зеландия",
-            ["MX"] = "Мексика", ["BR"] = "Бразилия", ["AR"] = "Аргентина", ["CL"] = "Чили",
-            ["SE"] = "Швеция", ["NO"] = "Норвегия", ["DK"] = "Дания", ["FI"] = "Финляндия",
-            ["NL"] = "Нидерланды", ["BE"] = "Бельгия", ["CH"] = "Швейцария", ["AT"] = "Австрия",
-            ["PL"] = "Польша", ["CZ"] = "Чехия", ["SK"] = "Словакия", ["HU"] = "Венгрия",
-            ["RO"] = "Румыния", ["BG"] = "Болгария", ["GR"] = "Греция", ["PT"] = "Португалия",
-            ["IE"] = "Ирландия", ["IS"] = "Исландия", ["TR"] = "Турция", ["IL"] = "Израиль",
-            ["IR"] = "Иран", ["TH"] = "Таиланд", ["ID"] = "Индонезия", ["SG"] = "Сингапур",
-            ["TW"] = "Тайвань", ["ZA"] = "ЮАР", ["EG"] = "Египет", ["UA"] = "Украина",
-            ["RS"] = "Сербия", ["HR"] = "Хорватия", ["BA"] = "Босния и Герцеговина",
-            ["SI"] = "Словения", ["EE"] = "Эстония", ["LV"] = "Латвия", ["LT"] = "Литва",
-            ["GE"] = "Грузия", ["AM"] = "Армения", ["KZ"] = "Казахстан", ["AE"] = "ОАЭ",
-            ["SA"] = "Саудовская Аравия", ["PK"] = "Пакистан", ["BD"] = "Бангладеш",
-            ["PH"] = "Филиппины", ["MY"] = "Малайзия", ["CO"] = "Колумбия", ["PE"] = "Перу",
-            ["VE"] = "Венесуэла", ["UY"] = "Уругвай", ["NG"] = "Нигерия", ["KE"] = "Кения",
-            ["MA"] = "Марокко", ["TN"] = "Тунис", ["LU"] = "Люксембург", ["CY"] = "Кипр",
-            ["MT"] = "Мальта", ["QA"] = "Катар", ["LB"] = "Ливан", ["IS"] = "Исландия"
-        };
-        if (!string.IsNullOrWhiteSpace(country.IsoCode) && names.TryGetValue(country.IsoCode, out var russianName))
-            return russianName;
-        return string.IsNullOrWhiteSpace(country.Name) ? country.IsoCode : country.Name;
-    }
-
-    private static List<string> SplitNames(string text) => text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
 
     private void OnConfirmClick(object sender, RoutedEventArgs e)
     {

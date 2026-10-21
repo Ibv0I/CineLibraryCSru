@@ -273,7 +273,7 @@
                         <!-- Watched & Gone (v3.3) — records of watched-then-deleted movies.
                              Hidden until the first record exists. -->
                         <Button x:Name="BtnWatchedGone" Style="{StaticResource NavItemStyle}"
-                                Click="OnNavWatchedGone" Visibility="Collapsed">
+                                Click="OnNavWatchedGone">
                             <Grid HorizontalAlignment="Stretch">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>

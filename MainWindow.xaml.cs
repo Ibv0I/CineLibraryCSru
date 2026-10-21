@@ -562,7 +562,7 @@ public sealed partial class MainWindow : Window
             {
                 var wg = AppState.Instance.Db.GetArchivedCount();
                 WatchedGoneBadge.Text = wg.ToString();
-                BtnWatchedGone.Visibility = Visibility.Collapsed; // Movie-only build: TMDb-backed archive is disabled.
+                BtnWatchedGone.Visibility = Visibility.Visible;
             }
             catch { }
             // v2.5.1 — StatRuntime / StatRating tiles removed from sidebar
@@ -1853,8 +1853,8 @@ public sealed partial class MainWindow : Window
 
     private void OnNavWatchedGone(object sender, RoutedEventArgs e)
     {
-        // TMDb-backed Watched & Gone workflow is disabled in the movie-only build.
-        BtnWatchedGone.Visibility = Visibility.Collapsed;
+        NavigateTo("watchedgone");
+        SetActiveNav(BtnWatchedGone);
     }
 
     // ── v1.4.1 Statistics dashboard ────────────────────────────────────────

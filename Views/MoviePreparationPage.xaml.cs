@@ -25,7 +25,6 @@ public sealed partial class MoviePreparationPage : Page
         InitializeComponent();
         FoldersList.ItemsSource = _candidates;
         LoadPreparationSettings();
-        RefreshRootFolders();
     }
 
     private async void OnChooseFolderClick(object sender, RoutedEventArgs e)
@@ -50,30 +49,12 @@ public sealed partial class MoviePreparationPage : Page
             }
             if (!_scanRoots.Contains(folder.Path, StringComparer.OrdinalIgnoreCase))
                 _scanRoots.Add(folder.Path);
-            RefreshRootFolders();
-            ScanAllRoots();
+                ScanAllRoots();
         }
         catch (Exception ex)
         {
             StatusText.Text = "Не удалось открыть выбор папки: " + ex.Message;
         }
-    }
-
-    private void RefreshRootFolders()
-    {
-        RootFoldersList.ItemsSource = null;
-        RootFoldersList.ItemsSource = _scanRoots.Select(path => new RootFolderEntry(path)).ToList();
-    }
-
-    private void OnRemoveRootClick(object sender, RoutedEventArgs e)
-    {
-        if ((sender as Button)?.Tag is not string path) return;
-        _scanRoots.RemoveAll(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase));
-        var removed = _candidates.Where(c => !_scanRoots.Any(root => IsSameOrChildPath(c.FolderPath, root)) || IsExcluded(c.FolderPath)).ToList();
-        foreach (var candidate in removed) _candidates.Remove(candidate);
-        RefreshRootFolders();
-        RefreshCandidates();
-        StatusText.Text = $"Удалена корневая папка «{path}» и исключено из списка папок фильмов: {removed.Count}.";
     }
 
     private void OnRemoveMovieFolderClick(object sender, RoutedEventArgs e)
@@ -92,7 +73,7 @@ public sealed partial class MoviePreparationPage : Page
             list.Items.Clear();
             foreach (var folderPath in _excludedFolders.ToList())
             {
-                var row = new Grid { Padding = new Thickness(4, 4, 12, 4), ColumnSpacing = 10, HorizontalAlignment = HorizontalAlignment.Stretch };
+                var row = new Grid { Padding = new Thickness(4, 4, 24, 4), ColumnSpacing = 8, HorizontalAlignment = HorizontalAlignment.Stretch, MaxWidth = 640 };
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var pathText = new TextBlock
@@ -106,7 +87,7 @@ public sealed partial class MoviePreparationPage : Page
                     Content = "✕",
                     Tag = folderPath,
                     VerticalAlignment = VerticalAlignment.Center,
-                    MinWidth = 40, Width = 40, Padding = new Thickness(6), HorizontalAlignment = HorizontalAlignment.Right
+                    MinWidth = 32, Width = 32, Padding = new Thickness(2), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 8, 0)
                 };
                 removeButton.Click += (_, _) =>
                 {
@@ -138,7 +119,7 @@ public sealed partial class MoviePreparationPage : Page
             }
             catch (Exception ex) { StatusText.Text = "Не удалось добавить папку исключения: " + ex.Message; }
         };
-        var content = new StackPanel { Spacing = 10, MinWidth = 560, MaxWidth = 700, HorizontalAlignment = HorizontalAlignment.Stretch };
+        var content = new StackPanel { Spacing = 10, MinWidth = 520, MaxWidth = 660, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 0, 12, 0) };
         content.Children.Add(new TextBlock { Text = "Папки из этого списка и все их вложенные папки будут пропускаться при сканировании.", TextWrapping = TextWrapping.Wrap });
         content.Children.Add(addButton);
         content.Children.Add(list);

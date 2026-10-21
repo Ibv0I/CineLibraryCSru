@@ -18,7 +18,7 @@
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <CheckBox x:Name="DownloadActorPhotosCheckBox" Content="Скачивать фотографии актёров в папку .actors" IsChecked="True" VerticalAlignment="Center"/>
             <Button Grid.Column="1" Content="Автоподготовка всех фильмов" Click="OnAutoPrepareAllClick" Style="{ThemeResource AccentButtonStyle}"/>
-            <Button Grid.Column="2" Content="Сохранить выбранные" Click="OnSaveAllPreparedMoviesClick"/>
+            <Button Grid.Column="2" Content="Добавить в медиатеку" Click="OnSaveAllPreparedMoviesClick"/>
         </Grid>
         <TextBlock x:Name="StatusText" Grid.Row="3" Text="Добавьте одну или несколько папок. Поиск начнётся автоматически." TextWrapping="Wrap" Foreground="{ThemeResource MutedBrush}"/>
         <ListView x:Name="FoldersList" Grid.Row="5" SelectionMode="None" IsItemClickEnabled="False">
@@ -35,7 +35,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <TextBlock Text="{Binding PosterGlyph}" FontSize="13" Foreground="#399BFF"/><TextBlock Text="Постер" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
                                     <TextBlock Text="{Binding FanartGlyph}" FontSize="13" Foreground="#399BFF" Margin="7,0,0,0"/><TextBlock Text="Баннер" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
-                                    <TextBlock Text="{Binding NfoGlyph}" FontSize="13" Foreground="#399BFF" Margin="7,0,0,0"/><TextBlock Text="NFO" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
+                                    <TextBlock Text="{Binding NfoGlyph}" FontSize="13" Foreground="#399BFF" Margin="7,0,0,0"/><TextBlock Text="NFO" FontSize="12" Foreground="{ThemeResource MutedBrush}"/><TextBlock Text="{Binding LibraryGlyph}" FontSize="13" Foreground="#399BFF" Margin="12,0,0,0"/><TextBlock Text="{Binding LibraryStatusText}" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"><Button Content="Выбрать фильм в TMDb" Click="OnPickMovieClick" Tag="{Binding}"/><Button Content="Сохранить файлы" Click="OnSavePreparedMovieClick" Tag="{Binding}" Style="{ThemeResource AccentButtonStyle}"/></StackPanel>

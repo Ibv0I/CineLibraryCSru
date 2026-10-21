@@ -20,15 +20,21 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     private nint _ownerHandle;
     private bool _ownerDisabled;
     private bool _shown;
+    private readonly string? _initialPosterLocalPath;
+    private readonly string? _initialBackdropLocalPath;
+    public bool PosterWasChanged { get; private set; }
+    public bool BackdropWasChanged { get; private set; }
 
     public TmdbMovie? Movie { get; private set; }
     public string? SelectedPosterPath { get; private set; }
     public string? SelectedBackdropPath { get; private set; }
 
-    public TmdbMoviePreviewDialog(TmdbClient client, TmdbMovie searchHit)
+    public TmdbMoviePreviewDialog(TmdbClient client, TmdbMovie searchHit, string? initialPosterLocalPath = null, string? initialBackdropLocalPath = null)
     {
         _client = client;
         _searchHit = searchHit;
+        _initialPosterLocalPath = initialPosterLocalPath;
+        _initialBackdropLocalPath = initialBackdropLocalPath;
         InitializeComponent();
         RootGrid.Loaded += async (_, _) => await LoadMovieAsync();
         Closed += OnClosed;
@@ -93,8 +99,8 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             var images = await _client.GetMovieImagesAsync(details.TmdbId);
             if (images.Posters.Count == 0 && !string.IsNullOrWhiteSpace(details.PosterPath)) images.Posters.Add(details.PosterPath!);
             if (images.Backdrops.Count == 0 && !string.IsNullOrWhiteSpace(details.BackdropPath)) images.Backdrops.Add(details.BackdropPath!);
-            _posterChoices = images.Posters.Select(p => new TmdbImageChoice(p, _client.GetImageUrl(p, "w185"))).ToList();
-            _backdropChoices = images.Backdrops.Select(p => new TmdbImageChoice(p, _client.GetImageUrl(p, "w300"))).ToList();
+            _posterChoices = images.Posters.Select(p => new TmdbImageChoice(p, _client.GetImageUrl(p, "w185"), true)).ToList();
+            _backdropChoices = images.Backdrops.Select(p => new TmdbImageChoice(p, _client.GetImageUrl(p, "w300"), false)).ToList();
             SelectedPosterPath = images.Posters.FirstOrDefault() ?? details.PosterPath;
             SelectedBackdropPath = images.Backdrops.FirstOrDefault() ?? details.BackdropPath;
             RefreshPosterPreview(); RefreshBackdropPreview();
@@ -106,12 +112,15 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         finally { Busy.IsActive = false; }
     }
 
+    private void OnPosterPreviewTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e) => OnPosterPreviewClick(sender, new RoutedEventArgs());
+    private void OnBackdropPreviewTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e) => OnBackdropPreviewClick(sender, new RoutedEventArgs());
+
     private async void OnPosterPreviewClick(object sender, RoutedEventArgs e)
     {
         if (_posterChoices.Count == 0) { ImageStatusText.Text = "TMDb не предоставил варианты постеров для этого фильма."; return; }
         var picker = new TmdbImagePickerWindow(_posterChoices, true, this);
         var path = await picker.ShowAsync();
-        if (!string.IsNullOrWhiteSpace(path)) { SelectedPosterPath = path; RefreshPosterPreview(); }
+        if (!string.IsNullOrWhiteSpace(path)) { SelectedPosterPath = path; PosterWasChanged = true; RefreshPosterPreview(); }
     }
 
     private async void OnBackdropPreviewClick(object sender, RoutedEventArgs e)
@@ -119,16 +128,28 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         if (_backdropChoices.Count == 0) { ImageStatusText.Text = "TMDb не предоставил варианты фоновых изображений для этого фильма."; return; }
         var picker = new TmdbImagePickerWindow(_backdropChoices, false, this);
         var path = await picker.ShowAsync();
-        if (!string.IsNullOrWhiteSpace(path)) { SelectedBackdropPath = path; RefreshBackdropPreview(); }
+        if (!string.IsNullOrWhiteSpace(path)) { SelectedBackdropPath = path; BackdropWasChanged = true; RefreshBackdropPreview(); }
     }
 
     private void RefreshPosterPreview()
     {
-        try { PosterPreview.Source = !string.IsNullOrWhiteSpace(SelectedPosterPath) ? new BitmapImage(new Uri(_client.GetImageUrl(SelectedPosterPath, "w500"))) : null; } catch { PosterPreview.Source = null; }
+        try
+        {
+            if (!PosterWasChanged && !string.IsNullOrWhiteSpace(_initialPosterLocalPath) && File.Exists(_initialPosterLocalPath))
+                PosterPreview.Source = new BitmapImage(new Uri(_initialPosterLocalPath));
+            else PosterPreview.Source = !string.IsNullOrWhiteSpace(SelectedPosterPath) ? new BitmapImage(new Uri(_client.GetImageUrl(SelectedPosterPath, "w500"))) : null;
+        }
+        catch { PosterPreview.Source = null; }
     }
     private void RefreshBackdropPreview()
     {
-        try { BackdropPreview.Source = !string.IsNullOrWhiteSpace(SelectedBackdropPath) ? new BitmapImage(new Uri(_client.GetImageUrl(SelectedBackdropPath, "w1280"))) : null; } catch { BackdropPreview.Source = null; }
+        try
+        {
+            if (!BackdropWasChanged && !string.IsNullOrWhiteSpace(_initialBackdropLocalPath) && File.Exists(_initialBackdropLocalPath))
+                BackdropPreview.Source = new BitmapImage(new Uri(_initialBackdropLocalPath));
+            else BackdropPreview.Source = !string.IsNullOrWhiteSpace(SelectedBackdropPath) ? new BitmapImage(new Uri(_client.GetImageUrl(SelectedBackdropPath, "w1280"))) : null;
+        }
+        catch { BackdropPreview.Source = null; }
     }
 
     private void ApplyEditedMetadata()
@@ -203,5 +224,13 @@ public sealed class TmdbImageChoice
 {
     public string FilePath { get; }
     public BitmapImage Thumbnail { get; }
-    public TmdbImageChoice(string filePath, string url) { FilePath = filePath; Thumbnail = new BitmapImage(new Uri(url)); }
+    public double DisplayWidth { get; }
+    public double DisplayHeight { get; }
+    public TmdbImageChoice(string filePath, string url, bool isPoster = true)
+    {
+        FilePath = filePath;
+        Thumbnail = new BitmapImage(new Uri(url));
+        DisplayWidth = isPoster ? 150 : 240;
+        DisplayHeight = isPoster ? 225 : 135;
+    }
 }

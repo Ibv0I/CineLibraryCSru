@@ -11,7 +11,7 @@
                   ScrollViewer.HorizontalScrollMode="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   ScrollViewer.VerticalScrollMode="Enabled" ScrollViewer.VerticalScrollBarVisibility="Auto" Padding="4">
             <GridView.ItemsPanel><ItemsPanelTemplate><ItemsWrapGrid Orientation="Horizontal"/></ItemsPanelTemplate></GridView.ItemsPanel>
-            <GridView.ItemTemplate><DataTemplate x:DataType="local:TmdbImageChoice"><Border Padding="4" Margin="3" CornerRadius="6" Background="#252529"><Image Source="{x:Bind Thumbnail}" Width="150" Height="225" Stretch="UniformToFill"/></Border></DataTemplate></GridView.ItemTemplate>
+            <GridView.ItemTemplate><DataTemplate x:DataType="local:TmdbImageChoice"><Border Padding="4" Margin="3" CornerRadius="6" Background="#252529"><Image Source="{x:Bind Thumbnail}" Width="{x:Bind DisplayWidth}" Height="{x:Bind DisplayHeight}" Stretch="UniformToFill"/></Border></DataTemplate></GridView.ItemTemplate>
         </GridView>
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
             <Button Content="Отмена" Click="OnCancelClick" MinWidth="100"/>

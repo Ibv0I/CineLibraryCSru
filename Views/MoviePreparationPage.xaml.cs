@@ -82,7 +82,7 @@ public sealed partial class MoviePreparationPage : Page
                     added++;
                 }
             }
-            foreach (var candidate in _candidates) candidate.RefreshFileStatus();
+            foreach (var candidate in _candidates) { candidate.RefreshFileStatus(); candidate.RefreshLibraryStatus(); }
             RefreshCandidates();
             StatusText.Text = _candidates.Count == 0
                 ? "В добавленных папках не найдены видеофайлы."
@@ -146,6 +146,7 @@ public sealed partial class MoviePreparationPage : Page
         {
             XamlRoot = XamlRoot,
             Title = "Автоматическая подготовка",
+            RequestedTheme = ElementTheme.Dark,
             Content = $"Для {pending.Count} фильмов будет выбрано первое совпадение TMDb, загружены постер, фон и фотографии актёров, создан movie.nfo и выполнено обновление медиатеки.{warning}\n\nПервый результат может оказаться неверным — после подготовки проверьте названия и годы фильмов. Продолжить?",
             PrimaryButtonText = "Начать",
             CloseButtonText = "Отмена",
@@ -234,6 +235,7 @@ public sealed partial class MoviePreparationPage : Page
         {
             XamlRoot = XamlRoot,
             Title = "Пакетная подготовка",
+            RequestedTheme = ElementTheme.Dark,
             Content = $"Будут подготовлены {selected.Count} фильм(ов). Для выбранных фильмов будут созданы movie.nfo, poster.jpg и fanart.jpg.{warning}\n\nПродолжить?",
             PrimaryButtonText = "Начать",
             CloseButtonText = "Отмена",
@@ -292,6 +294,8 @@ public sealed partial class MoviePreparationPage : Page
             await CineLibraryCS.Services.AppState.Instance.Scanner.ScanAsync(
                 serial, driveRoot, progress, CancellationToken.None, root, incremental: false);
             updated = true;
+            foreach (var candidate in _candidates) candidate.RefreshLibraryStatus();
+            RefreshCandidates();
         }
         return updated;
     }
@@ -316,6 +320,7 @@ public sealed partial class MoviePreparationPage : Page
             {
                 XamlRoot = XamlRoot,
                 Title = "Файлы уже существуют",
+                RequestedTheme = ElementTheme.Dark,
                 Content = "Будут заменены: " + string.Join(", ", existing) + ". Продолжить?",
                 PrimaryButtonText = "Заменить",
                 CloseButtonText = "Отмена",
@@ -690,12 +695,29 @@ public sealed class MovieFolderCandidate
     public string PosterGlyph { get; private set; } = "○";
     public string FanartGlyph { get; private set; } = "○";
     public string NfoGlyph { get; private set; } = "○";
+    public string LibraryGlyph { get; private set; } = "○";
+    public string LibraryStatusText { get; private set; } = "Не в медиатеке";
 
     public void RefreshFileStatus()
     {
         NfoGlyph = File.Exists(Path.Combine(FolderPath, "movie.nfo")) ? "✓" : "○";
         PosterGlyph = File.Exists(Path.Combine(FolderPath, "poster.jpg")) ? "✓" : "○";
         FanartGlyph = File.Exists(Path.Combine(FolderPath, "fanart.jpg")) ? "✓" : "○";
+    }
+
+    public void RefreshLibraryStatus()
+    {
+        try
+        {
+            var driveRoot = Path.GetPathRoot(FolderPath);
+            var serial = string.IsNullOrWhiteSpace(driveRoot) ? null : CineLibraryCS.Services.DatabaseService.GetVolumeSerial(driveRoot);
+            var relative = string.IsNullOrWhiteSpace(driveRoot) ? null : Path.GetRelativePath(driveRoot, FolderPath).Replace('\\', '/').TrimEnd('/');
+            var inLibrary = !string.IsNullOrWhiteSpace(serial) && !string.IsNullOrWhiteSpace(relative) &&
+                CineLibraryCS.Services.AppState.Instance.Db.IsMovieInLibrary(serial, relative);
+            LibraryGlyph = inLibrary ? "✓" : "○";
+            LibraryStatusText = inLibrary ? "В медиатеке" : "Не в медиатеке";
+        }
+        catch { LibraryGlyph = "○"; LibraryStatusText = "Статус медиатеки неизвестен"; }
     }
 
     public MovieFolderCandidate(string path, string[] videos)

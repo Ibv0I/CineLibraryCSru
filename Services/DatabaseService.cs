@@ -1142,6 +1142,16 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
+    public bool IsMovieInLibrary(string volumeSerial, string folderRelativePath)
+    {
+        using var cmd = _conn.CreateCommand();
+        cmd.CommandText = "SELECT 1 FROM movies WHERE volume_serial=@serial AND folder_rel_path=@path COLLATE NOCASE LIMIT 1";
+        cmd.Parameters.AddWithValue("@serial", volumeSerial);
+        cmd.Parameters.AddWithValue("@path", folderRelativePath.Replace('\\', '/').TrimEnd('/'));
+        return cmd.ExecuteScalar() != null;
+    }
+
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public List<Models.DriveRoot> GetDriveRoots(string serial)
     {
         var list = new List<Models.DriveRoot>();

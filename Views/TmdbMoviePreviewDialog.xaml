@@ -6,49 +6,25 @@
     Title="Метаданные и изображения фильма">
     <Grid x:Name="RootGrid" RequestedTheme="Dark" Background="#121214" Padding="18">
         <Grid RowSpacing="12">
-            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="220"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="250"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
             <TextBox x:Name="MovieTitleEditor" FontSize="25" FontWeight="SemiBold" PlaceholderText="Название фильма" Header="Название фильма" />
-            <Button Grid.Row="1" Click="OnBackdropPreviewClick" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="0" Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" ToolTipService.ToolTip="Нажмите, чтобы выбрать фоновое изображение">
-                <Grid>
-                    <Image x:Name="BackdropPreview" Height="210" Stretch="Uniform"/>
-                    <Border VerticalAlignment="Bottom" Background="#B8000000" Padding="8"><TextBlock Text="Фоновое изображение · нажмите, чтобы изменить" Foreground="White" HorizontalAlignment="Center"/></Border>
-                </Grid>
-            </Button>
-            <Grid Grid.Row="2" ColumnSpacing="18">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="190"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                <StackPanel Spacing="8">
-                    <TextBlock Text="Постер" FontWeight="SemiBold" Foreground="White"/>
-                    <Button x:Name="PosterPreviewButton" Click="OnPosterPreviewClick" Padding="0" Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" ToolTipService.ToolTip="Нажмите, чтобы выбрать постер">
-                        <Grid>
-                            <Image x:Name="PosterPreview" Width="176" Height="264" Stretch="UniformToFill"/>
-                            <Border VerticalAlignment="Bottom" Background="#B8000000" Padding="6"><TextBlock Text="Изменить постер" Foreground="White" HorizontalAlignment="Center"/></Border>
-                        </Grid>
-                    </Button>
-                    <TextBlock Text="Нажмите на изображение, чтобы открыть варианты TMDb." TextWrapping="Wrap" FontSize="12" Foreground="#A8A8B0"/>
-                </StackPanel>
-                <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
-                    <StackPanel Spacing="9">
-                        <TextBox x:Name="TaglineEditor" Header="Слоган" PlaceholderText="Слоган фильма"/>
-                        <TextBox x:Name="OverviewEditor" Header="Описание" PlaceholderText="Описание фильма" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" MaxHeight="180"/>
-                        <Grid ColumnSpacing="10">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <TextBox x:Name="ReleaseDateEditor" Header="Дата выхода" PlaceholderText="ГГГГ-ММ-ДД"/>
-                            <TextBox x:Name="RuntimeEditor" Grid.Column="1" Header="Длительность, мин." PlaceholderText="Минуты"/>
-                            <TextBox x:Name="RatingEditor" Grid.Column="2" Header="Рейтинг TMDb" PlaceholderText="0–10"/>
-                        </Grid>
-                        <TextBox x:Name="GenresEditor" Header="Жанры" PlaceholderText="Жанры через запятую"/>
-                        <TextBox x:Name="CountriesEditor" Header="Страны производства" PlaceholderText="Страны через запятую"/>
-                        <TextBox x:Name="DirectorEditor" Header="Режиссёр(ы)" PlaceholderText="Имена через запятую"/>
-                        <TextBox x:Name="WritersEditor" Header="Сценаристы" PlaceholderText="Имена через запятую"/>
-                        <TextBox x:Name="CastEditor" Header="Актёры" PlaceholderText="Имена через запятую"/>
-                        <TextBlock x:Name="ImageStatusText" Text="Изменения метаданных и изображений будут применены при сохранении." TextWrapping="Wrap" Foreground="#A8A8B0"/>
-                    </StackPanel>
-                </ScrollViewer>
+            <Grid Grid.Row="1" ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="190"/></Grid.ColumnDefinitions>
+                <Border Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" CornerRadius="6" ClipToBounds="True" Tapped="OnBackdropPreviewTapped"><Grid>
+                    <Image x:Name="BackdropPreview" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    <Border VerticalAlignment="Bottom" Background="#B8000000" Padding="8" IsHitTestVisible="False"><TextBlock Text="Фоновое изображение · нажмите, чтобы изменить" Foreground="White" HorizontalAlignment="Center"/></Border>
+                </Grid></Border>
+                <Border Grid.Column="1" Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" CornerRadius="6" ClipToBounds="True" Tapped="OnPosterPreviewTapped"><Grid>
+                    <Image x:Name="PosterPreview" Stretch="Uniform"/>
+                    <Border VerticalAlignment="Bottom" Background="#B8000000" Padding="6" IsHitTestVisible="False"><TextBlock Text="Изменить постер" Foreground="White" HorizontalAlignment="Center"/></Border>
+                </Grid></Border>
             </Grid>
-            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-                <Button Content="Отмена" Click="OnCancelClick" MinWidth="110"/>
-                <Button x:Name="UseSelectionButton" Content="Подтвердить выбор" Click="OnConfirmClick" MinWidth="170" Style="{ThemeResource AccentButtonStyle}" IsEnabled="False"/>
-            </StackPanel>
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"><StackPanel Spacing="9">
+                <TextBox x:Name="TaglineEditor" Header="Слоган" PlaceholderText="Слоган фильма"/><TextBox x:Name="OverviewEditor" Header="Описание" PlaceholderText="Описание фильма" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" MaxHeight="180"/>
+                <Grid ColumnSpacing="10"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBox x:Name="ReleaseDateEditor" Header="Дата выхода" PlaceholderText="ГГГГ-ММ-ДД"/><TextBox x:Name="RuntimeEditor" Grid.Column="1" Header="Длительность, мин." PlaceholderText="Минуты"/><TextBox x:Name="RatingEditor" Grid.Column="2" Header="Рейтинг TMDb" PlaceholderText="0–10"/></Grid>
+                <TextBox x:Name="GenresEditor" Header="Жанры" PlaceholderText="Жанры через запятую"/><TextBox x:Name="CountriesEditor" Header="Страны производства" PlaceholderText="Страны через запятую"/><TextBox x:Name="DirectorEditor" Header="Режиссёр(ы)" PlaceholderText="Имена через запятую"/><TextBox x:Name="WritersEditor" Header="Сценаристы" PlaceholderText="Имена через запятую"/><TextBox x:Name="CastEditor" Header="Актёры" PlaceholderText="Имена через запятую"/>
+                <TextBlock x:Name="ImageStatusText" Text="Изменения метаданных и изображений будут применены при сохранении." TextWrapping="Wrap" Foreground="#A8A8B0"/>
+            </StackPanel></ScrollViewer>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10"><Button Content="Отмена" Click="OnCancelClick" MinWidth="110"/><Button x:Name="UseSelectionButton" Content="Подтвердить выбор" Click="OnConfirmClick" MinWidth="170" Style="{ThemeResource AccentButtonStyle}" IsEnabled="False"/></StackPanel>
             <ProgressRing x:Name="Busy" IsActive="False" Width="34" Height="34" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
     </Grid>

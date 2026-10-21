@@ -41,7 +41,7 @@ public sealed partial class TmdbImagePickerWindow : Window
         var bg = Windows.UI.Color.FromArgb(255, 18, 18, 20);
         titleBar.BackgroundColor = bg; titleBar.InactiveBackgroundColor = bg; titleBar.ButtonBackgroundColor = bg; titleBar.ButtonInactiveBackgroundColor = bg;
         titleBar.ForegroundColor = Windows.UI.Color.FromArgb(255, 235, 235, 238); titleBar.ButtonForegroundColor = titleBar.ForegroundColor;
-        appWindow.Resize(new SizeInt32(isPoster ? 850 : 1120, 760));
+        appWindow.Resize(new SizeInt32(isPoster ? 735 : 1120, 760));
         appWindow.Move(new PointInt32(owner.Position.X + Math.Max(0, (owner.Size.Width - appWindow.Size.Width) / 2), owner.Position.Y + Math.Max(0, (owner.Size.Height - appWindow.Size.Height) / 2)));
         if (appWindow.Presenter is OverlappedPresenter presenter) { presenter.IsResizable = true; presenter.IsMaximizable = true; }
     }

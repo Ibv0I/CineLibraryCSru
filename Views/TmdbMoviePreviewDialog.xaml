@@ -9,11 +9,11 @@
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="250"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
             <TextBox x:Name="MovieTitleEditor" FontSize="25" FontWeight="SemiBold" PlaceholderText="Название фильма" Header="Название фильма" />
             <Grid Grid.Row="1" ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="190"/></Grid.ColumnDefinitions>
-                <Border Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" CornerRadius="6" ClipToBounds="True" Tapped="OnBackdropPreviewTapped"><Grid>
+                <Border Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" CornerRadius="6" Tapped="OnBackdropPreviewTapped"><Grid>
                     <Image x:Name="BackdropPreview" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                     <Border VerticalAlignment="Bottom" Background="#B8000000" Padding="8" IsHitTestVisible="False"><TextBlock Text="Фоновое изображение · нажмите, чтобы изменить" Foreground="White" HorizontalAlignment="Center"/></Border>
                 </Grid></Border>
-                <Border Grid.Column="1" Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" CornerRadius="6" ClipToBounds="True" Tapped="OnPosterPreviewTapped"><Grid>
+                <Border Grid.Column="1" Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" CornerRadius="6" Tapped="OnPosterPreviewTapped"><Grid>
                     <Image x:Name="PosterPreview" Stretch="Uniform"/>
                     <Border VerticalAlignment="Bottom" Background="#B8000000" Padding="6" IsHitTestVisible="False"><TextBlock Text="Изменить постер" Foreground="White" HorizontalAlignment="Center"/></Border>
                 </Grid></Border>

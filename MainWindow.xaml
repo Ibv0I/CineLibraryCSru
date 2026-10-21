@@ -283,7 +283,7 @@
                                     <FontIcon Foreground="{ThemeResource NavLibraryIconBrush}" Glyph="&#xE7B8;" FontSize="15"
                                               FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="Watched &amp; Gone" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Просмотрено и удалено" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <Border Grid.Column="1" Style="{StaticResource BadgeStyle}">
                                     <TextBlock x:Name="WatchedGoneBadge" Text="0" FontSize="11"

@@ -8,7 +8,7 @@ using CineLibraryCS.Services;
 using CineLibraryCS.Services.Tmdb;
 using Windows.Graphics;
 using Windows.System;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Runtime.InteropServices.WindowsRuntime;\nusing System.Xml;
 
 namespace CineLibraryCS.Views;
 
@@ -1136,38 +1136,27 @@ public sealed partial class MovieDetailDialog : Window
             var picker = new TmdbMoviePreviewDialog(client, searchHit,
                 localPoster != null && File.Exists(localPoster) ? localPoster : null,
                 localFanart != null && File.Exists(localFanart) ? localFanart : null,
-                ownerWindow: this);
+                ownerWindow: this,
+                initialTitle: movie.Title);
             var result = await picker.ShowAsync();
             if (result != ContentDialogResult.Primary || picker.Movie == null) return;
 
             var edited = picker.Movie;
-            int? editedYear = DateTime.TryParse(edited.ReleaseDate, out var parsedRelease) ? parsedRelease.Year : movie.Year;
-            AppState.Instance.Db.UpdateMovieMetadata(movie.Id, edited.Title, edited.OriginalTitle,
-                edited.Tagline, edited.Overview, edited.ReleaseDate, editedYear,
-                edited.Runtime > 0 ? edited.Runtime : null, edited.Rating,
-                string.Join(", ", edited.ProductionCountries.Select(c => c.Name).Where(n => !string.IsNullOrWhiteSpace(n))),
-                string.Join(", ", edited.ProductionCompanies.Select(c => c.Name).Where(n => !string.IsNullOrWhiteSpace(n))),
-                edited.ImdbId, edited.TmdbId.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                edited.Genres.Select(g => g.Name).ToList(), edited.Directors, edited.Writers,
-                edited.Cast.Select(c => c.Name).ToList());
-            movie.Title = edited.Title;
-            movie.OriginalTitle = edited.OriginalTitle;
-            movie.Plot = edited.Overview;
-            movie.Tagline = edited.Tagline;
-            movie.Premiered = edited.ReleaseDate;
-            movie.Year = editedYear;
-            movie.Runtime = edited.Runtime > 0 ? edited.Runtime : null;
-            movie.Rating = edited.Rating;
-            movie.Country = string.Join(", ", edited.ProductionCountries.Select(c => c.Name).Where(n => !string.IsNullOrWhiteSpace(n)));
-            movie.Studio = string.Join(", ", edited.ProductionCompanies.Select(c => c.Name).Where(n => !string.IsNullOrWhiteSpace(n)));
-            movie.ImdbId = edited.ImdbId;
-            movie.TmdbId = edited.TmdbId.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            DetailTitle.Text = movie.Title;
-            PlotText.Text = movie.Plot ?? string.Empty;
-            movie.Genres = edited.Genres.Select(g => g.Name).ToList();
-            movie.Directors = edited.Directors.ToList();
-            movie.Writers = edited.Writers.ToList();
-            movie.Actors = edited.Cast.Select((actor, index) => new Models.Actor { Name = actor.Name, Role = actor.Character, SortOrder = index, Thumb = actor.ProfilePath }).ToList();
+            var editedTitle = edited.Title?.Trim();
+            if (!string.IsNullOrWhiteSpace(editedTitle) &&
+                !string.Equals(editedTitle, movie.Title, StringComparison.Ordinal))
+            {
+                // The title editor changes only <title> in movie.nfo. All other
+                // metadata remains untouched and will continue to be read from NFO.
+                if (!string.IsNullOrWhiteSpace(movieFolder) && Directory.Exists(movieFolder))
+                    UpdateMovieNfoTitle(Path.Combine(movieFolder, "movie.nfo"), editedTitle);
+                AppState.Instance.Db.UpdateMovieTitle(movie.Id, editedTitle);
+                movie.Title = editedTitle;
+                TitleBarText.Text = editedTitle;
+                DetailTitle.Text = editedTitle;
+                Title = editedTitle;
+                WatchlistChanged?.Invoke(this, EventArgs.Empty);
+            }
 
             string? newPosterRel = movie.LocalPoster;
             string? newFanartRel = movie.LocalFanart;
@@ -1210,6 +1199,28 @@ public sealed partial class MovieDetailDialog : Window
             var error = new ContentDialog { Title = "Ошибка изменения оформления", Content = ex.Message, CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
             await error.ShowAsync();
         }
+    }
+
+    private static void UpdateMovieNfoTitle(string nfoPath, string title)
+    {
+        var document = new XmlDocument { PreserveWhitespace = true };
+        if (File.Exists(nfoPath))
+            document.Load(nfoPath);
+        else
+            document.LoadXml("<movie />");
+
+        var root = document.DocumentElement;
+        if (root == null)
+            throw new InvalidDataException("Не удалось прочитать movie.nfo.");
+
+        var titleNode = root.SelectSingleNode("title");
+        if (titleNode == null)
+        {
+            titleNode = document.CreateElement("title");
+            root.PrependChild(titleNode);
+        }
+        titleNode.InnerText = title;
+        document.Save(nfoPath);
     }
 
     private async void OnOpenFolder(object sender, RoutedEventArgs e)

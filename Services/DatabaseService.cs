@@ -4000,6 +4000,15 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
 
     /// <summary>Persists edited TMDb metadata from the movie details editor.</summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
+    public void UpdateMovieTitle(int movieId, string title)
+    {
+        using var cmd = _conn.CreateCommand();
+        cmd.CommandText = "UPDATE movies SET title=@title, date_modified=strftime('%s','now') WHERE id=@id";
+        cmd.Parameters.AddWithValue("@title", title);
+        cmd.Parameters.AddWithValue("@id", movieId);
+        cmd.ExecuteNonQuery();
+    }
+
     public void UpdateMovieMetadata(int movieId, string title, string? originalTitle, string? tagline,
         string? plot, string? premiered, int? year, int? runtime, double? rating,
         string? country, string? studio, string? imdbId, string? tmdbId,

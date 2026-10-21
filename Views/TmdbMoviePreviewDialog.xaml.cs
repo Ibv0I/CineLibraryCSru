@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Graphics;
 using CineLibraryCS.Services.Tmdb;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace CineLibraryCS.Views;
 
@@ -13,6 +14,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
 {
     private readonly TmdbClient _client;
     private readonly TmdbMovie _searchHit;
+    private readonly string? _initialTitle;
     private readonly TaskCompletionSource<ContentDialogResult> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private List<TmdbImageChoice> _posterChoices = new();
     private List<TmdbImageChoice> _backdropChoices = new();
@@ -20,6 +22,9 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     private readonly Window _ownerWindow;
     private bool _ownerDisabled;
     private bool _shown;
+    private bool _savingSize;
+    private AppWindow? _appWindow;
+    private static string SettingsPath => Path.Combine(AppContext.BaseDirectory, "TmdbMoviePreviewDialog.settings.json");
     private readonly string? _initialPosterLocalPath;
     private readonly string? _initialBackdropLocalPath;
     public bool PosterWasChanged { get; private set; }
@@ -30,11 +35,12 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     public string? SelectedPosterPath { get; private set; }
     public string? SelectedBackdropPath { get; private set; }
 
-    public TmdbMoviePreviewDialog(TmdbClient client, TmdbMovie searchHit, string? initialPosterLocalPath = null, string? initialBackdropLocalPath = null, Window? ownerWindow = null)
+    public TmdbMoviePreviewDialog(TmdbClient client, TmdbMovie searchHit, string? initialPosterLocalPath = null, string? initialBackdropLocalPath = null, Window? ownerWindow = null, string? initialTitle = null)
     {
         _client = client;
         _ownerWindow = ownerWindow ?? App.MainWindow ?? throw new InvalidOperationException("Главное окно приложения ещё не создано.");
         _searchHit = searchHit;
+        _initialTitle = initialTitle;
         _initialPosterLocalPath = initialPosterLocalPath;
         _initialBackdropLocalPath = initialBackdropLocalPath;
         InitializeComponent();
@@ -47,6 +53,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     {
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
         var window = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(hwnd));
+        _appWindow = window;
         SetApplicationIcon(window);
         var ownerHwnd = WinRT.Interop.WindowNative.GetWindowHandle(_ownerWindow);
         var owner = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(ownerHwnd));
@@ -59,9 +66,47 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         titleBar.ForegroundColor = fg; titleBar.ButtonForegroundColor = fg;
         titleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(255, 55, 55, 60);
         titleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(255, 70, 70, 76);
-        window.Resize(new SizeInt32(Math.Min(1450, Math.Max(1050, owner.Size.Width - 80)), Math.Min(1050, Math.Max(800, owner.Size.Height - 60))));
+        var defaultSize = new SizeInt32(
+            Math.Min(1250, Math.Max(900, owner.Size.Width - 120)),
+            Math.Min(760, Math.Max(620, owner.Size.Height - 140)));
+        var savedSize = LoadSavedSize();
+        window.Resize(savedSize ?? defaultSize);
+        window.Changed += OnAppWindowChanged;
         window.Move(new PointInt32(owner.Position.X + Math.Max(0, (owner.Size.Width - window.Size.Width) / 2), owner.Position.Y + Math.Max(0, (owner.Size.Height - window.Size.Height) / 2)));
         if (window.Presenter is OverlappedPresenter presenter) { presenter.IsResizable = true; presenter.IsMaximizable = true; }
+    }
+
+    private static SizeInt32? LoadSavedSize()
+    {
+        try
+        {
+            if (!File.Exists(SettingsPath)) return null;
+            var size = JsonSerializer.Deserialize<SavedWindowSize>(File.ReadAllText(SettingsPath));
+            if (size != null && size.Width >= 800 && size.Height >= 560)
+                return new SizeInt32(size.Width, size.Height);
+        }
+        catch { }
+        return null;
+    }
+
+    private void OnAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
+    {
+        if (!args.DidSizeChange || _savingSize) return;
+        _savingSize = true;
+        try
+        {
+            File.WriteAllText(SettingsPath, JsonSerializer.Serialize(
+                new SavedWindowSize { Width = sender.Size.Width, Height = sender.Size.Height },
+                new JsonSerializerOptions { WriteIndented = true }));
+        }
+        catch { /* Settings may be read-only when installed under Program Files. */ }
+        finally { _savingSize = false; }
+    }
+
+    private sealed class SavedWindowSize
+    {
+        public int Width { get; set; }
+        public int Height { get; set; }
     }
 
     private static void SetApplicationIcon(AppWindow appWindow)
@@ -86,7 +131,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             var details = await _client.GetMovieDetailsAsync(_searchHit.TmdbId);
             if (details == null) throw new InvalidOperationException("TMDb не вернул подробности фильма.");
             Movie = details;
-            MovieTitleEditor.Text = details.Title;
+            MovieTitleEditor.Text = _initialTitle ?? details.Title;\n            if (!string.IsNullOrWhiteSpace(_initialTitle)) details.Title = _initialTitle;
 
             var images = await _client.GetMovieImagesAsync(details.TmdbId);
             if (images.Posters.Count == 0 && !string.IsNullOrWhiteSpace(details.PosterPath)) images.Posters.Add(details.PosterPath!);

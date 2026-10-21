@@ -7,7 +7,7 @@
     <Grid x:Name="RootGrid" RequestedTheme="Dark" Background="#121214" Padding="16" RowSpacing="12">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <TextBlock x:Name="HeaderText" Text="Выберите изображение" FontSize="20" FontWeight="SemiBold" Foreground="White"/>
-        <GridView x:Name="ImagesGrid" Grid.Row="1" SelectionMode="Single" IsItemClickEnabled="False"
+        <GridView x:Name="ImagesGrid" Grid.Row="1" SelectionMode="Single" IsItemClickEnabled="True" ItemClick="OnImageItemClick"
                   ScrollViewer.HorizontalScrollMode="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   ScrollViewer.VerticalScrollMode="Enabled" ScrollViewer.VerticalScrollBarVisibility="Auto" Padding="4">
             <GridView.ItemsPanel><ItemsPanelTemplate><ItemsWrapGrid Orientation="Horizontal"/></ItemsPanelTemplate></GridView.ItemsPanel>

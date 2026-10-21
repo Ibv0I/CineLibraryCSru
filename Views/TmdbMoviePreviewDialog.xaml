@@ -7,7 +7,7 @@
     <Grid x:Name="RootGrid" RequestedTheme="Dark" Background="#121214" Padding="18">
         <Grid RowSpacing="12">
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="250"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-            <TextBox x:Name="MovieTitleEditor" FontSize="25" FontWeight="SemiBold" PlaceholderText="Название фильма" Header="Название фильма" />
+            <TextBox x:Name="MovieTitleEditor" FontSize="14" PlaceholderText="Название фильма" Header="Название фильма" />
             <Grid Grid.Row="1" ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="190"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                 <Border Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" CornerRadius="6" Tapped="OnPosterPreviewTapped"><Grid>
                     <Image x:Name="PosterPreview" Stretch="Uniform"/>

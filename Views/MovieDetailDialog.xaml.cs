@@ -8,7 +8,8 @@ using CineLibraryCS.Services;
 using CineLibraryCS.Services.Tmdb;
 using Windows.Graphics;
 using Windows.System;
-using System.Runtime.InteropServices.WindowsRuntime;\nusing System.Xml;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Xml;
 
 namespace CineLibraryCS.Views;
 

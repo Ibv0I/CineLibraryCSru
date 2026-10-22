@@ -131,7 +131,8 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             var details = await _client.GetMovieDetailsAsync(_searchHit.TmdbId);
             if (details == null) throw new InvalidOperationException("TMDb не вернул подробности фильма.");
             Movie = details;
-            MovieTitleEditor.Text = _initialTitle ?? details.Title;\n            if (!string.IsNullOrWhiteSpace(_initialTitle)) details.Title = _initialTitle;
+            MovieTitleEditor.Text = _initialTitle ?? details.Title;
+            if (!string.IsNullOrWhiteSpace(_initialTitle)) details.Title = _initialTitle;
 
             var images = await _client.GetMovieImagesAsync(details.TmdbId);
             if (images.Posters.Count == 0 && !string.IsNullOrWhiteSpace(details.PosterPath)) images.Posters.Add(details.PosterPath!);

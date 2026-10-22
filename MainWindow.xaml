@@ -407,7 +407,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Foreground="{ThemeResource NavToolsIconBrush}" Glyph="&#xE8B7;" FontSize="15"
                                           FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" VerticalAlignment="Center"/>
-                                <TextBlock Text="Подготовка медиатеки" VerticalAlignment="Center"/>
+                                <TextBlock Text="Добавить фильм" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 

@@ -103,7 +103,7 @@ public sealed partial class MovieCardControl : UserControl
         Loaded += OnCardLoaded;
         Unloaded += OnCardUnloaded;
 
-        // Right-click → flyout with watched/favorite/watchlist + Add to list
+        // Right-click → flyout with watched/favorite/watchlist
         var flyout = new MenuFlyout();
         flyout.Opening += (_, _) => RebuildContextFlyout(flyout);
         ContextFlyout = flyout;
@@ -638,6 +638,7 @@ public sealed partial class MovieCardControl : UserControl
         {
             Text = CineLibraryCS.Services.LocalizationService.TranslateText("Watched"),
             IsChecked = Movie.IsWatched,
+            HorizontalContentAlignment = HorizontalAlignment.Left,
         };
         watchedItem.Click += (_, _) => WatchedToggleRequested?.Invoke(this, Movie);
         flyout.Items.Add(watchedItem);
@@ -646,6 +647,7 @@ public sealed partial class MovieCardControl : UserControl
         {
             Text = CineLibraryCS.Services.LocalizationService.TranslateText("Favorite"),
             IsChecked = Movie.IsFavorite,
+            HorizontalContentAlignment = HorizontalAlignment.Left,
         };
         favItem.Click += (_, _) => ToggleFavorite();
         flyout.Items.Add(favItem);
@@ -654,61 +656,13 @@ public sealed partial class MovieCardControl : UserControl
         {
             Text = CineLibraryCS.Services.LocalizationService.TranslateText("Watchlist"),
             IsChecked = Movie.IsWatchlist,
+            HorizontalContentAlignment = HorizontalAlignment.Left,
         };
         watchlistItem.Click += (_, _) => WatchlistToggleRequested?.Invoke(this, Movie);
         flyout.Items.Add(watchlistItem);
 
         flyout.Items.Add(new MenuFlyoutSeparator());
-
-        // Add to list submenu
-        var listsSub = new MenuFlyoutSubItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Add to list") };
-        var allLists = AppState.Instance.Db.GetUserLists();
-        var membership = AppState.Instance.Db.GetUserListsForMovie(Movie.Id);
-        if (allLists.Count == 0)
-        {
-            listsSub.Items.Add(new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("(no lists yet)"), IsEnabled = false });
-        }
-        else
-        {
-            foreach (var ul in allLists)
-            {
-                var inList = membership.Contains(ul.Id);
-                var item = new ToggleMenuFlyoutItem { Text = ul.Name, IsChecked = inList };
-                var capturedUl = ul;
-                item.Click += (_, _) =>
-                {
-                    if (item.IsChecked)
-                        AppState.Instance.Db.AddMovieToUserList(capturedUl.Id, Movie.Id);
-                    else
-                        AppState.Instance.Db.RemoveMovieFromUserList(capturedUl.Id, Movie.Id);
-                    SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
-                };
-                listsSub.Items.Add(item);
-            }
-        }
-        listsSub.Items.Add(new MenuFlyoutSeparator());
-        var newListItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("+ New list…") };
-        newListItem.Click += async (_, _) =>
-        {
-            var name = await PromptNewListNameDialog();
-            if (string.IsNullOrWhiteSpace(name) || Movie == null) return;
-            try
-            {
-                var newId = AppState.Instance.Db.CreateUserList(name.Trim());
-                AppState.Instance.Db.AddMovieToUserList(newId, Movie.Id);
-                SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
-            }
-            catch (Microsoft.Data.Sqlite.SqliteException)
-            {
-                if (App.MainWindow is MainWindow mw)
-                    mw.ShowToast($"{CineLibraryCS.Services.LocalizationService.TranslateText("A list named")} «{name.Trim()}» {CineLibraryCS.Services.LocalizationService.TranslateText("already exists")}");
-            }
-        };
-        listsSub.Items.Add(newListItem);
-        flyout.Items.Add(listsSub);
-
-        flyout.Items.Add(new MenuFlyoutSeparator());
-        var openItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Open details") };
+        var openItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Open details"), HorizontalContentAlignment = HorizontalAlignment.Left };
         openItem.Click += (_, _) => OpenDetail();
         flyout.Items.Add(openItem);
 
@@ -717,6 +671,7 @@ public sealed partial class MovieCardControl : UserControl
         var deleteMovieItem = new MenuFlyoutItem
         {
             Text = CineLibraryCS.Services.LocalizationService.TranslateText("Удалить фильм"),
+            HorizontalContentAlignment = HorizontalAlignment.Left,
             Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xEF, 0x44, 0x44)),
         };
         deleteMovieItem.Click += async (_, _) =>

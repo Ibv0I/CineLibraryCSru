@@ -192,6 +192,7 @@
                                 BorderBrush="{ThemeResource BorderBrush}"
                                 CornerRadius="8" Padding="12,8"
                                 ToolTipService.ToolTip="Открыть папку фильма"
+                                PointerEntered="OnActionButtonPointerEntered" PointerExited="OnActionButtonPointerExited"
                                 AutomationProperties.Name="Открыть папку фильма">
                             <FontIcon Glyph="&#xE8B7;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="16"/>
                         </Button>
@@ -200,8 +201,9 @@
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
                                 CornerRadius="8" Padding="12,8"
-                                ToolTipService.ToolTip="Изменить метаданные, постер и баннер"
-                                AutomationProperties.Name="Изменить метаданные, постер и баннер">
+                                ToolTipService.ToolTip="Изменить название, постер и баннер"
+                                AutomationProperties.Name="Изменить название, постер и баннер"
+                                PointerEntered="OnActionButtonPointerEntered" PointerExited="OnActionButtonPointerExited">
                             <FontIcon Glyph="&#xE70F;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="16"/>
                         </Button>
                         <Button x:Name="FavBtn" Click="OnToggleFav"

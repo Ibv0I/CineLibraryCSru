@@ -1107,21 +1107,6 @@ public sealed partial class MovieDetailDialog : Window
         }
     }
 
-    // Use a distinct blue hover state for the compact action buttons. Keeping
-    // the normal background resource intact prevents a stale blue background
-    // when the pointer leaves the button.
-    private void OnActionButtonPointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        if (sender is Button button)
-            button.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 37, 99, 235)); // #2563EB, different from Play
-    }
-
-    private void OnActionButtonPointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        if (sender is Button button)
-            button.Background = (Brush)Application.Current.Resources["CardBrush"];
-    }
-
     private async void OnEditArtwork(object sender, RoutedEventArgs e)
     {
         var movie = _movie;

@@ -8,6 +8,55 @@
 
     <Grid x:Name="RootGrid" Background="{ThemeResource BgBrush}">
         <Grid.Resources>
+            <!-- Stable action-button template: avoid the system's white pointer-over
+                 fill and focus animation flash after clicking the artwork editor. -->
+            <Style x:Key="MovieDetailActionButtonStyle" TargetType="Button">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="ActionBorder.Background" Value="#FF1D4ED8" />
+                                                <Setter Target="ActionBorder.BorderBrush" Value="#FF3B82F6" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="ActionBorder.Background" Value="#FF1E40AF" />
+                                                <Setter Target="ActionBorder.BorderBrush" Value="#FF3B82F6" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <VisualState.Setters>
+                                                <Setter Target="ActionBorder.Opacity" Value="0.5" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                                <Border x:Name="ActionBorder"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="{TemplateBinding CornerRadius}">
+                                    <ContentPresenter Content="{TemplateBinding Content}"
+                                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                      ContentTransitions="{TemplateBinding ContentTransitions}"
+                                                      Padding="{TemplateBinding Padding}"
+                                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                      AutomationProperties.AccessibilityView="Raw" />
+                                </Border>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
             <!-- v4.5.0: a film in the collection and "More by" strips. The title
                  keeps room for two lines, so every tile is the same height. -->
             <DataTemplate x:Key="RelatedMovieTemplate" x:DataType="models:RelatedMovie">
@@ -187,23 +236,23 @@
                             <TextBlock Text="▶ Смотреть"/>
                         </Button>
                         <Button x:Name="FolderBtn" Click="OnOpenFolder"
+                                Style="{StaticResource MovieDetailActionButtonStyle}"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
                                 CornerRadius="8" Padding="12,8"
                                 ToolTipService.ToolTip="Открыть папку фильма"
-                                PointerEntered="OnActionButtonPointerEntered" PointerExited="OnActionButtonPointerExited"
                                 AutomationProperties.Name="Открыть папку фильма">
                             <FontIcon Glyph="&#xE8B7;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="16"/>
                         </Button>
                         <Button x:Name="EditArtworkBtn" Click="OnEditArtwork" IsTabStop="False" UseSystemFocusVisuals="False"
+                                Style="{StaticResource MovieDetailActionButtonStyle}"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
                                 BorderBrush="{ThemeResource BorderBrush}"
                                 CornerRadius="8" Padding="12,8"
                                 ToolTipService.ToolTip="Изменить название, постер и баннер"
-                                AutomationProperties.Name="Изменить название, постер и баннер"
-                                PointerEntered="OnActionButtonPointerEntered" PointerExited="OnActionButtonPointerExited">
+                                AutomationProperties.Name="Изменить название, постер и баннер">
                             <FontIcon Glyph="&#xE70F;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="16"/>
                         </Button>
                         <Button x:Name="FavBtn" Click="OnToggleFav"

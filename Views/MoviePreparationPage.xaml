@@ -6,7 +6,7 @@
     <Grid Padding="28" RowSpacing="16">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
         <StackPanel Spacing="5">
-            <TextBlock Text="Подготовка медиатеки" FontSize="28" FontWeight="SemiBold" Foreground="{ThemeResource TextBrush}"/>
+            <TextBlock Text="Добавить фильм" FontSize="28" FontWeight="SemiBold" Foreground="{ThemeResource TextBrush}"/>
             <TextBlock Text="Добавляйте несколько папок с фильмами. Можно вручную выбрать совпадения TMDb или автоматически подготовить фильмы по первому результату поиска." TextWrapping="Wrap" Foreground="{ThemeResource MutedBrush}"/>
         </StackPanel>
         <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">

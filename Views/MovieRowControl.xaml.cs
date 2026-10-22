@@ -62,7 +62,7 @@ public sealed partial class MovieRowControl : UserControl
         flyout.Items.Clear();
         if (Movie == null) return;
 
-        var listsSub = new MenuFlyoutSubItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("📑 Добавить в список") };
+        var listsSub = new MenuFlyoutSubItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Добавить в список") };
         var allLists = AppState.Instance.Db.GetUserLists();
         var membership = AppState.Instance.Db.GetUserListsForMovie(Movie.Id);
         if (allLists.Count == 0)
@@ -88,32 +88,32 @@ public sealed partial class MovieRowControl : UserControl
         }
         flyout.Items.Add(listsSub);
 
-        // v3.3 — Watched & Gone (same action as the grid-card context menu).
         flyout.Items.Add(new MenuFlyoutSeparator());
-        var archiveItem = new MenuFlyoutItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Перенести в «Просмотрено и удалено»") };
-        archiveItem.Click += async (_, _) =>
+        var deleteItem = new MenuFlyoutItem
+        {
+            Text = "Удалить фильм",
+            Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xEF, 0x44, 0x44)),
+        };
+        deleteItem.Click += async (_, _) =>
         {
             if (Movie == null) return;
             var m = Movie;
             var dlg = new ContentDialog
             {
-                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Перенести в «Просмотрено и удалено»?"),
-                Content = $"«{m.Title}» перемещается из библиотеки в раздел «Просмотрено и удалено» — " +
-                          CineLibraryCS.Services.LocalizationService.TranslateText("Постер, сведения, заметки и история просмотров сохранятся в записи. ") +
-                          CineLibraryCS.Services.LocalizationService.TranslateText("Файлы на диске не изменяются."),
-                PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Send"),
-                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
-                DefaultButton = ContentDialogButton.Primary,
+                Title = "Удалить фильм из библиотеки?",
+                Content = $"Фильм «{m.Title}» будет удалён из Movie Library вместе с сохранёнными данными и локальными изображениями. Видеофайл и другие файлы на диске не будут затронуты.",
+                PrimaryButtonText = "Удалить фильм",
+                CloseButtonText = "Отмена",
+                DefaultButton = ContentDialogButton.Close,
                 XamlRoot = XamlRoot,
                 RequestedTheme = MainWindow.CurrentTheme,
             };
             if (await dlg.ShowAsync() != ContentDialogResult.Primary) return;
-            AppState.Instance.Db.ArchiveMovies(new[] { m.Id });
-            if (App.MainWindow is MainWindow mw)
-                mw.ShowToast($"«{m.Title}» " + CineLibraryCS.Services.LocalizationService.TranslateText("перенесён в «Просмотрено и удалено»"));
+            AppState.Instance.Db.DeleteMoviesByIds(new[] { m.Id });
+            if (App.MainWindow is MainWindow mw) mw.ShowToast($"«{m.Title}» удалён из библиотеки");
             MovieCardControl.RaiseMovieArchived();
         };
-        flyout.Items.Add(archiveItem);
+        flyout.Items.Add(deleteItem);
     }
 
     private static void OnMovieChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

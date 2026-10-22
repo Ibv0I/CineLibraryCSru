@@ -17,6 +17,8 @@ public sealed partial class MoviePreparationPage : Page
     private readonly ObservableCollection<MovieFolderCandidate> _candidates = new();
     private readonly List<string> _scanRoots = new();
     private readonly List<string> _excludedFolders = new();
+    // Prevent manually removed candidates from being re-added by a later rescan.
+    private readonly HashSet<string> _manuallyRemovedFolders = new(StringComparer.OrdinalIgnoreCase);
     private static string SettingsPath => Path.Combine(AppContext.BaseDirectory, "MoviePreparationSettings.json");
     private bool _isBusy;
 
@@ -49,7 +51,9 @@ public sealed partial class MoviePreparationPage : Page
             }
             if (!_scanRoots.Contains(folder.Path, StringComparer.OrdinalIgnoreCase))
                 _scanRoots.Add(folder.Path);
-                ScanAllRoots();
+            // Explicitly adding a folder again re-enables candidates below it.
+            _manuallyRemovedFolders.RemoveWhere(path => IsSameOrChildPath(path, folder.Path) || IsSameOrChildPath(folder.Path, path));
+            ScanAllRoots();
         }
         catch (Exception ex)
         {
@@ -61,6 +65,7 @@ public sealed partial class MoviePreparationPage : Page
     {
         if ((sender as Button)?.Tag is not MovieFolderCandidate candidate) return;
         _candidates.Remove(candidate);
+        _manuallyRemovedFolders.Add(Path.GetFullPath(candidate.FolderPath));
         RefreshCandidates();
         StatusText.Text = $"Папка фильма «{candidate.FolderName}» убрана из текущего списка подготовки.";
     }
@@ -102,7 +107,7 @@ public sealed partial class MoviePreparationPage : Page
             }
         }
         RefreshExclusionList();
-        var addButton = new Button { Content = "Добавить папку исключения…", HorizontalAlignment = HorizontalAlignment.Left };
+        var addButton = new Button { Content = "Добавить папку исключения", HorizontalAlignment = HorizontalAlignment.Left };
         addButton.Click += async (_, _) =>
         {
             try
@@ -202,7 +207,7 @@ public sealed partial class MoviePreparationPage : Page
                 if (!Directory.Exists(root)) continue;
                 foreach (var dir in EnumerateDirectoriesSkippingExclusions(root))
                 {
-                    if (knownPaths.Contains(dir)) continue;
+                    if (knownPaths.Contains(dir) || _manuallyRemovedFolders.Contains(Path.GetFullPath(dir))) continue;
                     string[] videos;
                     try { videos = Directory.EnumerateFiles(dir).Where(f => VideoExtensions.Contains(Path.GetExtension(f))).ToArray(); }
                     catch { continue; }

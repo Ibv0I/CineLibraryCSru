@@ -10,8 +10,8 @@
             <TextBlock Text="Добавляйте несколько папок с фильмами. Можно вручную выбрать совпадения TMDb или автоматически подготовить фильмы по первому результату поиска." TextWrapping="Wrap" Foreground="{ThemeResource MutedBrush}"/>
         </StackPanel>
         <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
-            <Button Content="Добавить папку…" Click="OnChooseFolderClick"/>
-            <Button Content="Папки исключения…" Click="OnManageExclusionsClick"/>
+            <Button Content="Добавить папку" Click="OnChooseFolderClick"/>
+            <Button Content="Папки исключения" Click="OnManageExclusionsClick"/>
         </StackPanel>
         <Grid Grid.Row="2" ColumnSpacing="8">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>

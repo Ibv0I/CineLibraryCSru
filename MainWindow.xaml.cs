@@ -557,14 +557,6 @@ public sealed partial class MainWindow : Window
                     + AppState.Instance.Db.GetTvShowPageCount(DatabaseService.TvShowPage.Notes)).ToString();
             }
             catch { }
-            // v3.3 — Watched & Gone entry appears once the first record exists.
-            try
-            {
-                var wg = AppState.Instance.Db.GetArchivedCount();
-                WatchedGoneBadge.Text = wg.ToString();
-                BtnWatchedGone.Visibility = Visibility.Visible;
-            }
-            catch { }
             // v2.5.1 — StatRuntime / StatRating tiles removed from sidebar
             // (they live on the Statistics page now). Stats object still
             // computed because other code paths use it.
@@ -1851,11 +1843,6 @@ public sealed partial class MainWindow : Window
         SetActiveNav(sender as Button ?? BtnNotes);
     }
 
-    private void OnNavWatchedGone(object sender, RoutedEventArgs e)
-    {
-        NavigateTo("watchedgone");
-        SetActiveNav(BtnWatchedGone);
-    }
 
     // ── v1.4.1 Statistics dashboard ────────────────────────────────────────
 

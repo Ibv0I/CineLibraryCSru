@@ -661,7 +661,7 @@ public sealed partial class MovieCardControl : UserControl
         flyout.Items.Add(new MenuFlyoutSeparator());
 
         // Add to list submenu
-        var listsSub = new MenuFlyoutSubItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("📑 Add to list") };
+        var listsSub = new MenuFlyoutSubItem { Text = CineLibraryCS.Services.LocalizationService.TranslateText("Add to list") };
         var allLists = AppState.Instance.Db.GetUserLists();
         var membership = AppState.Instance.Db.GetUserListsForMovie(Movie.Id);
         if (allLists.Count == 0)
@@ -712,38 +712,33 @@ public sealed partial class MovieCardControl : UserControl
         openItem.Click += (_, _) => OpenDetail();
         flyout.Items.Add(openItem);
 
-        // v3.3 — Watched & Gone: keep the record (poster, details, notes,
-        // history) but move the movie out of the live library.
+        // Permanently remove the library record (video files on disk remain untouched).
         flyout.Items.Add(new MenuFlyoutSeparator());
-        var archiveItem = new MenuFlyoutItem
+        var deleteMovieItem = new MenuFlyoutItem
         {
-            Text = CineLibraryCS.Services.LocalizationService.TranslateText("Send to Watched & Gone"),
-            Icon = new FontIcon { Glyph = "", FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Segoe Fluent Icons,Segoe MDL2 Assets") },
+            Text = CineLibraryCS.Services.LocalizationService.TranslateText("Удалить фильм"),
+            Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xEF, 0x44, 0x44)),
         };
-        archiveItem.Click += async (_, _) =>
+        deleteMovieItem.Click += async (_, _) =>
         {
             if (Movie == null) return;
             var m = Movie;
             var dlg = new ContentDialog
             {
-                Title = CineLibraryCS.Services.LocalizationService.TranslateText("Send to Watched & Gone?"),
-                Content = $"«{m.Title}» перемещается из библиотеки в раздел «Просмотрено и удалено» — " +
-                          CineLibraryCS.Services.LocalizationService.TranslateText("its poster, details, your notes and watch history are all kept as a record. ") +
-                          CineLibraryCS.Services.LocalizationService.TranslateText("The files on your drive are not touched.") + "\n\n" +
-                          CineLibraryCS.Services.LocalizationService.TranslateText("You can restore it from the Watched & Gone page anytime."),
-                PrimaryButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Send"),
-                CloseButtonText = CineLibraryCS.Services.LocalizationService.TranslateText("Cancel"),
-                DefaultButton = ContentDialogButton.Primary,
+                Title = "Удалить фильм из библиотеки?",
+                Content = $"Фильм «{m.Title}» будет удалён из Movie Library вместе с сохранёнными данными и локальными изображениями. Видеофайл и другие файлы на диске не будут затронуты.",
+                PrimaryButtonText = "Удалить фильм",
+                CloseButtonText = "Отмена",
+                DefaultButton = ContentDialogButton.Close,
                 XamlRoot = XamlRoot,
                 RequestedTheme = MainWindow.CurrentTheme,
             };
             if (await dlg.ShowAsync() != ContentDialogResult.Primary) return;
-            AppState.Instance.Db.ArchiveMovies(new[] { m.Id });
-            if (App.MainWindow is MainWindow mw)
-                mw.ShowToast($"«{m.Title}» " + CineLibraryCS.Services.LocalizationService.TranslateText("sent to Watched & Gone"));
+            AppState.Instance.Db.DeleteMoviesByIds(new[] { m.Id });
+            if (App.MainWindow is MainWindow mw) mw.ShowToast($"«{m.Title}» удалён из библиотеки");
             RaiseMovieArchived();
         };
-        flyout.Items.Add(archiveItem);
+        flyout.Items.Add(deleteMovieItem);
     }
 
     // v3.3 — context menu for records on the Watched & Gone page.

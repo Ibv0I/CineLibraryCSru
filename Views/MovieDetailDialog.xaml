@@ -20,13 +20,13 @@
                                         <VisualState x:Name="Normal" />
                                         <VisualState x:Name="PointerOver">
                                             <VisualState.Setters>
-                                                <Setter Target="ActionBorder.Background" Value="#FF1D4ED8" />
+                                                <Setter Target="ActionBorder.Background" Value="#FF3B82F6" />
                                                 <Setter Target="ActionBorder.BorderBrush" Value="#FF3B82F6" />
                                             </VisualState.Setters>
                                         </VisualState>
                                         <VisualState x:Name="Pressed">
                                             <VisualState.Setters>
-                                                <Setter Target="ActionBorder.Background" Value="#FF1E40AF" />
+                                                <Setter Target="ActionBorder.Background" Value="#FF2563EB" />
                                                 <Setter Target="ActionBorder.BorderBrush" Value="#FF3B82F6" />
                                             </VisualState.Setters>
                                         </VisualState>

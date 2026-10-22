@@ -243,9 +243,18 @@ public sealed partial class MoviePreparationPage : Page
         candidate.SelectedPosterPath = preview.SelectedPosterPath ?? preview.Movie.PosterPath;
         candidate.SelectedBackdropPath = preview.SelectedBackdropPath ?? preview.Movie.BackdropPath;
         candidate.DownloadActorPhotos = preview.DownloadActorPhotos;
-        candidate.MatchSummary = $"Готово к сохранению: {preview.Movie.Title}{(preview.Movie.Year > 0 ? $" ({preview.Movie.Year})" : string.Empty)} · TMDb ID: {preview.Movie.TmdbId}";
+        candidate.MatchSummary = $"Выбрано: {preview.Movie.Title}{(preview.Movie.Year > 0 ? $" ({preview.Movie.Year})" : string.Empty)} · TMDb ID: {preview.Movie.TmdbId}";
         RefreshCandidates();
-        StatusText.Text = $"Для папки «{candidate.FolderName}» выбраны метаданные и изображения. Нажмите «Сохранить файлы», чтобы создать movie.nfo, poster.jpg и fanart.jpg.";
+
+        // Confirming the selected TMDb match and artwork now completes file preparation.
+        // The per-movie button is reserved for adding the prepared movie to the library.
+        _isBusy = true;
+        try
+        {
+            if (await SaveCandidateAsync(candidate, confirmOverwrite: true))
+                StatusText.Text = $"Файлы фильма «{candidate.FolderName}» подготовлены. Нажмите «Добавить в медиатеку», чтобы импортировать фильм.";
+        }
+        finally { _isBusy = false; }
     }
 
     private void RefreshCandidates()
@@ -254,16 +263,34 @@ public sealed partial class MoviePreparationPage : Page
         FoldersList.ItemsSource = _candidates;
     }
 
-    private async void OnSavePreparedMovieClick(object sender, RoutedEventArgs e)
+    private async void OnAddPreparedMovieToLibraryClick(object sender, RoutedEventArgs e)
     {
         if (_isBusy) return;
-        if ((sender as Button)?.Tag is not MovieFolderCandidate candidate || candidate.SelectedMovie is not TmdbMovie)
+        if ((sender as Button)?.Tag is not MovieFolderCandidate candidate)
+            return;
+        if (!HasPreparedFiles(candidate))
         {
-            StatusText.Text = "Сначала выберите совпадение фильма в TMDb.";
+            StatusText.Text = "Сначала выберите фильм в TMDb и подтвердите выбор постера и баннера.";
             return;
         }
-        await SaveCandidateAsync(candidate, confirmOverwrite: true);
+
+        _isBusy = true;
+        try
+        {
+            StatusText.Text = $"Добавление фильма «{candidate.FolderName}» в медиатеку…";
+            var added = await AddCandidateToLibraryAsync(candidate);
+            StatusText.Text = added
+                ? $"Фильм «{candidate.FolderName}» добавлен в медиатеку."
+                : $"Не удалось добавить фильм «{candidate.FolderName}» в медиатеку.";
+        }
+        catch (Exception ex) { StatusText.Text = "Не удалось добавить фильм в медиатеку: " + ex.Message; }
+        finally { _isBusy = false; }
     }
+
+    private static bool HasPreparedFiles(MovieFolderCandidate candidate) =>
+        File.Exists(Path.Combine(candidate.FolderPath, "movie.nfo")) &&
+        File.Exists(Path.Combine(candidate.FolderPath, "poster.jpg")) &&
+        File.Exists(Path.Combine(candidate.FolderPath, "fanart.jpg"));
 
     private async void OnAutoPrepareAllClick(object sender, RoutedEventArgs e)
     {
@@ -355,54 +382,75 @@ public sealed partial class MoviePreparationPage : Page
     private async void OnSaveAllPreparedMoviesClick(object sender, RoutedEventArgs e)
     {
         if (_isBusy) return;
-        var selected = _candidates.Where(c => c.SelectedMovie != null).ToList();
-        if (selected.Count == 0)
+        var prepared = _candidates.Where(HasPreparedFiles).ToList();
+        if (prepared.Count == 0)
         {
-            StatusText.Text = "Сначала выберите совпадение TMDb хотя бы для одного фильма.";
+            StatusText.Text = "Сначала подготовьте хотя бы один фильм: выберите совпадение TMDb и подтвердите постер и баннер.";
             return;
         }
 
-        var existingCount = selected.Sum(c => new[] { "movie.nfo", "poster.jpg", "fanart.jpg" }
-            .Count(name => File.Exists(Path.Combine(c.FolderPath, name))));
-        var warning = existingCount > 0
-            ? $"\n\nОбнаружено существующих файлов, которые могут быть заменены: {existingCount}."
-            : string.Empty;
         var confirm = new ContentDialog
         {
             XamlRoot = XamlRoot,
-            Title = "Пакетная подготовка",
+            Title = "Добавить все фильмы в медиатеку",
             RequestedTheme = ElementTheme.Dark,
-            Content = $"Будут подготовлены {selected.Count} фильм(ов). Для выбранных фильмов будут созданы movie.nfo, poster.jpg и fanart.jpg.{warning}\n\nПродолжить?",
-            PrimaryButtonText = "Начать",
+            Content = $"В медиатеку будут добавлены {prepared.Count} подготовленных фильм(ов). Продолжить?",
+            PrimaryButtonText = "Добавить",
             CloseButtonText = "Отмена",
             DefaultButton = ContentDialogButton.Primary
         };
         if (await confirm.ShowAsync() != ContentDialogResult.Primary) return;
 
         _isBusy = true;
-        int saved = 0, failed = 0;
+        int added = 0, failed = 0;
         try
         {
-            for (int i = 0; i < selected.Count; i++)
+            for (int i = 0; i < prepared.Count; i++)
             {
-                var candidate = selected[i];
-                StatusText.Text = $"Пакетная подготовка: {i + 1}/{selected.Count} — {candidate.FolderName}…";
-                var ok = await SaveCandidateAsync(candidate, confirmOverwrite: false);
-                if (ok) saved++; else failed++;
+                var candidate = prepared[i];
+                StatusText.Text = $"Добавление в медиатеку: {i + 1}/{prepared.Count} — {candidate.FolderName}…";
+                try
+                {
+                    if (await AddCandidateToLibraryAsync(candidate)) added++; else failed++;
+                }
+                catch (Exception ex)
+                {
+                    candidate.MatchSummary = "Ошибка добавления в медиатеку: " + ex.Message;
+                    candidate.RefreshLibraryStatus();
+                    failed++;
+                    RefreshCandidates();
+                }
             }
-
-            try
-            {
-                var libraryUpdated = await UpdateLibraryAsync();
-                StatusText.Text = $"Пакетная подготовка завершена. Успешно: {saved}, ошибок/отмен: {failed}. " +
-                    (libraryUpdated ? "Медиатека обновлена." : "Файлы сохранены, но обновить медиатеку не удалось." );
-            }
-            catch (Exception ex)
-            {
-                StatusText.Text = $"Пакетная подготовка завершена. Успешно: {saved}, ошибок/отмен: {failed}. Не удалось обновить медиатеку: {ex.Message}";
-            }
+            StatusText.Text = $"Добавление завершено. Успешно: {added}; ошибок: {failed}.";
         }
         finally { _isBusy = false; }
+    }
+
+    private async Task<bool> AddCandidateToLibraryAsync(MovieFolderCandidate candidate)
+    {
+        if (!HasPreparedFiles(candidate) || !Directory.Exists(candidate.FolderPath)) return false;
+        var driveRoot = Path.GetPathRoot(candidate.FolderPath);
+        if (string.IsNullOrWhiteSpace(driveRoot)) return false;
+        var serial = CineLibraryCS.Services.DatabaseService.GetVolumeSerial(driveRoot);
+        if (string.IsNullOrWhiteSpace(serial)) return false;
+
+        var db = CineLibraryCS.Services.AppState.Instance.Db;
+        var letter = driveRoot.TrimEnd('\\', ':');
+        db.AddDrive(serial, $"Диск ({letter}:)", letter);
+        var relativeFolder = Path.GetRelativePath(driveRoot, candidate.FolderPath).Replace('\\', '/').TrimEnd('/');
+        if (relativeFolder == ".") relativeFolder = string.Empty;
+        if (!db.GetDriveRoots(serial).Any(r => string.Equals(r.RootPath, relativeFolder, StringComparison.OrdinalIgnoreCase)))
+            db.AddDriveRoot(serial, relativeFolder);
+
+        var progress = new Progress<CineLibraryCS.Services.ScanProgress>(p =>
+        {
+            if (!p.Done) StatusText.Text = $"Добавление «{candidate.FolderName}» в медиатеку… Найдено: {p.Found}";
+        });
+        await CineLibraryCS.Services.AppState.Instance.Scanner.ScanAsync(
+            serial, driveRoot, progress, CancellationToken.None, candidate.FolderPath, incremental: false);
+        candidate.RefreshLibraryStatus();
+        RefreshCandidates();
+        return string.Equals(candidate.LibraryStatusText, "В медиатеке", StringComparison.Ordinal);
     }
 
     private async Task<bool> UpdateLibraryAsync()

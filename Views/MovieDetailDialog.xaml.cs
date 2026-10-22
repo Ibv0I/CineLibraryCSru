@@ -1118,11 +1118,10 @@ public sealed partial class MovieDetailDialog : Window
             return;
         }
 
-        var originalFolderBackground = FolderBtn.Background;
-        var originalFolderForeground = FolderBtn.Foreground;
         var originalEditBackground = EditArtworkBtn.Background;
         var originalEditForeground = EditArtworkBtn.Foreground;
-        var activeBackground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 37, 99, 235));
+        var originalEditToolTip = ToolTipService.GetToolTip(EditArtworkBtn);
+        var activeBackground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 59, 130, 246));
         var activeForeground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
         try
         {
@@ -1145,17 +1144,15 @@ public sealed partial class MovieDetailDialog : Window
                 localFanart != null && File.Exists(localFanart) ? localFanart : null,
                 ownerWindow: this,
                 initialTitle: movie.Title);
-            // Keep both related action icons visibly active for the entire lifetime
-            // of the metadata window, independent of pointer position.
-            FolderBtn.Background = activeBackground;
-            FolderBtn.Foreground = activeForeground;
+            // Only the clicked pencil stays highlighted while its metadata window is open.
+            // Hide its tooltip until the window closes to prevent it appearing over the dialog.
             EditArtworkBtn.Background = activeBackground;
             EditArtworkBtn.Foreground = activeForeground;
+            ToolTipService.SetToolTip(EditArtworkBtn, null);
             var result = await picker.ShowAsync();
-            FolderBtn.Background = originalFolderBackground;
-            FolderBtn.Foreground = originalFolderForeground;
             EditArtworkBtn.Background = originalEditBackground;
             EditArtworkBtn.Foreground = originalEditForeground;
+            ToolTipService.SetToolTip(EditArtworkBtn, originalEditToolTip);
             if (result != ContentDialogResult.Primary || picker.Movie == null) return;
 
             var edited = picker.Movie;
@@ -1213,10 +1210,9 @@ public sealed partial class MovieDetailDialog : Window
         }
         catch (Exception ex)
         {
-            FolderBtn.Background = originalFolderBackground;
-            FolderBtn.Foreground = originalFolderForeground;
             EditArtworkBtn.Background = originalEditBackground;
             EditArtworkBtn.Foreground = originalEditForeground;
+            ToolTipService.SetToolTip(EditArtworkBtn, originalEditToolTip);
             var error = new ContentDialog { Title = "Ошибка изменения оформления", Content = ex.Message, CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
             await error.ShowAsync();
         }
@@ -1248,8 +1244,21 @@ public sealed partial class MovieDetailDialog : Window
     {
         if (_movie?.CurrentLetter == null || _movie.FolderRelPath == null) return;
         var folderPath = Path.Combine($"{_movie.CurrentLetter}:\\", _movie.FolderRelPath.Replace('/', '\\'));
-        if (Directory.Exists(folderPath))
-            await Launcher.LaunchFolderPathAsync(folderPath);
+        if (!Directory.Exists(folderPath)) return;
+
+        var originalBackground = FolderBtn.Background;
+        var originalForeground = FolderBtn.Foreground;
+        var originalToolTip = ToolTipService.GetToolTip(FolderBtn);
+        FolderBtn.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 59, 130, 246));
+        FolderBtn.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
+        ToolTipService.SetToolTip(FolderBtn, null);
+        try { await Launcher.LaunchFolderPathAsync(folderPath); }
+        finally
+        {
+            FolderBtn.Background = originalBackground;
+            FolderBtn.Foreground = originalForeground;
+            ToolTipService.SetToolTip(FolderBtn, originalToolTip);
+        }
     }
 
     private void OnToggleFav(object sender, RoutedEventArgs e)

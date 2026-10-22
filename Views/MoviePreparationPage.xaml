@@ -16,7 +16,7 @@
         <Grid Grid.Row="2" ColumnSpacing="8">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <Button Grid.Column="0" Content="Автоподготовка всех фильмов" Click="OnAutoPrepareAllClick" Style="{ThemeResource AccentButtonStyle}" HorizontalAlignment="Left"/>
-            <Button Grid.Column="1" Content="Добавить в медиатеку" Click="OnSaveAllPreparedMoviesClick"/>
+            <Button Grid.Column="1" Content="Добавить все фильмы в медиатеку" Click="OnSaveAllPreparedMoviesClick"/>
         </Grid>
         <TextBlock x:Name="StatusText" Grid.Row="3" Text="Добавьте одну или несколько папок. Поиск начнётся автоматически." TextWrapping="Wrap" Foreground="{ThemeResource MutedBrush}"/>
         <ListView x:Name="FoldersList" Grid.Row="4" SelectionMode="None" IsItemClickEnabled="False">
@@ -36,7 +36,7 @@
                                     <TextBlock Text="{Binding NfoGlyph}" FontSize="13" Foreground="#399BFF" Margin="7,0,0,0"/><TextBlock Text="NFO" FontSize="12" Foreground="{ThemeResource MutedBrush}"/><TextBlock Text="{Binding LibraryGlyph}" FontSize="13" Foreground="#399BFF" Margin="12,0,0,0"/><TextBlock Text="{Binding LibraryStatusText}" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
                                 </StackPanel>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"><Button Content="Выбрать фильм в TMDb" Click="OnPickMovieClick" Tag="{Binding}"/><Button Content="Сохранить файлы" Click="OnSavePreparedMovieClick" Tag="{Binding}" Style="{ThemeResource AccentButtonStyle}"/><Button Content="✕" Click="OnRemoveMovieFolderClick" Tag="{Binding}" ToolTipService.ToolTip="Убрать папку фильма из списка" Padding="8,4" MinWidth="36"/></StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"><Button Content="Выбрать фильм в TMDb" Click="OnPickMovieClick" Tag="{Binding}"/><Button Content="Добавить в медиатеку" Click="OnAddPreparedMovieToLibraryClick" Tag="{Binding}" Style="{ThemeResource AccentButtonStyle}"/><Button Content="✕" Click="OnRemoveMovieFolderClick" Tag="{Binding}" ToolTipService.ToolTip="Убрать папку фильма из списка" Padding="8,4" MinWidth="36"/></StackPanel>
                         </Grid>
                     </Border>
                 </DataTemplate>

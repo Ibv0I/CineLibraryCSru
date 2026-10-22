@@ -44,6 +44,11 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         _initialPosterLocalPath = initialPosterLocalPath;
         _initialBackdropLocalPath = initialBackdropLocalPath;
         InitializeComponent();
+        // Actor-photo downloading is an option for the library-preparation workflow only.
+        // When this dialog is opened from a movie's pencil button, keep the editor focused
+        // on title, poster and banner.
+        if (ownerWindow != null)
+            DownloadActorPhotosCheckBox.Visibility = Visibility.Collapsed;
         RootGrid.Loaded += async (_, _) => await LoadMovieAsync();
         Closed += OnClosed;
         ConfigureWindow();

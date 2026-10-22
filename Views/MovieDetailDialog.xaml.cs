@@ -1118,6 +1118,12 @@ public sealed partial class MovieDetailDialog : Window
             return;
         }
 
+        var originalFolderBackground = FolderBtn.Background;
+        var originalFolderForeground = FolderBtn.Foreground;
+        var originalEditBackground = EditArtworkBtn.Background;
+        var originalEditForeground = EditArtworkBtn.Foreground;
+        var activeBackground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 37, 99, 235));
+        var activeForeground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
         try
         {
             string? movieFolder = null;
@@ -1139,7 +1145,17 @@ public sealed partial class MovieDetailDialog : Window
                 localFanart != null && File.Exists(localFanart) ? localFanart : null,
                 ownerWindow: this,
                 initialTitle: movie.Title);
+            // Keep both related action icons visibly active for the entire lifetime
+            // of the metadata window, independent of pointer position.
+            FolderBtn.Background = activeBackground;
+            FolderBtn.Foreground = activeForeground;
+            EditArtworkBtn.Background = activeBackground;
+            EditArtworkBtn.Foreground = activeForeground;
             var result = await picker.ShowAsync();
+            FolderBtn.Background = originalFolderBackground;
+            FolderBtn.Foreground = originalFolderForeground;
+            EditArtworkBtn.Background = originalEditBackground;
+            EditArtworkBtn.Foreground = originalEditForeground;
             if (result != ContentDialogResult.Primary || picker.Movie == null) return;
 
             var edited = picker.Movie;
@@ -1197,6 +1213,10 @@ public sealed partial class MovieDetailDialog : Window
         }
         catch (Exception ex)
         {
+            FolderBtn.Background = originalFolderBackground;
+            FolderBtn.Foreground = originalFolderForeground;
+            EditArtworkBtn.Background = originalEditBackground;
+            EditArtworkBtn.Foreground = originalEditForeground;
             var error = new ContentDialog { Title = "Ошибка изменения оформления", Content = ex.Message, CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
             await error.ShowAsync();
         }

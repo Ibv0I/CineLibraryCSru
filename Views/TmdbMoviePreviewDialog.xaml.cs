@@ -1,5 +1,6 @@
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -23,6 +24,8 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     private bool _ownerDisabled;
     private bool _shown;
     private bool _savingSize;
+    private DispatcherQueueTimer? _sizeSaveTimer;
+    private SizeInt32 _pendingSize;
     private AppWindow? _appWindow;
     private static string SettingsPath => Path.Combine(AppContext.BaseDirectory, "TmdbMoviePreviewDialog.settings.json");
     private readonly string? _initialPosterLocalPath;
@@ -76,6 +79,14 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             Math.Min(760, Math.Max(620, owner.Size.Height - 140)));
         var savedSize = LoadSavedSize();
         window.Resize(savedSize ?? defaultSize);
+        _pendingSize = savedSize ?? defaultSize;
+        _sizeSaveTimer = DispatcherQueue.GetForCurrentThread()?.CreateTimer();
+        if (_sizeSaveTimer != null)
+        {
+            _sizeSaveTimer.Interval = TimeSpan.FromMilliseconds(400);
+            _sizeSaveTimer.IsRepeating = false;
+            _sizeSaveTimer.Tick += (_, _) => SaveWindowSize(_pendingSize);
+        }
         window.Changed += OnAppWindowChanged;
         window.Move(new PointInt32(owner.Position.X + Math.Max(0, (owner.Size.Width - window.Size.Width) / 2), owner.Position.Y + Math.Max(0, (owner.Size.Height - window.Size.Height) / 2)));
         if (window.Presenter is OverlappedPresenter presenter) { presenter.IsResizable = true; presenter.IsMaximizable = true; }
@@ -97,11 +108,27 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     private void OnAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
     {
         if (!args.DidSizeChange || _savingSize) return;
+        _pendingSize = sender.Size;
+        // Debounce disk writes while the user resizes the preview dialog.
+        if (_sizeSaveTimer != null)
+        {
+            _sizeSaveTimer.Stop();
+            _sizeSaveTimer.Start();
+        }
+        else
+        {
+            SaveWindowSize(_pendingSize);
+        }
+    }
+
+    private void SaveWindowSize(SizeInt32 size)
+    {
+        if (_savingSize || size.Width < 800 || size.Height < 560) return;
         _savingSize = true;
         try
         {
             File.WriteAllText(SettingsPath, JsonSerializer.Serialize(
-                new SavedWindowSize { Width = sender.Size.Width, Height = sender.Size.Height },
+                new SavedWindowSize { Width = size.Width, Height = size.Height },
                 new JsonSerializerOptions { WriteIndented = true }));
         }
         catch { /* Settings may be read-only when installed under Program Files. */ }
@@ -211,6 +238,8 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     private void CloseWithResult(ContentDialogResult result) { _completion.TrySetResult(result); Close(); }
     private void OnClosed(object sender, WindowEventArgs args)
     {
+        _sizeSaveTimer?.Stop();
+        SaveWindowSize(_pendingSize.Width > 0 ? _pendingSize : _appWindow?.Size ?? new SizeInt32(0, 0));
         if (_ownerDisabled && _ownerHandle != 0) { EnableWindow(_ownerHandle, true); _ownerDisabled = false; try { _ownerWindow.Activate(); } catch { } }
         if (!_completion.Task.IsCompleted) _completion.TrySetResult(ContentDialogResult.None);
     }

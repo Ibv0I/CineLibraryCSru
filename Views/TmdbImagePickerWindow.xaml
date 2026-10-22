@@ -14,8 +14,8 @@
             <GridView.ItemTemplate><DataTemplate x:DataType="local:TmdbImageChoice"><Border Padding="4" Margin="3" CornerRadius="6" Background="#252529" BorderThickness="2" BorderBrush="Transparent" Tapped="OnImageTapped"><Image Source="{x:Bind Thumbnail}" Width="{x:Bind DisplayWidth}" Height="{x:Bind DisplayHeight}" Stretch="UniformToFill" IsHitTestVisible="False"/></Border></DataTemplate></GridView.ItemTemplate>
         </GridView>
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-            <Button Content="Выбрать" Click="OnChooseClick" MinWidth="100" Style="{ThemeResource AccentButtonStyle}"/>
             <Button Content="Отмена" Click="OnCancelClick" MinWidth="100"/>
+            <Button Content="Выбрать" Click="OnChooseClick" MinWidth="100" Style="{ThemeResource AccentButtonStyle}"/>
         </StackPanel>
     </Grid>
 </Window>

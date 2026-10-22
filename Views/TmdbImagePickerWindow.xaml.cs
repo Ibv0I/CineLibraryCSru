@@ -1,5 +1,6 @@
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Graphics;
@@ -17,6 +18,8 @@ public sealed partial class TmdbImagePickerWindow : Window
     private AppWindow? _appWindow;
     private string _sizeKey = "poster";
     private bool _savingSize;
+    private DispatcherQueueTimer? _sizeSaveTimer;
+    private SizeInt32 _pendingSize;
     private static string SettingsPath => Path.Combine(AppContext.BaseDirectory, "TmdbImagePickerWindow.settings.json");
     public string? SelectedPath { get; private set; }
     private TmdbImageChoice? _selectedChoice;
@@ -29,6 +32,8 @@ public sealed partial class TmdbImagePickerWindow : Window
         ConfigureWindow(isPoster, ownerWindow);
         Closed += (_, _) =>
         {
+            _sizeSaveTimer?.Stop();
+            SaveWindowSize(_pendingSize.Width > 0 ? _pendingSize : _appWindow?.Size ?? new SizeInt32(0, 0));
             if (_ownerDisabled && _ownerHandle != 0) { EnableWindow(_ownerHandle, true); _ownerDisabled = false; }
             if (!_completion.Task.IsCompleted) _completion.TrySetResult(null);
         };
@@ -51,6 +56,14 @@ public sealed partial class TmdbImagePickerWindow : Window
         var defaultSize = new SizeInt32(isPoster ? 735 : 1120, 760);
         var savedSize = LoadSavedSize(_sizeKey);
         appWindow.Resize(savedSize ?? defaultSize);
+        _pendingSize = savedSize ?? defaultSize;
+        _sizeSaveTimer = DispatcherQueue.GetForCurrentThread()?.CreateTimer();
+        if (_sizeSaveTimer != null)
+        {
+            _sizeSaveTimer.Interval = TimeSpan.FromMilliseconds(400);
+            _sizeSaveTimer.IsRepeating = false;
+            _sizeSaveTimer.Tick += (_, _) => SaveWindowSize(_pendingSize);
+        }
         appWindow.Changed += OnAppWindowChanged;
         appWindow.Move(new PointInt32(owner.Position.X + Math.Max(0, (owner.Size.Width - appWindow.Size.Width) / 2), owner.Position.Y + Math.Max(0, (owner.Size.Height - appWindow.Size.Height) / 2)));
         if (appWindow.Presenter is OverlappedPresenter presenter) { presenter.IsResizable = true; presenter.IsMaximizable = true; }
@@ -72,13 +85,30 @@ public sealed partial class TmdbImagePickerWindow : Window
     private void OnAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
     {
         if (!args.DidSizeChange || _savingSize) return;
+        _pendingSize = sender.Size;
+        // Persist only after resizing settles; writing JSON on every WM_SIZE
+        // event causes unnecessary disk I/O while the user drags the window.
+        if (_sizeSaveTimer != null)
+        {
+            _sizeSaveTimer.Stop();
+            _sizeSaveTimer.Start();
+        }
+        else
+        {
+            SaveWindowSize(_pendingSize);
+        }
+    }
+
+    private void SaveWindowSize(SizeInt32 size)
+    {
+        if (_savingSize || size.Width < 500 || size.Height < 400) return;
         _savingSize = true;
         try
         {
             Dictionary<string, SavedWindowSize> settings;
             try { settings = File.Exists(SettingsPath) ? JsonSerializer.Deserialize<Dictionary<string, SavedWindowSize>>(File.ReadAllText(SettingsPath)) ?? new() : new(); }
             catch { settings = new(); }
-            settings[_sizeKey] = new SavedWindowSize { Width = sender.Size.Width, Height = sender.Size.Height };
+            settings[_sizeKey] = new SavedWindowSize { Width = size.Width, Height = size.Height };
             File.WriteAllText(SettingsPath, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
         }
         catch { /* Settings may be read-only when the app is installed under Program Files. */ }
@@ -117,7 +147,6 @@ public sealed partial class TmdbImagePickerWindow : Window
     {
         ImagesGrid.SelectedItem = choice;
         // Make the first click visually apparent even though the card template is custom.
-        ImagesGrid.UpdateLayout();
         if (ImagesGrid.ContainerFromItem(choice) is GridViewItem item)
             item.IsSelected = true;
     }

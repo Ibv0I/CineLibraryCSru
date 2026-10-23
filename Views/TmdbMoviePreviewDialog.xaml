@@ -6,7 +6,7 @@
     Title="Метаданные и изображения фильма">
     <Grid x:Name="RootGrid" RequestedTheme="Dark" Background="#121214" Padding="18">
         <Grid RowSpacing="12">
-            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="210"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="210"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
             <TextBox x:Name="MovieTitleEditor" FontSize="14" PlaceholderText="Название фильма" Header="Название фильма" />
             <Grid Grid.Row="1" ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="165"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                 <Border Background="#1D1D21" BorderBrush="#38383E" BorderThickness="1" CornerRadius="6" Tapped="OnPosterPreviewTapped"><Grid>
@@ -18,9 +18,13 @@
                     <Border VerticalAlignment="Bottom" Background="#B8000000" Padding="8" IsHitTestVisible="False"><TextBlock Text="Изменить баннер" Foreground="White" HorizontalAlignment="Center"/></Border>
                 </Grid></Border>
             </Grid>
-            <CheckBox x:Name="DownloadActorPhotosCheckBox" Grid.Row="2" Content="Скачивать фотографии актёров в папку .actors" IsChecked="True"/>
-            <TextBlock x:Name="ImageStatusText" Visibility="Collapsed" Text=""/>
-            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10"><Button Content="Отмена" Click="OnCancelClick" MinWidth="110"/><Button x:Name="UseSelectionButton" Content="Подтвердить выбор" Click="OnConfirmClick" MinWidth="170" Style="{ThemeResource AccentButtonStyle}" IsEnabled="False"/></StackPanel>
+            <StackPanel Grid.Row="2" Spacing="3">
+                <CheckBox x:Name="DownloadActorPhotosCheckBox" Content="Скачивать фотографии актёров в папку .actors" IsChecked="True"/>
+                <CheckBox x:Name="IncludeKinopoiskRatingCheckBox" Content="Добавить рейтинг фильма с КиноПоиска" IsChecked="False"/>
+                <TextBlock x:Name="KinopoiskApiHintText" Text="Чтобы использовать эту функцию, добавьте API-ключ КиноПоиска в настройках." FontSize="12" Foreground="#FFB8B8C0" TextWrapping="Wrap" Visibility="Collapsed"/>
+            </StackPanel>
+            <TextBlock x:Name="ImageStatusText" Grid.Row="3" Visibility="Collapsed" Text="" TextWrapping="Wrap"/>
+            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10"><Button Content="Отмена" Click="OnCancelClick" MinWidth="110"/><Button x:Name="UseSelectionButton" Content="Подтвердить выбор" Click="OnConfirmClick" MinWidth="170" Style="{ThemeResource AccentButtonStyle}" IsEnabled="False"/></StackPanel>
             <ProgressRing x:Name="Busy" IsActive="False" Width="34" Height="34" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
     </Grid>

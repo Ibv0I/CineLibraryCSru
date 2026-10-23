@@ -651,6 +651,9 @@
   <data name="DriveScanFolder" xml:space="preserve">
     <value>Rescan this drive's folders for new or changed movies</value>
   </data>
+  <data name="Disks" xml:space="preserve">
+    <value>DISKS</value>
+  </data>
   <data name="Drives" xml:space="preserve">
     <value>Drives</value>
   </data>

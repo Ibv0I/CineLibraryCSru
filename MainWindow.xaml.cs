@@ -2203,7 +2203,7 @@ public sealed partial class MainWindow : Window
         SetSidebarText(SidebarBackupLabel, "Backup");
         SetSidebarText(SidebarExportLabel, "Export");
         SetSidebarText(SidebarMyListsLabel, "MyLists");
-        SetSidebarText(LibrariesLabel, "Libraries");
+        SetSidebarText(LibrariesLabel, "Disks");
     }
 
     private static void SetSidebarText(TextBlock label, string resourceKey)

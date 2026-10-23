@@ -19,6 +19,9 @@ public class TmdbMovie
     /// <summary>Metadata provider: "tmdb" by default or "kinopoisk" for Kinopoisk API Unofficial.</summary>
     public string SourceProvider { get; set; } = "tmdb";
     public int KinopoiskId { get; set; }
+    /// <summary>Optional Kinopoisk rating attached to a TMDb-selected movie.</summary>
+    public double? KinopoiskRating { get; set; }
+    public int? KinopoiskVoteCount { get; set; }
 
     [JsonPropertyName("imdb_id")]
     public string? ImdbId { get; set; }

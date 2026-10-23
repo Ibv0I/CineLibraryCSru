@@ -1111,10 +1111,40 @@ public sealed partial class MovieDetailDialog : Window
     {
         var movie = _movie;
         if (movie == null) return;
-        if (!int.TryParse(movie.TmdbId, out var tmdbId) || tmdbId <= 0)
+        string? movieFolder = null;
+        if (!string.IsNullOrWhiteSpace(movie.CurrentLetter) && !string.IsNullOrWhiteSpace(movie.FolderRelPath))
+            movieFolder = Path.Combine($"{movie.CurrentLetter}:\\", movie.FolderRelPath.Replace('/', '\\'));
+        var isKinopoiskSource = false;
+        var sourceId = 0;
+        try
         {
-            var noId = new ContentDialog { Title = "Нет идентификатора TMDb", Content = "Для выбора изображений у фильма должен быть указан TMDb ID.", CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
+            var nfoPath = movieFolder == null ? null : Path.Combine(movieFolder, "movie.nfo");
+            if (!string.IsNullOrWhiteSpace(nfoPath) && File.Exists(nfoPath))
+            {
+                var nfo = new XmlDocument(); nfo.Load(nfoPath);
+                var tmdbNode = nfo.SelectSingleNode("/movie/uniqueid[@type='tmdb' and @default='true']") ?? nfo.SelectSingleNode("/movie/tmdbid") ?? nfo.SelectSingleNode("/movie/uniqueid[@type='tmdb']");
+                var kpNode = nfo.SelectSingleNode("/movie/uniqueid[@type='kinopoisk' and @default='true']") ?? nfo.SelectSingleNode("/movie/uniqueid[@type='kinopoiskdev' and @default='true']");
+                // Older NFO files may not mark the default ID. Treat Kinopoisk as the source
+                // only when no TMDb ID exists; a secondary Kinopoisk rating must not change source.
+                if (kpNode == null && tmdbNode == null)
+                    kpNode = nfo.SelectSingleNode("/movie/uniqueid[@type='kinopoisk']") ?? nfo.SelectSingleNode("/movie/uniqueid[@type='kinopoiskdev']");
+                if (kpNode != null && int.TryParse(kpNode.InnerText, out var kpId) && kpId > 0 && tmdbNode == null)
+                {
+                    isKinopoiskSource = true; sourceId = kpId;
+                }
+            }
+        }
+        catch { }
+        if (!isKinopoiskSource && (!int.TryParse(movie.TmdbId, out sourceId) || sourceId <= 0))
+        {
+            var noId = new ContentDialog { Title = "Нет идентификатора фильма", Content = "Для выбора изображений у фильма должен быть указан TMDb ID или КиноПоиск ID в movie.nfo.", CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
             await noId.ShowAsync();
+            return;
+        }
+        if (isKinopoiskSource && string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
+        {
+            var noApi = new ContentDialog { Title = "Не настроен КиноПоиск API", Content = "Добавь API-ключ КиноПоиск API Unofficial в настройках, чтобы менять изображения фильма, выбранного из КиноПоиска.", CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
+            await noApi.ShowAsync();
             return;
         }
 
@@ -1125,9 +1155,6 @@ public sealed partial class MovieDetailDialog : Window
         var activeForeground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
         try
         {
-            string? movieFolder = null;
-            if (!string.IsNullOrWhiteSpace(movie.CurrentLetter) && !string.IsNullOrWhiteSpace(movie.FolderRelPath))
-                movieFolder = Path.Combine($"{movie.CurrentLetter}:\\", movie.FolderRelPath.Replace('/', '\\'));
             var folderPoster = movieFolder == null ? null : Path.Combine(movieFolder, "poster.jpg");
             var folderFanart = movieFolder == null ? null : Path.Combine(movieFolder, "fanart.jpg");
             var cachedPoster = string.IsNullOrWhiteSpace(movie.LocalPoster) ? null : Path.Combine(AppState.Instance.DataDir, movie.LocalPoster.Replace('/', Path.DirectorySeparatorChar));
@@ -1136,7 +1163,11 @@ public sealed partial class MovieDetailDialog : Window
             var localFanart = cachedFanart != null && File.Exists(cachedFanart) ? cachedFanart : folderFanart;
 
             using var client = new TmdbClient(language: "ru-RU");
-            var searchHit = new TmdbMovie { TmdbId = tmdbId, Title = movie.Title };
+            var searchHit = new TmdbMovie
+            {
+                TmdbId = sourceId, KinopoiskId = isKinopoiskSource ? sourceId : 0,
+                SourceProvider = isKinopoiskSource ? "kinopoisk" : "tmdb", Title = movie.Title
+            };
             // Existing artwork from the movie folder is shown initially. The poster or backdrop
             // is only replaced if the user opens its picker and selects a different image.
             var picker = new TmdbMoviePreviewDialog(client, searchHit,
@@ -1156,6 +1187,8 @@ public sealed partial class MovieDetailDialog : Window
             if (result != ContentDialogResult.Primary || picker.Movie == null) return;
 
             var edited = picker.Movie;
+            if (!isKinopoiskSource && edited.KinopoiskRating.HasValue && movieFolder != null && Directory.Exists(movieFolder))
+                UpdateMovieNfoKinopoiskRating(Path.Combine(movieFolder, "movie.nfo"), edited.KinopoiskId, edited.KinopoiskRating.Value, edited.KinopoiskVoteCount);
             var editedTitle = edited.Title?.Trim();
             if (!string.IsNullOrWhiteSpace(editedTitle) &&
                 !string.Equals(editedTitle, movie.Title, StringComparison.Ordinal))
@@ -1178,7 +1211,7 @@ public sealed partial class MovieDetailDialog : Window
             {
                 var posterFile = picker.SelectedPosterPath ?? picker.Movie.PosterPath;
                 if (string.IsNullOrWhiteSpace(posterFile)) throw new InvalidOperationException("TMDb не предоставил постер для этого фильма.");
-                newPosterRel = await DownloadArtAsync(client, posterFile, "posters", tmdbId);
+                newPosterRel = await DownloadArtAsync(client, posterFile, "posters", sourceId);
                 if (newPosterRel == null) throw new IOException("Не удалось загрузить постер из TMDb.");
                 if (movieFolder != null && Directory.Exists(movieFolder))
                     File.Copy(Path.Combine(AppState.Instance.DataDir, newPosterRel.Replace('/', Path.DirectorySeparatorChar)), Path.Combine(movieFolder, "poster.jpg"), true);
@@ -1187,7 +1220,7 @@ public sealed partial class MovieDetailDialog : Window
             {
                 var backdropFile = picker.SelectedBackdropPath ?? picker.Movie.BackdropPath;
                 if (string.IsNullOrWhiteSpace(backdropFile)) throw new InvalidOperationException("TMDb не предоставил баннер для этого фильма.");
-                newFanartRel = await DownloadArtAsync(client, backdropFile, "fanart", tmdbId);
+                newFanartRel = await DownloadArtAsync(client, backdropFile, "fanart", sourceId);
                 if (newFanartRel == null) throw new IOException("Не удалось загрузить баннер из TMDb.");
                 if (movieFolder != null && Directory.Exists(movieFolder))
                     File.Copy(Path.Combine(AppState.Instance.DataDir, newFanartRel.Replace('/', Path.DirectorySeparatorChar)), Path.Combine(movieFolder, "fanart.jpg"), true);
@@ -1216,6 +1249,34 @@ public sealed partial class MovieDetailDialog : Window
             var error = new ContentDialog { Title = "Ошибка изменения оформления", Content = ex.Message, CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
             await error.ShowAsync();
         }
+    }
+
+    private static void UpdateMovieNfoKinopoiskRating(string nfoPath, int kinopoiskId, double rating, int? votes)
+    {
+        try
+        {
+            var document = new XmlDocument { PreserveWhitespace = true };
+            if (File.Exists(nfoPath)) document.Load(nfoPath); else document.LoadXml("<movie />");
+            var root = document.DocumentElement;
+            if (root == null) return;
+            var ratings = root.SelectSingleNode("ratings") as XmlElement;
+            if (ratings == null) { ratings = document.CreateElement("ratings"); root.AppendChild(ratings); }
+            var existing = ratings.SelectSingleNode("rating[@name='kinopoisk']") as XmlElement;
+            if (existing != null) ratings.RemoveChild(existing);
+            var entry = document.CreateElement("rating"); entry.SetAttribute("name", "kinopoisk"); entry.SetAttribute("max", "10"); entry.SetAttribute("default", "false");
+            var value = document.CreateElement("value"); value.InnerText = rating.ToString("0.0", CultureInfo.InvariantCulture); entry.AppendChild(value);
+            if (votes.HasValue) { var votesNode = document.CreateElement("votes"); votesNode.InnerText = votes.Value.ToString(CultureInfo.InvariantCulture); entry.AppendChild(votesNode); }
+            ratings.AppendChild(entry);
+            if (kinopoiskId > 0)
+            {
+                var id = root.SelectSingleNode("uniqueid[@type='kinopoisk']") as XmlElement;
+                if (id == null) { id = document.CreateElement("uniqueid"); id.SetAttribute("type", "kinopoisk"); root.AppendChild(id); }
+                id.SetAttribute("default", "false");
+                id.InnerText = kinopoiskId.ToString(CultureInfo.InvariantCulture);
+            }
+            document.Save(nfoPath);
+        }
+        catch { }
     }
 
     private static void UpdateMovieNfoTitle(string nfoPath, string title)

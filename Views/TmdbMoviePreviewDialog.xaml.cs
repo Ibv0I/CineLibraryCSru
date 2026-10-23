@@ -37,6 +37,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     public bool PosterWasChanged { get; private set; }
     public bool BackdropWasChanged { get; private set; }
     public bool DownloadActorPhotos => DownloadActorPhotosCheckBox.IsChecked == true;
+    public bool IncludeKinopoiskRating => IncludeKinopoiskRatingCheckBox.IsChecked == true;
 
     public TmdbMovie? Movie { get; private set; }
     public string? SelectedPosterPath { get; private set; }
@@ -57,6 +58,11 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         // on title, poster and banner.
         if (ownerWindow != null)
             DownloadActorPhotosCheckBox.Visibility = Visibility.Collapsed;
+        var isKinopoiskSource = string.Equals(searchHit.SourceProvider, "kinopoisk", StringComparison.OrdinalIgnoreCase);
+        IncludeKinopoiskRatingCheckBox.Visibility = isKinopoiskSource ? Visibility.Collapsed : Visibility.Visible;
+        var hasKinopoiskApi = !string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken);
+        IncludeKinopoiskRatingCheckBox.IsEnabled = hasKinopoiskApi && !isKinopoiskSource;
+        KinopoiskApiHintText.Visibility = !hasKinopoiskApi && !isKinopoiskSource ? Visibility.Visible : Visibility.Collapsed;
         RootGrid.Loaded += async (_, _) => await LoadMovieAsync();
         Closed += OnClosed;
         ConfigureWindow();
@@ -262,11 +268,68 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         Movie.Title = MovieTitleEditor.Text.Trim();
     }
 
-    private void OnConfirmClick(object sender, RoutedEventArgs e)
+    private async void OnConfirmClick(object sender, RoutedEventArgs e)
     {
         ApplyEditedMetadata();
-        if (Movie != null && !string.IsNullOrWhiteSpace(Movie.Title)) CloseWithResult(ContentDialogResult.Primary);
-        else ImageStatusText.Text = "Укажите название фильма перед подтверждением.";
+        if (Movie == null || string.IsNullOrWhiteSpace(Movie.Title))
+        {
+            ImageStatusText.Text = "Укажите название фильма перед подтверждением.";
+            ImageStatusText.Visibility = Visibility.Visible;
+            return;
+        }
+
+        if (IncludeKinopoiskRating)
+        {
+            UseSelectionButton.IsEnabled = false;
+            Busy.IsActive = true;
+            try
+            {
+                using var kp = new KinopoiskClient();
+                var year = Movie.Year > 0 ? Movie.Year : (int?)null;
+                var matches = await kp.SearchMovieAsync(Movie.Title, year);
+                if (matches.Count == 0 && !string.IsNullOrWhiteSpace(Movie.OriginalTitle) &&
+                    !string.Equals(Movie.OriginalTitle, Movie.Title, StringComparison.OrdinalIgnoreCase))
+                    matches = await kp.SearchMovieAsync(Movie.OriginalTitle, year);
+                var best = matches
+                    .OrderBy(m => year.HasValue && m.Year > 0 ? Math.Abs(m.Year - year.Value) : 0)
+                    .ThenByDescending(m => TitleSimilarity(m.Title, Movie.Title))
+                    .FirstOrDefault();
+                if (best == null)
+                    throw new InvalidOperationException("КиноПоиск не нашёл подходящий фильм для получения рейтинга. Снимите галочку или проверьте название и год.");
+                var kpDetails = await kp.GetMovieDetailsAsync(best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId);
+                if (kpDetails == null || kpDetails.Rating <= 0)
+                    throw new InvalidOperationException("КиноПоиск не вернул рейтинг для найденного фильма.");
+                Movie.KinopoiskId = kpDetails.KinopoiskId > 0 ? kpDetails.KinopoiskId : kpDetails.TmdbId;
+                Movie.KinopoiskRating = kpDetails.Rating;
+                Movie.KinopoiskVoteCount = kpDetails.VoteCount;
+                ImageStatusText.Text = $"Рейтинг КиноПоиска добавлен: {kpDetails.Rating:0.0}/10.";
+                ImageStatusText.Visibility = Visibility.Visible;
+            }
+            catch (Exception ex)
+            {
+                ImageStatusText.Text = "Не удалось получить рейтинг КиноПоиска: " + ex.GetBaseException().Message;
+                ImageStatusText.Visibility = Visibility.Visible;
+                Busy.IsActive = false;
+                UseSelectionButton.IsEnabled = true;
+                return;
+            }
+            finally
+            {
+                Busy.IsActive = false;
+                UseSelectionButton.IsEnabled = true;
+            }
+        }
+        CloseWithResult(ContentDialogResult.Primary);
+    }
+
+    private static double TitleSimilarity(string? left, string? right)
+    {
+        static string Normalize(string? value) => new string((value ?? string.Empty).ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
+        var a = Normalize(left); var b = Normalize(right);
+        if (a.Length == 0 || b.Length == 0) return 0;
+        if (a == b) return 100;
+        if (a.Contains(b, StringComparison.Ordinal) || b.Contains(a, StringComparison.Ordinal)) return 80;
+        return a.Intersect(b).Count() / (double)Math.Max(a.Length, b.Length) * 50;
     }
     private void OnCancelClick(object sender, RoutedEventArgs e) => CloseWithResult(ContentDialogResult.None);
     private void CloseWithResult(ContentDialogResult result) { _completion.TrySetResult(result); Close(); }

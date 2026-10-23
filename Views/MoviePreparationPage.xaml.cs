@@ -638,7 +638,19 @@ public sealed partial class MoviePreparationPage : Page
         writer.WriteStartElement("rating"); writer.WriteAttributeString("name", isKinopoisk ? "kinopoisk" : "themoviedb"); writer.WriteAttributeString("max", "10"); writer.WriteAttributeString("default", "true");
         WriteElement(writer, "value", movie.Rating.ToString("0.0", CultureInfo.InvariantCulture));
         WriteElement(writer, "votes", movie.VoteCount.ToString(CultureInfo.InvariantCulture));
-        writer.WriteEndElement(); writer.WriteEndElement();
+        writer.WriteEndElement();
+        if (!isKinopoisk && movie.KinopoiskRating.HasValue && movie.KinopoiskRating.Value > 0)
+        {
+            writer.WriteStartElement("rating"); writer.WriteAttributeString("name", "kinopoisk"); writer.WriteAttributeString("max", "10"); writer.WriteAttributeString("default", "false");
+            WriteElement(writer, "value", movie.KinopoiskRating.Value.ToString("0.0", CultureInfo.InvariantCulture));
+            if (movie.KinopoiskVoteCount.HasValue) WriteElement(writer, "votes", movie.KinopoiskVoteCount.Value.ToString(CultureInfo.InvariantCulture));
+            writer.WriteEndElement();
+        }
+        writer.WriteEndElement();
+        if (!isKinopoisk && movie.KinopoiskRating.HasValue && movie.KinopoiskRating.Value > 0 && movie.KinopoiskId > 0)
+        {
+            writer.WriteStartElement("uniqueid"); writer.WriteAttributeString("type", "kinopoisk"); writer.WriteAttributeString("default", "false"); writer.WriteString(movie.KinopoiskId.ToString(CultureInfo.InvariantCulture)); writer.WriteEndElement();
+        }
         if (technicalInfo != null)
         {
             writer.WriteStartElement("fileinfo");

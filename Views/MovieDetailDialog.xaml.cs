@@ -174,6 +174,7 @@ public sealed partial class MovieDetailDialog : Window
 
         // External source links in the top-right of the hero banner.
         ImdbLinkBtn.Visibility = !string.IsNullOrWhiteSpace(m.ImdbId) ? Visibility.Visible : Visibility.Collapsed;
+        TmdbLinkBtn.Visibility = int.TryParse(m.TmdbId, out var tmdbLinkId) && tmdbLinkId > 0 ? Visibility.Visible : Visibility.Collapsed;
         _kinopoiskId = ReadKinopoiskIdFromNfo(m);
         var hasKinopoiskRating = m.AllRatings.Any(r => r.Source.Equals("kinopoisk", StringComparison.OrdinalIgnoreCase)
             && r.Value > 0);
@@ -911,7 +912,7 @@ public sealed partial class MovieDetailDialog : Window
         }
         if (!string.IsNullOrWhiteSpace(m.Country))
         {
-            FiCountry.Text = m.Country!;
+            FiCountry.Text = m.Country!.Split(new[] { ',', ';', '/', '|', '\n', '\r' }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? m.Country;
             FiCountryBlock.Visibility = Visibility.Visible;
             any = true;
         }
@@ -1091,6 +1092,13 @@ public sealed partial class MovieDetailDialog : Window
     }
 
     private void OnStickyClose(object sender, RoutedEventArgs e) => Close();
+
+    private async void OnOpenTmdb(object sender, RoutedEventArgs e)
+    {
+        if (!int.TryParse(_movie?.TmdbId, out var tmdbId) || tmdbId <= 0) return;
+        try { await Launcher.LaunchUriAsync(new Uri($"https://www.themoviedb.org/movie/{tmdbId}")); }
+        catch (Exception) { /* Browser launch may be unavailable; keep the detail page responsive. */ }
+    }
 
     private async void OnOpenImdb(object sender, RoutedEventArgs e)
     {

@@ -31,6 +31,8 @@ public sealed partial class NfoEditorDialog : Window
     private readonly ObservableCollection<string> _genres = new();
     private readonly ObservableCollection<RatingRow> _ratings = new();
     private readonly ObservableCollection<IdentifierRow> _identifiers = new();
+    private string _originalAudioTracksText = "";
+    private string _originalSubtitlesText = "";
 
     public sealed class RatingRow
     {
@@ -213,6 +215,10 @@ public sealed partial class NfoEditorDialog : Window
         SubtitlesBox.Text = string.Join(Environment.NewLine, StreamElements("subtitle").Select(x => string.Join(" | ", new[] {
             Child(x,"language"), Child(x,"codec"), Child(x,"title"), Child(x,"default"), Child(x,"forced")
         }.Select(v => v ?? ""))));
+        // Keep the exact loaded representation so saving unrelated metadata (for example IDs)
+        // never rebuilds audio/subtitle nodes and loses attributes or nonstandard fields.
+        _originalAudioTracksText = AudioTracksBox.Text;
+        _originalSubtitlesText = SubtitlesBox.Text;
     }
 
     private string? Get(string name) => _root.SelectSingleNode(name)?.InnerText;
@@ -303,6 +309,17 @@ public sealed partial class NfoEditorDialog : Window
         if (await dialog.ShowAsync() == ContentDialogResult.Primary)
             foreach (var item in list.SelectedItems.Cast<string>()) if (!_genres.Contains(item)) _genres.Add(item);
     }
+    private void OnGenreSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var accent = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 0, 120, 215));
+        var normal = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 30, 30, 33));
+        foreach (var item in _genres)
+        {
+            if (GenresList.ContainerFromItem(item) is ListViewItem container)
+                container.Background = ReferenceEquals(item, GenresList.SelectedItem) ? accent : normal;
+        }
+    }
+
     private void OnRemoveGenre(object sender, RoutedEventArgs e) { if (GenresList.SelectedItem is string item) _genres.Remove(item); }
 
     private void Set(string name, string? value)
@@ -364,8 +381,10 @@ public sealed partial class NfoEditorDialog : Window
         SetChild(video, "height", HeightBox.Text); SetChild(video, "framerate", FrameRateBox.Text);
         SetChild(video, "hdrtype", HdrBox.Text); SetChild(video, "aspect", AspectBox.Text);
         Set("container", ContainerBox.Text);
-        ReplaceTracks(parent, "audio", AudioTracksBox.Text, new[] { "codec", "language", "channels", "bitrate", "samplerate", "title" });
-        ReplaceTracks(parent, "subtitle", SubtitlesBox.Text, new[] { "language", "codec", "title", "default", "forced" });
+        if (!string.Equals(AudioTracksBox.Text, _originalAudioTracksText, StringComparison.Ordinal))
+            ReplaceTracks(parent, "audio", AudioTracksBox.Text, new[] { "codec", "language", "channels", "bitrate", "samplerate", "title" });
+        if (!string.Equals(SubtitlesBox.Text, _originalSubtitlesText, StringComparison.Ordinal))
+            ReplaceTracks(parent, "subtitle", SubtitlesBox.Text, new[] { "language", "codec", "title", "default", "forced" });
         if (!parent.HasChildNodes && parent.ParentNode != null) parent.ParentNode.RemoveChild(parent);
     }
 

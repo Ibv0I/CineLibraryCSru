@@ -32,7 +32,7 @@
                             <ComboBox x:Name="CertificationBox" Header="Сертификация / возрастной рейтинг" Grid.Column="0" IsEditable="False" />
                             <StackPanel Grid.Column="1" Spacing="5">
                                 <TextBlock Text="Жанры" />
-                                <ListView x:Name="GenresList" MinHeight="36" MaxHeight="68" SelectionMode="Single" ScrollViewer.HorizontalScrollMode="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListView x:Name="GenresList" MinHeight="36" MaxHeight="68" SelectionMode="Single" SelectionChanged="OnGenreSelectionChanged" ScrollViewer.HorizontalScrollMode="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                                     <ListView.ItemsPanel><ItemsPanelTemplate><ItemsWrapGrid Orientation="Horizontal" ItemWidth="124" ItemHeight="34" /></ItemsPanelTemplate></ListView.ItemsPanel>
                                     <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Padding" Value="4,2"/><Setter Property="Margin" Value="2"/></Style></ListView.ItemContainerStyle>
                                 </ListView>

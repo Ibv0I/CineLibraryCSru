@@ -311,12 +311,15 @@ public sealed partial class NfoEditorDialog : Window
     }
     private void OnGenreSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var accent = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 0, 120, 215));
-        var normal = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 30, 30, 33));
+        // Leave the row dark; use a narrow blue leading stripe for selection.
         foreach (var item in _genres)
         {
             if (GenresList.ContainerFromItem(item) is ListViewItem container)
-                container.Background = ReferenceEquals(item, GenresList.SelectedItem) ? accent : normal;
+            {
+                container.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0));
+                if (container.ContentTemplateRoot is Grid row && row.FindName("GenreSelectionBar") is Border bar)
+                    bar.Visibility = ReferenceEquals(item, GenresList.SelectedItem) ? Visibility.Visible : Visibility.Collapsed;
+            }
         }
     }
 

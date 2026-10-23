@@ -34,7 +34,16 @@
                                 <TextBlock Text="Жанры" />
                                 <ListView x:Name="GenresList" MinHeight="36" MaxHeight="68" SelectionMode="Single" SelectionChanged="OnGenreSelectionChanged" ScrollViewer.HorizontalScrollMode="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                                     <ListView.ItemsPanel><ItemsPanelTemplate><ItemsWrapGrid Orientation="Horizontal" ItemWidth="124" ItemHeight="34" /></ItemsPanelTemplate></ListView.ItemsPanel>
-                                    <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Padding" Value="4,2"/><Setter Property="Margin" Value="2"/></Style></ListView.ItemContainerStyle>
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnSpacing="6">
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="3"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                                <Border x:Name="GenreSelectionBar" Grid.Column="0" Width="3" Background="#FF0078D7" Visibility="Collapsed" CornerRadius="1"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                    <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Padding" Value="4,2"/><Setter Property="Margin" Value="2"/><Setter Property="Background" Value="Transparent"/></Style></ListView.ItemContainerStyle>
                                 </ListView>
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Button Content="＋ Добавить жанр" Click="OnAddGenre" />

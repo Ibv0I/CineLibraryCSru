@@ -178,7 +178,9 @@ public sealed partial class MovieDetailDialog : Window
         _kinopoiskId = ReadKinopoiskIdFromNfo(m);
         var hasKinopoiskRating = m.AllRatings.Any(r => r.Source.Equals("kinopoisk", StringComparison.OrdinalIgnoreCase)
             && r.Value > 0);
-        KinopoiskLinkBtn.Visibility = hasKinopoiskRating ? Visibility.Visible : Visibility.Collapsed;
+        // Show the Kinopoisk badge when a valid ID is present, even without a rating.
+        KinopoiskLinkBtn.Visibility = (_kinopoiskId > 0 || hasKinopoiskRating)
+            ? Visibility.Visible : Visibility.Collapsed;
 
         // Chips
         ChipsPanel.Children.Clear();
@@ -283,7 +285,9 @@ public sealed partial class MovieDetailDialog : Window
             StudioLabel.Visibility = Visibility.Visible;
             StudioText.Visibility = Visibility.Collapsed;
             StudioLink.Visibility = Visibility.Visible;
-            StudioLink.Content = m.Studio;
+            // NFO may contain multiple studios; show only the first one below the poster.
+            var firstStudio = m.Studio.Split(new[] { ',', ';', '/', '|', '\n', '\r' }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+            StudioLink.Content = firstStudio ?? m.Studio;
             // Detach prior handler in case dialog is reused
             StudioLink.Click -= OnStudioClick;
             StudioLink.Click += OnStudioClick;
@@ -656,7 +660,7 @@ public sealed partial class MovieDetailDialog : Window
     private void OnStudioClick(object sender, RoutedEventArgs e)
     {
         if (_movie?.Studio == null) return;
-        var s = _movie.Studio;
+        var s = _movie.Studio.Split(new[] { ',', ';', '/', '|', '\n', '\r' }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? _movie.Studio;
         NavigateAndClose(mw => mw.NavigateLibraryByStudio(s));
     }
 

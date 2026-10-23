@@ -29,8 +29,20 @@ public sealed partial class NfoEditorDialog : Window
     private XmlDocument _doc = new() { PreserveWhitespace = true };
     private XmlElement _root = null!;
     private readonly ObservableCollection<string> _genres = new();
-    private readonly ObservableCollection<string> _ratings = new();
-    private readonly ObservableCollection<string> _identifiers = new();
+    private readonly ObservableCollection<RatingRow> _ratings = new();
+    private readonly ObservableCollection<IdentifierRow> _identifiers = new();
+
+    public sealed class RatingRow
+    {
+        public string Source { get; set; } = "";
+        public string Value { get; set; } = "";
+        public string Votes { get; set; } = "0";
+    }
+    public sealed class IdentifierRow
+    {
+        public string Source { get; set; } = "";
+        public string Identifier { get; set; } = "";
+    }
     private static readonly string[] RatingSources = { "tmdb", "imdb", "kinopoisk" };
     private static readonly string[] StandardGenres = { "Боевик", "Приключения", "Анимация", "Комедия", "Криминал", "Документальный", "Драма", "Семейный", "Фэнтези", "История", "Ужасы", "Музыка", "Детектив", "Мелодрама", "Фантастика", "Телевизионный фильм", "Триллер", "Военный", "Вестерн" };
     private static readonly string[] RussianCertifications = { "Без ограничений", "0+", "6+", "12+", "16+", "18+", "Неизвестно" };
@@ -184,8 +196,8 @@ public sealed partial class NfoEditorDialog : Window
         StudiosBox.Text = string.Join(Environment.NewLine, Elements("studio").Select(x => x.InnerText));
         CountriesBox.Text = string.Join(Environment.NewLine, Elements("country").Select(x => x.InnerText));
         _genres.Clear(); foreach (var x in Elements("genre")) _genres.Add(x.InnerText);
-        _ratings.Clear(); foreach (var x in Elements("ratings/rating")) _ratings.Add($"{x.GetAttribute("name")} | {Child(x, "value") ?? x.InnerText} | {Child(x, "votes") ?? "0"}");
-        _identifiers.Clear(); foreach (var x in Elements("uniqueid")) _identifiers.Add($"{x.GetAttribute("type")} | {x.InnerText}");
+        _ratings.Clear(); foreach (var x in Elements("ratings/rating")) _ratings.Add(new RatingRow { Source = x.GetAttribute("name"), Value = Child(x, "value") ?? x.InnerText, Votes = Child(x, "votes") ?? "0" });
+        _identifiers.Clear(); foreach (var x in Elements("uniqueid")) _identifiers.Add(new IdentifierRow { Source = x.GetAttribute("type"), Identifier = x.InnerText });
         OnYearChanged(YearBox, null!); OnDateChanged(PremieredBox, null!);
 
         var video = FindStream("video");
@@ -269,11 +281,11 @@ public sealed partial class NfoEditorDialog : Window
         panel.Children.Add(source); panel.Children.Add(value); panel.Children.Add(votes);
         var dialog = new ContentDialog { Title = "Добавить рейтинг", Content = panel, PrimaryButtonText = "Добавить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
         dialog.PrimaryButtonClick += (sender, args) => { if (!decimal.TryParse(value.Text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal parsedRating) || parsedRating < 0 || parsedRating > 10 || !int.TryParse(votes.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedVotes) || parsedVotes < 0) args.Cancel = true; };
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary) _ratings.Add($"{source.SelectedItem} | {value.Text.Replace(',', '.')} | {votes.Text}");
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary) _ratings.Add(new RatingRow { Source = source.SelectedItem?.ToString() ?? "tmdb", Value = value.Text.Replace(',', '.'), Votes = votes.Text });
     }
     private static void DigitsOnly(TextBox sender, TextBoxBeforeTextChangingEventArgs args) => args.Cancel = args.NewText.Any(c => !char.IsDigit(c));
     private static void NumericOrDecimalOnly(TextBox sender, TextBoxBeforeTextChangingEventArgs args) => args.Cancel = args.NewText.Any(c => !char.IsDigit(c) && c != '.' && c != ',') || args.NewText.Count(c => c == '.' || c == ',') > 1;
-    private void OnRemoveRating(object sender, RoutedEventArgs e) { if (RatingsList.SelectedItem is string item) _ratings.Remove(item); }
+    private void OnRemoveRating(object sender, RoutedEventArgs e) { if (RatingsList.SelectedItem is RatingRow item) _ratings.Remove(item); }
     private async void OnAddIdentifier(object sender, RoutedEventArgs e)
     {
         var panel = new StackPanel { Spacing = 8 };
@@ -281,9 +293,9 @@ public sealed partial class NfoEditorDialog : Window
         var id = new TextBox { Header = "Идентификатор", PlaceholderText = "Введите идентификатор" };
         panel.Children.Add(source); panel.Children.Add(id);
         var dialog = new ContentDialog { Title = "Добавить идентификатор", Content = panel, PrimaryButtonText = "Добавить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(id.Text)) _identifiers.Add($"{source.SelectedItem} | {id.Text.Trim()}");
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(id.Text)) _identifiers.Add(new IdentifierRow { Source = source.SelectedItem?.ToString() ?? "tmdb", Identifier = id.Text.Trim() });
     }
-    private void OnRemoveIdentifier(object sender, RoutedEventArgs e) { if (IdentifiersList.SelectedItem is string item) _identifiers.Remove(item); }
+    private void OnRemoveIdentifier(object sender, RoutedEventArgs e) { if (IdentifiersList.SelectedItem is IdentifierRow item) _identifiers.Remove(item); }
     private async void OnAddGenre(object sender, RoutedEventArgs e)
     {
         var list = new ListView { ItemsSource = StandardGenres, SelectionMode = ListViewSelectionMode.Multiple, MaxHeight = 360 };
@@ -310,7 +322,7 @@ public sealed partial class NfoEditorDialog : Window
 
     private void SetRatings()
     {
-        var lines = _ratings.Select(ParseLine).Where(x => x.Length >= 2 && x[0].Length > 0).ToList();
+        var lines = _ratings.Select(x => new[] { x.Source, x.Value, x.Votes }).Where(x => x[0].Length > 0).ToList();
         var ratings = _root.SelectSingleNode("ratings") as XmlElement;
         if (ratings == null) { ratings = _doc.CreateElement("ratings"); _root.AppendChild(ratings); }
         foreach (XmlNode n in ratings.SelectNodes("rating")!.Cast<XmlNode>().ToList()) ratings.RemoveChild(n);
@@ -326,7 +338,7 @@ public sealed partial class NfoEditorDialog : Window
 
     private void SetIdentifiers()
     {
-        var items = _identifiers.Select(ParseLine).Where(x => x.Length >= 2 && x[0].Length > 0 && x[1].Length > 0).ToList();
+        var items = _identifiers.Select(x => new[] { x.Source, x.Identifier }).Where(x => x[0].Length > 0 && x[1].Length > 0).ToList();
         foreach (var old in Elements("uniqueid")) _root.RemoveChild(old);
         foreach (var p in items) { var id = _doc.CreateElement("uniqueid"); id.SetAttribute("type", p[0]); id.InnerText = p[1]; _root.AppendChild(id); }
         var tmdb = items.FirstOrDefault(x => x[0].Equals("tmdb", StringComparison.OrdinalIgnoreCase));

@@ -1167,7 +1167,7 @@ public sealed partial class MovieDetailDialog : Window
 
         try
         {
-            var editor = new NfoEditorDialog(nfoPath, RootGrid.XamlRoot);
+            var editor = new NfoEditorDialog(nfoPath, App.MainWindow ?? throw new InvalidOperationException("Главное окно приложения ещё не создано."));
             var result = await editor.ShowAsync();
             if (result != ContentDialogResult.Primary || !editor.Saved) return;
 

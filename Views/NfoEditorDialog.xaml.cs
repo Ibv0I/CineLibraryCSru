@@ -1,26 +1,160 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI;
+using Microsoft.UI.Dispatching;
+using Microsoft.UI.Windowing;
+using Windows.Graphics;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Globalization;
 using System.Xml;
 
 namespace CineLibraryCS.Views;
 
 /// <summary>Visual editor for Kodi/tinyMediaManager movie.nfo. Existing unknown XML nodes are retained.</summary>
-public sealed partial class NfoEditorDialog : ContentDialog
+public sealed partial class NfoEditorDialog : Window
 {
     private readonly string _path;
+    private readonly Window _ownerWindow;
+    private readonly TaskCompletionSource<ContentDialogResult> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private AppWindow? _appWindow;
+    private DispatcherQueueTimer? _sizeSaveTimer;
+    private SizeInt32 _pendingSize;
+    private nint _ownerHandle;
+    private bool _ownerDisabled;
+    private bool _shown;
+    private bool _savingSize;
+    private string SettingsPath => Path.Combine(CineLibraryCS.Services.AppState.Instance.DataDir, "NfoEditorWindow.settings.json");
     private XmlDocument _doc = new() { PreserveWhitespace = true };
     private XmlElement _root = null!;
     public bool Saved { get; private set; }
 
-    public NfoEditorDialog(string nfoPath, XamlRoot xamlRoot)
+    public NfoEditorDialog(string nfoPath, Window ownerWindow)
     {
         _path = nfoPath;
+        _ownerWindow = ownerWindow;
         InitializeComponent();
-        XamlRoot = xamlRoot;
-        Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
+        RootGrid.Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
+        Closed += OnWindowClosed;
+        ConfigureWindow();
         LoadNfo();
     }
+
+    private void ConfigureWindow()
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        var appWindow = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(hwnd));
+        _appWindow = appWindow;
+        try
+        {
+            var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "icon.ico");
+            if (File.Exists(iconPath)) appWindow.SetIcon(iconPath);
+        }
+        catch { }
+
+        var ownerHwnd = WinRT.Interop.WindowNative.GetWindowHandle(_ownerWindow);
+        var owner = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(ownerHwnd));
+        _ownerHandle = ownerHwnd;
+        var titleBar = appWindow.TitleBar;
+        var bg = Windows.UI.Color.FromArgb(255, 18, 18, 20);
+        var fg = Windows.UI.Color.FromArgb(255, 235, 235, 238);
+        titleBar.BackgroundColor = bg;
+        titleBar.InactiveBackgroundColor = bg;
+        titleBar.ButtonBackgroundColor = bg;
+        titleBar.ButtonInactiveBackgroundColor = bg;
+        titleBar.ForegroundColor = fg;
+        titleBar.ButtonForegroundColor = fg;
+        titleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(255, 55, 55, 60);
+        titleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(255, 70, 70, 76);
+
+        var defaultSize = new SizeInt32(Math.Min(1280, Math.Max(980, owner.Size.Width - 100)), Math.Min(900, Math.Max(680, owner.Size.Height - 100)));
+        var savedSize = LoadSavedSize();
+        appWindow.Resize(savedSize ?? defaultSize);
+        _pendingSize = savedSize ?? defaultSize;
+        _sizeSaveTimer = DispatcherQueue.GetForCurrentThread()?.CreateTimer();
+        if (_sizeSaveTimer != null)
+        {
+            _sizeSaveTimer.Interval = TimeSpan.FromMilliseconds(400);
+            _sizeSaveTimer.IsRepeating = false;
+            _sizeSaveTimer.Tick += (_, _) => SaveWindowSize(_pendingSize);
+        }
+        appWindow.Changed += OnAppWindowChanged;
+        appWindow.Move(new PointInt32(owner.Position.X + Math.Max(0, (owner.Size.Width - appWindow.Size.Width) / 2), owner.Position.Y + Math.Max(0, (owner.Size.Height - appWindow.Size.Height) / 2)));
+        if (appWindow.Presenter is OverlappedPresenter presenter)
+        {
+            presenter.IsResizable = true;
+            presenter.IsMaximizable = true;
+        }
+    }
+
+    private SizeInt32? LoadSavedSize()
+    {
+        try
+        {
+            if (!File.Exists(SettingsPath)) return null;
+            var size = JsonSerializer.Deserialize<SavedWindowSize>(File.ReadAllText(SettingsPath));
+            if (size != null && size.Width >= 760 && size.Height >= 600)
+                return new SizeInt32(size.Width, size.Height);
+        }
+        catch { }
+        return null;
+    }
+
+    private void OnAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
+    {
+        if (!args.DidSizeChange || _savingSize) return;
+        _pendingSize = sender.Size;
+        if (_sizeSaveTimer != null)
+        {
+            _sizeSaveTimer.Stop();
+            _sizeSaveTimer.Start();
+        }
+        else SaveWindowSize(_pendingSize);
+    }
+
+    private void SaveWindowSize(SizeInt32 size)
+    {
+        if (_savingSize || size.Width < 760 || size.Height < 600) return;
+        _savingSize = true;
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
+            File.WriteAllText(SettingsPath, JsonSerializer.Serialize(new SavedWindowSize { Width = size.Width, Height = size.Height }, new JsonSerializerOptions { WriteIndented = true }));
+        }
+        catch { /* The app can still be used if settings storage is unavailable. */ }
+        finally { _savingSize = false; }
+    }
+
+    private sealed class SavedWindowSize
+    {
+        public int Width { get; set; }
+        public int Height { get; set; }
+    }
+
+    public Task<ContentDialogResult> ShowAsync()
+    {
+        if (_shown) return _completion.Task;
+        _shown = true;
+        if (_ownerHandle != 0) { EnableWindow(_ownerHandle, false); _ownerDisabled = true; }
+        Activate();
+        return _completion.Task;
+    }
+
+    private void OnWindowClosed(object sender, WindowEventArgs args)
+    {
+        _sizeSaveTimer?.Stop();
+        SaveWindowSize(_pendingSize.Width > 0 ? _pendingSize : _appWindow?.Size ?? new SizeInt32(0, 0));
+        if (_ownerDisabled && _ownerHandle != 0) { EnableWindow(_ownerHandle, true); _ownerDisabled = false; }
+        if (!_completion.Task.IsCompleted) _completion.TrySetResult(ContentDialogResult.None);
+    }
+
+    private void OnCancelClick(object sender, RoutedEventArgs e)
+    {
+        _completion.TrySetResult(ContentDialogResult.None);
+        Close();
+    }
+
+    [DllImport("user32.dll")] private static extern bool EnableWindow(nint hWnd, bool bEnable);
 
     private void LoadNfo()
     {
@@ -63,7 +197,7 @@ public sealed partial class NfoEditorDialog : ContentDialog
         return parent?.SelectNodes(name)?.OfType<XmlElement>().ToList() ?? new();
     }
 
-    private void OnSaveClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+    private async void OnSaveClick(object sender, RoutedEventArgs args)
     {
         try
         {
@@ -78,12 +212,13 @@ public sealed partial class NfoEditorDialog : ContentDialog
             using (var writer = XmlWriter.Create(temp, new XmlWriterSettings { Encoding = new System.Text.UTF8Encoding(false), Indent = true })) _doc.Save(writer);
             File.Move(temp, _path, overwrite: true);
             Saved = true;
+            _completion.TrySetResult(ContentDialogResult.Primary);
+            Close();
         }
         catch (Exception ex)
         {
-            args.Cancel = true;
-            var dialog = new ContentDialog { Title = "Не удалось сохранить NFO", Content = ex.Message, CloseButtonText = "ОК", XamlRoot = XamlRoot };
-            _ = dialog.ShowAsync();
+            var dialog = new ContentDialog { Title = "Не удалось сохранить NFO", Content = ex.Message, CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
+            await dialog.ShowAsync();
         }
     }
 

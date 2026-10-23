@@ -322,52 +322,7 @@ public sealed partial class MainWindow : Window
             FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
 
-        // ── Localization ──
-        panel.Children.Add(Header(L("Language")));
-        var languageChoice = new ComboBox
-        {
-            MinWidth = 220,
-            SelectedValuePath = "Tag",
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-        };
-        languageChoice.Items.Add(new ComboBoxItem { Content = "Русский", Tag = "ru-RU" });
-        languageChoice.Items.Add(new ComboBoxItem { Content = CineLibraryCS.Services.LocalizationService.TranslateText("English"), Tag = "en-US" });
-        languageChoice.SelectedValue = UiSettings.Language;
-        panel.Children.Add(languageChoice);
-        panel.Children.Add(new TextBlock
-        {
-            Text = L("LanguageDescription"),
-            FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
-        });
-        var applyLanguage = new Button
-        {
-            Content = L("ApplyLanguageRestart"),
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            Margin = new Thickness(0, 4, 0, 0),
-        };
-        applyLanguage.Click += (_, _) =>
-        {
-            var selected = languageChoice.SelectedValue?.ToString() ?? "ru-RU";
-            UiSettings.SetLanguage(selected);
-            try
-            {
-                var executable = Environment.ProcessPath;
-                if (!string.IsNullOrWhiteSpace(executable))
-                {
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = executable,
-                        UseShellExecute = true,
-                    });
-                    Application.Current.Exit();
-                }
-            }
-            catch (Exception ex)
-            {
-                App.LogStartupCrashStatic(ex, "LanguageRestart");
-            }
-        };
-        panel.Children.Add(applyLanguage);
+        // The application is Russian-only; language selection was removed.
 
         var dialog = new ContentDialog
         {

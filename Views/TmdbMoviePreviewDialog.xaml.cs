@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Graphics;
+using CineLibraryCS.Services;
 using CineLibraryCS.Services.Tmdb;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -21,13 +22,16 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     private List<TmdbImageChoice> _backdropChoices = new();
     private nint _ownerHandle;
     private readonly Window _ownerWindow;
+    private readonly bool _isEditingExistingMovie;
     private bool _ownerDisabled;
     private bool _shown;
     private bool _savingSize;
     private DispatcherQueueTimer? _sizeSaveTimer;
     private SizeInt32 _pendingSize;
     private AppWindow? _appWindow;
-    private static string SettingsPath => Path.Combine(AppContext.BaseDirectory, "TmdbMoviePreviewDialog.settings.json");
+    private string SettingsPath => Path.Combine(AppState.Instance.DataDir,
+        _isEditingExistingMovie ? "TmdbMoviePreviewDialog.edit.settings.json" : "TmdbMoviePreviewDialog.add.settings.json");
+    private static string LegacySettingsPath => Path.Combine(AppContext.BaseDirectory, "TmdbMoviePreviewDialog.settings.json");
     private readonly string? _initialPosterLocalPath;
     private readonly string? _initialBackdropLocalPath;
     public bool PosterWasChanged { get; private set; }
@@ -42,6 +46,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     {
         _client = client;
         _ownerWindow = ownerWindow ?? App.MainWindow ?? throw new InvalidOperationException("Главное окно приложения ещё не создано.");
+        _isEditingExistingMovie = ownerWindow != null;
         _searchHit = searchHit;
         _initialTitle = initialTitle;
         _initialPosterLocalPath = initialPosterLocalPath;
@@ -92,12 +97,13 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         if (window.Presenter is OverlappedPresenter presenter) { presenter.IsResizable = true; presenter.IsMaximizable = true; }
     }
 
-    private static SizeInt32? LoadSavedSize()
+    private SizeInt32? LoadSavedSize()
     {
         try
         {
-            if (!File.Exists(SettingsPath)) return null;
-            var size = JsonSerializer.Deserialize<SavedWindowSize>(File.ReadAllText(SettingsPath));
+            var path = File.Exists(SettingsPath) ? SettingsPath : LegacySettingsPath;
+            if (!File.Exists(path)) return null;
+            var size = JsonSerializer.Deserialize<SavedWindowSize>(File.ReadAllText(path));
             if (size != null && size.Width >= 800 && size.Height >= 560)
                 return new SizeInt32(size.Width, size.Height);
         }
@@ -239,7 +245,8 @@ public sealed partial class TmdbMoviePreviewDialog : Window
     private void OnClosed(object sender, WindowEventArgs args)
     {
         _sizeSaveTimer?.Stop();
-        SaveWindowSize(_pendingSize.Width > 0 ? _pendingSize : _appWindow?.Size ?? new SizeInt32(0, 0));
+        // Save the actual final window size rather than a possibly stale debounced value.
+        SaveWindowSize(_appWindow?.Size ?? _pendingSize);
         if (_ownerDisabled && _ownerHandle != 0) { EnableWindow(_ownerHandle, true); _ownerDisabled = false; try { _ownerWindow.Activate(); } catch { } }
         if (!_completion.Task.IsCompleted) _completion.TrySetResult(ContentDialogResult.None);
     }

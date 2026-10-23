@@ -141,27 +141,68 @@ public class AppState
 
     private static string GetDataDir()
     {
-        // Walk up from bin/x64/Debug/net8.0-windows... to project root during dev
+        // Use one portable data folder beside the project during development,
+        // and beside the executable in published builds.
         var exeDir = AppContext.BaseDirectory;
         var dir = new DirectoryInfo(exeDir);
-        // In VS, output is typically: ProjectDir\bin\x64\Debug\net8.0-windows...\
-        // Walk up until we find a .csproj or we've gone up 5 levels
+        string? root = null;
         for (int i = 0; i < 5; i++)
         {
             if (dir == null) break;
             if (dir.GetFiles("*.csproj").Length > 0)
             {
-                // In dev: put data next to the .csproj
-                var devData = Path.Combine(dir.FullName, "CineLibrary-Data");
-                Directory.CreateDirectory(devData);
-                return devData;
+                root = dir.FullName;
+                break;
             }
             dir = dir.Parent;
         }
-        // In production: put data next to the exe
-        var prodData = Path.Combine(exeDir, "CineLibrary-Data");
-        Directory.CreateDirectory(prodData);
-        return prodData;
+
+        root ??= exeDir;
+        var dataDir = Path.Combine(root, "movie library_data");
+        var legacyDir = Path.Combine(root, "CineLibrary-Data");
+        MigrateLegacyDataIfNeeded(legacyDir, dataDir);
+        Directory.CreateDirectory(dataDir);
+        return dataDir;
+    }
+
+    private static void MigrateLegacyDataIfNeeded(string legacyDir, string newDir)
+    {
+        if (!Directory.Exists(legacyDir)) return;
+        try
+        {
+            // Prefer a same-volume directory rename: it preserves the entire cache
+            // and avoids copying a potentially large image cache during startup.
+            if (!Directory.Exists(newDir))
+            {
+                try
+                {
+                    Directory.Move(legacyDir, newDir);
+                    return;
+                }
+                catch
+                {
+                    // Fall through to a conservative copy if rename is unavailable.
+                }
+            }
+
+            // If the new database already exists, it is authoritative. Otherwise
+            // copy missing files from the old folder so users keep their catalog/cache.
+            var newDb = Path.Combine(newDir, "cinelibrary.db");
+            var oldDb = Path.Combine(legacyDir, "cinelibrary.db");
+            if (File.Exists(newDb) || !File.Exists(oldDb)) return;
+            Directory.CreateDirectory(newDir);
+            foreach (var source in Directory.EnumerateFiles(legacyDir, "*", SearchOption.AllDirectories))
+            {
+                var relative = Path.GetRelativePath(legacyDir, source);
+                var destination = Path.Combine(newDir, relative);
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                if (!File.Exists(destination)) File.Copy(source, destination, overwrite: false);
+            }
+        }
+        catch
+        {
+            // Keep startup resilient; the old folder remains untouched on failure.
+        }
     }
 
     // ── Cached connected drives (refreshed on a timer) ───────────────────────

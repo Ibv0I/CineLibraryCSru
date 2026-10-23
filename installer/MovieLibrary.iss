@@ -1,7 +1,7 @@
 ; Movie Library — Portable Installer (Inno Setup)
 ; Not a traditional install to Program Files. The user picks any folder
 ; (external drive, USB stick, Documents, anywhere) and the app lives there
-; self-contained, with its library data in CineLibrary-Data\ next to the exe.
+; self-contained, with its library data in movie library_data\ next to the exe.
 
 #define MyAppName       "Movie Library"
 #define MyAppVersion    "4.5.0"
@@ -33,7 +33,7 @@ UsePreviousAppDir=yes
 DisableProgramGroupPage=yes
 CreateUninstallRegKey=yes
 ; v3.6 - replace the uninstall log instead of appending to it. Up to 3.4.x the log
-; held a step that deleted the whole {app} folder (CineLibrary-Data included), and
+; held a step that deleted the whole {app} folder (movie library_data included), and
 ; an appended log keeps running it even after that line was removed in 3.5.0.
 UninstallLogMode=overwrite
 
@@ -103,14 +103,14 @@ Name: "{autoprograms}\{#MyAppName}";      Filename: "{app}\{#MyAppExeName}"; Wor
 Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName} now"; Flags: nowait postinstall skipifsilent; WorkingDir: "{app}"
 
 [UninstallDelete]
-; On uninstall: leave CineLibrary-Data alone so user's library survives a reinstall.
+; On uninstall: leave movie library_data alone so user's library survives a reinstall.
 ; The uninstaller already removes every file it installed, and the app folder
 ; too once it is empty. To wipe everything (library too), uncomment the next line:
-; Type: filesandordirs; Name: "{app}\CineLibrary-Data"
+; Type: filesandordirs; Name: "{app}\movie library_data"
 
 [Code]
 // Block installation into Program Files (portable installs don't belong there;
-// UAC would also prevent the app from writing CineLibrary-Data next to the exe).
+// UAC would also prevent the app from writing movie library_data next to the exe).
 function NextButtonClick(CurPageID: Integer): Boolean;
 var
   LowerDir: String;
@@ -124,7 +124,7 @@ begin
     begin
       MsgBox('Please choose a different folder.' + #13#10 + #13#10 +
              'Movie Library is portable and needs to write its library data ' +
-             '(CineLibrary-Data\) next to the exe. Program Files blocks that ' +
+             '(movie library_data\) next to the exe. Program Files blocks that ' +
              'without admin rights.' + #13#10 + #13#10 +
              'Try your Desktop, Documents, or an external drive instead.',
              mbError, MB_OK);

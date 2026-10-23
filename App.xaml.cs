@@ -45,7 +45,7 @@ public partial class App : Application
         if (ex == null) return;
         try
         {
-            var dir = Path.Combine(AppContext.BaseDirectory, "CineLibrary-Data");
+            var dir = Path.Combine(AppContext.BaseDirectory, "movie library_data");
             Directory.CreateDirectory(dir);
             var path = Path.Combine(dir, "startup-crash.log");
             // ex.ToString() includes inner exceptions and their stack traces;

@@ -6,6 +6,7 @@ publish/
 
 # Local data
 CineLibrary-Data/
+movie library_data/
 
 # VS / Rider
 .vs/

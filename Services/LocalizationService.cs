@@ -20,8 +20,7 @@ public static class LocalizationService
 
     public static void ApplyLanguage(string language)
     {
-        var normalized = language.Equals("en-US", StringComparison.OrdinalIgnoreCase)
-            ? "en-US" : "ru-RU";
+        const string normalized = "ru-RU";
         lock (Sync)
         {
             _language = normalized;

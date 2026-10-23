@@ -16,14 +16,12 @@ public static class LocalizationService
 {
     private static readonly object Sync = new();
     private static Dictionary<string, string> _strings = new(StringComparer.Ordinal);
-    private static string _language = "ru-RU";
 
     public static void ApplyLanguage(string language)
     {
         const string normalized = "ru-RU";
         lock (Sync)
         {
-            _language = normalized;
             _strings = LoadStrings(normalized);
         }
     }

@@ -22,7 +22,6 @@ public sealed partial class TmdbImagePickerWindow : Window
     private SizeInt32 _pendingSize;
     private static string SettingsPath => Path.Combine(AppContext.BaseDirectory, "TmdbImagePickerWindow.settings.json");
     public string? SelectedPath { get; private set; }
-    private TmdbImageChoice? _selectedChoice;
 
     public TmdbImagePickerWindow(IEnumerable<TmdbImageChoice> choices, bool isPoster, Window ownerWindow)
     {
@@ -153,7 +152,7 @@ public sealed partial class TmdbImagePickerWindow : Window
 
     private void OnChooseClick(object sender, RoutedEventArgs e)
     {
-        if ((_selectedChoice ?? ImagesGrid.SelectedItem as TmdbImageChoice) is TmdbImageChoice choice)
+        if (ImagesGrid.SelectedItem is TmdbImageChoice choice)
         {
             SelectedPath = choice.FilePath;
             _completion.TrySetResult(SelectedPath);

@@ -99,7 +99,7 @@ public static class ProxySettings
                     AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
                     PooledConnectionLifetime = TimeSpan.FromMinutes(5),
                 };
-                socksHandler.ConnectCallback = (context, cancellationToken) => ConnectSocks5Async(config, context.DnsEndPoint, cancellationToken);
+                socksHandler.ConnectCallback = (context, cancellationToken) => new ValueTask<Stream>(ConnectSocks5Async(config, context.DnsEndPoint, cancellationToken));
                 handler = socksHandler;
             }
         }

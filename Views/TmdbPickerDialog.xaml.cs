@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Windowing;
 using Windows.Graphics;
 using CineLibraryCS.Services.Tmdb;
+using CineLibraryCS.Services;
 using System.Runtime.InteropServices;
 
 namespace CineLibraryCS.Views;
@@ -42,13 +43,19 @@ public sealed partial class TmdbPickerDialog : Window
 
         if (tvShows)
         {
+            SourceBox.Visibility = Visibility.Collapsed;
             Title = CineLibraryCS.Services.LocalizationService.TranslateText("Выбор сериала в TMDb");
             HintText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Выберите правильный сериал, чтобы сопоставить его с записью TMDb.");
             TitleBox.PlaceholderText = CineLibraryCS.Services.LocalizationService.TranslateText("Название сериала…");
             SelectBtn.Content = CineLibraryCS.Services.LocalizationService.TranslateText("Выбрать сериал");
         }
         TitleBox.Text = initialTitle ?? "";
+        if (!tvShows) HintText.Text = "Выбери источник, затем найди фильм и подтверди подходящее совпадение.";
         if (year is int y && y > 0) YearBox.Text = y.ToString();
+        SourceBox.SelectionChanged += (sender, args) =>
+        {
+            if (_shown && !_tvShows && !string.IsNullOrWhiteSpace(TitleBox.Text)) _ = DoSearchAsync();
+        };
 
         // Configure the final dimensions and position before the first Activate().
         ConfigureForAvailableWidth(0);
@@ -173,12 +180,20 @@ public sealed partial class TmdbPickerDialog : Window
         IsPrimaryButtonEnabled = false;
         try
         {
-            var results = _tvShows
-                ? (await _client.SearchTvAsync(title, year)).Select(t => t.AsSearchHit()).ToList()
-                : await _client.SearchMovieAsync(title, year);
+            List<TmdbMovie> results;
+            var useKinopoisk = !_tvShows && SourceBox.SelectedIndex == 1;
+            if (_tvShows)
+                results = (await _client.SearchTvAsync(title, year)).Select(t => t.AsSearchHit()).ToList();
+            else if (useKinopoisk)
+            {
+                using var kp = new KinopoiskClient();
+                results = await kp.SearchMovieAsync(title, year);
+            }
+            else
+                results = await _client.SearchMovieAsync(title, year);
             if (results.Count == 0)
             {
-                StatusText.Text = $"В TMDb не найдено совпадений для «{title}».";
+                StatusText.Text = $"В {(useKinopoisk ? "КиноПоиске" : "TMDb")} не найдено совпадений для «{title}».";
                 StatusText.Visibility = Visibility.Visible;
                 ResultsList.ItemsSource = null;
                 return;
@@ -198,7 +213,7 @@ public sealed partial class TmdbPickerDialog : Window
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"TMDb picker search failed: {ex.Message}");
-            StatusText.Text = CineLibraryCS.Services.LocalizationService.TranslateText("Couldn't reach TMDb. Check your connection and try again.");
+            StatusText.Text = "Не удалось получить результаты. Проверь подключение, прокси и API-ключ выбранного источника: " + ex.GetBaseException().Message;
             StatusText.Visibility = Visibility.Visible;
         }
         finally

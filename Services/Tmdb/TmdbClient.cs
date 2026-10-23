@@ -245,7 +245,10 @@ public sealed class TmdbClient : IDisposable
 
     /// <summary>Builds a full image URL. "original" for the saved poster, smaller for thumbs.</summary>
     public string GetImageUrl(string? imagePath, string size = "original") =>
-        string.IsNullOrEmpty(imagePath) ? string.Empty : $"https://image.tmdb.org/t/p/{size}{imagePath}";
+        string.IsNullOrEmpty(imagePath) ? string.Empty :
+        (Uri.TryCreate(imagePath, UriKind.Absolute, out var absolute) && (absolute.Scheme == Uri.UriSchemeHttp || absolute.Scheme == Uri.UriSchemeHttps)
+            ? absolute.AbsoluteUri
+            : $"https://image.tmdb.org/t/p/{size}{imagePath}");
 
     /// <summary>Downloads an image to <paramref name="destFullPath"/>. Returns false on any failure.</summary>
     /// <summary>Downloads image bytes through the same configured HTTP client as TMDb API requests.</summary>

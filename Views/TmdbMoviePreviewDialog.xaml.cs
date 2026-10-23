@@ -166,13 +166,26 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         Busy.IsActive = true;
         try
         {
-            var details = await _client.GetMovieDetailsAsync(_searchHit.TmdbId);
-            if (details == null) throw new InvalidOperationException("TMDb не вернул подробности фильма.");
+            TmdbMovie? details;
+            TmdbMovieImages images;
+            if (string.Equals(_searchHit.SourceProvider, "kinopoisk", StringComparison.OrdinalIgnoreCase))
+            {
+                using var kp = new KinopoiskClient();
+                var kpId = _searchHit.KinopoiskId > 0 ? _searchHit.KinopoiskId : _searchHit.TmdbId;
+                details = await kp.GetMovieDetailsAsync(kpId);
+                if (details == null) throw new InvalidOperationException("КиноПоиск не вернул подробности фильма.");
+                images = await kp.GetMovieImagesAsync(kpId);
+            }
+            else
+            {
+                details = await _client.GetMovieDetailsAsync(_searchHit.TmdbId);
+                if (details == null) throw new InvalidOperationException("TMDb не вернул подробности фильма.");
+                images = await _client.GetMovieImagesAsync(details.TmdbId);
+            }
             Movie = details;
             MovieTitleEditor.Text = _initialTitle ?? details.Title;
             if (!string.IsNullOrWhiteSpace(_initialTitle)) details.Title = _initialTitle;
 
-            var images = await _client.GetMovieImagesAsync(details.TmdbId);
             if (images.Posters.Count == 0 && !string.IsNullOrWhiteSpace(details.PosterPath)) images.Posters.Add(details.PosterPath!);
             if (images.Backdrops.Count == 0 && !string.IsNullOrWhiteSpace(details.BackdropPath)) images.Backdrops.Add(details.BackdropPath!);
             _posterChoices = images.Posters.Select(p => new TmdbImageChoice(p, _client.GetImageUrl(p, "w185"), true)).ToList();
@@ -184,10 +197,10 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             SelectedBackdropPath = images.Backdrops.FirstOrDefault() ?? details.BackdropPath;
             RefreshPosterPreview(); RefreshBackdropPreview();
             if (SelectedPosterPath == null || SelectedBackdropPath == null)
-                ImageStatusText.Text = "Некоторые изображения отсутствуют в TMDb. Метаданные можно редактировать независимо от изображений.";
+                ImageStatusText.Text = $"Некоторые изображения отсутствуют в {(string.Equals(details.SourceProvider, "kinopoisk", StringComparison.OrdinalIgnoreCase) ? "КиноПоиске" : "TMDb")}. Метаданные можно редактировать независимо от изображений.";
             UseSelectionButton.IsEnabled = true;
         }
-        catch (Exception ex) { ImageStatusText.Text = "Не удалось загрузить подробности или изображения TMDb: " + ex.Message; }
+        catch (Exception ex) { ImageStatusText.Text = "Не удалось загрузить подробности или изображения: " + ex.GetBaseException().Message; }
         finally { Busy.IsActive = false; }
     }
 
@@ -196,7 +209,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
 
     private async void OnPosterPreviewClick(object sender, RoutedEventArgs e)
     {
-        if (_posterChoices.Count == 0) { ImageStatusText.Text = "TMDb не предоставил варианты постеров для этого фильма."; return; }
+        if (_posterChoices.Count == 0) { ImageStatusText.Text = "Источник не предоставил варианты постеров для этого фильма."; return; }
         var picker = new TmdbImagePickerWindow(_posterChoices, true, this);
         var path = await picker.ShowAsync();
         if (!string.IsNullOrWhiteSpace(path)) { SelectedPosterPath = path; PosterWasChanged = true; RefreshPosterPreview(); }
@@ -204,7 +217,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
 
     private async void OnBackdropPreviewClick(object sender, RoutedEventArgs e)
     {
-        if (_backdropChoices.Count == 0) { ImageStatusText.Text = "TMDb не предоставил варианты фоновых изображений для этого фильма."; return; }
+        if (_backdropChoices.Count == 0) { ImageStatusText.Text = "Источник не предоставил варианты фоновых изображений для этого фильма."; return; }
         var picker = new TmdbImagePickerWindow(_backdropChoices, false, this);
         var path = await picker.ShowAsync();
         if (!string.IsNullOrWhiteSpace(path)) { SelectedBackdropPath = path; BackdropWasChanged = true; RefreshBackdropPreview(); }

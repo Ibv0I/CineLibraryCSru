@@ -48,6 +48,7 @@ public sealed partial class MainWindow : Window
         // card is built so they paint with the right look on first render.
         UiSettings.Load();
         ProxySettings.Load();
+        KinopoiskSettings.Load();
         LocalizationService.ApplyLanguage(UiSettings.Language);
 
         InitializeComponent();
@@ -415,6 +416,25 @@ public sealed partial class MainWindow : Window
             catch (Exception ex) { proxyStatus.Text = ex.Message; }
             finally { testProxyButton.IsEnabled = true; }
         };
+
+        // ── Kinopoisk API Unofficial ──
+        panel.Children.Add(Header("КиноПоиск API Unofficial"));
+        panel.Children.Add(new TextBlock
+        {
+            Text = "Ключ хранится в настройках текущего пользователя Windows и используется для поиска фильмов, метаданных и изображений. Запросы используют общий прокси приложения.",
+            FontSize = 12, Opacity = 0.8, Foreground = muted, TextWrapping = TextWrapping.Wrap,
+        });
+        var kinopoiskToken = new PasswordBox { Header = "API-ключ", Password = KinopoiskSettings.ApiToken, PlaceholderText = "Вставь токен Kinopoisk API Unofficial" };
+        panel.Children.Add(kinopoiskToken);
+        var saveKinopoiskToken = new Button { Content = "Сохранить ключ КиноПоиска", Margin = new Thickness(0, 6, 0, 0) };
+        var kinopoiskTokenStatus = new TextBlock { FontSize = 12, Opacity = 0.8, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0) };
+        saveKinopoiskToken.Click += (_, _) =>
+        {
+            KinopoiskSettings.Save(kinopoiskToken.Password);
+            kinopoiskTokenStatus.Text = string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken) ? "Ключ очищен. Поиск КиноПоиска не будет доступен." : "Ключ КиноПоиска сохранён.";
+        };
+        panel.Children.Add(saveKinopoiskToken);
+        panel.Children.Add(kinopoiskTokenStatus);
 
         // The application is Russian-only; language selection was removed.
 

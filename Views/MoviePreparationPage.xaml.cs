@@ -243,7 +243,7 @@ public sealed partial class MoviePreparationPage : Page
         candidate.SelectedPosterPath = preview.SelectedPosterPath ?? preview.Movie.PosterPath;
         candidate.SelectedBackdropPath = preview.SelectedBackdropPath ?? preview.Movie.BackdropPath;
         candidate.DownloadActorPhotos = preview.DownloadActorPhotos;
-        candidate.MatchSummary = $"Выбрано: {preview.Movie.Title}{(preview.Movie.Year > 0 ? $" ({preview.Movie.Year})" : string.Empty)} · TMDb ID: {preview.Movie.TmdbId}";
+        candidate.MatchSummary = $"Выбрано: {preview.Movie.Title}{(preview.Movie.Year > 0 ? $" ({preview.Movie.Year})" : string.Empty)} · {(preview.Movie.SourceProvider == "kinopoisk" ? "КиноПоиск ID" : "TMDb ID")}: {preview.Movie.TmdbId}";
         RefreshCandidates();
 
         // Confirming the selected TMDb match and artwork now completes file preparation.
@@ -489,7 +489,7 @@ public sealed partial class MoviePreparationPage : Page
     {
         if (candidate.SelectedMovie is not TmdbMovie movie)
         {
-            StatusText.Text = $"Для папки «{candidate.FolderName}» не выбрано совпадение TMDb.";
+            StatusText.Text = $"Для папки «{candidate.FolderName}» не выбрано совпадение фильма.";
             return false;
         }
 
@@ -632,9 +632,10 @@ public sealed partial class MoviePreparationPage : Page
             WriteElement(writer, "imdbid", movie.ImdbId);
             writer.WriteStartElement("uniqueid"); writer.WriteAttributeString("type", "imdb"); writer.WriteAttributeString("default", "false"); writer.WriteString(movie.ImdbId); writer.WriteEndElement();
         }
-        writer.WriteStartElement("uniqueid"); writer.WriteAttributeString("type", "tmdb"); writer.WriteAttributeString("default", "true"); writer.WriteString(movie.TmdbId.ToString(CultureInfo.InvariantCulture)); writer.WriteEndElement();
+        var isKinopoisk = string.Equals(movie.SourceProvider, "kinopoisk", StringComparison.OrdinalIgnoreCase);
+        writer.WriteStartElement("uniqueid"); writer.WriteAttributeString("type", isKinopoisk ? "kinopoisk" : "tmdb"); writer.WriteAttributeString("default", "true"); writer.WriteString((isKinopoisk && movie.KinopoiskId > 0 ? movie.KinopoiskId : movie.TmdbId).ToString(CultureInfo.InvariantCulture)); writer.WriteEndElement();
         writer.WriteStartElement("ratings");
-        writer.WriteStartElement("rating"); writer.WriteAttributeString("name", "themoviedb"); writer.WriteAttributeString("max", "10"); writer.WriteAttributeString("default", "true");
+        writer.WriteStartElement("rating"); writer.WriteAttributeString("name", isKinopoisk ? "kinopoisk" : "themoviedb"); writer.WriteAttributeString("max", "10"); writer.WriteAttributeString("default", "true");
         WriteElement(writer, "value", movie.Rating.ToString("0.0", CultureInfo.InvariantCulture));
         WriteElement(writer, "votes", movie.VoteCount.ToString(CultureInfo.InvariantCulture));
         writer.WriteEndElement(); writer.WriteEndElement();
@@ -698,7 +699,12 @@ public sealed partial class MoviePreparationPage : Page
             if (actorThumbs != null && actorThumbs.TryGetValue(actor.Order, out var localThumb))
                 WriteElement(writer, "thumb", localThumb);
             else if (!string.IsNullOrWhiteSpace(actor.ProfilePath))
-                WriteElement(writer, "thumb", "https://image.tmdb.org/t/p/original" + actor.ProfilePath);
+            {
+                var actorThumbUrl = Uri.TryCreate(actor.ProfilePath, UriKind.Absolute, out var actorAbsolute)
+                    ? actorAbsolute.AbsoluteUri
+                    : "https://image.tmdb.org/t/p/original" + actor.ProfilePath;
+                WriteElement(writer, "thumb", actorThumbUrl);
+            }
             WriteElement(writer, "order", actor.Order.ToString(CultureInfo.InvariantCulture));
             writer.WriteEndElement();
         }
@@ -876,7 +882,7 @@ public sealed class MovieFolderCandidate
     public string? SelectedPosterPath { get; set; }
     public string? SelectedBackdropPath { get; set; }
     public bool DownloadActorPhotos { get; set; } = true;
-    public string MatchSummary { get; set; } = "Совпадение TMDb не выбрано";
+    public string MatchSummary { get; set; } = "Совпадение фильма не выбрано";
     public string PosterGlyph { get; private set; } = "○";
     public string FanartGlyph { get; private set; } = "○";
     public string NfoGlyph { get; private set; } = "○";

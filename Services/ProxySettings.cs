@@ -64,6 +64,10 @@ public static class ProxySettings
         db.SetPref(Prefix + "password", ProtectPassword(Password));
     }
 
+    // Shared DPAPI helpers for secrets stored in application preferences.
+    public static string ProtectSecret(string value) => ProtectPassword(value);
+    public static string UnprotectSecret(string value) => UnprotectPassword(value);
+
     public static HttpClient CreateHttpClient(TimeSpan? timeout = null) => CreateHttpClient(Current, timeout);
 
     public static HttpClient CreateHttpClient(ProxyConfiguration config, TimeSpan? timeout = null)

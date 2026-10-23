@@ -34,7 +34,7 @@ public sealed partial class NfoEditorDialog : Window
         _path = nfoPath;
         _ownerWindow = ownerWindow;
         InitializeComponent();
-        RootGrid.Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(this);
+        RootGrid.Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(RootGrid);
         Closed += OnWindowClosed;
         ConfigureWindow();
         LoadNfo();

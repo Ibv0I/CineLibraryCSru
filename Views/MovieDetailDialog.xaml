@@ -261,6 +261,16 @@
                                 AutomationProperties.Name="Изменить название, постер и баннер">
                             <FontIcon Glyph="&#xE70F;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="16"/>
                         </Button>
+                        <Button x:Name="EditNfoBtn" Click="OnEditNfo" IsTabStop="False" UseSystemFocusVisuals="False"
+                                Style="{StaticResource MovieDetailActionButtonStyle}"
+                                Background="{ThemeResource CardBrush}"
+                                Foreground="{ThemeResource TextBrush}"
+                                BorderBrush="{ThemeResource BorderBrush}"
+                                CornerRadius="8" Padding="12,8"
+                                ToolTipService.ToolTip="Редактировать NFO"
+                                AutomationProperties.Name="Редактировать NFO">
+                            <FontIcon Glyph="&#xE70F;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="16"/>
+                        </Button>
                         <Button x:Name="FavBtn" Click="OnToggleFav"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"

@@ -1146,6 +1146,45 @@ public sealed partial class MovieDetailDialog : Window
         }
     }
 
+    private async void OnEditNfo(object sender, RoutedEventArgs e)
+    {
+        var movie = _movie;
+        if (movie == null || string.IsNullOrWhiteSpace(movie.CurrentLetter) || string.IsNullOrWhiteSpace(movie.FolderRelPath))
+        {
+            var missing = new ContentDialog { Title = "NFO недоступен", Content = "Не удалось определить папку фильма.", CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
+            await missing.ShowAsync();
+            return;
+        }
+
+        var folder = Path.Combine($"{movie.CurrentLetter}:\\", movie.FolderRelPath.Replace('/', '\\'));
+        var nfoPath = Path.Combine(folder, "movie.nfo");
+        if (!File.Exists(nfoPath))
+        {
+            var missing = new ContentDialog { Title = "NFO не найден", Content = $"Файл не существует:\n{nfoPath}", CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
+            await missing.ShowAsync();
+            return;
+        }
+
+        try
+        {
+            var editor = new NfoEditorDialog(nfoPath, RootGrid.XamlRoot);
+            var result = await editor.ShowAsync();
+            if (result != ContentDialogResult.Primary || !editor.Saved) return;
+
+            // Rescan only this movie folder so edited NFO fields propagate to the database/UI.
+            var driveRoot = $"{movie.CurrentLetter}:\\";
+            var scanner = new ScannerService(AppState.Instance.Db);
+            await scanner.ScanAsync(movie.VolumeSerial, driveRoot, null, CancellationToken.None, folder, incremental: false);
+            await LoadAsync();
+            WatchlistChanged?.Invoke(this, EventArgs.Empty);
+        }
+        catch (Exception ex)
+        {
+            var error = new ContentDialog { Title = "Ошибка редактора NFO", Content = ex.Message, CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
+            await error.ShowAsync();
+        }
+    }
+
     private async void OnEditArtwork(object sender, RoutedEventArgs e)
     {
         var movie = _movie;

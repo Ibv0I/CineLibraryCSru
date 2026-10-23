@@ -1,0 +1,74 @@
+<ContentDialog
+    x:Class="CineLibraryCS.Views.NfoEditorDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Редактор NFO"
+    PrimaryButtonText="Сохранить"
+    CloseButtonText="Отмена"
+    DefaultButton="Primary"
+    PrimaryButtonClick="OnSaveClick">
+    <Grid MinWidth="760" MaxWidth="1000">
+        <TabView x:Name="EditorTabs" IsAddTabButtonVisible="False" TabWidthMode="Equal">
+            <TabViewItem Header="Метаданные">
+                <ScrollViewer MaxHeight="620" VerticalScrollBarVisibility="Auto" Padding="0,8,12,8">
+                    <StackPanel Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBox x:Name="TitleBox" Header="Название" Grid.Column="0"/>
+                            <TextBox x:Name="OriginalTitleBox" Header="Оригинальное название" Grid.Column="1"/>
+                        </Grid>
+                        <TextBox x:Name="TaglineBox" Header="Слоган"/>
+                        <TextBox x:Name="PlotBox" Header="Сюжет" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="160"/>
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="100"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBox x:Name="YearBox" Header="Год" Grid.Column="0" InputScope="Number"/>
+                            <TextBox x:Name="PremieredBox" Header="Дата выхода (ГГГГ-ММ-ДД)" Grid.Column="1"/>
+                            <TextBox x:Name="RuntimeBox" Header="Продолжительность, мин" Grid.Column="2" InputScope="Number"/>
+                        </Grid>
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBox x:Name="StudiosBox" Header="Студии (по одной на строку)" Grid.Column="0" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"/>
+                            <TextBox x:Name="CountriesBox" Header="Страны (по одной на строку)" Grid.Column="1" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"/>
+                        </Grid>
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBox x:Name="CertificationBox" Header="Сертификация / возрастной рейтинг" Grid.Column="0"/>
+                            <TextBox x:Name="GenresBox" Header="Жанры (по одному на строку)" Grid.Column="1" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"/>
+                        </Grid>
+                        <TextBox x:Name="RatingsBox" Header="Рейтинги (источник | значение | голоса, по одному на строку)" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="82" FontFamily="Consolas"/>
+                        <TextBlock Text="Идентификаторы (тип | значение, по одному на строку)" Foreground="{ThemeResource TextBrush}"/>
+                        <TextBox x:Name="IdentifiersBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="82" FontFamily="Consolas" PlaceholderText="tmdb | 12345&#xA;imdb | tt1234567&#xA;kinopoisk | 123456"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabViewItem>
+            <TabViewItem Header="Техническая информация">
+                <ScrollViewer MaxHeight="620" VerticalScrollBarVisibility="Auto" Padding="0,8,12,8">
+                    <StackPanel Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBox x:Name="VideoCodecBox" Header="Видеокодек" Grid.Column="0"/>
+                            <TextBox x:Name="ContainerBox" Header="Контейнер" Grid.Column="1"/>
+                            <TextBox x:Name="VideoBitrateBox" Header="Битрейт видео (бит/с)" Grid.Column="2"/>
+                        </Grid>
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBox x:Name="WidthBox" Header="Ширина видео" Grid.Column="0"/>
+                            <TextBox x:Name="HeightBox" Header="Высота видео" Grid.Column="1"/>
+                            <TextBox x:Name="FrameRateBox" Header="Частота кадров" Grid.Column="2"/>
+                        </Grid>
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBox x:Name="HdrBox" Header="Формат HDR" Grid.Column="0"/>
+                            <TextBox x:Name="AspectBox" Header="Соотношение сторон" Grid.Column="1"/>
+                        </Grid>
+                        <TextBlock Text="Звуковые дорожки — одна на строку: кодек | язык | каналы | битрейт | частота дискретизации | название" TextWrapping="Wrap" Foreground="{ThemeResource TextBrush}"/>
+                        <TextBox x:Name="AudioTracksBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="130" FontFamily="Consolas" PlaceholderText="truehd | rus | 8 | 4500000 | 48000 | Русский TrueHD 7.1"/>
+                        <TextBlock Text="Субтитры — одна дорожка на строку: язык | формат | название | по умолчанию (true/false) | принудительные (true/false)" TextWrapping="Wrap" Foreground="{ThemeResource TextBrush}"/>
+                        <TextBox x:Name="SubtitlesBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" FontFamily="Consolas" PlaceholderText="rus | srt | Русские | false | false"/>
+                        <TextBlock Text="Формат строк указан над полями. Неизвестные XML-поля сохраняются при записи." FontSize="12" Foreground="{ThemeResource MutedBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabViewItem>
+        </TabView>
+    </Grid>
+</ContentDialog>

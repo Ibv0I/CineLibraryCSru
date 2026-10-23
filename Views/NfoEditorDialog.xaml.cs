@@ -267,7 +267,7 @@ public sealed partial class NfoEditorDialog : Window
         var votes = new TextBox { Header = "Количество голосов", PlaceholderText = "Например, 12500" };
         value.BeforeTextChanging += NumericOrDecimalOnly; votes.BeforeTextChanging += DigitsOnly;
         panel.Children.Add(source); panel.Children.Add(value); panel.Children.Add(votes);
-        var dialog = new ContentDialog { Title = "Добавить рейтинг", Content = panel, PrimaryButtonText = "Добавить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, XamlRoot = RootGrid.XamlRoot };
+        var dialog = new ContentDialog { Title = "Добавить рейтинг", Content = panel, PrimaryButtonText = "Добавить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
         dialog.PrimaryButtonClick += (sender, args) => { if (!decimal.TryParse(value.Text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal parsedRating) || parsedRating < 0 || parsedRating > 10 || !int.TryParse(votes.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedVotes) || parsedVotes < 0) args.Cancel = true; };
         if (await dialog.ShowAsync() == ContentDialogResult.Primary) _ratings.Add($"{source.SelectedItem} | {value.Text.Replace(',', '.')} | {votes.Text}");
     }
@@ -280,14 +280,14 @@ public sealed partial class NfoEditorDialog : Window
         var source = new ComboBox { Header = "Источник", ItemsSource = RatingSources, SelectedIndex = 0, HorizontalAlignment = HorizontalAlignment.Stretch };
         var id = new TextBox { Header = "Идентификатор", PlaceholderText = "Введите идентификатор" };
         panel.Children.Add(source); panel.Children.Add(id);
-        var dialog = new ContentDialog { Title = "Добавить идентификатор", Content = panel, PrimaryButtonText = "Добавить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, XamlRoot = RootGrid.XamlRoot };
+        var dialog = new ContentDialog { Title = "Добавить идентификатор", Content = panel, PrimaryButtonText = "Добавить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
         if (await dialog.ShowAsync() == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(id.Text)) _identifiers.Add($"{source.SelectedItem} | {id.Text.Trim()}");
     }
     private void OnRemoveIdentifier(object sender, RoutedEventArgs e) { if (IdentifiersList.SelectedItem is string item) _identifiers.Remove(item); }
     private async void OnAddGenre(object sender, RoutedEventArgs e)
     {
         var list = new ListView { ItemsSource = StandardGenres, SelectionMode = ListViewSelectionMode.Multiple, MaxHeight = 360 };
-        var dialog = new ContentDialog { Title = "Добавить жанры", Content = list, PrimaryButtonText = "Добавить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, XamlRoot = RootGrid.XamlRoot };
+        var dialog = new ContentDialog { Title = "Добавить жанры", Content = list, PrimaryButtonText = "Добавить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
         if (await dialog.ShowAsync() == ContentDialogResult.Primary)
             foreach (var item in list.SelectedItems.Cast<string>()) if (!_genres.Contains(item)) _genres.Add(item);
     }

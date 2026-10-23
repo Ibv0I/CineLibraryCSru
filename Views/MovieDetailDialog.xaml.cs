@@ -923,7 +923,7 @@ public sealed partial class MovieDetailDialog : Window
         }
         if (m.DurationSeconds.HasValue && m.DurationSeconds.Value > 0)
         {
-            FiDur.Text = FormatDuration(m.DurationSeconds.Value);
+            FiDur.Text = $"{Math.Max(1, (int)Math.Round(m.DurationSeconds.Value / 60.0))} мин";
             FiDurBlock.Visibility = Visibility.Visible;
             any = true;
         }

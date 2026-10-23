@@ -3,12 +3,12 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Редактор NFO">
-    <Grid x:Name="RootGrid" RequestedTheme="Dark" Background="#121214" Padding="16" RowSpacing="12">
+    <Grid x:Name="RootGrid" RequestedTheme="Dark" Background="#121214" Padding="14" RowSpacing="8">
         <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <TabView Grid.Row="0" x:Name="EditorTabs" IsAddTabButtonVisible="False" TabWidthMode="Equal">
             <TabViewItem Header="Метаданные">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,8,12,8">
-                    <StackPanel Spacing="10">
+                    <StackPanel Spacing="6">
                         <Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <TextBox x:Name="TitleBox" Header="Название" Grid.Column="0"/>
@@ -24,32 +24,42 @@
                         </Grid>
                         <Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <TextBox x:Name="StudiosBox" Header="Студии (по одной на строку)" Grid.Column="0" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"/>
-                            <TextBox x:Name="CountriesBox" Header="Страны (по одной на строку)" Grid.Column="1" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"/>
+                            <TextBox x:Name="StudiosBox" Header="Студии (по одной на строку)" Grid.Column="0" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="48" MaxHeight="72"/>
+                            <TextBox x:Name="CountriesBox" Header="Страны (по одной на строку)" Grid.Column="1" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="48" MaxHeight="72"/>
                         </Grid>
                         <Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <ComboBox x:Name="CertificationBox" Header="Сертификация / возрастной рейтинг" Grid.Column="0" IsEditable="False" />
                             <StackPanel Grid.Column="1" Spacing="5">
                                 <TextBlock Text="Жанры" />
-                                <ListView x:Name="GenresList" MinHeight="64" MaxHeight="130" SelectionMode="Single" />
+                                <ListView x:Name="GenresList" MinHeight="36" MaxHeight="68" SelectionMode="Single" />
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Button Content="＋ Добавить жанр" Click="OnAddGenre" />
                                     <Button Content="－ Удалить" Click="OnRemoveGenre" />
                                 </StackPanel>
                             </StackPanel>
                         </Grid>
-                        <TextBlock Text="Рейтинги" Foreground="{ThemeResource TextBrush}" />
-                        <ListView x:Name="RatingsList" MinHeight="55" MaxHeight="140" SelectionMode="Single" />
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Button Content="＋ Добавить рейтинг" Click="OnAddRating" />
-                            <Button Content="－ Удалить рейтинг" Click="OnRemoveRating" />
-                        </StackPanel>
-                        <TextBlock Text="Идентификаторы" Foreground="{ThemeResource TextBrush}" />
-                        <ListView x:Name="IdentifiersList" MinHeight="55" MaxHeight="140" SelectionMode="Single" />
+                        <TextBlock Text="Идентификаторы" Foreground="{ThemeResource TextBrush}" Margin="0,2,0,0" />
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="Источник" Grid.Column="0" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
+                            <TextBlock Text="Идентификатор" Grid.Column="1" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
+                        </Grid>
+                        <ListView x:Name="IdentifiersList" MinHeight="32" MaxHeight="66" SelectionMode="Single" />
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <Button Content="＋ Добавить идентификатор" Click="OnAddIdentifier" />
                             <Button Content="－ Удалить идентификатор" Click="OnRemoveIdentifier" />
+                        </StackPanel>
+                        <Grid ColumnSpacing="8" Margin="0,2,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="Источник" Grid.Column="0" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
+                            <TextBlock Text="Рейтинг" Grid.Column="1" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
+                            <TextBlock Text="Количество голосов" Grid.Column="2" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
+                        </Grid>
+                        <ListView x:Name="RatingsList" MinHeight="32" MaxHeight="66" SelectionMode="Single" />
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Button Content="＋ Добавить рейтинг" Click="OnAddRating" />
+                            <Button Content="－ Удалить рейтинг" Click="OnRemoveRating" />
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>

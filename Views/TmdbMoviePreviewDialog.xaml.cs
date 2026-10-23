@@ -57,14 +57,23 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         // When this dialog is opened from a movie's pencil button, keep the editor focused
         // on title, poster and banner.
         if (ownerWindow != null)
+        {
             DownloadActorPhotosCheckBox.Visibility = Visibility.Collapsed;
-        var isKinopoiskSource = string.Equals(searchHit.SourceProvider, "kinopoisk", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(searchHit.SourceProvider, "poiskkino", StringComparison.OrdinalIgnoreCase);
-        IncludeKinopoiskRatingCheckBox.Visibility = isKinopoiskSource ? Visibility.Collapsed : Visibility.Visible;
-        var hasKinopoiskApi = !string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken)
-            || !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken);
-        IncludeKinopoiskRatingCheckBox.IsEnabled = hasKinopoiskApi && !isKinopoiskSource;
-        KinopoiskApiHintText.Visibility = !hasKinopoiskApi && !isKinopoiskSource ? Visibility.Visible : Visibility.Collapsed;
+            // Rating lookup is an option for preparing a new TMDb movie, not for
+            // editing the artwork/title of an existing movie from the detail page.
+            IncludeKinopoiskRatingCheckBox.Visibility = Visibility.Collapsed;
+            KinopoiskApiHintText.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            var isKinopoiskSource = string.Equals(searchHit.SourceProvider, "kinopoisk", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(searchHit.SourceProvider, "poiskkino", StringComparison.OrdinalIgnoreCase);
+            IncludeKinopoiskRatingCheckBox.Visibility = isKinopoiskSource ? Visibility.Collapsed : Visibility.Visible;
+            var hasKinopoiskApi = !string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken)
+                || !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken);
+            IncludeKinopoiskRatingCheckBox.IsEnabled = hasKinopoiskApi && !isKinopoiskSource;
+            KinopoiskApiHintText.Visibility = !hasKinopoiskApi && !isKinopoiskSource ? Visibility.Visible : Visibility.Collapsed;
+        }
         RootGrid.Loaded += async (_, _) => await LoadMovieAsync();
         Closed += OnClosed;
         ConfigureWindow();

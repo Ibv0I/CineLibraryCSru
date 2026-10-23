@@ -20,6 +20,7 @@ public sealed partial class MovieDetailDialog : Window
     private int _movieId;
     private MovieDetail? _movie;
     private bool _closed;
+    private int _kinopoiskId;
 
     // v4.5.0: the movies of the grid this window was opened from, in order, so
     // ← and → step through them in place. _browseIndex is the last of them shown.
@@ -171,8 +172,12 @@ public sealed partial class MovieDetailDialog : Window
         // Sticky bar title (v2.3) — shown when scrolled past hero
         StickyTitle.Text = m.Title;
 
-        // IMDb / TMDb top-right pill buttons (v2.3)
+        // External source links in the top-right of the hero banner.
         ImdbLinkBtn.Visibility = !string.IsNullOrWhiteSpace(m.ImdbId) ? Visibility.Visible : Visibility.Collapsed;
+        _kinopoiskId = ReadKinopoiskIdFromNfo(m);
+        var hasKinopoiskRating = m.AllRatings.Any(r => r.Source.Equals("kinopoisk", StringComparison.OrdinalIgnoreCase)
+            && r.Value > 0);
+        KinopoiskLinkBtn.Visibility = hasKinopoiskRating ? Visibility.Visible : Visibility.Collapsed;
 
         // Chips
         ChipsPanel.Children.Clear();
@@ -1090,6 +1095,38 @@ public sealed partial class MovieDetailDialog : Window
             if (App.MainWindow is MainWindow mw)
                 mw.ShowToast("Не удалось открыть IMDb — браузер недоступен?");
         }
+    }
+
+    private async void OnOpenKinopoisk(object sender, RoutedEventArgs e)
+    {
+        var url = _kinopoiskId > 0
+            ? $"https://www.kinopoisk.ru/film/{_kinopoiskId}/"
+            : $"https://www.kinopoisk.ru/index.php?kp_query={Uri.EscapeDataString(_movie?.Title ?? string.Empty)}";
+        try { await Launcher.LaunchUriAsync(new Uri(url)); }
+        catch
+        {
+            if (App.MainWindow is MainWindow mw)
+                mw.ShowToast("Не удалось открыть КиноПоиск — браузер недоступен?");
+        }
+    }
+
+    private static int ReadKinopoiskIdFromNfo(MovieDetail movie)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(movie.CurrentLetter) || string.IsNullOrWhiteSpace(movie.FolderRelPath))
+                return 0;
+            var folder = Path.Combine($"{movie.CurrentLetter}:\\", movie.FolderRelPath.Replace('/', '\\'));
+            var path = Path.Combine(folder, "movie.nfo");
+            if (!File.Exists(path)) return 0;
+            var doc = new XmlDocument();
+            doc.Load(path);
+            var node = doc.SelectSingleNode("/movie/uniqueid[@type='kinopoisk' or @type='kinopoiskdev']")
+                ?? doc.SelectSingleNode("/movie/uniqueid[@type='poiskkino']");
+            return node != null && int.TryParse(node.InnerText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id > 0
+                ? id : 0;
+        }
+        catch { return 0; }
     }
 
     private async void OnPlay(object sender, RoutedEventArgs e)

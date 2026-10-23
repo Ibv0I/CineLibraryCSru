@@ -134,6 +134,12 @@
                                     BorderThickness="0" CornerRadius="4"
                                     Padding="8,3" FontSize="11" FontWeight="Bold"
                                     Content="IMDb"/>
+                            <Button x:Name="KinopoiskLinkBtn" Visibility="Collapsed"
+                                    Click="OnOpenKinopoisk"
+                                    Background="#FF2D6CDF" Foreground="#FFFFFFFF"
+                                    BorderThickness="0" CornerRadius="4"
+                                    Padding="8,3" FontSize="11" FontWeight="Bold"
+                                    Content="КиноПоиск"/>
 </StackPanel>
                     </Grid>
                 </Border>

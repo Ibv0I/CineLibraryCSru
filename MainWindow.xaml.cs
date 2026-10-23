@@ -357,8 +357,23 @@ public sealed partial class MainWindow : Window
         proxyUser.IsEnabled = proxyAuth.IsOn;
         proxyPassword.IsEnabled = proxyAuth.IsOn;
         proxyAuth.Toggled += (_, _) => { proxyUser.IsEnabled = proxyAuth.IsOn; proxyPassword.IsEnabled = proxyAuth.IsOn; };
-        var proxyStatus = new TextBlock { Text = "Прокси отключён — подключения выполняются напрямую.", FontSize = 12, Opacity = 0.8, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0) };
+        var proxyStatus = new TextBlock
+        {
+            Text = ProxySettings.Enabled
+                ? $"Прокси включён: {ProxySettings.Type} {ProxySettings.Host}:{ProxySettings.Port}. Новые внешние запросы используют прокси."
+                : "Прокси отключён — подключения выполняются напрямую.",
+            FontSize = 12,
+            Opacity = 0.8,
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0, 6, 0, 0)
+        };
         panel.Children.Add(proxyStatus);
+        proxyEnabled.Toggled += (_, _) =>
+        {
+            proxyStatus.Text = proxyEnabled.IsOn
+                ? "Прокси включён в форме, но изменение ещё не сохранено. Нажми «Сохранить прокси» для применения."
+                : "Прокси отключён в форме, но изменение ещё не сохранено. Нажми «Сохранить прокси» для применения.";
+        };
         ProxyConfiguration ReadProxyConfiguration()
         {
             if (!int.TryParse(proxyPort.Text, out var parsedPort) || parsedPort is < 1 or > 65535)

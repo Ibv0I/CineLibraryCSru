@@ -110,10 +110,17 @@ public static class ProxySettings
     {
         try
         {
+            // Use a lightweight public endpoint that does not require API credentials.
+            // GitHub's API can return 403 because of rate limits or access policy even
+            // when the proxy tunnel itself is perfectly healthy.
             using var client = CreateHttpClient(config, TimeSpan.FromSeconds(12));
-            using var response = await client.GetAsync("https://api.github.com/", cancellationToken);
-            if (response.IsSuccessStatusCode) return "Соединение через прокси работает.";
-            return $"Прокси доступен, но сервер вернул HTTP {(int)response.StatusCode} ({response.ReasonPhrase}).";
+            using var response = await client.GetAsync("https://example.com/", cancellationToken);
+            if (response.IsSuccessStatusCode)
+                return $"Прокси работает: соединение установлено (HTTP {(int)response.StatusCode}).";
+
+            // An HTTP response proves that the proxy connection reached the destination;
+            // report a destination-side response separately from a proxy connection error.
+            return $"Прокси подключён, но проверочный сервер вернул HTTP {(int)response.StatusCode} ({response.ReasonPhrase}). Это не обязательно означает ошибку прокси.";
         }
         catch (Exception ex)
         {

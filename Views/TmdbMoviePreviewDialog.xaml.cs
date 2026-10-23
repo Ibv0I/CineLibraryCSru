@@ -58,9 +58,11 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         // on title, poster and banner.
         if (ownerWindow != null)
             DownloadActorPhotosCheckBox.Visibility = Visibility.Collapsed;
-        var isKinopoiskSource = string.Equals(searchHit.SourceProvider, "kinopoisk", StringComparison.OrdinalIgnoreCase);
+        var isKinopoiskSource = string.Equals(searchHit.SourceProvider, "kinopoisk", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(searchHit.SourceProvider, "poiskkino", StringComparison.OrdinalIgnoreCase);
         IncludeKinopoiskRatingCheckBox.Visibility = isKinopoiskSource ? Visibility.Collapsed : Visibility.Visible;
-        var hasKinopoiskApi = !string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken);
+        var hasKinopoiskApi = !string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken)
+            || !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken);
         IncludeKinopoiskRatingCheckBox.IsEnabled = hasKinopoiskApi && !isKinopoiskSource;
         KinopoiskApiHintText.Visibility = !hasKinopoiskApi && !isKinopoiskSource ? Visibility.Visible : Visibility.Collapsed;
         RootGrid.Loaded += async (_, _) => await LoadMovieAsync();
@@ -182,6 +184,14 @@ public sealed partial class TmdbMoviePreviewDialog : Window
                 if (details == null) throw new InvalidOperationException("КиноПоиск не вернул подробности фильма.");
                 images = await kp.GetMovieImagesAsync(kpId);
             }
+            else if (string.Equals(_searchHit.SourceProvider, "poiskkino", StringComparison.OrdinalIgnoreCase))
+            {
+                using var poiskKino = new PoiskKinoClient();
+                var sourceId = _searchHit.KinopoiskId > 0 ? _searchHit.KinopoiskId : _searchHit.TmdbId;
+                details = await poiskKino.GetMovieDetailsAsync(sourceId);
+                if (details == null) throw new InvalidOperationException("ПоискКино не вернул подробности фильма.");
+                images = await poiskKino.GetMovieImagesAsync(sourceId);
+            }
             else
             {
                 details = await _client.GetMovieDetailsAsync(_searchHit.TmdbId);
@@ -203,7 +213,11 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             SelectedBackdropPath = images.Backdrops.FirstOrDefault() ?? details.BackdropPath;
             RefreshPosterPreview(); RefreshBackdropPreview();
             if (SelectedPosterPath == null || SelectedBackdropPath == null)
-                ImageStatusText.Text = $"Некоторые изображения отсутствуют в {(string.Equals(details.SourceProvider, "kinopoisk", StringComparison.OrdinalIgnoreCase) ? "КиноПоиске" : "TMDb")}. Метаданные можно редактировать независимо от изображений.";
+            {
+                var sourceName = details.SourceProvider switch { "kinopoisk" => "КиноПоиске", "poiskkino" => "ПоискКино", _ => "TMDb" };
+                ImageStatusText.Text = $"Некоторые изображения отсутствуют в {sourceName}. Метаданные можно редактировать независимо от изображений.";
+                ImageStatusText.Visibility = Visibility.Visible;
+            }
             UseSelectionButton.IsEnabled = true;
         }
         catch (Exception ex) { ImageStatusText.Text = "Не удалось загрузить подробности или изображения: " + ex.GetBaseException().Message; }
@@ -284,21 +298,30 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             Busy.IsActive = true;
             try
             {
-                using var kp = new KinopoiskClient();
                 var year = Movie.Year > 0 ? Movie.Year : (int?)null;
-                var matches = await kp.SearchMovieAsync(Movie.Title, year);
-                if (matches.Count == 0 && !string.IsNullOrWhiteSpace(Movie.OriginalTitle) &&
-                    !string.Equals(Movie.OriginalTitle, Movie.Title, StringComparison.OrdinalIgnoreCase))
-                    matches = await kp.SearchMovieAsync(Movie.OriginalTitle, year);
-                var best = matches
-                    .OrderBy(m => year.HasValue && m.Year > 0 ? Math.Abs(m.Year - year.Value) : 0)
-                    .ThenByDescending(m => TitleSimilarity(m.Title, Movie.Title))
-                    .FirstOrDefault();
-                if (best == null)
-                    throw new InvalidOperationException("КиноПоиск не нашёл подходящий фильм для получения рейтинга. Снимите галочку или проверьте название и год.");
-                var kpDetails = await kp.GetMovieDetailsAsync(best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId);
+                TmdbMovie? kpDetails;
+                if (!string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
+                {
+                    using var kp = new KinopoiskClient();
+                    var matches = await kp.SearchMovieAsync(Movie.Title, year);
+                    if (matches.Count == 0 && !string.IsNullOrWhiteSpace(Movie.OriginalTitle) && !string.Equals(Movie.OriginalTitle, Movie.Title, StringComparison.OrdinalIgnoreCase))
+                        matches = await kp.SearchMovieAsync(Movie.OriginalTitle, year);
+                    var best = matches.OrderBy(m => year.HasValue && m.Year > 0 ? Math.Abs(m.Year - year.Value) : 0).ThenByDescending(m => TitleSimilarity(m.Title, Movie.Title)).FirstOrDefault();
+                    if (best == null) throw new InvalidOperationException("КиноПоиск не нашёл подходящий фильм для получения рейтинга.");
+                    kpDetails = await kp.GetMovieDetailsAsync(best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId);
+                }
+                else
+                {
+                    using var poisk = new PoiskKinoClient();
+                    var matches = await poisk.SearchMovieAsync(Movie.Title, year);
+                    if (matches.Count == 0 && !string.IsNullOrWhiteSpace(Movie.OriginalTitle) && !string.Equals(Movie.OriginalTitle, Movie.Title, StringComparison.OrdinalIgnoreCase))
+                        matches = await poisk.SearchMovieAsync(Movie.OriginalTitle, year);
+                    var best = matches.OrderBy(m => year.HasValue && m.Year > 0 ? Math.Abs(m.Year - year.Value) : 0).ThenByDescending(m => TitleSimilarity(m.Title, Movie.Title)).FirstOrDefault();
+                    if (best == null) throw new InvalidOperationException("ПоискКино не нашёл подходящий фильм для получения рейтинга.");
+                    kpDetails = await poisk.GetMovieDetailsAsync(best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId);
+                }
                 if (kpDetails == null || kpDetails.Rating <= 0)
-                    throw new InvalidOperationException("КиноПоиск не вернул рейтинг для найденного фильма.");
+                    throw new InvalidOperationException("Источник не вернул рейтинг КиноПоиска для найденного фильма.");
                 Movie.KinopoiskId = kpDetails.KinopoiskId > 0 ? kpDetails.KinopoiskId : kpDetails.TmdbId;
                 Movie.KinopoiskRating = kpDetails.Rating;
                 Movie.KinopoiskVoteCount = kpDetails.VoteCount;

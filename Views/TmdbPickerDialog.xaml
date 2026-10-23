@@ -22,7 +22,8 @@
                            Foreground="{ThemeResource TextBrush}" />
                 <ComboBox x:Name="SourceBox" Grid.Row="1" Header="Источник фильмов" MinWidth="220" HorizontalAlignment="Left" SelectedIndex="0">
                     <ComboBoxItem Content="TMDb" />
-                    <ComboBoxItem Content="КиноПоиск" />
+                    <ComboBoxItem Content="КиноПоиск API Unofficial" />
+                    <ComboBoxItem Content="ПоискКино API" />
                 </ComboBox>
                 <Grid Grid.Row="2" ColumnSpacing="14" HorizontalAlignment="Stretch">
                     <Grid.ColumnDefinitions>

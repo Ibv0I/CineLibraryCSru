@@ -49,6 +49,7 @@ public sealed partial class MainWindow : Window
         UiSettings.Load();
         ProxySettings.Load();
         KinopoiskSettings.Load();
+        PoiskKinoSettings.Load();
         LocalizationService.ApplyLanguage(UiSettings.Language);
 
         InitializeComponent();
@@ -435,6 +436,25 @@ public sealed partial class MainWindow : Window
         };
         panel.Children.Add(saveKinopoiskToken);
         panel.Children.Add(kinopoiskTokenStatus);
+
+        // ── PoiskKino API ──
+        panel.Children.Add(Header("ПоискКино API (poiskkino.dev)"));
+        panel.Children.Add(new TextBlock
+        {
+            Text = "Дополнительный источник фильмов с данными КиноПоиска, TMDb и IMDb. Ключ хранится защищённо для текущего пользователя Windows; запросы используют общий прокси приложения.",
+            FontSize = 12, Opacity = 0.8, Foreground = muted, TextWrapping = TextWrapping.Wrap,
+        });
+        var poiskKinoToken = new PasswordBox { Header = "API-ключ", Password = PoiskKinoSettings.ApiToken, PlaceholderText = "Вставь токен poiskkino.dev" };
+        panel.Children.Add(poiskKinoToken);
+        var savePoiskKinoToken = new Button { Content = "Сохранить ключ ПоискКино", Margin = new Thickness(0, 6, 0, 0) };
+        var poiskKinoTokenStatus = new TextBlock { FontSize = 12, Opacity = 0.8, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0) };
+        savePoiskKinoToken.Click += (_, _) =>
+        {
+            PoiskKinoSettings.Save(poiskKinoToken.Password);
+            poiskKinoTokenStatus.Text = string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken) ? "Ключ очищен. Источник ПоискКино недоступен." : "Ключ ПоискКино сохранён.";
+        };
+        panel.Children.Add(savePoiskKinoToken);
+        panel.Children.Add(poiskKinoTokenStatus);
 
         // The application is Russian-only; language selection was removed.
 

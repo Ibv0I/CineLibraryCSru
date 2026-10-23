@@ -181,19 +181,25 @@ public sealed partial class TmdbPickerDialog : Window
         try
         {
             List<TmdbMovie> results;
-            var useKinopoisk = !_tvShows && SourceBox.SelectedIndex == 1;
+            var sourceIndex = SourceBox.SelectedIndex;
+            var sourceLabel = sourceIndex == 1 ? "КиноПоиске" : sourceIndex == 2 ? "ПоискКино" : "TMDb";
             if (_tvShows)
                 results = (await _client.SearchTvAsync(title, year)).Select(t => t.AsSearchHit()).ToList();
-            else if (useKinopoisk)
+            else if (sourceIndex == 1)
             {
                 using var kp = new KinopoiskClient();
                 results = await kp.SearchMovieAsync(title, year);
+            }
+            else if (sourceIndex == 2)
+            {
+                using var poiskKino = new PoiskKinoClient();
+                results = await poiskKino.SearchMovieAsync(title, year);
             }
             else
                 results = await _client.SearchMovieAsync(title, year);
             if (results.Count == 0)
             {
-                StatusText.Text = $"В {(useKinopoisk ? "КиноПоиске" : "TMDb")} не найдено совпадений для «{title}».";
+                StatusText.Text = $"В {sourceLabel} не найдено совпадений для «{title}».";
                 StatusText.Visibility = Visibility.Visible;
                 ResultsList.ItemsSource = null;
                 return;

@@ -10,6 +10,7 @@ using Windows.Graphics;
 using Windows.System;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Xml;
+using System.Globalization;
 
 namespace CineLibraryCS.Views;
 
@@ -857,6 +858,7 @@ public sealed partial class MovieDetailDialog : Window
     {
         "imdb" => "IMDb",
         "themoviedb" or "tmdb" => "TMDb",
+        "kinopoisk" or "poiskkino" or "kinopoiskdev" => "КиноПоиск",
         "rottentomatoes" => "Rotten Tomatoes",
         "metacritic" => "Metacritic",
         "default" => "Рейтинг",
@@ -1114,7 +1116,9 @@ public sealed partial class MovieDetailDialog : Window
         string? movieFolder = null;
         if (!string.IsNullOrWhiteSpace(movie.CurrentLetter) && !string.IsNullOrWhiteSpace(movie.FolderRelPath))
             movieFolder = Path.Combine($"{movie.CurrentLetter}:\\", movie.FolderRelPath.Replace('/', '\\'));
+        var sourceProvider = "tmdb";
         var isKinopoiskSource = false;
+        var isPoiskKinoSource = false;
         var sourceId = 0;
         try
         {
@@ -1123,19 +1127,19 @@ public sealed partial class MovieDetailDialog : Window
             {
                 var nfo = new XmlDocument(); nfo.Load(nfoPath);
                 var tmdbNode = nfo.SelectSingleNode("/movie/uniqueid[@type='tmdb' and @default='true']") ?? nfo.SelectSingleNode("/movie/tmdbid") ?? nfo.SelectSingleNode("/movie/uniqueid[@type='tmdb']");
+                var poiskNode = nfo.SelectSingleNode("/movie/uniqueid[@type='poiskkino' and @default='true']");
                 var kpNode = nfo.SelectSingleNode("/movie/uniqueid[@type='kinopoisk' and @default='true']") ?? nfo.SelectSingleNode("/movie/uniqueid[@type='kinopoiskdev' and @default='true']");
-                // Older NFO files may not mark the default ID. Treat Kinopoisk as the source
-                // only when no TMDb ID exists; a secondary Kinopoisk rating must not change source.
-                if (kpNode == null && tmdbNode == null)
+                if (tmdbNode == null && poiskNode == null && kpNode == null)
                     kpNode = nfo.SelectSingleNode("/movie/uniqueid[@type='kinopoisk']") ?? nfo.SelectSingleNode("/movie/uniqueid[@type='kinopoiskdev']");
-                if (kpNode != null && int.TryParse(kpNode.InnerText, out var kpId) && kpId > 0 && tmdbNode == null)
-                {
-                    isKinopoiskSource = true; sourceId = kpId;
-                }
+                if (tmdbNode == null && poiskNode != null && int.TryParse(poiskNode.InnerText, out var pkId) && pkId > 0)
+                { isPoiskKinoSource = true; sourceProvider = "poiskkino"; sourceId = pkId; }
+                else if (tmdbNode == null && kpNode != null && int.TryParse(kpNode.InnerText, out var kpId) && kpId > 0)
+                { isKinopoiskSource = true; sourceProvider = "kinopoisk"; sourceId = kpId; }
             }
         }
         catch { }
-        if (!isKinopoiskSource && (!int.TryParse(movie.TmdbId, out sourceId) || sourceId <= 0))
+        var isKpSource = isKinopoiskSource || isPoiskKinoSource;
+        if (!isKpSource && (!int.TryParse(movie.TmdbId, out sourceId) || sourceId <= 0))
         {
             var noId = new ContentDialog { Title = "Нет идентификатора фильма", Content = "Для выбора изображений у фильма должен быть указан TMDb ID или КиноПоиск ID в movie.nfo.", CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
             await noId.ShowAsync();
@@ -1143,9 +1147,13 @@ public sealed partial class MovieDetailDialog : Window
         }
         if (isKinopoiskSource && string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
         {
-            var noApi = new ContentDialog { Title = "Не настроен КиноПоиск API", Content = "Добавь API-ключ КиноПоиск API Unofficial в настройках, чтобы менять изображения фильма, выбранного из КиноПоиска.", CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
-            await noApi.ShowAsync();
-            return;
+            var noApi = new ContentDialog { Title = "Не настроен КиноПоиск API", Content = "Добавь API-ключ КиноПоиск API Unofficial в настройках, чтобы менять изображения фильма.", CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
+            await noApi.ShowAsync(); return;
+        }
+        if (isPoiskKinoSource && string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken))
+        {
+            var noApi = new ContentDialog { Title = "Не настроен ПоискКино API", Content = "Добавь API-ключ poiskkino.dev в настройках, чтобы менять изображения фильма.", CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
+            await noApi.ShowAsync(); return;
         }
 
         var originalEditBackground = EditArtworkBtn.Background;
@@ -1165,8 +1173,8 @@ public sealed partial class MovieDetailDialog : Window
             using var client = new TmdbClient(language: "ru-RU");
             var searchHit = new TmdbMovie
             {
-                TmdbId = sourceId, KinopoiskId = isKinopoiskSource ? sourceId : 0,
-                SourceProvider = isKinopoiskSource ? "kinopoisk" : "tmdb", Title = movie.Title
+                TmdbId = sourceId, KinopoiskId = isKpSource ? sourceId : 0,
+                SourceProvider = sourceProvider, Title = movie.Title
             };
             // Existing artwork from the movie folder is shown initially. The poster or backdrop
             // is only replaced if the user opens its picker and selects a different image.
@@ -1187,8 +1195,18 @@ public sealed partial class MovieDetailDialog : Window
             if (result != ContentDialogResult.Primary || picker.Movie == null) return;
 
             var edited = picker.Movie;
-            if (!isKinopoiskSource && edited.KinopoiskRating.HasValue && movieFolder != null && Directory.Exists(movieFolder))
+            if (!isKpSource && edited.KinopoiskRating.HasValue && movieFolder != null && Directory.Exists(movieFolder))
+            {
                 UpdateMovieNfoKinopoiskRating(Path.Combine(movieFolder, "movie.nfo"), edited.KinopoiskId, edited.KinopoiskRating.Value, edited.KinopoiskVoteCount);
+                AppState.Instance.Db.UpdateMovieRating(movie.Id, "kinopoisk", edited.KinopoiskRating.Value, edited.KinopoiskVoteCount);
+                var ratings = _movie?.AllRatings;
+                if (ratings != null)
+                {
+                    ratings.RemoveAll(r => r.Source.Equals("kinopoisk", StringComparison.OrdinalIgnoreCase));
+                    ratings.Add(("kinopoisk", edited.KinopoiskRating.Value, edited.KinopoiskVoteCount));
+                    if (_movie != null) PopulateRatingsPanel(_movie);
+                }
+            }
             var editedTitle = edited.Title?.Trim();
             if (!string.IsNullOrWhiteSpace(editedTitle) &&
                 !string.Equals(editedTitle, movie.Title, StringComparison.Ordinal))

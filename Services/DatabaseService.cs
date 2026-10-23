@@ -4009,6 +4009,18 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         cmd.ExecuteNonQuery();
     }
 
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public void UpdateMovieRating(int movieId, string source, double value, int? votes)
+    {
+        using var cmd = _conn.CreateCommand();
+        cmd.CommandText = "INSERT OR REPLACE INTO movie_ratings (movie_id, source, value, votes) VALUES (@id, @source, @value, @votes)";
+        cmd.Parameters.AddWithValue("@id", movieId);
+        cmd.Parameters.AddWithValue("@source", source);
+        cmd.Parameters.AddWithValue("@value", value);
+        cmd.Parameters.AddWithValue("@votes", (object?)votes ?? DBNull.Value);
+        cmd.ExecuteNonQuery();
+    }
+
     public void UpdateMovieMetadata(int movieId, string title, string? originalTitle, string? tagline,
         string? plot, string? premiered, int? year, int? runtime, double? rating,
         string? country, string? studio, string? imdbId, string? tmdbId,

@@ -243,7 +243,9 @@ public sealed partial class MoviePreparationPage : Page
         candidate.SelectedPosterPath = preview.SelectedPosterPath ?? preview.Movie.PosterPath;
         candidate.SelectedBackdropPath = preview.SelectedBackdropPath ?? preview.Movie.BackdropPath;
         candidate.DownloadActorPhotos = preview.DownloadActorPhotos;
-        candidate.MatchSummary = $"Выбрано: {preview.Movie.Title}{(preview.Movie.Year > 0 ? $" ({preview.Movie.Year})" : string.Empty)} · {(preview.Movie.SourceProvider == "kinopoisk" ? "КиноПоиск ID" : "TMDb ID")}: {preview.Movie.TmdbId}";
+        var providerLabel = preview.Movie.SourceProvider switch { "kinopoisk" => "КиноПоиск ID", "poiskkino" => "ПоискКино ID", _ => "TMDb ID" };
+        var providerId = preview.Movie.KinopoiskId > 0 && preview.Movie.SourceProvider != "tmdb" ? preview.Movie.KinopoiskId : preview.Movie.TmdbId;
+        candidate.MatchSummary = $"Выбрано: {preview.Movie.Title}{(preview.Movie.Year > 0 ? $" ({preview.Movie.Year})" : string.Empty)} · {providerLabel}: {providerId}";
         RefreshCandidates();
 
         // Confirming the selected TMDb match and artwork now completes file preparation.
@@ -633,13 +635,17 @@ public sealed partial class MoviePreparationPage : Page
             writer.WriteStartElement("uniqueid"); writer.WriteAttributeString("type", "imdb"); writer.WriteAttributeString("default", "false"); writer.WriteString(movie.ImdbId); writer.WriteEndElement();
         }
         var isKinopoisk = string.Equals(movie.SourceProvider, "kinopoisk", StringComparison.OrdinalIgnoreCase);
-        writer.WriteStartElement("uniqueid"); writer.WriteAttributeString("type", isKinopoisk ? "kinopoisk" : "tmdb"); writer.WriteAttributeString("default", "true"); writer.WriteString((isKinopoisk && movie.KinopoiskId > 0 ? movie.KinopoiskId : movie.TmdbId).ToString(CultureInfo.InvariantCulture)); writer.WriteEndElement();
+        var isPoiskKino = string.Equals(movie.SourceProvider, "poiskkino", StringComparison.OrdinalIgnoreCase);
+        var isKpSource = isKinopoisk || isPoiskKino;
+        var sourceUniqueIdType = isKinopoisk ? "kinopoisk" : isPoiskKino ? "poiskkino" : "tmdb";
+        var sourceUniqueId = isKpSource && movie.KinopoiskId > 0 ? movie.KinopoiskId : movie.TmdbId;
+        writer.WriteStartElement("uniqueid"); writer.WriteAttributeString("type", sourceUniqueIdType); writer.WriteAttributeString("default", "true"); writer.WriteString(sourceUniqueId.ToString(CultureInfo.InvariantCulture)); writer.WriteEndElement();
         writer.WriteStartElement("ratings");
-        writer.WriteStartElement("rating"); writer.WriteAttributeString("name", isKinopoisk ? "kinopoisk" : "themoviedb"); writer.WriteAttributeString("max", "10"); writer.WriteAttributeString("default", "true");
+        writer.WriteStartElement("rating"); writer.WriteAttributeString("name", isKpSource ? "kinopoisk" : "themoviedb"); writer.WriteAttributeString("max", "10"); writer.WriteAttributeString("default", "true");
         WriteElement(writer, "value", movie.Rating.ToString("0.0", CultureInfo.InvariantCulture));
         WriteElement(writer, "votes", movie.VoteCount.ToString(CultureInfo.InvariantCulture));
         writer.WriteEndElement();
-        if (!isKinopoisk && movie.KinopoiskRating.HasValue && movie.KinopoiskRating.Value > 0)
+        if (!isKpSource && movie.KinopoiskRating.HasValue && movie.KinopoiskRating.Value > 0)
         {
             writer.WriteStartElement("rating"); writer.WriteAttributeString("name", "kinopoisk"); writer.WriteAttributeString("max", "10"); writer.WriteAttributeString("default", "false");
             WriteElement(writer, "value", movie.KinopoiskRating.Value.ToString("0.0", CultureInfo.InvariantCulture));
@@ -647,7 +653,7 @@ public sealed partial class MoviePreparationPage : Page
             writer.WriteEndElement();
         }
         writer.WriteEndElement();
-        if (!isKinopoisk && movie.KinopoiskRating.HasValue && movie.KinopoiskRating.Value > 0 && movie.KinopoiskId > 0)
+        if (!isKpSource && movie.KinopoiskRating.HasValue && movie.KinopoiskRating.Value > 0 && movie.KinopoiskId > 0)
         {
             writer.WriteStartElement("uniqueid"); writer.WriteAttributeString("type", "kinopoisk"); writer.WriteAttributeString("default", "false"); writer.WriteString(movie.KinopoiskId.ToString(CultureInfo.InvariantCulture)); writer.WriteEndElement();
         }

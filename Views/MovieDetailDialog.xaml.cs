@@ -882,11 +882,17 @@ public sealed partial class MovieDetailDialog : Window
         bool any = false;
         // Runtime / Released / Rated / Country — folded in from the old
         // below-poster column so the row stays compact (v2.3.x).
-        FiRuntimeBlock.Visibility = Visibility.Collapsed;
+        if (m.Runtime.HasValue && m.Runtime.Value > 0)
+        {
+            FiRuntime.Text = $"{m.Runtime.Value} мин";
+            FiRuntimeBlock.Visibility = Visibility.Visible;
+            any = true;
+        }
+        else FiRuntimeBlock.Visibility = Visibility.Collapsed;
         if (!string.IsNullOrWhiteSpace(m.Premiered))
         {
             FiRelease.Text = DateTime.TryParse(m.Premiered, out var dt)
-                ? dt.ToString("MMM d, yyyy")
+                ? dt.ToString("dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture)
                 : m.Premiered!;
             FiReleaseBlock.Visibility = Visibility.Visible;
             any = true;

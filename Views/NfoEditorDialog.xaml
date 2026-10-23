@@ -18,8 +18,8 @@
                         <TextBox x:Name="PlotBox" Header="Сюжет" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="160"/>
                         <Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="100"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <TextBox x:Name="YearBox" Header="Год" Grid.Column="0" InputScope="Number"/>
-                            <TextBox x:Name="PremieredBox" Header="Дата выхода (ГГГГ-ММ-ДД)" Grid.Column="1"/>
+                            <TextBox x:Name="YearBox" Header="Год" Grid.Column="0" InputScope="Number" TextChanged="OnYearChanged"/>
+                            <TextBox x:Name="PremieredBox" Header="Дата выхода (ДД-ММ-ГГГГ)" Grid.Column="1" TextChanged="OnDateChanged"/>
                             <TextBox x:Name="RuntimeBox" Header="Продолжительность, мин" Grid.Column="2" InputScope="Number"/>
                         </Grid>
                         <Grid ColumnSpacing="10">
@@ -29,12 +29,28 @@
                         </Grid>
                         <Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <TextBox x:Name="CertificationBox" Header="Сертификация / возрастной рейтинг" Grid.Column="0"/>
-                            <TextBox x:Name="GenresBox" Header="Жанры (по одному на строку)" Grid.Column="1" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"/>
+                            <ComboBox x:Name="CertificationBox" Header="Сертификация / возрастной рейтинг" Grid.Column="0" IsEditable="False" />
+                            <StackPanel Grid.Column="1" Spacing="5">
+                                <TextBlock Text="Жанры" />
+                                <ListView x:Name="GenresList" MinHeight="64" MaxHeight="130" SelectionMode="Single" />
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Button Content="＋ Добавить жанр" Click="OnAddGenre" />
+                                    <Button Content="－ Удалить" Click="OnRemoveGenre" />
+                                </StackPanel>
+                            </StackPanel>
                         </Grid>
-                        <TextBox x:Name="RatingsBox" Header="Рейтинги (источник | значение | голоса, по одному на строку)" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="82" FontFamily="Consolas"/>
-                        <TextBlock Text="Идентификаторы (тип | значение, по одному на строку)" Foreground="{ThemeResource TextBrush}"/>
-                        <TextBox x:Name="IdentifiersBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="82" FontFamily="Consolas" PlaceholderText="tmdb | 12345&#xA;imdb | tt1234567&#xA;kinopoisk | 123456"/>
+                        <TextBlock Text="Рейтинги" Foreground="{ThemeResource TextBrush}" />
+                        <ListView x:Name="RatingsList" MinHeight="55" MaxHeight="140" SelectionMode="Single" />
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Button Content="＋ Добавить рейтинг" Click="OnAddRating" />
+                            <Button Content="－ Удалить рейтинг" Click="OnRemoveRating" />
+                        </StackPanel>
+                        <TextBlock Text="Идентификаторы" Foreground="{ThemeResource TextBrush}" />
+                        <ListView x:Name="IdentifiersList" MinHeight="55" MaxHeight="140" SelectionMode="Single" />
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Button Content="＋ Добавить идентификатор" Click="OnAddIdentifier" />
+                            <Button Content="－ Удалить идентификатор" Click="OnRemoveIdentifier" />
+                        </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </TabViewItem>

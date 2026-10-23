@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Globalization;
 using System.Xml;
+using System.Collections.ObjectModel;
 
 namespace CineLibraryCS.Views;
 
@@ -27,6 +28,12 @@ public sealed partial class NfoEditorDialog : Window
     private string SettingsPath => Path.Combine(CineLibraryCS.Services.AppState.Instance.DataDir, "NfoEditorWindow.settings.json");
     private XmlDocument _doc = new() { PreserveWhitespace = true };
     private XmlElement _root = null!;
+    private readonly ObservableCollection<string> _genres = new();
+    private readonly ObservableCollection<string> _ratings = new();
+    private readonly ObservableCollection<string> _identifiers = new();
+    private static readonly string[] RatingSources = { "tmdb", "imdb", "kinopoisk" };
+    private static readonly string[] StandardGenres = { "Боевик", "Приключения", "Анимация", "Комедия", "Криминал", "Документальный", "Драма", "Семейный", "Фэнтези", "История", "Ужасы", "Музыка", "Детектив", "Мелодрама", "Фантастика", "Телевизионный фильм", "Триллер", "Военный", "Вестерн" };
+    private static readonly string[] RussianCertifications = { "Без ограничений", "0+", "6+", "12+", "16+", "18+", "Неизвестно" };
     public bool Saved { get; private set; }
 
     public NfoEditorDialog(string nfoPath, Window ownerWindow)
@@ -37,6 +44,10 @@ public sealed partial class NfoEditorDialog : Window
         RootGrid.Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(RootGrid);
         Closed += OnWindowClosed;
         ConfigureWindow();
+        CertificationBox.ItemsSource = RussianCertifications;
+        GenresList.ItemsSource = _genres;
+        RatingsList.ItemsSource = _ratings;
+        IdentifiersList.ItemsSource = _identifiers;
         LoadNfo();
     }
 
@@ -162,14 +173,20 @@ public sealed partial class NfoEditorDialog : Window
         _root = _doc.DocumentElement ?? throw new InvalidDataException("NFO не содержит корневого XML-элемента.");
         TitleBox.Text = Get("title"); OriginalTitleBox.Text = Get("originaltitle");
         TaglineBox.Text = Get("tagline"); PlotBox.Text = Get("plot");
-        YearBox.Text = Get("year"); PremieredBox.Text = Get("premiered");
-        RuntimeBox.Text = Get("runtime"); CertificationBox.Text = Get("mpaa") ?? Get("certification");
+        YearBox.Text = Get("year");
+        var premiered = Get("premiered");
+        if (DateTime.TryParseExact(premiered, new[] { "yyyy-MM-dd", "dd-MM-yyyy", "yyyy-M-d" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var releaseDate)) PremieredBox.Text = releaseDate.ToString("dd-MM-yyyy", CultureInfo.InvariantCulture);
+        else PremieredBox.Text = premiered ?? "";
+        RuntimeBox.Text = Get("runtime");
+        var certification = Get("mpaa") ?? Get("certification");
+        CertificationBox.SelectedItem = RussianCertifications.FirstOrDefault(x => string.Equals(x, certification, StringComparison.OrdinalIgnoreCase));
+        if (CertificationBox.SelectedItem == null && !string.IsNullOrWhiteSpace(certification)) CertificationBox.SelectedItem = "Неизвестно";
         StudiosBox.Text = string.Join(Environment.NewLine, Elements("studio").Select(x => x.InnerText));
         CountriesBox.Text = string.Join(Environment.NewLine, Elements("country").Select(x => x.InnerText));
-        GenresBox.Text = string.Join(Environment.NewLine, Elements("genre").Select(x => x.InnerText));
-        RatingsBox.Text = string.Join(Environment.NewLine, Elements("ratings/rating").Select(x =>
-            $"{x.GetAttribute("name")} | {Child(x, "value") ?? x.InnerText} | {Child(x, "votes")}"));
-        IdentifiersBox.Text = string.Join(Environment.NewLine, Elements("uniqueid").Select(x => $"{x.GetAttribute("type")} | {x.InnerText}"));
+        _genres.Clear(); foreach (var x in Elements("genre")) _genres.Add(x.InnerText);
+        _ratings.Clear(); foreach (var x in Elements("ratings/rating")) _ratings.Add($"{x.GetAttribute("name")} | {Child(x, "value") ?? x.InnerText} | {Child(x, "votes") ?? "0"}");
+        _identifiers.Clear(); foreach (var x in Elements("uniqueid")) _identifiers.Add($"{x.GetAttribute("type")} | {x.InnerText}");
+        OnYearChanged(YearBox, null!); OnDateChanged(PremieredBox, null!);
 
         var video = FindStream("video");
         VideoCodecBox.Text = Child(video, "codec") ?? "";
@@ -202,9 +219,12 @@ public sealed partial class NfoEditorDialog : Window
         try
         {
             Set("title", TitleBox.Text); Set("originaltitle", OriginalTitleBox.Text); Set("tagline", TaglineBox.Text);
-            Set("plot", PlotBox.Text); Set("year", YearBox.Text); Set("premiered", PremieredBox.Text);
-            Set("runtime", RuntimeBox.Text); Set("mpaa", CertificationBox.Text);
-            SetList("studio", StudiosBox.Text); SetList("country", CountriesBox.Text); SetList("genre", GenresBox.Text);
+            if (!string.IsNullOrWhiteSpace(YearBox.Text) && !IsValidYear(YearBox.Text)) throw new InvalidDataException("Год должен быть в диапазоне 1700–2100.");
+            if (!string.IsNullOrWhiteSpace(PremieredBox.Text) && !DateTime.TryParseExact(PremieredBox.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _)) throw new InvalidDataException("Дата должна быть корректной и иметь формат ДД-ММ-ГГГГ.");
+            Set("plot", PlotBox.Text); Set("year", YearBox.Text);
+            Set("premiered", DateTime.TryParseExact(PremieredBox.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var releaseDate) ? releaseDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : "");
+            Set("runtime", RuntimeBox.Text); Set("mpaa", CertificationBox.SelectedItem as string);
+            SetList("studio", StudiosBox.Text); SetList("country", CountriesBox.Text); SetList("genre", string.Join(Environment.NewLine, _genres));
             SetRatings(); SetIdentifiers(); SetTechnical();
             var backup = _path + ".bak-" + DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
             File.Copy(_path, backup, overwrite: false);
@@ -221,6 +241,57 @@ public sealed partial class NfoEditorDialog : Window
             await dialog.ShowAsync();
         }
     }
+
+    private static bool IsValidYear(string? text) => int.TryParse(text, out var y) && y >= 1700 && y <= 2100;
+    private void OnYearChanged(object sender, TextChangedEventArgs e)
+    {
+        if (YearBox == null) return;
+        YearBox.BorderBrush = string.IsNullOrWhiteSpace(YearBox.Text) || IsValidYear(YearBox.Text) ? null : new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 235, 65, 65));
+    }
+    private void OnDateChanged(object sender, TextChangedEventArgs e)
+    {
+        if (PremieredBox == null) return;
+        var text = PremieredBox.Text;
+        bool valid = string.IsNullOrWhiteSpace(text) || (text.Length == 10 && text[2] == '-' && text[5] == '-' &&
+            int.TryParse(text.Substring(0, 2), out var day) && day >= 1 && day <= 31 &&
+            int.TryParse(text.Substring(3, 2), out var month) && month >= 1 && month <= 12 &&
+            int.TryParse(text.Substring(6, 4), out var year) && year >= 1700 && year <= 2100 &&
+            DateTime.TryParseExact(text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _));
+        PremieredBox.BorderBrush = valid ? null : new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 235, 65, 65));
+    }
+    private async void OnAddRating(object sender, RoutedEventArgs e)
+    {
+        var panel = new StackPanel { Spacing = 8 };
+        var source = new ComboBox { Header = "Источник", ItemsSource = RatingSources, SelectedIndex = 0, HorizontalAlignment = HorizontalAlignment.Stretch };
+        var value = new TextBox { Header = "Рейтинг", PlaceholderText = "Например, 7.8" };
+        var votes = new TextBox { Header = "Количество голосов", PlaceholderText = "Например, 12500" };
+        value.BeforeTextChanging += NumericOrDecimalOnly; votes.BeforeTextChanging += DigitsOnly;
+        panel.Children.Add(source); panel.Children.Add(value); panel.Children.Add(votes);
+        var dialog = new ContentDialog { Title = "Добавить рейтинг", Content = panel, PrimaryButtonText = "Добавить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, XamlRoot = RootGrid.XamlRoot };
+        dialog.PrimaryButtonClick += (_, args) => { if (!decimal.TryParse(value.Text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out _) || !int.TryParse(votes.Text, out _)) args.Cancel = true; };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary) _ratings.Add($"{source.SelectedItem} | {value.Text.Replace(',', '.')} | {votes.Text}");
+    }
+    private static void DigitsOnly(TextBox sender, TextBoxBeforeTextChangingEventArgs args) => args.Cancel = args.NewText.Any(c => !char.IsDigit(c));
+    private static void NumericOrDecimalOnly(TextBox sender, TextBoxBeforeTextChangingEventArgs args) => args.Cancel = args.NewText.Any(c => !char.IsDigit(c) && c != '.' && c != ',') || args.NewText.Count(c => c == '.' || c == ',') > 1;
+    private void OnRemoveRating(object sender, RoutedEventArgs e) { if (RatingsList.SelectedItem is string item) _ratings.Remove(item); }
+    private async void OnAddIdentifier(object sender, RoutedEventArgs e)
+    {
+        var panel = new StackPanel { Spacing = 8 };
+        var source = new ComboBox { Header = "Источник", ItemsSource = RatingSources, SelectedIndex = 0, HorizontalAlignment = HorizontalAlignment.Stretch };
+        var id = new TextBox { Header = "Идентификатор", PlaceholderText = "Введите идентификатор" };
+        panel.Children.Add(source); panel.Children.Add(id);
+        var dialog = new ContentDialog { Title = "Добавить идентификатор", Content = panel, PrimaryButtonText = "Добавить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, XamlRoot = RootGrid.XamlRoot };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(id.Text)) _identifiers.Add($"{source.SelectedItem} | {id.Text.Trim()}");
+    }
+    private void OnRemoveIdentifier(object sender, RoutedEventArgs e) { if (IdentifiersList.SelectedItem is string item) _identifiers.Remove(item); }
+    private async void OnAddGenre(object sender, RoutedEventArgs e)
+    {
+        var list = new ListView { ItemsSource = StandardGenres, SelectionMode = ListViewSelectionMode.Multiple, MaxHeight = 360 };
+        var dialog = new ContentDialog { Title = "Добавить жанры", Content = list, PrimaryButtonText = "Добавить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, XamlRoot = RootGrid.XamlRoot };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            foreach (var item in list.SelectedItems.Cast<string>()) if (!_genres.Contains(item)) _genres.Add(item);
+    }
+    private void OnRemoveGenre(object sender, RoutedEventArgs e) { if (GenresList.SelectedItem is string item) _genres.Remove(item); }
 
     private void Set(string name, string? value)
     {
@@ -239,7 +310,7 @@ public sealed partial class NfoEditorDialog : Window
 
     private void SetRatings()
     {
-        var lines = Lines(RatingsBox.Text).Select(ParseLine).Where(x => x.Length >= 2 && x[0].Length > 0).ToList();
+        var lines = _ratings.Select(ParseLine).Where(x => x.Length >= 2 && x[0].Length > 0).ToList();
         var ratings = _root.SelectSingleNode("ratings") as XmlElement;
         if (ratings == null) { ratings = _doc.CreateElement("ratings"); _root.AppendChild(ratings); }
         foreach (XmlNode n in ratings.SelectNodes("rating")!.Cast<XmlNode>().ToList()) ratings.RemoveChild(n);
@@ -255,13 +326,13 @@ public sealed partial class NfoEditorDialog : Window
 
     private void SetIdentifiers()
     {
-        var items = Lines(IdentifiersBox.Text).Select(ParseLine).Where(x => x.Length >= 2 && x[0].Length > 0 && x[1].Length > 0).ToList();
+        var items = _identifiers.Select(ParseLine).Where(x => x.Length >= 2 && x[0].Length > 0 && x[1].Length > 0).ToList();
         foreach (var old in Elements("uniqueid")) _root.RemoveChild(old);
         foreach (var p in items) { var id = _doc.CreateElement("uniqueid"); id.SetAttribute("type", p[0]); id.InnerText = p[1]; _root.AppendChild(id); }
         var tmdb = items.FirstOrDefault(x => x[0].Equals("tmdb", StringComparison.OrdinalIgnoreCase));
         var imdb = items.FirstOrDefault(x => x[0].Equals("imdb", StringComparison.OrdinalIgnoreCase));
-        if (tmdb != null) Set("tmdbid", tmdb[1]);
-        if (imdb != null) Set("imdbid", imdb[1]);
+        Set("tmdbid", tmdb?[1]);
+        Set("imdbid", imdb?[1]);
     }
 
     private void SetTechnical()

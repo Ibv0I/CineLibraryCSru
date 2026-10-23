@@ -47,6 +47,7 @@ public sealed partial class MainWindow : Window
         // v3.0.0 — load UI preferences (card shadows, reduce motion) before any
         // card is built so they paint with the right look on first render.
         UiSettings.Load();
+        ProxySettings.Load();
         LocalizationService.ApplyLanguage(UiSettings.Language);
 
         InitializeComponent();
@@ -321,6 +322,84 @@ public sealed partial class MainWindow : Window
             Text = L("PlayerDescription"),
             FontSize = 12, Opacity = 0.7, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
+
+        // ── Network proxy ──
+        panel.Children.Add(Header("Прокси для внешних подключений"));
+        var proxyEnabled = new ToggleSwitch
+        {
+            Header = "Использовать прокси для всех внешних запросов",
+            IsOn = ProxySettings.Enabled,
+            OffContent = L("Off"), OnContent = L("On"),
+            Margin = new Thickness(0, 6, 0, 0),
+        };
+        panel.Children.Add(proxyEnabled);
+        var proxyType = new ComboBox { Header = "Тип прокси", MinWidth = 150, HorizontalAlignment = HorizontalAlignment.Stretch };
+        proxyType.Items.Add("SOCKS5");
+        proxyType.Items.Add("HTTP");
+        proxyType.SelectedIndex = ProxySettings.Type == "HTTP" ? 1 : 0;
+        panel.Children.Add(proxyType);
+        var proxyHost = new TextBox { Header = "Адрес", Text = ProxySettings.Host, PlaceholderText = "127.0.0.1" };
+        panel.Children.Add(proxyHost);
+        var proxyPort = new TextBox { Header = "Порт", Text = ProxySettings.Port.ToString(), PlaceholderText = "1080" };
+        panel.Children.Add(proxyPort);
+        var proxyAuth = new ToggleSwitch
+        {
+            Header = "Требуется авторизация",
+            IsOn = ProxySettings.UseAuthentication,
+            OffContent = L("Off"), OnContent = L("On"),
+            Margin = new Thickness(0, 4, 0, 0),
+        };
+        panel.Children.Add(proxyAuth);
+        var proxyUser = new TextBox { Header = "Логин", Text = ProxySettings.Username, PlaceholderText = "Необязательно" };
+        var proxyPassword = new PasswordBox { Header = "Пароль", Password = ProxySettings.Password, PlaceholderText = "Необязательно" };
+        panel.Children.Add(proxyUser);
+        panel.Children.Add(proxyPassword);
+        proxyUser.IsEnabled = proxyAuth.IsOn;
+        proxyPassword.IsEnabled = proxyAuth.IsOn;
+        proxyAuth.Toggled += (_, _) => { proxyUser.IsEnabled = proxyAuth.IsOn; proxyPassword.IsEnabled = proxyAuth.IsOn; };
+        var proxyStatus = new TextBlock { Text = "Прокси отключён — подключения выполняются напрямую.", FontSize = 12, Opacity = 0.8, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0) };
+        panel.Children.Add(proxyStatus);
+        ProxyConfiguration ReadProxyConfiguration()
+        {
+            if (!int.TryParse(proxyPort.Text, out var parsedPort) || parsedPort is < 1 or > 65535)
+                throw new ArgumentException("Порт должен быть числом от 1 до 65535.");
+            return new ProxyConfiguration(proxyEnabled.IsOn, proxyType.SelectedIndex == 1 ? "HTTP" : "SOCKS5",
+                proxyHost.Text.Trim(), parsedPort, proxyAuth.IsOn, proxyUser.Text, proxyPassword.Password);
+        }
+        var proxyButtons = new Grid { ColumnSpacing = 8, Margin = new Thickness(0, 8, 0, 0) };
+        proxyButtons.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        proxyButtons.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        var saveProxyButton = new Button { Content = "Сохранить прокси" };
+        var testProxyButton = new Button { Content = "Проверить соединение" };
+        Grid.SetColumn(saveProxyButton, 0);
+        Grid.SetColumn(testProxyButton, 1);
+        proxyButtons.Children.Add(saveProxyButton);
+        proxyButtons.Children.Add(testProxyButton);
+        panel.Children.Add(proxyButtons);
+        saveProxyButton.Click += (_, _) =>
+        {
+            try
+            {
+                var config = ReadProxyConfiguration();
+                if (config.Enabled && string.IsNullOrWhiteSpace(config.Host)) throw new ArgumentException("Укажи адрес прокси.");
+                ProxySettings.Save(config);
+                proxyStatus.Text = config.Enabled ? $"Сохранено: {config.Type} {config.Host}:{config.Port}. Новые внешние запросы будут использовать прокси." : "Прокси отключён. Новые внешние запросы выполняются напрямую.";
+            }
+            catch (Exception ex) { proxyStatus.Text = ex.Message; }
+        };
+        testProxyButton.Click += async (_, _) =>
+        {
+            try
+            {
+                var config = ReadProxyConfiguration();
+                if (!config.Enabled) throw new ArgumentException("Сначала включи прокси.");
+                testProxyButton.IsEnabled = false;
+                proxyStatus.Text = "Проверка соединения…";
+                proxyStatus.Text = await ProxySettings.TestAsync(config);
+            }
+            catch (Exception ex) { proxyStatus.Text = ex.Message; }
+            finally { testProxyButton.IsEnabled = true; }
+        };
 
         // The application is Russian-only; language selection was removed.
 

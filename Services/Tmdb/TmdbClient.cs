@@ -29,15 +29,9 @@ public sealed class TmdbClient : IDisposable
         _apiKey = string.IsNullOrWhiteSpace(apiKey) ? DefaultApiKey : apiKey!;
         _language = string.IsNullOrWhiteSpace(language) ? "ru-RU" : language;
 
-        // TMDb's CDN returns gzip even unasked; without auto-decompression the
-        // raw bytes fail JSON parsing and every search silently returns nothing.
-        var handler = new HttpClientHandler
-        {
-            AutomaticDecompression = DecompressionMethods.GZip
-                                   | DecompressionMethods.Deflate
-                                   | DecompressionMethods.Brotli,
-        };
-        _http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(20) };
+        // All application-managed external HTTP(S) requests use the shared proxy
+        // settings. When proxy is disabled, this remains a normal direct client.
+        _http = ProxySettings.CreateHttpClient(TimeSpan.FromSeconds(20));
     }
 
     private string WithLanguage(string url) =>

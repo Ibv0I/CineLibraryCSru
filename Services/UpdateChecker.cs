@@ -18,15 +18,6 @@ public static class UpdateChecker
     private const string Owner = "aungkokomm";
     private const string Repo  = "CineLibraryCS";
 
-    private static readonly HttpClient _http = CreateClient();
-
-    private static HttpClient CreateClient()
-    {
-        var c = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
-        c.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Movie Library", CurrentVersion()));
-        c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-        return c;
-    }
 
     public static string CurrentVersion()
     {
@@ -44,7 +35,10 @@ public static class UpdateChecker
         try
         {
             var url = $"https://api.github.com/repos/{Owner}/{Repo}/releases/latest";
-            using var resp = await _http.GetAsync(url).ConfigureAwait(false);
+            using var http = ProxySettings.CreateHttpClient(TimeSpan.FromSeconds(8));
+            http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Movie Library", CurrentVersion()));
+            http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+            using var resp = await http.GetAsync(url).ConfigureAwait(false);
             if (!resp.IsSuccessStatusCode) return null;
 
             using var stream = await resp.Content.ReadAsStreamAsync().ConfigureAwait(false);

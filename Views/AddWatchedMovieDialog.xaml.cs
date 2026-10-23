@@ -60,10 +60,8 @@ public sealed partial class AddWatchedMovieDialog : ContentDialog
                 return;
             }
 
-            var items = new List<TmdbResultItem>();
-            foreach (var m in results)   // built on the UI thread → BitmapImage is safe
-                items.Add(new TmdbResultItem(m, _client.GetImageUrl(m.PosterPath, "w154")));
-
+            var items = results.Select(m => new TmdbResultItem(m, _client.GetImageUrl(m.PosterPath, "w154"))).ToList();
+            await LoadResultThumbnailsAsync(items);
             ResultsList.ItemsSource = items;
             ResultsList.Visibility = Visibility.Visible;
         }
@@ -77,6 +75,17 @@ public sealed partial class AddWatchedMovieDialog : ContentDialog
             Busy.IsActive = false;
             SearchBtn.IsEnabled = true;
         }
+    }
+
+    private async Task LoadResultThumbnailsAsync(List<TmdbResultItem> items)
+    {
+        using var gate = new SemaphoreSlim(4);
+        await Task.WhenAll(items.Select(async item =>
+        {
+            await gate.WaitAsync();
+            try { await item.LoadThumbnailAsync(_client); }
+            finally { gate.Release(); }
+        }));
     }
 
     private void OnResultSelected(object sender, SelectionChangedEventArgs e)
@@ -199,14 +208,18 @@ public sealed partial class AddWatchedMovieDialog : ContentDialog
 public sealed class TmdbResultItem
 {
     public TmdbMovie Source { get; }
-    public Microsoft.UI.Xaml.Media.ImageSource? Thumb { get; }
+    public Microsoft.UI.Xaml.Media.ImageSource? Thumb { get; private set; }
+    private readonly string _thumbUrl;
 
     public TmdbResultItem(TmdbMovie source, string thumbUrl)
     {
         Source = source;
-        Thumb = string.IsNullOrEmpty(thumbUrl)
-            ? null
-            : new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(thumbUrl));
+        _thumbUrl = thumbUrl;
+    }
+
+    public async Task LoadThumbnailAsync(TmdbClient client)
+    {
+        Thumb = await TmdbImageLoader.LoadAsync(client, _thumbUrl, 154);
     }
 
     public string DisplayTitle => Source.Year > 0 ? $"{Source.Title} ({Source.Year})" : Source.Title;

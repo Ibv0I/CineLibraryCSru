@@ -183,9 +183,16 @@ public sealed partial class TmdbPickerDialog : Window
                 ResultsList.ItemsSource = null;
                 return;
             }
-            var items = new List<TmdbResultItem>();
-            foreach (var m in results)
-                items.Add(new TmdbResultItem(m, _client.GetImageUrl(m.PosterPath, "w154")));
+            var items = results.Select(m => new TmdbResultItem(m, _client.GetImageUrl(m.PosterPath, "w154"))).ToList();
+            using (var gate = new SemaphoreSlim(4))
+            {
+                await Task.WhenAll(items.Select(async item =>
+                {
+                    await gate.WaitAsync();
+                    try { await item.LoadThumbnailAsync(_client); }
+                    finally { gate.Release(); }
+                }));
+            }
             ResultsList.ItemsSource = items;
         }
         catch (Exception ex)

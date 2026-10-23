@@ -248,11 +248,14 @@ public sealed class TmdbClient : IDisposable
         string.IsNullOrEmpty(imagePath) ? string.Empty : $"https://image.tmdb.org/t/p/{size}{imagePath}";
 
     /// <summary>Downloads an image to <paramref name="destFullPath"/>. Returns false on any failure.</summary>
+    /// <summary>Downloads image bytes through the same configured HTTP client as TMDb API requests.</summary>
+    public Task<byte[]> GetImageBytesAsync(string url) => _http.GetByteArrayAsync(url);
+
     public async Task<bool> DownloadImageAsync(string url, string destFullPath)
     {
         try
         {
-            var bytes = await _http.GetByteArrayAsync(url);
+            var bytes = await GetImageBytesAsync(url);
             Directory.CreateDirectory(Path.GetDirectoryName(destFullPath)!);
             await File.WriteAllBytesAsync(destFullPath, bytes);
             return true;

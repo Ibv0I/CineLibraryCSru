@@ -177,6 +177,9 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             if (images.Backdrops.Count == 0 && !string.IsNullOrWhiteSpace(details.BackdropPath)) images.Backdrops.Add(details.BackdropPath!);
             _posterChoices = images.Posters.Select(p => new TmdbImageChoice(p, _client.GetImageUrl(p, "w185"), true)).ToList();
             _backdropChoices = images.Backdrops.Select(p => new TmdbImageChoice(p, _client.GetImageUrl(p, "w300"), false)).ToList();
+            // WinUI BitmapImage(Uri) downloads outside HttpClient and bypasses the configured proxy.
+            await LoadChoiceThumbnailsAsync(_posterChoices);
+            await LoadChoiceThumbnailsAsync(_backdropChoices);
             SelectedPosterPath = images.Posters.FirstOrDefault() ?? details.PosterPath;
             SelectedBackdropPath = images.Backdrops.FirstOrDefault() ?? details.BackdropPath;
             RefreshPosterPreview(); RefreshBackdropPreview();
@@ -207,25 +210,37 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         if (!string.IsNullOrWhiteSpace(path)) { SelectedBackdropPath = path; BackdropWasChanged = true; RefreshBackdropPreview(); }
     }
 
-    private void RefreshPosterPreview()
+    private async void RefreshPosterPreview()
     {
-        try
+        if (!PosterWasChanged && !string.IsNullOrWhiteSpace(_initialPosterLocalPath) && File.Exists(_initialPosterLocalPath))
         {
-            if (!PosterWasChanged && !string.IsNullOrWhiteSpace(_initialPosterLocalPath) && File.Exists(_initialPosterLocalPath))
-                PosterPreview.Source = new BitmapImage(new Uri(_initialPosterLocalPath));
-            else PosterPreview.Source = !string.IsNullOrWhiteSpace(SelectedPosterPath) ? new BitmapImage(new Uri(_client.GetImageUrl(SelectedPosterPath, "w500"))) : null;
+            try { PosterPreview.Source = new BitmapImage(new Uri(_initialPosterLocalPath)); } catch { PosterPreview.Source = null; }
+            return;
         }
-        catch { PosterPreview.Source = null; }
+        PosterPreview.Source = await TmdbImageLoader.LoadAsync(_client,
+            string.IsNullOrWhiteSpace(SelectedPosterPath) ? null : _client.GetImageUrl(SelectedPosterPath, "w500"), 500);
     }
-    private void RefreshBackdropPreview()
+
+    private async void RefreshBackdropPreview()
     {
-        try
+        if (!BackdropWasChanged && !string.IsNullOrWhiteSpace(_initialBackdropLocalPath) && File.Exists(_initialBackdropLocalPath))
         {
-            if (!BackdropWasChanged && !string.IsNullOrWhiteSpace(_initialBackdropLocalPath) && File.Exists(_initialBackdropLocalPath))
-                BackdropPreview.Source = new BitmapImage(new Uri(_initialBackdropLocalPath));
-            else BackdropPreview.Source = !string.IsNullOrWhiteSpace(SelectedBackdropPath) ? new BitmapImage(new Uri(_client.GetImageUrl(SelectedBackdropPath, "w1280"))) : null;
+            try { BackdropPreview.Source = new BitmapImage(new Uri(_initialBackdropLocalPath)); } catch { BackdropPreview.Source = null; }
+            return;
         }
-        catch { BackdropPreview.Source = null; }
+        BackdropPreview.Source = await TmdbImageLoader.LoadAsync(_client,
+            string.IsNullOrWhiteSpace(SelectedBackdropPath) ? null : _client.GetImageUrl(SelectedBackdropPath, "w1280"), 1280);
+    }
+
+    private async Task LoadChoiceThumbnailsAsync(List<TmdbImageChoice> choices)
+    {
+        using var gate = new SemaphoreSlim(4);
+        await Task.WhenAll(choices.Select(async choice =>
+        {
+            await gate.WaitAsync();
+            try { choice.Thumbnail = await TmdbImageLoader.LoadAsync(_client, choice.ThumbnailUrl, choice.IsPoster ? 185 : 300); }
+            finally { gate.Release(); }
+        }));
     }
 
     private void ApplyEditedMetadata()
@@ -256,13 +271,16 @@ public sealed partial class TmdbMoviePreviewDialog : Window
 public sealed class TmdbImageChoice
 {
     public string FilePath { get; }
-    public BitmapImage Thumbnail { get; }
+    public BitmapImage? Thumbnail { get; set; }
+    public string ThumbnailUrl { get; }
+    public bool IsPoster { get; }
     public double DisplayWidth { get; }
     public double DisplayHeight { get; }
     public TmdbImageChoice(string filePath, string url, bool isPoster = true)
     {
         FilePath = filePath;
-        Thumbnail = new BitmapImage(new Uri(url));
+        ThumbnailUrl = url;
+        IsPoster = isPoster;
         DisplayWidth = isPoster ? 150 : 240;
         DisplayHeight = isPoster ? 225 : 135;
     }

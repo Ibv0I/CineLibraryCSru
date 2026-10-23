@@ -268,7 +268,7 @@ public sealed partial class NfoEditorDialog : Window
         value.BeforeTextChanging += NumericOrDecimalOnly; votes.BeforeTextChanging += DigitsOnly;
         panel.Children.Add(source); panel.Children.Add(value); panel.Children.Add(votes);
         var dialog = new ContentDialog { Title = "Добавить рейтинг", Content = panel, PrimaryButtonText = "Добавить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, XamlRoot = RootGrid.XamlRoot };
-        dialog.PrimaryButtonClick += (_, args) => { if (!decimal.TryParse(value.Text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out _) || !int.TryParse(votes.Text, out _)) args.Cancel = true; };
+        dialog.PrimaryButtonClick += (sender, args) => { if (!decimal.TryParse(value.Text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal parsedRating) || parsedRating < 0 || parsedRating > 10 || !int.TryParse(votes.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedVotes) || parsedVotes < 0) args.Cancel = true; };
         if (await dialog.ShowAsync() == ContentDialogResult.Primary) _ratings.Add($"{source.SelectedItem} | {value.Text.Replace(',', '.')} | {votes.Text}");
     }
     private static void DigitsOnly(TextBox sender, TextBoxBeforeTextChangingEventArgs args) => args.Cancel = args.NewText.Any(c => !char.IsDigit(c));

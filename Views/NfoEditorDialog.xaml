@@ -24,8 +24,8 @@
                         </Grid>
                         <Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <TextBox x:Name="StudiosBox" Header="Студии (по одной на строку)" Grid.Column="0" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="48" MaxHeight="72"/>
-                            <TextBox x:Name="CountriesBox" Header="Страны (по одной на строку)" Grid.Column="1" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="48" MaxHeight="72"/>
+                            <TextBox x:Name="StudiosBox" Header="Студии (по одной на строку)" Grid.Column="0" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"/>
+                            <TextBox x:Name="CountriesBox" Header="Страны (по одной на строку)" Grid.Column="1" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"/>
                         </Grid>
                         <Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -39,28 +39,36 @@
                                 </StackPanel>
                             </StackPanel>
                         </Grid>
-                        <TextBlock Text="Идентификаторы" Foreground="{ThemeResource TextBrush}" Margin="0,2,0,0" />
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
-                            <TextBlock Text="Источник" Grid.Column="0" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock Text="Идентификатор" Grid.Column="1" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
+                        <Grid ColumnSpacing="12" Margin="0,2,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Spacing="5">
+                                <TextBlock Text="Идентификаторы" Foreground="{ThemeResource TextBrush}" />
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Источник" Grid.Column="0" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
+                                    <TextBlock Text="Идентификатор" Grid.Column="1" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
+                                </Grid>
+                                <ListView x:Name="IdentifiersList" MinHeight="32" MaxHeight="100" SelectionMode="Single" />
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Button Content="＋ Добавить" Click="OnAddIdentifier" />
+                                    <Button Content="－ Удалить" Click="OnRemoveIdentifier" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="5">
+                                <TextBlock Text="Рейтинги" Foreground="{ThemeResource TextBrush}" />
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Источник" Grid.Column="0" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
+                                    <TextBlock Text="Рейтинг" Grid.Column="1" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
+                                    <TextBlock Text="Количество голосов" Grid.Column="2" FontSize="12" Foreground="{ThemeResource MutedBrush}" TextWrapping="Wrap"/>
+                                </Grid>
+                                <ListView x:Name="RatingsList" MinHeight="32" MaxHeight="100" SelectionMode="Single" />
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Button Content="＋ Добавить" Click="OnAddRating" />
+                                    <Button Content="－ Удалить" Click="OnRemoveRating" />
+                                </StackPanel>
+                            </StackPanel>
                         </Grid>
-                        <ListView x:Name="IdentifiersList" MinHeight="32" MaxHeight="66" SelectionMode="Single" />
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Button Content="＋ Добавить идентификатор" Click="OnAddIdentifier" />
-                            <Button Content="－ Удалить идентификатор" Click="OnRemoveIdentifier" />
-                        </StackPanel>
-                        <Grid ColumnSpacing="8" Margin="0,2,0,0">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <TextBlock Text="Источник" Grid.Column="0" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock Text="Рейтинг" Grid.Column="1" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
-                            <TextBlock Text="Количество голосов" Grid.Column="2" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
-                        </Grid>
-                        <ListView x:Name="RatingsList" MinHeight="32" MaxHeight="66" SelectionMode="Single" />
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Button Content="＋ Добавить рейтинг" Click="OnAddRating" />
-                            <Button Content="－ Удалить рейтинг" Click="OnRemoveRating" />
-                        </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </TabViewItem>

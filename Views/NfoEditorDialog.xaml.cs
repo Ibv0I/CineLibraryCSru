@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
@@ -333,6 +334,41 @@ public sealed partial class NfoEditorDialog : Window
             IdentifiersList.SelectedIndex = index;
         }
     }
+
+    private void OnIdentifierSelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateSelectionVisuals(IdentifiersList, "IdentifierSelectionIndicator", "IdentifierRowBackground");
+    private void OnRatingSelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateSelectionVisuals(RatingsList, "RatingSelectionIndicator", "RatingRowBackground");
+
+    private static void UpdateSelectionVisuals(ListView list, string indicatorName, string backgroundName)
+    {
+        // ListView containers may be realized asynchronously, so refresh now and after layout.
+        void Refresh()
+        {
+            for (int i = 0; i < list.Items.Count; i++)
+            {
+                if (list.ContainerFromIndex(i) is not ListViewItem container) continue;
+                var indicator = FindNamedElement<Border>(container, indicatorName);
+                var background = FindNamedElement<Border>(container, backgroundName);
+                bool selected = ReferenceEquals(list.SelectedItem, list.Items[i]);
+                if (indicator != null) indicator.Opacity = selected ? 1 : 0;
+                if (background != null) background.Background = new SolidColorBrush(selected ? ColorHelper.FromArgb(255, 48, 48, 48) : ColorHelper.FromArgb(0, 0, 0, 0));
+            }
+        }
+        Refresh();
+        list.DispatcherQueue.TryEnqueue(Refresh);
+    }
+
+    private static T? FindNamedElement<T>(DependencyObject root, string name) where T : FrameworkElement
+    {
+        if (root is T match && match.Name == name) return match;
+        int count = VisualTreeHelper.GetChildrenCount(root);
+        for (int i = 0; i < count; i++)
+        {
+            var result = FindNamedElement<T>(VisualTreeHelper.GetChild(root, i), name);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
     private void OnRemoveIdentifier(object sender, RoutedEventArgs e) { if (IdentifiersList.SelectedItem is IdentifierRow item) _identifiers.Remove(item); }
     private async void OnAddGenre(object sender, RoutedEventArgs e)
     {

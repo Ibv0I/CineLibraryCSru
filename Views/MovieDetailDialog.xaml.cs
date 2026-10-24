@@ -17,6 +17,11 @@ namespace CineLibraryCS.Views;
 // A resizable Window-based detail view (replaces the old fixed ContentDialog).
 public sealed partial class MovieDetailDialog : Window
 {
+    private const int SW_HIDE = 0;
+    private const int SW_SHOW = 5;
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool ShowWindow(nint hWnd, int nCmdShow);
     private int _movieId;
     private MovieDetail? _movie;
     private bool _closed;
@@ -121,11 +126,27 @@ public sealed partial class MovieDetailDialog : Window
         // Present details as a replacement for the library window: hide the
         // main window while details are open, then restore it on any close path.
         var mainWindow = App.MainWindow;
-        mainWindow?.Hide();
+        nint mainWindowHandle = 0;
+        try
+        {
+            if (mainWindow != null)
+            {
+                mainWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(mainWindow);
+                if (mainWindowHandle != 0)
+                    ShowWindow(mainWindowHandle, SW_HIDE);
+            }
+        }
+        catch { }
         Closed += (_, _) =>
         {
             _closed = true;
-            try { mainWindow?.Activate(); } catch { }
+            try
+            {
+                if (mainWindowHandle != 0)
+                    ShowWindow(mainWindowHandle, SW_SHOW);
+                mainWindow?.Activate();
+            }
+            catch { }
         };
 
         // Start DB load IMMEDIATELY (don't wait for Activated). Overlapping

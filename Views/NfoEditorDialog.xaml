@@ -31,21 +31,7 @@
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <ComboBox x:Name="CertificationBox" Header="Сертификация / возрастной рейтинг" Grid.Column="0" IsEditable="False" />
                             <StackPanel Grid.Column="1" Spacing="5">
-                                <TextBlock Text="Жанры" />
-                                <TextBox x:Name="GenreInputBox" PlaceholderText="Введите жанр и нажмите Enter" KeyDown="OnGenreInputKeyDown" />
-                                <ListView x:Name="GenresList" MinHeight="36" MaxHeight="68" SelectionMode="Single" SelectionChanged="OnGenreSelectionChanged" ScrollViewer.HorizontalScrollMode="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                                    <ListView.ItemsPanel><ItemsPanelTemplate><ItemsWrapGrid Orientation="Horizontal" ItemWidth="124" ItemHeight="34" /></ItemsPanelTemplate></ListView.ItemsPanel>
-                                    <ListView.ItemTemplate>
-                                        <DataTemplate>
-                                            <Grid ColumnSpacing="6">
-                                                <Grid.ColumnDefinitions><ColumnDefinition Width="3"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                                <Border x:Name="GenreSelectionBar" Grid.Column="0" Width="3" Background="#FF0078D7" Visibility="Collapsed" CornerRadius="1"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ListView.ItemTemplate>
-                                    <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Padding" Value="4,2"/><Setter Property="Margin" Value="2"/><Setter Property="Background" Value="Transparent"/></Style></ListView.ItemContainerStyle>
-                                </ListView>
+                                <TextBox x:Name="GenresBox" Header="Жанры (через запятую)" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" MaxHeight="64" />
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Button Content="＋ Добавить жанр" Click="OnAddGenre" />
                                 </StackPanel>
@@ -57,12 +43,12 @@
                                 <TextBlock Text="Идентификаторы" Foreground="{ThemeResource TextBrush}" />
                                 <Grid ColumnSpacing="8">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Источник" Grid.Column="0" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
-                                    <TextBlock Text="Идентификатор" Grid.Column="1" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
+                                    <TextBlock Text="Источник" Grid.Column="0" FontSize="12" Foreground="{ThemeResource MutedBrush}" TextAlignment="Center" HorizontalAlignment="Stretch"/>
+                                    <TextBlock Text="Идентификатор" Grid.Column="1" FontSize="12" Foreground="{ThemeResource MutedBrush}" TextAlignment="Center" HorizontalAlignment="Stretch"/>
                                 </Grid>
-                                <ListView x:Name="IdentifiersList" MinHeight="108" Height="108" SelectionMode="Single" ScrollViewer.VerticalScrollBarVisibility="Disabled">
-                                    <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Height" Value="32"/><Setter Property="MinHeight" Value="32"/><Setter Property="Padding" Value="4,2"/></Style></ListView.ItemContainerStyle>
-                                    <ListView.ItemTemplate><DataTemplate><Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Source}" Grid.Column="0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Identifier}" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/></Grid></DataTemplate></ListView.ItemTemplate>
+                                <ListView x:Name="IdentifiersList" MinHeight="108" Height="108" SelectionMode="Single" Padding="0" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                    <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Height" Value="32"/><Setter Property="MinHeight" Value="32"/><Setter Property="Padding" Value="0"/><Setter Property="CornerRadius" Value="6"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style></ListView.ItemContainerStyle>
+                                    <ListView.ItemTemplate><DataTemplate><Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Source}" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Identifier}" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis"/></Grid></DataTemplate></ListView.ItemTemplate>
                                 </ListView>
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Button Content="＋ Добавить" Click="OnAddIdentifier" />
@@ -74,13 +60,13 @@
                                 <TextBlock Text="Рейтинги" Foreground="{ThemeResource TextBrush}" />
                                 <Grid ColumnSpacing="8">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Источник" Grid.Column="0" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
-                                    <TextBlock Text="Рейтинг" Grid.Column="1" FontSize="12" Foreground="{ThemeResource MutedBrush}"/>
-                                    <TextBlock Text="Количество голосов" Grid.Column="2" FontSize="12" Foreground="{ThemeResource MutedBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Источник" Grid.Column="0" FontSize="12" Foreground="{ThemeResource MutedBrush}" TextAlignment="Center" HorizontalAlignment="Stretch"/>
+                                    <TextBlock Text="Рейтинг" Grid.Column="1" FontSize="12" Foreground="{ThemeResource MutedBrush}" TextAlignment="Center" HorizontalAlignment="Stretch"/>
+                                    <TextBlock Text="Количество голосов" Grid.Column="2" FontSize="12" Foreground="{ThemeResource MutedBrush}" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Stretch"/>
                                 </Grid>
-                                <ListView x:Name="RatingsList" MinHeight="108" Height="108" SelectionMode="Single" ScrollViewer.VerticalScrollBarVisibility="Disabled">
-                                    <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Height" Value="32"/><Setter Property="MinHeight" Value="32"/><Setter Property="Padding" Value="4,2"/></Style></ListView.ItemContainerStyle>
-                                    <ListView.ItemTemplate><DataTemplate><Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Source}" Grid.Column="0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Value}" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Votes}" Grid.Column="2" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/></Grid></DataTemplate></ListView.ItemTemplate>
+                                <ListView x:Name="RatingsList" MinHeight="108" Height="108" SelectionMode="Single" Padding="0" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                    <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Height" Value="32"/><Setter Property="MinHeight" Value="32"/><Setter Property="Padding" Value="0"/><Setter Property="CornerRadius" Value="6"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style></ListView.ItemContainerStyle>
+                                    <ListView.ItemTemplate><DataTemplate><Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Source}" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Value}" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Votes}" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis"/></Grid></DataTemplate></ListView.ItemTemplate>
                                 </ListView>
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Button Content="＋ Добавить" Click="OnAddRating" />

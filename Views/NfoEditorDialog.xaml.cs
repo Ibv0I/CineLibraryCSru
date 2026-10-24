@@ -29,7 +29,6 @@ public sealed partial class NfoEditorDialog : Window
     private string SettingsPath => Path.Combine(CineLibraryCS.Services.AppState.Instance.DataDir, "NfoEditorWindow.settings.json");
     private XmlDocument _doc = new() { PreserveWhitespace = true };
     private XmlElement _root = null!;
-    private readonly ObservableCollection<string> _genres = new();
     private readonly ObservableCollection<RatingRow> _ratings = new();
     private readonly ObservableCollection<IdentifierRow> _identifiers = new();
     private string _originalAudioTracksText = "";
@@ -60,7 +59,6 @@ public sealed partial class NfoEditorDialog : Window
         Closed += OnWindowClosed;
         ConfigureWindow();
         CertificationBox.ItemsSource = RussianCertifications;
-        GenresList.ItemsSource = _genres;
         RatingsList.ItemsSource = _ratings;
         IdentifiersList.ItemsSource = _identifiers;
         LoadNfo();
@@ -198,7 +196,7 @@ public sealed partial class NfoEditorDialog : Window
         if (CertificationBox.SelectedItem == null && !string.IsNullOrWhiteSpace(certification)) CertificationBox.SelectedItem = "Неизвестно";
         StudiosBox.Text = string.Join(Environment.NewLine, Elements("studio").Select(x => x.InnerText));
         CountriesBox.Text = string.Join(Environment.NewLine, Elements("country").Select(x => x.InnerText));
-        _genres.Clear(); foreach (var x in Elements("genre")) _genres.Add(x.InnerText);
+        GenresBox.Text = string.Join(", ", Elements("genre").Select(x => x.InnerText));
         _ratings.Clear(); foreach (var x in Elements("ratings/rating")) _ratings.Add(new RatingRow { Source = x.GetAttribute("name"), Value = Child(x, "value") ?? x.InnerText, Votes = Child(x, "votes") ?? "0" });
         _identifiers.Clear(); foreach (var x in Elements("uniqueid")) _identifiers.Add(new IdentifierRow { Source = x.GetAttribute("type"), Identifier = x.InnerText });
         OnYearChanged(YearBox, null!); OnDateChanged(PremieredBox, null!);
@@ -243,7 +241,7 @@ public sealed partial class NfoEditorDialog : Window
             Set("plot", PlotBox.Text); Set("year", YearBox.Text);
             Set("premiered", DateTime.TryParseExact(PremieredBox.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var releaseDate) ? releaseDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : "");
             Set("runtime", RuntimeBox.Text); Set("mpaa", CertificationBox.SelectedItem as string);
-            SetList("studio", StudiosBox.Text); SetList("country", CountriesBox.Text); SetList("genre", string.Join(Environment.NewLine, _genres));
+            SetList("studio", StudiosBox.Text); SetList("country", CountriesBox.Text); SetList("genre", string.Join(Environment.NewLine, GenresBox.Text.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Distinct(StringComparer.OrdinalIgnoreCase)));
             SetRatings(); SetIdentifiers(); SetTechnical();
             var backup = _path + ".bak-" + DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
             File.Copy(_path, backup, overwrite: false);
@@ -336,35 +334,18 @@ public sealed partial class NfoEditorDialog : Window
         }
     }
     private void OnRemoveIdentifier(object sender, RoutedEventArgs e) { if (IdentifiersList.SelectedItem is IdentifierRow item) _identifiers.Remove(item); }
-    private void OnGenreInputKeyDown(object sender, KeyRoutedEventArgs e)
-    {
-        if (e.Key != Windows.System.VirtualKey.Enter) return;
-        var genre = GenreInputBox.Text.Trim();
-        if (genre.Length > 0 && !_genres.Any(x => string.Equals(x, genre, StringComparison.OrdinalIgnoreCase))) _genres.Add(genre);
-        if (genre.Length > 0) { GenresList.SelectedItem = _genres.FirstOrDefault(x => string.Equals(x, genre, StringComparison.OrdinalIgnoreCase)); GenreInputBox.Text = string.Empty; }
-        e.Handled = true;
-    }
     private async void OnAddGenre(object sender, RoutedEventArgs e)
     {
         var list = new ListView { ItemsSource = StandardGenres, SelectionMode = ListViewSelectionMode.Multiple, MaxHeight = 360 };
         var dialog = new ContentDialog { Title = "Добавить жанры", Content = list, PrimaryButtonText = "Добавить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
         if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-            foreach (var item in list.SelectedItems.Cast<string>()) if (!_genres.Contains(item)) _genres.Add(item);
-    }
-    private void OnGenreSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        // Leave the row dark; use a narrow blue leading stripe for selection.
-        foreach (var item in _genres)
         {
-            if (GenresList.ContainerFromItem(item) is ListViewItem container)
-            {
-                container.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0));
-                if (container.ContentTemplateRoot is Grid row && row.FindName("GenreSelectionBar") is Border bar)
-                    bar.Visibility = ReferenceEquals(item, GenresList.SelectedItem) ? Visibility.Visible : Visibility.Collapsed;
-            }
+            var genres = GenresBox.Text.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList();
+            foreach (var item in list.SelectedItems.Cast<string>())
+                if (!genres.Any(x => string.Equals(x, item, StringComparison.OrdinalIgnoreCase))) genres.Add(item);
+            GenresBox.Text = string.Join(", ", genres);
         }
     }
-
 
     private void Set(string name, string? value)
     {

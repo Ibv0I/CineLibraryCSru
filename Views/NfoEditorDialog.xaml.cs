@@ -34,6 +34,14 @@ public sealed partial class NfoEditorDialog : Window
     private readonly ObservableCollection<IdentifierRow> _identifiers = new();
     private string _originalAudioTracksText = "";
     private string _originalSubtitlesText = "";
+    private readonly ObservableCollection<TrackRow> _audioTracks = new();
+    private readonly ObservableCollection<TrackRow> _subtitles = new();
+    public sealed class TrackRow
+    {
+        public string[] Values { get; set; } = Array.Empty<string>();
+        public string Display => string.Join("   |   ", Values);
+    }
+    private static readonly string[] AspectRatios = { "1:1", "4:3", "16:9", "16:10", "1.85:1", "2.00:1", "2.20:1", "2.35:1", "2.39:1", "2.40:1", "2.76:1", "Неизвестно" };
 
     public sealed class RatingRow
     {
@@ -60,6 +68,9 @@ public sealed partial class NfoEditorDialog : Window
         Closed += OnWindowClosed;
         ConfigureWindow();
         CertificationBox.ItemsSource = RussianCertifications;
+        AspectBox.ItemsSource = AspectRatios;
+        AudioTracksList.ItemsSource = _audioTracks;
+        SubtitlesList.ItemsSource = _subtitles;
         RatingsList.ItemsSource = _ratings;
         IdentifiersList.ItemsSource = _identifiers;
         LoadNfo();
@@ -204,21 +215,21 @@ public sealed partial class NfoEditorDialog : Window
 
         var video = FindStream("video");
         VideoCodecBox.Text = Child(video, "codec") ?? "";
-        ContainerBox.Text = Child(video, "container") ?? Get("container") ?? "";
         VideoBitrateBox.Text = Child(video, "bitrate") ?? "";
         WidthBox.Text = Child(video, "width") ?? ""; HeightBox.Text = Child(video, "height") ?? "";
         FrameRateBox.Text = Child(video, "framerate") ?? ""; HdrBox.Text = Child(video, "hdrtype") ?? "";
-        AspectBox.Text = Child(video, "aspect") ?? "";
-        AudioTracksBox.Text = string.Join(Environment.NewLine, StreamElements("audio").Select(x => string.Join(" | ", new[] {
-            Child(x,"codec"), Child(x,"language"), Child(x,"channels"), Child(x,"bitrate"), Child(x,"samplerate") ?? Child(x,"samplingrate"), Child(x,"title")
-        }.Select(v => v ?? ""))));
-        SubtitlesBox.Text = string.Join(Environment.NewLine, StreamElements("subtitle").Select(x => string.Join(" | ", new[] {
-            Child(x,"language"), Child(x,"codec"), Child(x,"title"), Child(x,"default"), Child(x,"forced")
-        }.Select(v => v ?? ""))));
-        // Keep the exact loaded representation so saving unrelated metadata (for example IDs)
-        // never rebuilds audio/subtitle nodes and loses attributes or nonstandard fields.
-        _originalAudioTracksText = AudioTracksBox.Text;
-        _originalSubtitlesText = SubtitlesBox.Text;
+        var aspect = Child(video, "aspect") ?? "";
+        AspectBox.SelectedItem = AspectRatios.FirstOrDefault(x => string.Equals(x, aspect, StringComparison.OrdinalIgnoreCase));
+        if (AspectBox.SelectedItem == null && !string.IsNullOrWhiteSpace(aspect)) AspectBox.SelectedItem = "Неизвестно";
+        _audioTracks.Clear(); foreach (var x in StreamElements("audio")) _audioTracks.Add(new TrackRow { Values = new[] { Child(x,"codec"), Child(x,"language"), Child(x,"channels"), Child(x,"bitrate"), Child(x,"samplerate") ?? Child(x,"samplingrate"), Child(x,"title") }.Select(v => v ?? "").ToArray() });
+        _subtitles.Clear(); foreach (var x in StreamElements("subtitle")) _subtitles.Add(new TrackRow { Values = new[] { Child(x,"language"), Child(x,"codec"), Child(x,"title"), Child(x,"default"), Child(x,"forced") }.Select(v => v ?? "").ToArray() });
+        AudioTracksList.DisplayMemberPath = nameof(TrackRow.Display);
+        SubtitlesList.DisplayMemberPath = nameof(TrackRow.Display);
+        AudioTracksList.ItemTemplate = null;
+        SubtitlesList.ItemTemplate = null;
+        _originalAudioTracksText = string.Join(Environment.NewLine, _audioTracks.Select(x => string.Join(" | ", x.Values)));
+        _originalSubtitlesText = string.Join(Environment.NewLine, _subtitles.Select(x => string.Join(" | ", x.Values)));
+        // Preserve the original representation so unrelated edits do not rebuild track nodes.
     }
 
     private string? Get(string name) => _root.SelectSingleNode(name)?.InnerText;
@@ -261,6 +272,26 @@ public sealed partial class NfoEditorDialog : Window
     }
 
     private static bool IsValidYear(string? text) => int.TryParse(text, out var y) && y >= 1700 && y <= 2100;
+    private async void OnAddAudioTrack(object sender, RoutedEventArgs e) => await EditTrack(false, null);
+    private async void OnEditAudioTrack(object sender, RoutedEventArgs e) { if (AudioTracksList.SelectedItem is TrackRow row) await EditTrack(false, row); }
+    private void OnRemoveAudioTrack(object sender, RoutedEventArgs e) { if (AudioTracksList.SelectedItem is TrackRow row) _audioTracks.Remove(row); }
+    private async void OnAddSubtitle(object sender, RoutedEventArgs e) => await EditTrack(true, null);
+    private async void OnEditSubtitle(object sender, RoutedEventArgs e) { if (SubtitlesList.SelectedItem is TrackRow row) await EditTrack(true, row); }
+    private void OnRemoveSubtitle(object sender, RoutedEventArgs e) { if (SubtitlesList.SelectedItem is TrackRow row) _subtitles.Remove(row); }
+
+    private async Task EditTrack(bool subtitle, TrackRow? existing)
+    {
+        var fields = subtitle ? new[] { "Язык", "Формат", "Название", "По умолчанию (true/false)", "Принудительные (true/false)" } : new[] { "Кодек", "Язык", "Каналы", "Битрейт", "Частота дискретизации", "Название" };
+        var panel = new StackPanel { Spacing = 6 };
+        var inputs = new List<TextBox>();
+        for (int i = 0; i < fields.Length; i++) { var input = new TextBox { Header = fields[i], Text = existing != null && i < existing.Values.Length ? existing.Values[i] : "" }; inputs.Add(input); panel.Children.Add(input); }
+        var dialog = new ContentDialog { Title = (existing == null ? "Добавить " : "Изменить ") + (subtitle ? "субтитры" : "звуковую дорожку"), Content = new ScrollViewer { Content = panel, MaxHeight = 520 }, PrimaryButtonText = existing == null ? "Добавить" : "Сохранить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+        var row = new TrackRow { Values = inputs.Select(x => x.Text.Trim()).ToArray() };
+        var collection = subtitle ? _subtitles : _audioTracks;
+        if (existing == null) collection.Add(row); else { var index = collection.IndexOf(existing); if (index >= 0) collection[index] = row; }
+    }
+
     private void OnYearChanged(object sender, TextChangedEventArgs e)
     {
         if (YearBox == null) return;
@@ -437,15 +468,16 @@ public sealed partial class NfoEditorDialog : Window
         }
         var video = parent.SelectSingleNode("video") as XmlElement;
         if (video == null) { video = _doc.CreateElement("video"); parent.AppendChild(video); }
-        SetChild(video, "codec", VideoCodecBox.Text); SetChild(video, "container", ContainerBox.Text);
+        SetChild(video, "codec", VideoCodecBox.Text);
         SetChild(video, "bitrate", VideoBitrateBox.Text); SetChild(video, "width", WidthBox.Text);
         SetChild(video, "height", HeightBox.Text); SetChild(video, "framerate", FrameRateBox.Text);
-        SetChild(video, "hdrtype", HdrBox.Text); SetChild(video, "aspect", AspectBox.Text);
-        Set("container", ContainerBox.Text);
-        if (!string.Equals(AudioTracksBox.Text, _originalAudioTracksText, StringComparison.Ordinal))
-            ReplaceTracks(parent, "audio", AudioTracksBox.Text, new[] { "codec", "language", "channels", "bitrate", "samplerate", "title" });
-        if (!string.Equals(SubtitlesBox.Text, _originalSubtitlesText, StringComparison.Ordinal))
-            ReplaceTracks(parent, "subtitle", SubtitlesBox.Text, new[] { "language", "codec", "title", "default", "forced" });
+        SetChild(video, "hdrtype", HdrBox.Text); SetChild(video, "aspect", AspectBox.SelectedItem?.ToString() == "Неизвестно" ? "" : AspectBox.SelectedItem?.ToString());
+        var audioText = string.Join(Environment.NewLine, _audioTracks.Select(x => string.Join(" | ", x.Values)));
+        var subtitlesText = string.Join(Environment.NewLine, _subtitles.Select(x => string.Join(" | ", x.Values)));
+        if (!string.Equals(audioText, _originalAudioTracksText, StringComparison.Ordinal))
+            ReplaceTracks(parent, "audio", audioText, new[] { "codec", "language", "channels", "bitrate", "samplerate", "title" });
+        if (!string.Equals(subtitlesText, _originalSubtitlesText, StringComparison.Ordinal))
+            ReplaceTracks(parent, "subtitle", subtitlesText, new[] { "language", "codec", "title", "default", "forced" });
         if (!parent.HasChildNodes && parent.ParentNode != null) parent.ParentNode.RemoveChild(parent);
     }
 

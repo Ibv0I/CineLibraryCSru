@@ -82,10 +82,9 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,8,12,8">
                     <StackPanel Spacing="10">
                         <Grid ColumnSpacing="10">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <TextBox x:Name="VideoCodecBox" Header="Видеокодек" Grid.Column="0"/>
-                            <TextBox x:Name="ContainerBox" Header="Контейнер" Grid.Column="1"/>
-                            <TextBox x:Name="VideoBitrateBox" Header="Битрейт видео (бит/с)" Grid.Column="2"/>
+                            <TextBox x:Name="VideoBitrateBox" Header="Битрейт видео (бит/с)" Grid.Column="1"/>
                         </Grid>
                         <Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -96,12 +95,20 @@
                         <Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <TextBox x:Name="HdrBox" Header="Формат HDR" Grid.Column="0"/>
-                            <TextBox x:Name="AspectBox" Header="Соотношение сторон" Grid.Column="1"/>
+                            <ComboBox x:Name="AspectBox" Header="Соотношение сторон" Grid.Column="1" IsEditable="False"/>
                         </Grid>
-                        <TextBlock Text="Звуковые дорожки — одна на строку: кодек | язык | каналы | битрейт | частота дискретизации | название" TextWrapping="Wrap" Foreground="{ThemeResource TextBrush}"/>
-                        <TextBox x:Name="AudioTracksBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="130" FontFamily="Consolas" PlaceholderText="truehd | rus | 8 | 4500000 | 48000 | Русский TrueHD 7.1"/>
-                        <TextBlock Text="Субтитры — одна дорожка на строку: язык | формат | название | по умолчанию (true/false) | принудительные (true/false)" TextWrapping="Wrap" Foreground="{ThemeResource TextBrush}"/>
-                        <TextBox x:Name="SubtitlesBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" FontFamily="Consolas" PlaceholderText="rus | srt | Русские | false | false"/>
+                        <TextBlock Text="Звуковые дорожки" FontWeight="SemiBold" Foreground="{ThemeResource TextBrush}"/>
+                        <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="Кодек" Grid.Column="0" TextAlignment="Center"/><TextBlock Text="Язык" Grid.Column="1" TextAlignment="Center"/><TextBlock Text="Каналы" Grid.Column="2" TextAlignment="Center"/><TextBlock Text="Битрейт" Grid.Column="3" TextAlignment="Center"/><TextBlock Text="Частота" Grid.Column="4" TextAlignment="Center"/><TextBlock Text="Название" Grid.Column="5" TextAlignment="Center"/>
+                        </Grid>
+                        <ListView x:Name="AudioTracksList" Height="108" SelectionMode="Single" Padding="0" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
+                        <StackPanel Orientation="Horizontal" Spacing="6"><Button Content="＋ Добавить" Click="OnAddAudioTrack"/><Button Content="✎ Изменить" Click="OnEditAudioTrack"/><Button Content="－ Удалить" Click="OnRemoveAudioTrack"/></StackPanel>
+                        <TextBlock Text="Субтитры" FontWeight="SemiBold" Foreground="{ThemeResource TextBrush}"/>
+                        <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="Язык" Grid.Column="0" TextAlignment="Center"/><TextBlock Text="Формат" Grid.Column="1" TextAlignment="Center"/><TextBlock Text="Название" Grid.Column="2" TextAlignment="Center"/><TextBlock Text="По умолчанию" Grid.Column="3" TextAlignment="Center"/><TextBlock Text="Принудит." Grid.Column="4" TextAlignment="Center"/>
+                        </Grid>
+                        <ListView x:Name="SubtitlesList" Height="108" SelectionMode="Single" Padding="0" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
+                        <StackPanel Orientation="Horizontal" Spacing="6"><Button Content="＋ Добавить" Click="OnAddSubtitle"/><Button Content="✎ Изменить" Click="OnEditSubtitle"/><Button Content="－ Удалить" Click="OnRemoveSubtitle"/></StackPanel>
                         <TextBlock Text="Формат строк указан над полями. Неизвестные XML-поля сохраняются при записи." FontSize="12" Foreground="{ThemeResource MutedBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
                 </ScrollViewer>

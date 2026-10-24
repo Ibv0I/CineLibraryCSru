@@ -892,22 +892,17 @@ public sealed partial class MovieDetailDialog : Window
                 CharacterSpacing = 150, Opacity = 0.65,
                 Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
             });
+            var ratingText = rt.Value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)
+                             + (rt.Source.Equals("rottentomatoes", StringComparison.OrdinalIgnoreCase) ? "%" : "");
+            if (rt.Votes.HasValue && rt.Votes.Value > 0)
+                ratingText += $"  ·  {FormatVotes(rt.Votes.Value)}";
             stack.Children.Add(new TextBlock
             {
-                Text = rt.Value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)
-                       + (rt.Source.Equals("rottentomatoes", StringComparison.OrdinalIgnoreCase) ? "%" : ""),
+                Text = ratingText,
                 FontSize = 16, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
                 Foreground = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush"),
+                TextTrimming = Microsoft.UI.Xaml.TextTrimming.CharacterEllipsis,
             });
-            if (rt.Votes.HasValue && rt.Votes.Value > 0)
-            {
-                stack.Children.Add(new TextBlock
-                {
-                    Text = FormatVotes(rt.Votes.Value),
-                    FontSize = 10,
-                    Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
-                });
-            }
             RatingsPanel.Children.Add(stack);
         }
     }
@@ -925,9 +920,9 @@ public sealed partial class MovieDetailDialog : Window
 
     private static string FormatVotes(int votes) => votes switch
     {
-        >= 1_000_000 => $"{votes / 1_000_000.0:F1}M votes",
-        >= 1_000     => $"{votes / 1_000.0:F1}K votes",
-        _            => $"{votes} votes",
+        >= 1_000_000 => $"{votes / 1_000_000.0:F1} млн голосов",
+        >= 1_000     => $"{votes / 1_000.0:F1} тыс. голосов",
+        _            => $"{votes} голосов",
     };
 
     private void PopulateFileInfo(MovieDetail m)
@@ -974,9 +969,15 @@ public sealed partial class MovieDetailDialog : Window
             FiSizeBlock.Visibility = Visibility.Visible;
             any = true;
         }
-        if (m.DurationSeconds.HasValue && m.DurationSeconds.Value > 0)
+        // Prefer the editable NFO runtime (minutes); fall back to the actual media duration.
+        var durationMinutes = m.Runtime is > 0
+            ? m.Runtime.Value
+            : m.DurationSeconds is > 0
+                ? Math.Max(1, (int)Math.Round(m.DurationSeconds.Value / 60.0))
+                : 0;
+        if (durationMinutes > 0)
         {
-            FiDur.Text = $"{Math.Max(1, (int)Math.Round(m.DurationSeconds.Value / 60.0))} мин";
+            FiDur.Text = $"{durationMinutes} мин";
             FiDurBlock.Visibility = Visibility.Visible;
             any = true;
         }

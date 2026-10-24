@@ -20,7 +20,7 @@
                             <Grid.ColumnDefinitions><ColumnDefinition Width="100"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <TextBox x:Name="YearBox" Header="Год" Grid.Column="0" InputScope="Number" TextChanged="OnYearChanged"/>
                             <TextBox x:Name="PremieredBox" Header="Дата выхода (ДД-ММ-ГГГГ)" Grid.Column="1" TextChanged="OnDateChanged"/>
-                            <TextBox x:Name="RuntimeBox" Header="Продолжительность, мин" Grid.Column="2" InputScope="Number"/>
+                            <TextBox x:Name="RuntimeBox" Header="Длительность, мин" Grid.Column="2" InputScope="Number"/>
                         </Grid>
                         <Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>

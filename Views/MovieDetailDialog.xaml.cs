@@ -118,7 +118,15 @@ public sealed partial class MovieDetailDialog : Window
         // Track close so async load that finishes after Esc doesn't try to
         // touch the destroyed window (COMException "operation identifier is
         // not valid").
-        Closed += (_, _) => _closed = true;
+        // Present details as a replacement for the library window: hide the
+        // main window while details are open, then restore it on any close path.
+        var mainWindow = App.MainWindow;
+        mainWindow?.Hide();
+        Closed += (_, _) =>
+        {
+            _closed = true;
+            try { mainWindow?.Activate(); } catch { }
+        };
 
         // Start DB load IMMEDIATELY (don't wait for Activated). Overlapping
         // with the window animation eliminates the visible "empty window"
@@ -1336,8 +1344,10 @@ public sealed partial class MovieDetailDialog : Window
                 // The title editor changes only <title> in movie.nfo. All other
                 // metadata remains untouched and will continue to be read from NFO.
                 if (!string.IsNullOrWhiteSpace(movieFolder) && Directory.Exists(movieFolder))
+                {
                     var titleNfoPath = ResolveNfoPath(movieFolder, movie.VideoFileRelPath);
                     if (titleNfoPath != null) UpdateMovieNfoTitle(titleNfoPath, editedTitle);
+                }
                 AppState.Instance.Db.UpdateMovieTitle(movie.Id, editedTitle);
                 movie.Title = editedTitle;
                 TitleBarText.Text = editedTitle;

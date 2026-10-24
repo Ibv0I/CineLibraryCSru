@@ -8,6 +8,7 @@ using CineLibraryCS.Services;
 using CineLibraryCS.Services.Tmdb;
 using Windows.Graphics;
 using Windows.System;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Xml;
 using System.Globalization;
@@ -66,28 +67,29 @@ public sealed partial class MovieDetailDialog : Window
         SetTitleBar(AppTitleBar);
         SystemBackdrop = new MicaBackdrop();
 
-        // Window size — restore the last user-resized size if we have one,
-        // otherwise fall back to a comfortable default (1100×800). Saved on
-        // SizeChanged into prefs so resize sticks across sessions.
+        // Replace the main window visually: use its position and size, hide it
+        // once this window has drawn, then restore it when details close.
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
         var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
         var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
-
-        int width = 1100, height = 800;
-        var savedW = AppState.Instance.GetPref("detailDialogW", "");
-        var savedH = AppState.Instance.GetPref("detailDialogH", "");
-        if (int.TryParse(savedW, out var w) && w >= 700) width = w;
-        if (int.TryParse(savedH, out var h) && h >= 500) height = h;
-        appWindow.Resize(new SizeInt32(width, height));
-        appWindow.Title = CineLibraryCS.Services.LocalizationService.TranslateText("Подробности фильма");
-
-        // Ensure window is resizable and maximizable, then open maximized
-        if (appWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+        appWindow.Title = "Movie Library";
+        int noAnimation = 1;
+        DwmSetWindowAttribute(hwnd, DwmwaTransitionsForceDisabled, ref noAnimation, sizeof(int));
+        var main = MainHwnd;
+        var place = new WindowPlacement { Length = Marshal.SizeOf<WindowPlacement>() };
+        if (main != IntPtr.Zero && IsWindowVisible(main))
         {
-            presenter.IsResizable = true;
-            presenter.IsMaximizable = true;
-            presenter.Maximize();
+            var mainAw = App.MainWindow!.AppWindow;
+            if (IsZoomed(main) && GetWindowPlacement(main, ref place))
+                SetWindowPlacement(hwnd, ref place);
+            else
+                appWindow.MoveAndResize(new RectInt32(mainAw.Position.X, mainAw.Position.Y, mainAw.Size.Width, mainAw.Size.Height));
         }
+        else if (appWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            presenter.Maximize();
+        s_open++;
+        HideMainSoon();
+        Closed += (_, _) => GiveBackPlace();
 
         // Esc closes the dialog
         var escAcc = new Microsoft.UI.Xaml.Input.KeyboardAccelerator
@@ -101,6 +103,14 @@ public sealed partial class MovieDetailDialog : Window
         // v4.5.0: ← / → for the previous / next movie (not while typing a note or tag)
         RootGrid.AddHandler(UIElement.KeyDownEvent,
             new Microsoft.UI.Xaml.Input.KeyEventHandler(OnRootKeyDown), handledEventsToo: true);
+        // The mouse's Back button should behave exactly like Escape / Library.
+        RootGrid.AddHandler(UIElement.PointerPressedEvent,
+            new Microsoft.UI.Xaml.Input.PointerEventHandler((_, e) =>
+            {
+                if (!e.GetCurrentPoint(RootGrid).Properties.IsXButton1Pressed) return;
+                e.Handled = true;
+                Close();
+            }), handledEventsToo: true);
 
         // Persist size on close — using AppWindow.Changed catches the final
         // resized state regardless of how the window was dismissed.
@@ -125,6 +135,73 @@ public sealed partial class MovieDetailDialog : Window
         // delay that made the dialog feel slow.
         _ = LoadAsync();
     }
+
+    // Keep one visible taskbar window: the detail window temporarily takes the
+    // main window's place and gives it back on any close path.
+    private static int s_open;
+    private Microsoft.UI.Dispatching.DispatcherQueueTimer? _hideMainTimer;
+    private static IntPtr MainHwnd => App.MainWindow is { } mw ? WinRT.Interop.WindowNative.GetWindowHandle(mw) : IntPtr.Zero;
+
+    private void HideMainSoon()
+    {
+        var timer = _hideMainTimer = DispatcherQueue.CreateTimer();
+        timer.Interval = TimeSpan.FromMilliseconds(250);
+        timer.IsRepeating = false;
+        timer.Tick += (_, _) =>
+        {
+            if (!_closed && MainHwnd is var main && main != IntPtr.Zero) ShowWindow(main, SwHide);
+        };
+        timer.Start();
+    }
+
+    private void GiveBackPlace()
+    {
+        if (--s_open > 0 || App.MainWindow is not { } mainWindow) return;
+        var main = MainHwnd;
+        int noAnimation = 1;
+        DwmSetWindowAttribute(main, DwmwaTransitionsForceDisabled, ref noAnimation, sizeof(int));
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        var place = new WindowPlacement { Length = Marshal.SizeOf<WindowPlacement>() };
+        var got = GetWindowPlacement(hwnd, ref place);
+        var minimised = got && place.ShowCmd == SwShowMinimized;
+        if (minimised) place.ShowCmd = (place.Flags & WpfRestoreToMaximized) != 0 ? SwShowMaximized : SwShowNormal;
+        if (got && (minimised || place.ShowCmd == SwShowMaximized))
+            SetWindowPlacement(main, ref place);
+        else
+        {
+            if (IsZoomed(main)) ShowWindow(main, SwShowNormal);
+            mainWindow.AppWindow.MoveAndResize(new RectInt32(AppWindow.Position.X, AppWindow.Position.Y, AppWindow.Size.Width, AppWindow.Size.Height));
+            ShowWindow(main, SwShow);
+        }
+        mainWindow.Activate();
+        AnimateAgainLater(main);
+    }
+
+    private static async void AnimateAgainLater(IntPtr main)
+    {
+        await Task.Delay(1000);
+        int animate = 0;
+        DwmSetWindowAttribute(main, DwmwaTransitionsForceDisabled, ref animate, sizeof(int));
+    }
+
+    private const int DwmwaTransitionsForceDisabled = 3;
+    private const int SwHide = 0, SwShowNormal = 1, SwShowMinimized = 2, SwShowMaximized = 3, SwShow = 5;
+    private const int WpfRestoreToMaximized = 2;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct WindowPlacement
+    {
+        public int Length, Flags, ShowCmd;
+        public int MinX, MinY, MaxX, MaxY;
+        public int Left, Top, Right, Bottom;
+    }
+
+    [DllImport("user32.dll")] private static extern bool GetWindowPlacement(IntPtr hWnd, ref WindowPlacement placement);
+    [DllImport("user32.dll")] private static extern bool SetWindowPlacement(IntPtr hWnd, ref WindowPlacement placement);
+    [DllImport("user32.dll")] private static extern bool ShowWindow(IntPtr hWnd, int cmdShow);
+    [DllImport("user32.dll")] private static extern bool IsWindowVisible(IntPtr hWnd);
+    [DllImport("user32.dll")] private static extern bool IsZoomed(IntPtr hWnd);
+    [DllImport("dwmapi.dll")] private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
 
     private async Task LoadAsync()
     {

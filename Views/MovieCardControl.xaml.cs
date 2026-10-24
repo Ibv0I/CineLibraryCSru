@@ -335,7 +335,6 @@ public sealed partial class MovieCardControl : UserControl
     private void Populate(MovieListItem m)
     {
         TitleText.Text = m.Title;
-        MetaText.Text = $"{m.Year?.ToString() ?? "—"}{(m.Runtime.HasValue ? $" · {m.Runtime}m" : "")}";
         PlaceholderTitle.Text = m.Title;
 
         // Status badge.
@@ -367,18 +366,8 @@ public sealed partial class MovieCardControl : UserControl
         WatchedBadge.Visibility = m.IsWatched ? Visibility.Visible : Visibility.Collapsed;
         ApplyToggleIcons(m);
 
-        // Rating lives once, in the meta row. (The old floating poster badge
-        // duplicated it — dropped for a cleaner card face.)
+        // Year, runtime and rating are intentionally not shown on the poster card.
         RatingBadge.Visibility = Visibility.Collapsed;
-        if (m.Rating.HasValue)
-        {
-            RatingInline.Text = $"★ {m.Rating:F1}";
-            RatingInline.Visibility = Visibility.Visible;
-        }
-        else
-        {
-            RatingInline.Visibility = Visibility.Collapsed;
-        }
 
         GenresText.Text = string.Join(" · ",
             (m.GenresCsv ?? "").Split(',').Select(g => g.Trim()).Where(g => g.Length > 0).Take(3));

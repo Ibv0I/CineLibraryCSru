@@ -509,9 +509,9 @@ public sealed partial class MoviePreparationPage : Page
                 RequestedTheme = ElementTheme.Dark,
                 Content = "Будут заменены: " + string.Join(", ", existing) + ". Продолжить?",
                 PrimaryButtonText = "Заменить",
-                PrimaryButtonStyle = new Style(typeof(Button)) { Setters = { new Setter(Control.BackgroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 56, 128, 255))), new Setter(Control.ForegroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255))) } },
+                PrimaryButtonStyle = new Style(typeof(Button)) { Setters = { new Setter(Control.BackgroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 56, 128, 255))), new Setter(Control.ForegroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255))), new Setter(Button.CornerRadiusProperty, new CornerRadius(8)) } },
                 CloseButtonText = "Отмена",
-                CloseButtonStyle = new Style(typeof(Button)) { Setters = { new Setter(Control.BackgroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 43, 43, 46))), new Setter(Control.ForegroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 235, 235, 235))) } },
+                CloseButtonStyle = new Style(typeof(Button)) { Setters = { new Setter(Control.BackgroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 43, 43, 46))), new Setter(Control.ForegroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 235, 235, 235))), new Setter(Button.CornerRadiusProperty, new CornerRadius(8)) } },
                 DefaultButton = ContentDialogButton.Close
             };
             if (await confirm.ShowAsync() != ContentDialogResult.Primary) return false;

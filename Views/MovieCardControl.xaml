@@ -127,11 +127,9 @@
                     </Grid>
                 </Border>
 
-                <!-- Info strip: strong dark gradient so white title is always
-                     readable. Height fits a 2-line title + the meta row without
-                     clipping the top line. -->
+                <!-- Poster title only: year, runtime and rating are intentionally hidden. -->
                 <Border VerticalAlignment="Bottom" CornerRadius="0,0,10,10"
-                        Height="66" Padding="8,6">
+                        Height="54" Padding="8,5">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                             <GradientStop Offset="0" Color="#00000000"/>
@@ -139,25 +137,10 @@
                             <GradientStop Offset="1" Color="#FF000000"/>
                         </LinearGradientBrush>
                     </Border.Background>
-                    <StackPanel VerticalAlignment="Bottom">
-                        <TextBlock x:Name="TitleText" FontSize="12" FontWeight="Bold"
-                                   Foreground="White" TextTrimming="CharacterEllipsis"
-                                   MaxLines="2" TextWrapping="WrapWholeWords"/>
-                        <Grid Margin="0,1,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" x:Name="MetaText" FontSize="11"
-                                       Foreground="#D8D8D8"
-                                       TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Grid.Column="1" x:Name="RatingInline" FontSize="11"
-                                       FontWeight="Bold"
-                                       Foreground="#FACC15"
-                                       Margin="6,0,0,0"
-                                       Visibility="Collapsed"/>
-                        </Grid>
-                    </StackPanel>
+                    <TextBlock x:Name="TitleText" FontSize="12" FontWeight="Bold"
+                               Foreground="White" TextTrimming="CharacterEllipsis"
+                               MaxLines="2" TextWrapping="WrapWholeWords"
+                               VerticalAlignment="Bottom"/>
                 </Border>
             </Grid>
         </Border>

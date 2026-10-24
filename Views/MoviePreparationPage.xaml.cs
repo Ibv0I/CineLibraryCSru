@@ -487,6 +487,17 @@ public sealed partial class MoviePreparationPage : Page
     }
 
 
+    private static Style CreateOverwriteDialogButtonStyle(Windows.UI.Color background, Windows.UI.Color foreground)
+    {
+        var style = new Style(typeof(Button));
+        style.Setters.Add(new Setter(Control.BackgroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(background)));
+        style.Setters.Add(new Setter(Control.ForegroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(foreground)));
+        style.Setters.Add(new Setter(Button.CornerRadiusProperty, new CornerRadius(8)));
+        style.Setters.Add(new Setter(Control.BorderBrushProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(background)));
+        style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
+        return style;
+    }
+
     private async Task<bool> SaveCandidateAsync(MovieFolderCandidate candidate, bool confirmOverwrite)
     {
         if (candidate.SelectedMovie is not TmdbMovie movie)
@@ -509,9 +520,13 @@ public sealed partial class MoviePreparationPage : Page
                 RequestedTheme = ElementTheme.Dark,
                 Content = "Будут заменены: " + string.Join(", ", existing) + ". Продолжить?",
                 PrimaryButtonText = "Заменить",
-                PrimaryButtonStyle = new Style(typeof(Button)) { Setters = { new Setter(Control.BackgroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 56, 128, 255))), new Setter(Control.ForegroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255))), new Setter(Button.CornerRadiusProperty, new CornerRadius(8)) } },
+                PrimaryButtonStyle = CreateOverwriteDialogButtonStyle(
+                    Windows.UI.Color.FromArgb(255, 56, 128, 255),
+                    Windows.UI.Color.FromArgb(255, 255, 255, 255)),
                 CloseButtonText = "Отмена",
-                CloseButtonStyle = new Style(typeof(Button)) { Setters = { new Setter(Control.BackgroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 43, 43, 46))), new Setter(Control.ForegroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 235, 235, 235))), new Setter(Button.CornerRadiusProperty, new CornerRadius(8)) } },
+                CloseButtonStyle = CreateOverwriteDialogButtonStyle(
+                    Windows.UI.Color.FromArgb(255, 43, 43, 46),
+                    Windows.UI.Color.FromArgb(255, 235, 235, 235)),
                 DefaultButton = ContentDialogButton.Close
             };
             if (await confirm.ShowAsync() != ContentDialogResult.Primary) return false;

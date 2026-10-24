@@ -1128,6 +1128,32 @@ public sealed partial class MovieDetailDialog : Window
         }
     }
 
+    /// <summary>Finds a movie NFO regardless of whether it is named movie.nfo or after the movie/video.</summary>
+    private static string? ResolveNfoPath(string folder, string? videoFileRelPath = null)
+    {
+        if (string.IsNullOrWhiteSpace(folder) || !Directory.Exists(folder)) return null;
+
+        // Keep the Kodi/tinyMediaManager convention as the first choice.
+        var standard = Path.Combine(folder, "movie.nfo");
+        if (File.Exists(standard)) return standard;
+
+        // Many libraries name the NFO after the containing movie folder or video file.
+        var folderName = new DirectoryInfo(folder).Name;
+        var candidates = new List<string>();
+        if (!string.IsNullOrWhiteSpace(folderName)) candidates.Add(Path.Combine(folder, folderName + ".nfo"));
+        if (!string.IsNullOrWhiteSpace(videoFileRelPath))
+        {
+            var videoName = Path.GetFileNameWithoutExtension(videoFileRelPath);
+            if (!string.IsNullOrWhiteSpace(videoName)) candidates.Add(Path.Combine(folder, videoName + ".nfo"));
+        }
+        foreach (var candidate in candidates.Distinct(StringComparer.OrdinalIgnoreCase))
+            if (File.Exists(candidate)) return candidate;
+
+        // If there is exactly one NFO in the folder, it is unambiguous even if named differently.
+        var nfoFiles = Directory.GetFiles(folder, "*.nfo", SearchOption.TopDirectoryOnly);
+        return nfoFiles.Length == 1 ? nfoFiles[0] : null;
+    }
+
     private static int ReadKinopoiskIdFromNfo(MovieDetail movie)
     {
         try
@@ -1135,8 +1161,8 @@ public sealed partial class MovieDetailDialog : Window
             if (string.IsNullOrWhiteSpace(movie.CurrentLetter) || string.IsNullOrWhiteSpace(movie.FolderRelPath))
                 return 0;
             var folder = Path.Combine($"{movie.CurrentLetter}:\\", movie.FolderRelPath.Replace('/', '\\'));
-            var path = Path.Combine(folder, "movie.nfo");
-            if (!File.Exists(path)) return 0;
+            var path = ResolveNfoPath(folder, movie.VideoFileRelPath);
+            if (path == null || !File.Exists(path)) return 0;
             var doc = new XmlDocument();
             doc.Load(path);
             var node = doc.SelectSingleNode("/movie/uniqueid[@type='kinopoisk' or @type='kinopoiskdev']")
@@ -1175,10 +1201,11 @@ public sealed partial class MovieDetailDialog : Window
         }
 
         var folder = Path.Combine($"{movie.CurrentLetter}:\\", movie.FolderRelPath.Replace('/', '\\'));
-        var nfoPath = Path.Combine(folder, "movie.nfo");
-        if (!File.Exists(nfoPath))
+        var nfoPath = ResolveNfoPath(folder, movie.VideoFileRelPath);
+        if (nfoPath == null || !File.Exists(nfoPath))
         {
-            var missing = new ContentDialog { Title = "NFO не найден", Content = $"Файл не существует:\n{nfoPath}", CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
+            var candidates = Directory.Exists(folder) ? string.Join("\n", Directory.GetFiles(folder, "*.nfo", SearchOption.TopDirectoryOnly).Select(Path.GetFileName)) : "папка недоступна";
+            var missing = new ContentDialog { Title = "NFO не найден", Content = $"Не удалось однозначно определить NFO в папке:\n{folder}\n\nНайдены файлы:\n{(string.IsNullOrWhiteSpace(candidates) ? "нет файлов .nfo" : candidates)}\n\nОжидается movie.nfo, файл с именем папки/видео или единственный .nfo в папке.", CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
             await missing.ShowAsync();
             return;
         }
@@ -1216,7 +1243,7 @@ public sealed partial class MovieDetailDialog : Window
         var sourceId = 0;
         try
         {
-            var nfoPath = movieFolder == null ? null : Path.Combine(movieFolder, "movie.nfo");
+            var nfoPath = movieFolder == null ? null : ResolveNfoPath(movieFolder, movie.VideoFileRelPath);
             if (!string.IsNullOrWhiteSpace(nfoPath) && File.Exists(nfoPath))
             {
                 var nfo = new XmlDocument(); nfo.Load(nfoPath);
@@ -1291,7 +1318,8 @@ public sealed partial class MovieDetailDialog : Window
             var edited = picker.Movie;
             if (!isKpSource && edited.KinopoiskRating.HasValue && movieFolder != null && Directory.Exists(movieFolder))
             {
-                UpdateMovieNfoKinopoiskRating(Path.Combine(movieFolder, "movie.nfo"), edited.KinopoiskId, edited.KinopoiskRating.Value, edited.KinopoiskVoteCount);
+                var ratingNfoPath = ResolveNfoPath(movieFolder, movie.VideoFileRelPath);
+                if (ratingNfoPath != null) UpdateMovieNfoKinopoiskRating(ratingNfoPath, edited.KinopoiskId, edited.KinopoiskRating.Value, edited.KinopoiskVoteCount);
                 AppState.Instance.Db.UpdateMovieRating(movie.Id, "kinopoisk", edited.KinopoiskRating.Value, edited.KinopoiskVoteCount);
                 var ratings = _movie?.AllRatings;
                 if (ratings != null)
@@ -1308,7 +1336,8 @@ public sealed partial class MovieDetailDialog : Window
                 // The title editor changes only <title> in movie.nfo. All other
                 // metadata remains untouched and will continue to be read from NFO.
                 if (!string.IsNullOrWhiteSpace(movieFolder) && Directory.Exists(movieFolder))
-                    UpdateMovieNfoTitle(Path.Combine(movieFolder, "movie.nfo"), editedTitle);
+                    var titleNfoPath = ResolveNfoPath(movieFolder, movie.VideoFileRelPath);
+                    if (titleNfoPath != null) UpdateMovieNfoTitle(titleNfoPath, editedTitle);
                 AppState.Instance.Db.UpdateMovieTitle(movie.Id, editedTitle);
                 movie.Title = editedTitle;
                 TitleBarText.Text = editedTitle;

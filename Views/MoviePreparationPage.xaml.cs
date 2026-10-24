@@ -492,7 +492,7 @@ public sealed partial class MoviePreparationPage : Page
         var style = new Style(typeof(Button));
         style.Setters.Add(new Setter(Control.BackgroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(background)));
         style.Setters.Add(new Setter(Control.ForegroundProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(foreground)));
-        style.Setters.Add(new Setter(Button.CornerRadiusProperty, new CornerRadius(8)));
+        style.Setters.Add(new Setter(Button.CornerRadiusProperty, new CornerRadius(6)));
         style.Setters.Add(new Setter(Control.BorderBrushProperty, new Microsoft.UI.Xaml.Media.SolidColorBrush(background)));
         style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
         return style;

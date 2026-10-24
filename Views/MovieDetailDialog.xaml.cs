@@ -892,17 +892,22 @@ public sealed partial class MovieDetailDialog : Window
                 CharacterSpacing = 150, Opacity = 0.65,
                 Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
             });
-            var ratingText = rt.Value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)
-                             + (rt.Source.Equals("rottentomatoes", StringComparison.OrdinalIgnoreCase) ? "%" : "");
-            if (rt.Votes.HasValue && rt.Votes.Value > 0)
-                ratingText += $"  ·  {FormatVotes(rt.Votes.Value)}";
             stack.Children.Add(new TextBlock
             {
-                Text = ratingText,
+                Text = rt.Value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)
+                       + (rt.Source.Equals("rottentomatoes", StringComparison.OrdinalIgnoreCase) ? "%" : ""),
                 FontSize = 16, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
                 Foreground = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush"),
-                TextTrimming = Microsoft.UI.Xaml.TextTrimming.CharacterEllipsis,
             });
+            if (rt.Votes.HasValue && rt.Votes.Value > 0)
+            {
+                stack.Children.Add(new TextBlock
+                {
+                    Text = FormatVotes(rt.Votes.Value),
+                    FontSize = 10,
+                    Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
+                });
+            }
             RatingsPanel.Children.Add(stack);
         }
     }

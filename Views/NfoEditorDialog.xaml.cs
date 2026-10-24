@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
@@ -291,6 +292,24 @@ public sealed partial class NfoEditorDialog : Window
     }
     private static void DigitsOnly(TextBox sender, TextBoxBeforeTextChangingEventArgs args) => args.Cancel = args.NewText.Any(c => !char.IsDigit(c));
     private static void NumericOrDecimalOnly(TextBox sender, TextBoxBeforeTextChangingEventArgs args) => args.Cancel = args.NewText.Any(c => !char.IsDigit(c) && c != '.' && c != ',') || args.NewText.Count(c => c == '.' || c == ',') > 1;
+    private async void OnEditRating(object sender, RoutedEventArgs e)
+    {
+        if (RatingsList.SelectedItem is not RatingRow selected) return;
+        var panel = new StackPanel { Spacing = 8 };
+        var source = new ComboBox { Header = "Источник", ItemsSource = RatingSources, SelectedItem = selected.Source, HorizontalAlignment = HorizontalAlignment.Stretch };
+        var value = new TextBox { Header = "Рейтинг", Text = selected.Value, PlaceholderText = "Например, 7.8" };
+        var votes = new TextBox { Header = "Количество голосов", Text = selected.Votes, PlaceholderText = "Например, 12500" };
+        value.BeforeTextChanging += NumericOrDecimalOnly; votes.BeforeTextChanging += DigitsOnly;
+        panel.Children.Add(source); panel.Children.Add(value); panel.Children.Add(votes);
+        var dialog = new ContentDialog { Title = "Изменить рейтинг", Content = panel, PrimaryButtonText = "Сохранить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
+        dialog.PrimaryButtonClick += (s, args) => { if (!decimal.TryParse(value.Text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal parsedRating) || parsedRating < 0 || parsedRating > 10 || !int.TryParse(votes.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedVotes) || parsedVotes < 0) args.Cancel = true; };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            var index = _ratings.IndexOf(selected);
+            if (index >= 0) _ratings[index] = new RatingRow { Source = source.SelectedItem?.ToString() ?? "tmdb", Value = value.Text.Replace(',', '.'), Votes = votes.Text };
+            RatingsList.SelectedIndex = index;
+        }
+    }
     private void OnRemoveRating(object sender, RoutedEventArgs e) { if (RatingsList.SelectedItem is RatingRow item) _ratings.Remove(item); }
     private async void OnAddIdentifier(object sender, RoutedEventArgs e)
     {
@@ -301,7 +320,30 @@ public sealed partial class NfoEditorDialog : Window
         var dialog = new ContentDialog { Title = "Добавить идентификатор", Content = panel, PrimaryButtonText = "Добавить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
         if (await dialog.ShowAsync() == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(id.Text)) _identifiers.Add(new IdentifierRow { Source = source.SelectedItem?.ToString() ?? "tmdb", Identifier = id.Text.Trim() });
     }
+    private async void OnEditIdentifier(object sender, RoutedEventArgs e)
+    {
+        if (IdentifiersList.SelectedItem is not IdentifierRow selected) return;
+        var panel = new StackPanel { Spacing = 8 };
+        var source = new ComboBox { Header = "Источник", ItemsSource = RatingSources, SelectedItem = selected.Source, HorizontalAlignment = HorizontalAlignment.Stretch };
+        var id = new TextBox { Header = "Идентификатор", Text = selected.Identifier, PlaceholderText = "Введите идентификатор" };
+        panel.Children.Add(source); panel.Children.Add(id);
+        var dialog = new ContentDialog { Title = "Изменить идентификатор", Content = panel, PrimaryButtonText = "Сохранить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(id.Text))
+        {
+            var index = _identifiers.IndexOf(selected);
+            if (index >= 0) _identifiers[index] = new IdentifierRow { Source = source.SelectedItem?.ToString() ?? "tmdb", Identifier = id.Text.Trim() };
+            IdentifiersList.SelectedIndex = index;
+        }
+    }
     private void OnRemoveIdentifier(object sender, RoutedEventArgs e) { if (IdentifiersList.SelectedItem is IdentifierRow item) _identifiers.Remove(item); }
+    private void OnGenreInputKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key != Windows.System.VirtualKey.Enter) return;
+        var genre = GenreInputBox.Text.Trim();
+        if (genre.Length > 0 && !_genres.Any(x => string.Equals(x, genre, StringComparison.OrdinalIgnoreCase))) _genres.Add(genre);
+        if (genre.Length > 0) { GenresList.SelectedItem = _genres.FirstOrDefault(x => string.Equals(x, genre, StringComparison.OrdinalIgnoreCase)); GenreInputBox.Text = string.Empty; }
+        e.Handled = true;
+    }
     private async void OnAddGenre(object sender, RoutedEventArgs e)
     {
         var list = new ListView { ItemsSource = StandardGenres, SelectionMode = ListViewSelectionMode.Multiple, MaxHeight = 360 };
@@ -323,7 +365,6 @@ public sealed partial class NfoEditorDialog : Window
         }
     }
 
-    private void OnRemoveGenre(object sender, RoutedEventArgs e) { if (GenresList.SelectedItem is string item) _genres.Remove(item); }
 
     private void Set(string name, string? value)
     {

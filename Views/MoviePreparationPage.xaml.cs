@@ -523,11 +523,11 @@ public sealed partial class MoviePreparationPage : Page
                 PrimaryButtonStyle = CreateOverwriteDialogButtonStyle(
                     Windows.UI.Color.FromArgb(255, 56, 128, 255),
                     Windows.UI.Color.FromArgb(255, 255, 255, 255)),
-                CloseButtonText = "Отмена",
-                CloseButtonStyle = CreateOverwriteDialogButtonStyle(
+                SecondaryButtonText = "Отмена",
+                SecondaryButtonStyle = CreateOverwriteDialogButtonStyle(
                     Windows.UI.Color.FromArgb(255, 43, 43, 46),
                     Windows.UI.Color.FromArgb(255, 235, 235, 235)),
-                DefaultButton = ContentDialogButton.Close
+                DefaultButton = ContentDialogButton.Primary
             };
             if (await confirm.ShowAsync() != ContentDialogResult.Primary) return false;
         }

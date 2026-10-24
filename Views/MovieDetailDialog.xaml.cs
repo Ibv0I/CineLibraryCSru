@@ -25,6 +25,7 @@ public sealed partial class MovieDetailDialog : Window
     private int _movieId;
     private MovieDetail? _movie;
     private bool _closed;
+    private readonly bool _replaceMainWindow;
     private int _kinopoiskId;
 
     // v4.5.0: the movies of the grid this window was opened from, in order, so
@@ -45,9 +46,10 @@ public sealed partial class MovieDetailDialog : Window
     public event EventHandler? WatchlistChanged;
 
     /// <param name="grid">The movies of the grid or list it was opened from, for ← and →.</param>
-    public MovieDetailDialog(int movieId, System.Collections.IEnumerable? grid = null)
+    public MovieDetailDialog(int movieId, System.Collections.IEnumerable? grid = null, bool replaceMainWindow = true)
     {
         _movieId = movieId;
+        _replaceMainWindow = replaceMainWindow;
         var ids = grid?.OfType<MovieListItem>().Select(x => x.Id).ToList();
         if (ids is { Count: > 1 } && IndexOf(ids, movieId) is var at and >= 0)
         {
@@ -94,6 +96,21 @@ public sealed partial class MovieDetailDialog : Window
             presenter.Maximize();
         }
 
+        // Browser-style back mouse button returns to the library.
+        RootGrid.PointerPressed += (_, e) =>
+        {
+            try
+            {
+                var props = e.GetCurrentPoint(RootGrid).Properties;
+                if (props.IsXButton1Pressed)
+                {
+                    e.Handled = true;
+                    Close();
+                }
+            }
+            catch { }
+        };
+
         // Esc closes the dialog
         var escAcc = new Microsoft.UI.Xaml.Input.KeyboardAccelerator
         {
@@ -129,7 +146,7 @@ public sealed partial class MovieDetailDialog : Window
         nint mainWindowHandle = 0;
         try
         {
-            if (mainWindow != null)
+            if (_replaceMainWindow && mainWindow != null)
             {
                 mainWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(mainWindow);
                 if (mainWindowHandle != 0)
@@ -142,9 +159,11 @@ public sealed partial class MovieDetailDialog : Window
             _closed = true;
             try
             {
-                if (mainWindowHandle != 0)
+                if (_replaceMainWindow && mainWindowHandle != 0)
+                {
                     ShowWindow(mainWindowHandle, SW_SHOW);
-                mainWindow?.Activate();
+                    mainWindow?.Activate();
+                }
             }
             catch { }
         };

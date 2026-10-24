@@ -145,6 +145,22 @@ public sealed partial class MovieCardControl : UserControl
             }
             ApplyRestingShadow();
         };
+        // Middle-click opens a separate detail window; regular click replaces the main window.
+        bool openSeparateOnNextTap = false;
+        PointerPressed += (_, e) =>
+        {
+            try
+            {
+                if (e.GetCurrentPoint(this).Properties.IsMiddleButtonPressed)
+                {
+                    openSeparateOnNextTap = true;
+                    _pendingSingleTap?.Cancel();
+                    _pendingSingleTap = null;
+                }
+            }
+            catch { }
+        };
+
         // Single tap → open details after a short delay (so a double-tap
         // gets a chance to suppress it). Double tap → play directly.
         // Ctrl/Shift+tap → route to LibraryPage for multi-select.
@@ -155,6 +171,15 @@ public sealed partial class MovieCardControl : UserControl
                 e.Handled = true; return;
             }
             if (Movie == null) return;
+            if (openSeparateOnNextTap)
+            {
+                openSeparateOnNextTap = false;
+                _pendingSingleTap?.Cancel();
+                _pendingSingleTap = null;
+                OpenDetail(replaceMainWindow: false);
+                e.Handled = true;
+                return;
+            }
             bool ctrl = IsCtrlDown(), shift = IsShiftDown();
             if (ctrl || shift)
             {
@@ -501,10 +526,10 @@ public sealed partial class MovieCardControl : UserControl
     private System.Collections.IEnumerable? GridSource()
         => (VisualTreeHelper.GetParent(this) as ItemsRepeater)?.ItemsSource as System.Collections.IEnumerable;
 
-    private void OpenDetail()
+    private void OpenDetail(bool replaceMainWindow = true)
     {
         if (Movie == null) return;
-        var win = new MovieDetailDialog(Movie.Id, GridSource());
+        var win = new MovieDetailDialog(Movie.Id, GridSource(), replaceMainWindow);
         win.WatchlistChanged += (s, e) => SidebarRefreshRequested?.Invoke(this, EventArgs.Empty);
         win.Activate();
     }

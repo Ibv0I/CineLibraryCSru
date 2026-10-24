@@ -359,6 +359,8 @@ public sealed partial class NfoEditorDialog : Window
 
     private void OnIdentifierSelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateSelectionVisuals(IdentifiersList, "IdentifierSelectionIndicator", "IdentifierRowBackground");
     private void OnRatingSelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateSelectionVisuals(RatingsList, "RatingSelectionIndicator", "RatingRowBackground");
+    private void OnAudioTrackSelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateSelectionVisuals(AudioTracksList, "AudioSelectionIndicator", "AudioRowBackground");
+    private void OnSubtitleSelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateSelectionVisuals(SubtitlesList, "SubtitleSelectionIndicator", "SubtitleRowBackground");
 
     private static void UpdateSelectionVisuals(ListView list, string indicatorName, string backgroundName)
     {

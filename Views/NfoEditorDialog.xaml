@@ -5,7 +5,7 @@
     Title="Редактор NFO">
     <Grid x:Name="RootGrid" RequestedTheme="Dark" Background="#121214" Padding="14" RowSpacing="8">
         <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-        <TabView Grid.Row="0" x:Name="EditorTabs" IsAddTabButtonVisible="False" IsTabStripVisible="False" TabWidthMode="Equal">
+        <TabView Grid.Row="0" x:Name="EditorTabs" IsAddTabButtonVisible="False" TabWidthMode="Equal">
             <TabViewItem Header="Метаданные">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,8,12,8">
                     <StackPanel Spacing="6">

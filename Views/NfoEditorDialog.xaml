@@ -5,7 +5,7 @@
     Title="Редактор NFO">
     <Grid x:Name="RootGrid" RequestedTheme="Dark" Background="#121214" Padding="14" RowSpacing="8">
         <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-        <TabView Grid.Row="0" x:Name="EditorTabs" IsAddTabButtonVisible="False" TabWidthMode="Equal">
+        <TabView Grid.Row="0" x:Name="EditorTabs" IsAddTabButtonVisible="False" IsTabStripVisible="False" TabWidthMode="Equal">
             <TabViewItem Header="Метаданные">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,8,12,8">
                     <StackPanel Spacing="6">
@@ -46,7 +46,7 @@
                                     <TextBlock Text="Источник" Grid.Column="0" FontSize="12" Foreground="{ThemeResource MutedBrush}" TextAlignment="Center" HorizontalAlignment="Stretch"/>
                                     <TextBlock Text="Идентификатор" Grid.Column="1" FontSize="12" Foreground="{ThemeResource MutedBrush}" TextAlignment="Center" HorizontalAlignment="Stretch"/>
                                 </Grid>
-                                <ListView x:Name="IdentifiersList" MinHeight="108" Height="108" SelectionMode="Single" Padding="0" ScrollViewer.VerticalScrollBarVisibility="Disabled" SelectionChanged="OnIdentifierSelectionChanged">
+                                <ListView x:Name="IdentifiersList" MinHeight="108" Height="108" SelectionMode="Single" Padding="0" ScrollViewer.VerticalScrollBarVisibility="Auto" SelectionChanged="OnIdentifierSelectionChanged">
                                     <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Height" Value="32"/><Setter Property="MinHeight" Value="32"/><Setter Property="Padding" Value="0"/><Setter Property="CornerRadius" Value="6"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style></ListView.ItemContainerStyle>
                                     <ListView.ItemTemplate><DataTemplate><Grid x:Name="IdentifierRowRoot" Height="28" ColumnSpacing="0"><Grid.ColumnDefinitions><ColumnDefinition Width="4"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border x:Name="IdentifierSelectionIndicator" Grid.Column="0" Background="#3987FF" CornerRadius="2" Margin="0,4,0,4" Opacity="0"/><Border x:Name="IdentifierRowBackground" Grid.Column="1" Background="Transparent" CornerRadius="6" Padding="2,0"><Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Source}" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Identifier}" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis"/></Grid></Border></Grid></DataTemplate></ListView.ItemTemplate>
                                 </ListView>
@@ -64,7 +64,7 @@
                                     <TextBlock Text="Рейтинг" Grid.Column="1" FontSize="12" Foreground="{ThemeResource MutedBrush}" TextAlignment="Center" HorizontalAlignment="Stretch"/>
                                     <TextBlock Text="Количество голосов" Grid.Column="2" FontSize="12" Foreground="{ThemeResource MutedBrush}" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Stretch"/>
                                 </Grid>
-                                <ListView x:Name="RatingsList" MinHeight="108" Height="108" SelectionMode="Single" Padding="0" ScrollViewer.VerticalScrollBarVisibility="Disabled" SelectionChanged="OnRatingSelectionChanged">
+                                <ListView x:Name="RatingsList" MinHeight="108" Height="108" SelectionMode="Single" Padding="0" ScrollViewer.VerticalScrollBarVisibility="Auto" SelectionChanged="OnRatingSelectionChanged">
                                     <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Height" Value="32"/><Setter Property="MinHeight" Value="32"/><Setter Property="Padding" Value="0"/><Setter Property="CornerRadius" Value="6"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style></ListView.ItemContainerStyle>
                                     <ListView.ItemTemplate><DataTemplate><Grid x:Name="RatingRowRoot" Height="28" ColumnSpacing="0"><Grid.ColumnDefinitions><ColumnDefinition Width="4"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border x:Name="RatingSelectionIndicator" Grid.Column="0" Background="#3987FF" CornerRadius="2" Margin="0,4,0,4" Opacity="0"/><Border x:Name="RatingRowBackground" Grid.Column="1" Background="Transparent" CornerRadius="6" Padding="2,0"><Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Source}" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Value}" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Votes}" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis"/></Grid></Border></Grid></DataTemplate></ListView.ItemTemplate>
                                 </ListView>
@@ -78,7 +78,7 @@
                     </StackPanel>
                 </ScrollViewer>
             </TabViewItem>
-            <TabViewItem Header="Техническая информация">
+            <TabViewItem Header="Техническая информация" Visibility="Collapsed">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,8,12,8">
                     <StackPanel Spacing="10">
                         <Grid ColumnSpacing="10">

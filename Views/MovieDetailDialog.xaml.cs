@@ -1331,11 +1331,6 @@ public sealed partial class MovieDetailDialog : Window
             await noApi.ShowAsync(); return;
         }
 
-        var originalEditBackground = EditArtworkBtn.Background;
-        var originalEditForeground = EditArtworkBtn.Foreground;
-        var originalEditToolTip = ToolTipService.GetToolTip(EditArtworkBtn);
-        var activeBackground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 59, 130, 246));
-        var activeForeground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
         try
         {
             var folderPoster = movieFolder == null ? null : Path.Combine(movieFolder, "poster.jpg");
@@ -1358,15 +1353,9 @@ public sealed partial class MovieDetailDialog : Window
                 localFanart != null && File.Exists(localFanart) ? localFanart : null,
                 ownerWindow: this,
                 initialTitle: movie.Title);
-            // Only the clicked pencil stays highlighted while its metadata window is open.
-            // Hide its tooltip until the window closes to prevent it appearing over the dialog.
-            EditArtworkBtn.Background = activeBackground;
-            EditArtworkBtn.Foreground = activeForeground;
-            ToolTipService.SetToolTip(EditArtworkBtn, null);
+            // The action button uses its normal appearance while the picker is open;
+            // blue is reserved for pointer-over/pressed states in its template.
             var result = await picker.ShowAsync();
-            EditArtworkBtn.Background = originalEditBackground;
-            EditArtworkBtn.Foreground = originalEditForeground;
-            ToolTipService.SetToolTip(EditArtworkBtn, originalEditToolTip);
             if (result != ContentDialogResult.Primary || picker.Movie == null) return;
 
             var edited = picker.Movie;
@@ -1440,9 +1429,6 @@ public sealed partial class MovieDetailDialog : Window
         }
         catch (Exception ex)
         {
-            EditArtworkBtn.Background = originalEditBackground;
-            EditArtworkBtn.Foreground = originalEditForeground;
-            ToolTipService.SetToolTip(EditArtworkBtn, originalEditToolTip);
             var error = new ContentDialog { Title = "Ошибка изменения оформления", Content = ex.Message, CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
             await error.ShowAsync();
         }

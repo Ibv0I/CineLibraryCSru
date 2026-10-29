@@ -86,9 +86,7 @@
                         Background="#CC000000" Opacity="0" Visibility="Collapsed">
                     <Grid>
                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
-                            <TextBlock x:Name="GenresText" FontSize="11"
-                                       Foreground="#E0E0E0"
-                                       TextAlignment="Center" TextWrapping="Wrap" MaxWidth="150"/>
+                            <TextBlock x:Name="GenresText" Visibility="Collapsed" FontSize="11"/>
                             <!-- v4.5.0: ▶ Play when the drive is connected (a double-click
                                  did this, which few found); otherwise the drive it's on -->
                             <Button x:Name="HoverPlayBtn" Content="▶ Play" Click="OnHoverPlay"
@@ -97,32 +95,15 @@
                             <TextBlock x:Name="HoverDriveText" FontSize="11" Foreground="#F0997B"
                                        TextAlignment="Center" TextWrapping="Wrap" MaxWidth="150"
                                        Visibility="Collapsed"/>
-                            <Button Content="View Details" Click="OnViewDetails"
+                            <Button Content="Детали" Click="OnViewDetails"
                                     Style="{StaticResource PillButtonStyle}"
                                     HorizontalAlignment="Center"/>
                         </StackPanel>
-                        <!-- v4.5.0 (#23): Watchlist, Watched and Favorite as icons, dim
-                             when off. The heart sits right over the favorite badge. -->
                         <StackPanel Orientation="Horizontal" Spacing="6" Margin="8"
-                                    VerticalAlignment="Top" HorizontalAlignment="Right">
-                            <Button x:Name="WatchlistIconBtn" Click="OnWatchlistToggle"
-                                    Style="{StaticResource CardIconToggleStyle}"
-                                    AutomationProperties.Name="Watchlist">
-                                <FontIcon x:Name="WatchlistIcon" FontSize="14"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
-                            </Button>
-                            <Button x:Name="WatchedIconBtn" Click="OnWatchedToggle"
-                                    Style="{StaticResource CardIconToggleStyle}"
-                                    AutomationProperties.Name="Watched">
-                                <FontIcon x:Name="WatchedIcon" Glyph="&#xE73E;" FontSize="14"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
-                            </Button>
-                            <Button x:Name="FavIconBtn" Click="OnFavoriteToggle"
-                                    Style="{StaticResource CardIconToggleStyle}"
-                                    AutomationProperties.Name="Favorite">
-                                <FontIcon x:Name="FavIcon" FontSize="14"
-                                          FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/>
-                            </Button>
+                                    VerticalAlignment="Top" HorizontalAlignment="Right" Visibility="Collapsed">
+                            <Button x:Name="WatchlistIconBtn" Click="OnWatchlistToggle" Style="{StaticResource CardIconToggleStyle}" AutomationProperties.Name="Watchlist"><FontIcon x:Name="WatchlistIcon" FontSize="14" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/></Button>
+                            <Button x:Name="WatchedIconBtn" Click="OnWatchedToggle" Style="{StaticResource CardIconToggleStyle}" AutomationProperties.Name="Watched"><FontIcon x:Name="WatchedIcon" Glyph="&#xE73E;" FontSize="14" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/></Button>
+                            <Button x:Name="FavIconBtn" Click="OnFavoriteToggle" Style="{StaticResource CardIconToggleStyle}" AutomationProperties.Name="Favorite"><FontIcon x:Name="FavIcon" FontSize="14" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"/></Button>
                         </StackPanel>
                     </Grid>
                 </Border>

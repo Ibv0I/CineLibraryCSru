@@ -339,7 +339,55 @@ public sealed partial class NfoEditorDialog : Window
         var id = new TextBox { Header = "Идентификатор", PlaceholderText = "Введите идентификатор" };
         panel.Children.Add(source); panel.Children.Add(id);
         var dialog = new ContentDialog { Title = "Добавить идентификатор", Content = panel, PrimaryButtonText = "Добавить", CloseButtonText = "Отмена", DefaultButton = ContentDialogButton.Primary, RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(id.Text)) _identifiers.Add(new IdentifierRow { Source = source.SelectedItem?.ToString() ?? "tmdb", Identifier = id.Text.Trim() });
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(id.Text))
+        {
+            var provider = source.SelectedItem?.ToString() ?? "tmdb";
+            var identifier = id.Text.Trim();
+            _identifiers.Add(new IdentifierRow { Source = provider, Identifier = identifier });
+            await TryLoadRatingForIdentifierAsync(provider, identifier);
+        }
+    }
+
+    private async Task TryLoadRatingForIdentifierAsync(string provider, string identifier)
+    {
+        if (!int.TryParse(identifier, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) || id <= 0) return;
+        try
+        {
+            double rating;
+            int votes;
+            if (provider.Equals("tmdb", StringComparison.OrdinalIgnoreCase))
+            {
+                using var client = new CineLibraryCS.Services.Tmdb.TmdbClient(language: "ru-RU");
+                var movie = await client.GetMovieDetailsAsync(id);
+                if (movie == null || movie.Rating <= 0) return;
+                rating = movie.Rating;
+                votes = Math.Max(0, movie.VoteCount);
+            }
+            else if (provider.Equals("kinopoisk", StringComparison.OrdinalIgnoreCase) || provider.Equals("kinopoiskdev", StringComparison.OrdinalIgnoreCase))
+            {
+                using var client = new CineLibraryCS.Services.KinopoiskClient();
+                var movie = await client.GetMovieDetailsAsync(id);
+                if (movie?.Rating is not double kpRating || kpRating <= 0) return;
+                rating = kpRating;
+                votes = Math.Max(0, movie.VoteCount);
+                provider = "kinopoisk";
+            }
+            else return;
+
+            var existing = _ratings.FirstOrDefault(x => x.Source.Equals(provider, StringComparison.OrdinalIgnoreCase));
+            var row = new RatingRow { Source = provider, Value = rating.ToString("0.0#", CultureInfo.InvariantCulture), Votes = votes.ToString(CultureInfo.InvariantCulture) };
+            if (existing != null)
+            {
+                var index = _ratings.IndexOf(existing);
+                if (index >= 0) _ratings[index] = row;
+            }
+            else _ratings.Add(row);
+        }
+        catch (Exception ex)
+        {
+            var dialog = new ContentDialog { Title = "Не удалось загрузить рейтинг", Content = ex.Message, CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
+            await dialog.ShowAsync();
+        }
     }
     private async void OnEditIdentifier(object sender, RoutedEventArgs e)
     {

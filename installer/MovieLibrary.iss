@@ -61,7 +61,7 @@ LZMAUseSeparateProcess=yes
 ; UI
 WizardStyle=modern
 SetupIconFile=..\Assets\icon.ico
-UninstallDisplayIcon={app}\Иконка\Movie Library.ico
+UninstallDisplayIcon={app}\Movie Library.ico
 UninstallDisplayName={#MyAppName} (Portable) @ {app}
 DisableReadyPage=no
 DisableWelcomePage=no
@@ -93,14 +93,15 @@ Name: "desktopicon";   Description: "Create a &Desktop shortcut";   GroupDescrip
 Name: "startmenuicon"; Description: "Create a &Start Menu shortcut"; GroupDescription: "Optional shortcuts:"; Flags: unchecked
 
 [Files]
-; Keep the many runtime/dependency files together in a dedicated application folder.
-Source: "{#SourceDir}\*"; DestDir: "{app}\Программа"; Flags: ignoreversion recursesubdirs createallsubdirs
-; Standalone app icon, easy to find without digging through runtime dependencies.
-Source: "..\Assets\icon.ico"; DestDir: "{app}\Иконка"; DestName: "Movie Library.ico"; Flags: ignoreversion
+; Keep all application files in the installation root. WinUI/.NET dependencies must stay beside MovieLibrary.exe.
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Copy the icon to the root as well.
+Source: "..\Assets\icon.ico"; DestDir: "{app}"; DestName: "Movie Library.ico"; Flags: ignoreversion
 
 [Icons]
-Name: "{autodesktop}\{#MyAppName}";       Filename: "{app}\Программа\{#MyAppExeName}"; WorkingDir: "{app}\Программа"; Tasks: desktopicon
-Name: "{autoprograms}\{#MyAppName}";      Filename: "{app}\Программа\{#MyAppExeName}"; WorkingDir: "{app}\Программа"; Tasks: startmenuicon
+Name: "{app}\Movie Library — Запуск"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
+Name: "{autodesktop}\{#MyAppName}";       Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autoprograms}\{#MyAppName}";      Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: startmenuicon
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName} now"; Flags: nowait postinstall skipifsilent; WorkingDir: "{app}"

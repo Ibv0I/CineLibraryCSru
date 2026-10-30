@@ -432,7 +432,7 @@ public sealed partial class MovieCardControl : UserControl
 
         try
         {
-            var bytes = await Task.Run(() => ImageCache.GetOrLoad(relPath!, fullPath));
+            var bytes = await ImageCache.GetOrLoadAsync(relPath!, fullPath);
             if (myToken != _posterLoadToken) return;
             if (bytes == null)
             {

@@ -415,7 +415,7 @@
                             Background="{ThemeResource CardBrush}" BorderBrush="{ThemeResource BorderBrush}"
                             BorderThickness="1" CornerRadius="8" MaxWidth="560" HorizontalAlignment="Left">
                         <StackPanel Spacing="10">
-                            <TextBlock Text="ФИНАНСЫ И НАГРАДЫ" FontSize="10" FontWeight="SemiBold"
+                            <TextBlock Text="ФИНАНСЫ" FontSize="10" FontWeight="SemiBold"
                                        CharacterSpacing="150" Foreground="{ThemeResource MutedBrush}" />
                             <Grid ColumnSpacing="16">
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -428,10 +428,6 @@
                                     <TextBlock x:Name="RevenueDetailText" FontSize="13" FontWeight="SemiBold" Foreground="{ThemeResource TextBrush}" />
                                 </StackPanel>
                             </Grid>
-                            <StackPanel x:Name="AwardsDetailBlock" Spacing="4" Visibility="Collapsed">
-                                <TextBlock Text="НАГРАДЫ И НОМИНАЦИИ" FontSize="9" Foreground="{ThemeResource MutedBrush}" />
-                                <TextBlock x:Name="AwardsDetailText" FontSize="13" Foreground="{ThemeResource TextBrush}" TextWrapping="Wrap" />
-                            </StackPanel>
                         </StackPanel>
                     </Border>
 

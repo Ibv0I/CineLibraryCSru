@@ -634,7 +634,7 @@ public sealed partial class MovieDetailDialog : Window
                  {
                      OriginalTitle, TaglineWrap, PlotSection, PlotDivider, DirectorField, WriterField,
                      StudioLabel, StudioText, StudioLink, CastSection, CastDivider, CastShowAllBtn,
-                     CollectionSection, DirectorSection, FileInfoPanel, FinanceAwardsPanel, AwardsDetailBlock, FiRuntimeBlock, FiReleaseBlock,
+                     CollectionSection, DirectorSection, FileInfoPanel, FinanceAwardsPanel, FiRuntimeBlock, FiReleaseBlock,
                      FiMpaaBlock, FiCountryBlock, FiSizeBlock, FiDurBlock, FiContainerBlock, FiLangBlock,
                      FiSubsBlock, AddTagBox,
                  })
@@ -990,20 +990,26 @@ public sealed partial class MovieDetailDialog : Window
                     var doc = new XmlDocument(); doc.Load(nfoPath);
                     budget = doc.SelectSingleNode("/movie/budget")?.InnerText;
                     revenue = doc.SelectSingleNode("/movie/revenue")?.InnerText;
-                    awards = doc.SelectNodes("/movie/awards/award")?.OfType<XmlNode>().Select(x => x.InnerText.Trim()).Where(x => x.Length > 0).ToList() ?? new List<string>();
-                    if (awards.Count == 0 && doc.SelectSingleNode("/movie/awards") is XmlNode single && !string.IsNullOrWhiteSpace(single.InnerText)) awards.Add(single.InnerText.Trim());
+                    awards = doc.SelectNodes("/movie/awards/award")?.OfType<XmlNode>()
+                        .Select(x => x.InnerText.Trim()).Where(x => x.Length > 0).ToList() ?? new List<string>();
+                    if (awards.Count == 0 && doc.SelectSingleNode("/movie/awards") is XmlNode single
+                        && !string.IsNullOrWhiteSpace(single.InnerText))
+                        awards.Add(single.InnerText.Trim());
                 }
             }
         }
         catch { }
+
         BudgetDetailText.Text = FormatMoney(budget);
         RevenueDetailText.Text = FormatMoney(revenue);
         BudgetDetailText.Visibility = string.IsNullOrWhiteSpace(budget) ? Visibility.Collapsed : Visibility.Visible;
         RevenueDetailText.Visibility = string.IsNullOrWhiteSpace(revenue) ? Visibility.Collapsed : Visibility.Visible;
-        AwardsDetailText.Text = string.Join(Environment.NewLine, awards.Select(x => "• " + x));
-        AwardsDetailBlock.Visibility = awards.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        // Award details are intentionally shown only in the compact icon tooltips.
         PopulateAwardIcons(awards);
-        FinanceAwardsPanel.Visibility = (!string.IsNullOrWhiteSpace(budget) || !string.IsNullOrWhiteSpace(revenue) || awards.Count > 0) ? Visibility.Visible : Visibility.Collapsed;
+        FinanceAwardsPanel.Visibility =
+            (!string.IsNullOrWhiteSpace(budget) || !string.IsNullOrWhiteSpace(revenue))
+                ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private sealed record AwardGroup(string Name, string IconAsset, int Wins, List<string> Entries);
@@ -1012,54 +1018,94 @@ public sealed partial class MovieDetailDialog : Window
     {
         AwardsIconsPanel.Children.Clear();
         if (awards.Count == 0) return;
-        var groups = awards.GroupBy(GetAwardGroupName, StringComparer.OrdinalIgnoreCase)
+
+        var groups = awards
+            .GroupBy(GetAwardGroupName, StringComparer.OrdinalIgnoreCase)
             .Select(g =>
             {
                 var name = g.Key;
                 var entries = g.ToList();
-                var wins = entries.Count(x => x.Contains("Победа", StringComparison.OrdinalIgnoreCase) || x.Contains("win", StringComparison.OrdinalIgnoreCase));
+                var wins = entries.Count(x =>
+                    x.Contains("Победа", StringComparison.OrdinalIgnoreCase) ||
+                    x.Contains("win", StringComparison.OrdinalIgnoreCase));
                 return new AwardGroup(name, GetAwardIcon(name), wins, entries);
             })
-            .OrderByDescending(x => x.Wins).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase);
+            .OrderByDescending(x => x.Wins)
+            .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase);
+
         foreach (var group in groups)
         {
-            var button = new Button
+            // A plain StackPanel avoids the default Button chrome, border and hover frame.
+            var icon = new StackPanel
             {
-                Padding = new Thickness(5, 3, 5, 3), Margin = new Thickness(0),
-                MinWidth = 0, MinHeight = 0,
-                Background = new SolidColorBrush(Windows.UI.Color.FromArgb(35, 255, 255, 255)),
-                BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(55, 255, 255, 255)),
-                BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6),
-                Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, Children = {
-                    new Image
-                    {
-                        Width = 18, Height = 18, Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform,
-                        Source = new BitmapImage(new Uri($"ms-appx:///Assets/Awards/{group.IconAsset}")),
-                        VerticalAlignment = VerticalAlignment.Center
-                    },
-                    new TextBlock { Text = group.Wins.ToString(CultureInfo.InvariantCulture), FontSize = 11, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center }
-                }}
+                Orientation = Orientation.Horizontal,
+                Spacing = 3,
+                Margin = new Thickness(2, 1, 2, 1),
+                VerticalAlignment = VerticalAlignment.Center
             };
-            ToolTipService.SetToolTip(button, group.Name + Environment.NewLine + string.Join(Environment.NewLine, group.Entries.Select(x => "• " + x)));
-            AwardsIconsPanel.Children.Add(button);
+            icon.Children.Add(new Image
+            {
+                Width = 20,
+                Height = 27,
+                Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform,
+                Source = new BitmapImage(new Uri($"ms-appx:///Assets/Awards/{group.IconAsset}")),
+                VerticalAlignment = VerticalAlignment.Center
+            });
+            icon.Children.Add(new TextBlock
+            {
+                Text = group.Wins.ToString(CultureInfo.InvariantCulture),
+                FontSize = 11,
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextBrush"]
+            });
+
+            ToolTipService.SetToolTip(icon,
+                group.Name + Environment.NewLine +
+                string.Join(Environment.NewLine, group.Entries.Select(x => "• " + x)));
+            AwardsIconsPanel.Children.Add(icon);
         }
     }
 
     private static string GetAwardGroupName(string line)
     {
-        var parts = line.Split(new[] { " — ", " – ", " - " }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        return parts.FirstOrDefault(x => !int.TryParse(x, out _) && !x.Equals("Победа", StringComparison.OrdinalIgnoreCase) && !x.Equals("Номинация", StringComparison.OrdinalIgnoreCase)) ?? "Награды";
+        // Classify the complete award entry, not just the first dash-separated fragment:
+        // sources use several different word orders and separators.
+        if (ContainsAny(line, "оскар", "oscar", "academy award", "академия кинематографических искусств"))
+            return "Оскар";
+        if (ContainsAny(line, "золотой глобус", "golden globe", "golden globes"))
+            return "Золотой глобус";
+        if (ContainsAny(line, "bafta", "британская академия"))
+            return "BAFTA";
+        if (ContainsAny(line, "эмми", "emmy"))
+            return "Эмми";
+        if (ContainsAny(line, "канн", "cannes"))
+            return "Каннский кинофестиваль";
+        if (ContainsAny(line, "венец", "venice"))
+            return "Венецианский кинофестиваль";
+        if (ContainsAny(line, "сезар", "cesar"))
+            return "Сезар";
+
+        var parts = line.Split(new[] { " — ", " – ", " - ", ": " },
+            StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        return parts.FirstOrDefault(x =>
+            !int.TryParse(x, out _) &&
+            !x.Equals("Победа", StringComparison.OrdinalIgnoreCase) &&
+            !x.Equals("Номинация", StringComparison.OrdinalIgnoreCase)) ?? "Другие награды";
     }
+
+    private static bool ContainsAny(string value, params string[] terms) =>
+        terms.Any(term => value.Contains(term, StringComparison.OrdinalIgnoreCase));
 
     private static string GetAwardIcon(string name)
     {
-        if (name.Contains("оскар", StringComparison.OrdinalIgnoreCase) || name.Contains("academy", StringComparison.OrdinalIgnoreCase)) return "oscar.png";
-        if (name.Contains("золотой глобус", StringComparison.OrdinalIgnoreCase) || name.Contains("golden globe", StringComparison.OrdinalIgnoreCase)) return "golden-globe.png";
-        if (name.Contains("bafta", StringComparison.OrdinalIgnoreCase) || name.Contains("британ", StringComparison.OrdinalIgnoreCase)) return "bafta.png";
-        if (name.Contains("эмми", StringComparison.OrdinalIgnoreCase) || name.Contains("emmy", StringComparison.OrdinalIgnoreCase)) return "emmy.png";
-        if (name.Contains("канн", StringComparison.OrdinalIgnoreCase) || name.Contains("cannes", StringComparison.OrdinalIgnoreCase)) return "cannes.png";
-        if (name.Contains("венец", StringComparison.OrdinalIgnoreCase) || name.Contains("venice", StringComparison.OrdinalIgnoreCase)) return "venice.png";
-        if (name.Contains("сезар", StringComparison.OrdinalIgnoreCase) || name.Contains("cesar", StringComparison.OrdinalIgnoreCase)) return "cesar.png";
+        if (name.Equals("Оскар", StringComparison.OrdinalIgnoreCase)) return "oscar.png";
+        if (name.Equals("Золотой глобус", StringComparison.OrdinalIgnoreCase)) return "golden-globe.png";
+        if (name.Equals("BAFTA", StringComparison.OrdinalIgnoreCase)) return "bafta.png";
+        if (name.Equals("Эмми", StringComparison.OrdinalIgnoreCase)) return "emmy.png";
+        if (name.Equals("Каннский кинофестиваль", StringComparison.OrdinalIgnoreCase)) return "cannes.png";
+        if (name.Equals("Венецианский кинофестиваль", StringComparison.OrdinalIgnoreCase)) return "venice.png";
+        if (name.Equals("Сезар", StringComparison.OrdinalIgnoreCase)) return "cesar.png";
         return "generic.png";
     }
 

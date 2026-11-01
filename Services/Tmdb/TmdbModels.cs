@@ -50,6 +50,12 @@ public class TmdbMovie
     [JsonPropertyName("runtime")]
     public int Runtime { get; set; }
 
+    [JsonPropertyName("budget")]
+    public long Budget { get; set; }
+
+    [JsonPropertyName("revenue")]
+    public long Revenue { get; set; }
+
     [JsonPropertyName("genres")]
     public List<TmdbNamed> Genres { get; set; } = new();
 

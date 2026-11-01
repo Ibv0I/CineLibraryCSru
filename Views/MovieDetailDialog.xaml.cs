@@ -315,6 +315,7 @@ public sealed partial class MovieDetailDialog : Window
         PopulateTechBadges(m);
         PopulateRatingsPanel(m);
         PopulateFileInfo(m);
+        PopulateFinanceAwards(m);
         // Lists this movie is on (v2.5) — chip row with per-list ✕.
         RefreshListChips();
         // v2.9 — Free-form tags chip row + autocomplete.
@@ -633,7 +634,7 @@ public sealed partial class MovieDetailDialog : Window
                  {
                      OriginalTitle, TaglineWrap, PlotSection, PlotDivider, DirectorField, WriterField,
                      StudioLabel, StudioText, StudioLink, CastSection, CastDivider, CastShowAllBtn,
-                     CollectionSection, DirectorSection, FileInfoPanel, FiRuntimeBlock, FiReleaseBlock,
+                     CollectionSection, DirectorSection, FileInfoPanel, FinanceAwardsPanel, AwardsDetailBlock, FiRuntimeBlock, FiReleaseBlock,
                      FiMpaaBlock, FiCountryBlock, FiSizeBlock, FiDurBlock, FiContainerBlock, FiLangBlock,
                      FiSubsBlock, AddTagBox,
                  })
@@ -886,19 +887,26 @@ public sealed partial class MovieDetailDialog : Window
                 _ => Windows.UI.Color.FromArgb(0xFF, 0xB0, 0xB0, 0xB0),
             };
             var stack = new StackPanel { Spacing = 3 };
+            var sourceKey = source.ToLowerInvariant();
+            var brandBackground = sourceKey switch
+            {
+                "imdb" => Windows.UI.Color.FromArgb(0xFF, 0xF5, 0xC5, 0x18),
+                "tmdb" or "themoviedb" => Windows.UI.Color.FromArgb(0xFF, 0x03, 0x25, 0x41),
+                "kinopoisk" or "poiskkino" or "kinopoiskdev" => Windows.UI.Color.FromArgb(0xFF, 0xFF, 0x66, 0x00),
+                _ => accent,
+            };
             var sourceButton = new Button
             {
-                Content = sourceLabel,
-                FontSize = 10,
-                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                Padding = new Thickness(7, 2, 7, 2),
-                MinHeight = 24,
-                CornerRadius = new CornerRadius(4),
-                Background = new SolidColorBrush(accent),
-                Foreground = new SolidColorBrush(source.Equals("imdb", StringComparison.OrdinalIgnoreCase)
-                    ? Windows.UI.Color.FromArgb(0xFF, 0, 0, 0)
-                    : Windows.UI.Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF)),
-                BorderThickness = new Thickness(0),
+                Content = sourceKey switch { "imdb" => "IMDb", "tmdb" or "themoviedb" => "TMDb", "kinopoisk" or "poiskkino" or "kinopoiskdev" => "КиноПоиск", _ => sourceLabel },
+                FontSize = sourceKey.StartsWith("kinopoisk") ? 10 : 11,
+                FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+                Padding = new Thickness(8, 2, 8, 2),
+                MinHeight = 25,
+                CornerRadius = new CornerRadius(5),
+                Background = new SolidColorBrush(brandBackground),
+                Foreground = new SolidColorBrush(sourceKey == "imdb" ? Windows.UI.Color.FromArgb(0xFF, 0x12, 0x12, 0x12) : Windows.UI.Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF)),
+                BorderBrush = new SolidColorBrush(sourceKey is "tmdb" or "themoviedb" ? Windows.UI.Color.FromArgb(0xFF, 0x01, 0xD2, 0xD3) : brandBackground),
+                BorderThickness = new Thickness(sourceKey is "tmdb" or "themoviedb" ? 1 : 0),
                 HorizontalAlignment = HorizontalAlignment.Left,
             };
             sourceButton.Click += async (_, _) => await OpenRatingSourceAsync(source);
@@ -959,6 +967,44 @@ public sealed partial class MovieDetailDialog : Window
         >= 1_000     => $"{votes / 1_000.0:F1} тыс. голосов",
         _            => $"{votes} голосов",
     };
+
+    private void PopulateFinanceAwards(MovieDetail movie)
+    {
+        string? budget = null, revenue = null;
+        var awards = new List<string>();
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(movie.CurrentLetter) && !string.IsNullOrWhiteSpace(movie.FolderRelPath))
+            {
+                var folder = Path.Combine($"{movie.CurrentLetter}:\\", movie.FolderRelPath.Replace('/', '\\'));
+                var nfoPath = ResolveNfoPath(folder, movie.VideoFileRelPath);
+                if (nfoPath != null)
+                {
+                    var doc = new XmlDocument(); doc.Load(nfoPath);
+                    budget = doc.SelectSingleNode("/movie/budget")?.InnerText;
+                    revenue = doc.SelectSingleNode("/movie/revenue")?.InnerText;
+                    awards = doc.SelectNodes("/movie/awards/award")?.OfType<XmlNode>().Select(x => x.InnerText.Trim()).Where(x => x.Length > 0).ToList() ?? new List<string>();
+                    if (awards.Count == 0 && doc.SelectSingleNode("/movie/awards") is XmlNode single && !string.IsNullOrWhiteSpace(single.InnerText)) awards.Add(single.InnerText.Trim());
+                }
+            }
+        }
+        catch { }
+        BudgetDetailText.Text = FormatMoney(budget);
+        RevenueDetailText.Text = FormatMoney(revenue);
+        BudgetDetailText.Visibility = string.IsNullOrWhiteSpace(budget) ? Visibility.Collapsed : Visibility.Visible;
+        RevenueDetailText.Visibility = string.IsNullOrWhiteSpace(revenue) ? Visibility.Collapsed : Visibility.Visible;
+        AwardsDetailText.Text = string.Join(Environment.NewLine, awards.Select(x => "• " + x));
+        AwardsDetailBlock.Visibility = awards.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        FinanceAwardsPanel.Visibility = (!string.IsNullOrWhiteSpace(budget) || !string.IsNullOrWhiteSpace(revenue) || awards.Count > 0) ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private static string FormatMoney(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return "";
+        if (decimal.TryParse(raw, NumberStyles.Number, CultureInfo.InvariantCulture, out var value) && value > 0)
+            return "$" + value.ToString("N0", CultureInfo.InvariantCulture);
+        return raw;
+    }
 
     private void PopulateFileInfo(MovieDetail m)
     {
@@ -1112,7 +1158,7 @@ public sealed partial class MovieDetailDialog : Window
         // Wide: everything up to the cast sits beside the poster. Buttons and plot
         // go under the title; genres, director, studio, file info and notes get a
         // column of their own. Otherwise they stack under the poster as before.
-        foreach (var block in new FrameworkElement[] { ActionsBlock, FileInfoPanel, PlotBlock, NotesCard, FieldsBlock, TechRatingsRow })
+        foreach (var block in new FrameworkElement[] { ActionsBlock, FileInfoPanel, FinanceAwardsPanel, PlotBlock, NotesCard, FieldsBlock, TechRatingsRow })
             Detach(block);
 
         // Credits stay directly beneath the poster; genres are already in PosterColumn.
@@ -1125,12 +1171,14 @@ public sealed partial class MovieDetailDialog : Window
             MetaStack.Children.Add(ActionsBlock);
             SideStack.Children.Add(TechRatingsRow);
             SideStack.Children.Add(FileInfoPanel);
+            SideStack.Children.Add(FinanceAwardsPanel);
         }
         else
         {
             ContentStack.Children.Insert(ContentStack.Children.IndexOf(TopGrid) + 1, ActionsBlock);
             BodyStack.Children.Add(TechRatingsRow);
             BodyStack.Children.Add(FileInfoPanel);
+            BodyStack.Children.Add(FinanceAwardsPanel);
         }
         // The title column stops at a readable width; the details column takes the rest.
         var main = TopGrid.ColumnDefinitions[1];

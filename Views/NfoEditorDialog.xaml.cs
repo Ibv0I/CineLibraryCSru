@@ -201,6 +201,10 @@ public sealed partial class NfoEditorDialog : Window
         if (DateTime.TryParseExact(premiered, new[] { "yyyy-MM-dd", "dd-MM-yyyy", "yyyy-M-d" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var releaseDate)) PremieredBox.Text = releaseDate.ToString("dd-MM-yyyy", CultureInfo.InvariantCulture);
         else PremieredBox.Text = premiered ?? "";
         RuntimeBox.Text = Get("runtime");
+        BudgetBox.Text = Get("budget");
+        RevenueBox.Text = Get("revenue");
+        AwardsBox.Text = string.Join(Environment.NewLine, Elements("awards/award").Select(x => x.InnerText));
+        if (string.IsNullOrWhiteSpace(AwardsBox.Text)) AwardsBox.Text = Get("awards") ?? "";
         var certification = Get("mpaa") ?? Get("certification");
         CertificationBox.SelectedItem = RussianCertifications.FirstOrDefault(x => string.Equals(x, certification, StringComparison.OrdinalIgnoreCase));
         if (CertificationBox.SelectedItem == null && !string.IsNullOrWhiteSpace(certification)) CertificationBox.SelectedItem = "Неизвестно";
@@ -244,6 +248,8 @@ public sealed partial class NfoEditorDialog : Window
             Set("plot", PlotBox.Text); Set("year", YearBox.Text);
             Set("premiered", DateTime.TryParseExact(PremieredBox.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var releaseDate) ? releaseDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : "");
             Set("runtime", RuntimeBox.Text); Set("mpaa", CertificationBox.SelectedItem as string);
+            Set("budget", BudgetBox.Text); Set("revenue", RevenueBox.Text);
+            SetAwards(AwardsBox.Text);
             SetList("studio", StudiosBox.Text); SetList("country", CountriesBox.Text); SetList("genre", string.Join(Environment.NewLine, GenresBox.Text.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Distinct(StringComparer.OrdinalIgnoreCase)));
             SetRatings(); SetIdentifiers(); SetTechnical();
             var backup = _path + ".bak-" + DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
@@ -260,6 +266,46 @@ public sealed partial class NfoEditorDialog : Window
             var dialog = new ContentDialog { Title = "Не удалось сохранить NFO", Content = ex.Message, CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
             await dialog.ShowAsync();
         }
+    }
+
+    private void SetAwards(string text)
+    {
+        var old = _root.SelectSingleNode("awards");
+        if (old?.ParentNode != null) old.ParentNode.RemoveChild(old);
+        var lines = Lines(text);
+        if (lines.Length == 0) return;
+        var awards = _doc.CreateElement("awards");
+        foreach (var line in lines) { var item = _doc.CreateElement("award"); item.InnerText = line; awards.AppendChild(item); }
+        _root.AppendChild(awards);
+    }
+
+    private async void OnLoadExternalData(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var tmdbText = _identifiers.FirstOrDefault(x => x.Source.Equals("tmdb", StringComparison.OrdinalIgnoreCase))?.Identifier;
+            if (!int.TryParse(tmdbText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var tmdbId) || tmdbId <= 0)
+                throw new InvalidOperationException("Сначала добавь корректный TMDb ID.");
+            LoadExternalDataButton.IsEnabled = false; LoadExternalDataButton.Content = "Загрузка…";
+            using (var client = new CineLibraryCS.Services.Tmdb.TmdbClient(language: "ru-RU"))
+            {
+                var movie = await client.GetMovieDetailsAsync(tmdbId);
+                if (movie == null) throw new InvalidOperationException("TMDb не вернул данные фильма.");
+                if (movie.Budget > 0) BudgetBox.Text = movie.Budget.ToString(CultureInfo.InvariantCulture);
+                if (movie.Revenue > 0) RevenueBox.Text = movie.Revenue.ToString(CultureInfo.InvariantCulture);
+            }
+            var kpText = _identifiers.FirstOrDefault(x => new[] { "kinopoisk", "kinopoiskdev", "poiskkino" }.Contains(x.Source, StringComparer.OrdinalIgnoreCase))?.Identifier;
+            if (int.TryParse(kpText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kpId) && kpId > 0 && !string.IsNullOrWhiteSpace(CineLibraryCS.Services.KinopoiskSettings.ApiToken))
+            {
+                using var kp = new CineLibraryCS.Services.KinopoiskClient();
+                var awards = await kp.GetAwardsAsync(kpId);
+                if (awards.Count > 0) AwardsBox.Text = string.Join(Environment.NewLine, awards);
+            }
+            var info = new ContentDialog { Title = "Загрузка завершена", Content = "Финансовые данные получены из TMDb. Награды загружены, если API КиноПоиска предоставил их.", CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
+            await info.ShowAsync();
+        }
+        catch (Exception ex) { var error = new ContentDialog { Title = "Не удалось загрузить данные", Content = ex.Message, CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot }; await error.ShowAsync(); }
+        finally { LoadExternalDataButton.IsEnabled = true; LoadExternalDataButton.Content = "↓ Загрузить бюджет, сборы и награды"; }
     }
 
     private static bool IsValidYear(string? text) => int.TryParse(text, out var y) && y >= 1700 && y <= 2100;

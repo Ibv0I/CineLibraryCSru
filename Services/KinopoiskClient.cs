@@ -84,6 +84,28 @@ public sealed class KinopoiskClient : IDisposable
         return movie;
     }
 
+    public async Task<List<string>> GetAwardsAsync(int id)
+    {
+        var output = new List<string>();
+        try
+        {
+            var json = await _http.GetStringAsync($"{BaseUrl}/v2.2/films/{id}/awards");
+            using var doc = JsonDocument.Parse(json);
+            if (!doc.RootElement.TryGetProperty("items", out var items) || items.ValueKind != JsonValueKind.Array) return output;
+            foreach (var item in items.EnumerateArray())
+            {
+                var name = First(Str(item, "name"), Str(item, "awardName"), Str(item, "award"));
+                var category = First(Str(item, "nominationName"), Str(item, "category"));
+                var year = Int(item, "year");
+                var won = item.TryGetProperty("win", out var win) && win.ValueKind == JsonValueKind.True;
+                var line = string.Join(" — ", new[] { year > 0 ? year.ToString(CultureInfo.InvariantCulture) : "", name, category, won ? "Победа" : "Номинация" }.Where(x => !string.IsNullOrWhiteSpace(x)));
+                if (!string.IsNullOrWhiteSpace(line)) output.Add(line);
+            }
+        }
+        catch (HttpRequestException) { }
+        return output.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
     public async Task<TmdbMovieImages> GetMovieImagesAsync(int id)
     {
         var posters = await GetImagesOfTypeAsync(id, "POSTER");

@@ -30,10 +30,6 @@ public static class ImageCache
     private static readonly LinkedList<Entry> _lru = new();
     private static long _bytes;
 
-    // Avoid flooding a mechanical disk with dozens of simultaneous poster reads
-    // when the first page is realized. A small queue keeps scrolling responsive.
-    private static readonly SemaphoreSlim _posterReadGate = new(3, 3);
-
     private record Entry(string Key, byte[] Bytes);
 
     /// <summary>
@@ -101,33 +97,6 @@ public static class ImageCache
         catch
         {
             return null;
-        }
-    }
-
-    /// <summary>Asynchronous, throttled poster read for the scrolling movie grid.</summary>
-    public static async Task<byte[]?> GetOrLoadAsync(string key, string fullPath)
-    {
-        var cached = TryGet(key);
-        if (cached != null) return cached;
-
-        await _posterReadGate.WaitAsync().ConfigureAwait(false);
-        try
-        {
-            // Another card may have populated the cache while this request waited.
-            cached = TryGet(key);
-            if (cached != null) return cached;
-
-            var bytes = await File.ReadAllBytesAsync(fullPath).ConfigureAwait(false);
-            Set(key, bytes);
-            return bytes;
-        }
-        catch
-        {
-            return null;
-        }
-        finally
-        {
-            _posterReadGate.Release();
         }
     }
 

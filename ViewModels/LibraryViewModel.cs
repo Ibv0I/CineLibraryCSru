@@ -16,8 +16,6 @@ public partial class LibraryViewModel : ObservableObject
 {
     private const int PageSize = 60;
     private readonly AppState _state;
-    // Invalidates results from older filter/search requests.
-    private int _loadVersion;
 
     [ObservableProperty] private string _searchText = "";
     // v3.1 — search scope: "all" | "title" | "cast".
@@ -85,39 +83,30 @@ public partial class LibraryViewModel : ObservableObject
 
     public async Task LoadAsync()
     {
-        var requestVersion = Interlocked.Increment(ref _loadVersion);
         IsLoading = true;
         var opts = BuildOpts(0);
-
-        // Fetch the first page before running COUNT(*). The grid can render
-        // immediately instead of waiting for a second query on the same
-        // synchronized SQLite connection.
-        var movies = await Task.Run(() => _state.Db.GetMovies(opts, _state.Connected));
-        if (requestVersion != Volatile.Read(ref _loadVersion)) return;
+        // Real total for the filter — separate cheap COUNT(*) query so the
+        // header reads "60 of 1,200 movies" instead of pretending the whole
+        // library is whatever the first page returned.
+        var (movies, total) = await Task.Run(() => (
+            _state.Db.GetMovies(opts, _state.Connected),
+            _state.Db.GetMoviesCount(opts)
+        ));
 
         Movies.Clear();
         foreach (var m in movies) Movies.Add(m);
-        TotalCount = Movies.Count;
-        FilterTotal = movies.Count;
-        HasMore = movies.Count == PageSize;
-        IsLoading = false;
-
-        // The total is only needed for the catalog counter and final paging
-        // boundary; calculate it after the first page has become visible.
-        var total = await Task.Run(() => _state.Db.GetMoviesCount(opts));
-        if (requestVersion != Volatile.Read(ref _loadVersion)) return;
         FilterTotal = total;
-        HasMore = Movies.Count < total;
+        HasMore = movies.Count == PageSize && Movies.Count < total;
+        TotalCount = Movies.Count;
+        IsLoading = false;
     }
 
     public async Task LoadMoreAsync()
     {
         if (!HasMore || IsLoading) return;
-        var requestVersion = Volatile.Read(ref _loadVersion);
         IsLoading = true;
         var opts = BuildOpts(Movies.Count);
         var movies = await Task.Run(() => _state.Db.GetMovies(opts, _state.Connected));
-        if (requestVersion != Volatile.Read(ref _loadVersion)) return;
         foreach (var m in movies) Movies.Add(m);
         HasMore = movies.Count == PageSize && Movies.Count < FilterTotal;
         TotalCount = Movies.Count;

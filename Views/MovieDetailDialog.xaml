@@ -124,29 +124,6 @@
                         <Image x:Name="HeroImage" Stretch="UniformToFill"/>
                         <!-- Theme-aware fade, smoothly blending the banner into the page background. -->
                         <Border Background="{ThemeResource HeroFadeBrush}"/>
-                        <!-- IMDb / TMDb badge pills, top-right -->
-                        <StackPanel x:Name="ExternalLinksPanel" Orientation="Horizontal"
-                                    Spacing="6" Margin="14"
-                                    HorizontalAlignment="Right" VerticalAlignment="Top">
-                            <Button x:Name="ImdbLinkBtn" Visibility="Collapsed"
-                                    Click="OnOpenImdb"
-                                    Background="#F5C518" Foreground="#000000"
-                                    BorderThickness="0" CornerRadius="4"
-                                    Padding="8,3" FontSize="11" FontWeight="Bold"
-                                    Content="IMDb"/>
-                            <Button x:Name="TmdbLinkBtn" Visibility="Collapsed"
-                                    Click="OnOpenTmdb"
-                                    Background="#01B4E4" Foreground="#FFFFFF"
-                                    BorderThickness="0" CornerRadius="4"
-                                    Padding="8,3" FontSize="11" FontWeight="Bold"
-                                    Content="TMDb"/>
-                            <Button x:Name="KinopoiskLinkBtn" Visibility="Collapsed"
-                                    Click="OnOpenKinopoisk"
-                                    Background="#FF2D6CDF" Foreground="#FFFFFFFF"
-                                    BorderThickness="0" CornerRadius="4"
-                                    Padding="8,3" FontSize="11" FontWeight="Bold"
-                                    Content="КиноПоиск"/>
-</StackPanel>
                     </Grid>
                 </Border>
 

@@ -220,15 +220,8 @@ public sealed partial class MovieDetailDialog : Window
         // Sticky bar title (v2.3) — shown when scrolled past hero
         StickyTitle.Text = m.Title;
 
-        // External source links in the top-right of the hero banner.
-        ImdbLinkBtn.Visibility = !string.IsNullOrWhiteSpace(m.ImdbId) ? Visibility.Visible : Visibility.Collapsed;
-        TmdbLinkBtn.Visibility = int.TryParse(m.TmdbId, out var tmdbLinkId) && tmdbLinkId > 0 ? Visibility.Visible : Visibility.Collapsed;
+        // External source links are displayed beside their corresponding ratings.
         _kinopoiskId = ReadKinopoiskIdFromNfo(m);
-        var hasKinopoiskRating = m.AllRatings.Any(r => r.Source.Equals("kinopoisk", StringComparison.OrdinalIgnoreCase)
-            && r.Value > 0);
-        // Show the Kinopoisk badge when a valid ID is present, even without a rating.
-        KinopoiskLinkBtn.Visibility = (_kinopoiskId > 0 || hasKinopoiskRating)
-            ? Visibility.Visible : Visibility.Collapsed;
 
         // Chips
         ChipsPanel.Children.Clear();
@@ -883,21 +876,40 @@ public sealed partial class MovieDetailDialog : Window
         RatingsPanel.Visibility = Visibility.Visible;
         foreach (var rt in m.AllRatings)
         {
-            var sourceLabel = PrettySource(rt.Source);
-            var stack = new StackPanel { Spacing = 2 };
-            stack.Children.Add(new TextBlock
+            var source = rt.Source?.Trim() ?? string.Empty;
+            var sourceLabel = PrettySource(source);
+            var accent = source.ToLowerInvariant() switch
             {
-                Text = sourceLabel.ToUpperInvariant(),
-                FontSize = 9, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                CharacterSpacing = 150, Opacity = 0.65,
-                Foreground = CineLibraryCS.Services.ThemeBrushes.Get("MutedBrush"),
-            });
+                "imdb" => Windows.UI.Color.FromArgb(0xFF, 0xF5, 0xC5, 0x18),
+                "themoviedb" or "tmdb" => Windows.UI.Color.FromArgb(0xFF, 0x01, 0xB4, 0xE4),
+                "kinopoisk" or "poiskkino" or "kinopoiskdev" => Windows.UI.Color.FromArgb(0xFF, 0xFF, 0x8A, 0x00),
+                _ => Windows.UI.Color.FromArgb(0xFF, 0xB0, 0xB0, 0xB0),
+            };
+            var stack = new StackPanel { Spacing = 3 };
+            var sourceButton = new Button
+            {
+                Content = sourceLabel,
+                FontSize = 10,
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                Padding = new Thickness(7, 2, 7, 2),
+                MinHeight = 24,
+                CornerRadius = new CornerRadius(4),
+                Background = new SolidColorBrush(accent),
+                Foreground = new SolidColorBrush(source.Equals("imdb", StringComparison.OrdinalIgnoreCase)
+                    ? Windows.UI.Color.FromArgb(0xFF, 0, 0, 0)
+                    : Windows.UI.Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF)),
+                BorderThickness = new Thickness(0),
+                HorizontalAlignment = HorizontalAlignment.Left,
+            };
+            sourceButton.Click += async (_, _) => await OpenRatingSourceAsync(source);
+            stack.Children.Add(sourceButton);
             stack.Children.Add(new TextBlock
             {
                 Text = rt.Value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)
-                       + (rt.Source.Equals("rottentomatoes", StringComparison.OrdinalIgnoreCase) ? "%" : ""),
-                FontSize = 16, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                Foreground = CineLibraryCS.Services.ThemeBrushes.Get("TextBrush"),
+                       + (source.Equals("rottentomatoes", StringComparison.OrdinalIgnoreCase) ? "%" : ""),
+                FontSize = 16,
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(accent),
             });
             if (rt.Votes.HasValue && rt.Votes.Value > 0)
             {
@@ -910,6 +922,24 @@ public sealed partial class MovieDetailDialog : Window
             }
             RatingsPanel.Children.Add(stack);
         }
+    }
+
+    private async Task OpenRatingSourceAsync(string source)
+    {
+        var key = source.ToLowerInvariant();
+        string? url = key switch
+        {
+            "imdb" when !string.IsNullOrWhiteSpace(_movie?.ImdbId)
+                => $"https://www.imdb.com/title/{_movie!.ImdbId}/",
+            "tmdb" or "themoviedb" when int.TryParse(_movie?.TmdbId, out var id) && id > 0
+                => $"https://www.themoviedb.org/movie/{id}",
+            "kinopoisk" or "poiskkino" or "kinopoiskdev" when _kinopoiskId > 0
+                => $"https://www.kinopoisk.ru/film/{_kinopoiskId}/",
+            _ => null,
+        };
+        if (url == null) return;
+        try { await Launcher.LaunchUriAsync(new Uri(url)); }
+        catch { if (App.MainWindow is MainWindow mw) mw.ShowToast("Не удалось открыть страницу источника рейтинга."); }
     }
 
     private static string PrettySource(string src) => src.ToLowerInvariant() switch

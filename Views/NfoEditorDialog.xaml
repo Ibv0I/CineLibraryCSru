@@ -5,8 +5,7 @@
     Title="Редактор NFO">
     <Grid x:Name="RootGrid" RequestedTheme="Dark" Background="#121214" Padding="14" RowSpacing="8">
         <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-        <TabView Grid.Row="0" x:Name="EditorTabs" IsAddTabButtonVisible="False" TabWidthMode="Equal">
-            <TabViewItem Header="Метаданные">
+
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,8,12,8">
                     <StackPanel Spacing="6">
                         <Grid ColumnSpacing="10">
@@ -77,9 +76,8 @@
                         </Grid>
                     </StackPanel>
                 </ScrollViewer>
-            </TabViewItem>
-            <TabViewItem Header="Техническая информация" Visibility="Collapsed">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,8,12,8">
+
+                <ScrollViewer Grid.Row="0" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" Padding="0,8,12,8">
                     <StackPanel Spacing="10">
                         <Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -114,8 +112,6 @@
                         <TextBlock Text="Формат строк указан над полями. Неизвестные XML-поля сохраняются при записи." FontSize="12" Foreground="{ThemeResource MutedBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
                 </ScrollViewer>
-            </TabViewItem>
-        </TabView>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
             <Button Content="Отмена" MinWidth="110" Click="OnCancelClick"/>
             <Button Content="Сохранить" MinWidth="110" Style="{ThemeResource AccentButtonStyle}" Click="OnSaveClick"/>

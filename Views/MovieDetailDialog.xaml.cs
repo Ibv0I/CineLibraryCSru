@@ -1147,26 +1147,23 @@ public sealed partial class MovieDetailDialog : Window
             MinWidth = 230,
             MaxWidth = 390
         };
-        content.Children.Add(new TextBlock
-        {
-            Text = group.Name,
-            FontSize = 14,
-            FontWeight = Microsoft.UI.Text.FontWeights.Bold,
-            TextWrapping = TextWrapping.Wrap
-        });
 
-        AddAwardToolTipSection(content, $"Победы ({wins.Count})", wins, false);
-        AddAwardToolTipSection(content, $"Номинации ({nominations.Count})", nominations, true);
+        // The award name is already represented by the trophy icon and is not
+        // repeated inside the list. The tooltip starts with wins, then nominations.
+        AddAwardToolTipSection(content, $"Победы ({wins.Count})", wins, false, group.Name);
+        AddAwardToolTipSection(content, $"Номинации ({nominations.Count})", nominations, true, group.Name);
         return content;
     }
 
     private static void AddAwardToolTipSection(StackPanel parent, string heading,
-        List<string> entries, bool muted)
+        List<string> entries, bool muted, string awardName)
     {
         if (entries.Count == 0) return;
+
         var brush = muted
-            ? new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(170, 165, 165, 165))
-            : (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextBrush"];
+            ? new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(175, 185, 190, 198))
+            : new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 255, 255, 255));
+
         var section = new StackPanel { Spacing = 2 };
         section.Children.Add(new TextBlock
         {
@@ -1175,10 +1172,11 @@ public sealed partial class MovieDetailDialog : Window
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             Foreground = brush
         });
+
         foreach (var entry in entries)
         {
-            var clean = Regex.Replace(entry, @"^\s*(победа|победитель|номинация|номинант|winner|won|nominee|nominated)\s*[:\-–—]?\s*", "",
-                RegexOptions.IgnoreCase);
+            var clean = CleanAwardEntry(entry, awardName);
+            if (string.IsNullOrWhiteSpace(clean)) continue;
             section.Children.Add(new TextBlock
             {
                 Text = "• " + clean,
@@ -1190,11 +1188,38 @@ public sealed partial class MovieDetailDialog : Window
         parent.Children.Add(section);
     }
 
+    private static string CleanAwardEntry(string entry, string awardName)
+    {
+        var clean = entry;
+
+        // Remove the award/organization name and standalone year from each line;
+        // both are already conveyed by the icon and tooltip section.
+        if (!string.IsNullOrWhiteSpace(awardName))
+            clean = Regex.Replace(clean, Regex.Escape(awardName), " ", RegexOptions.IgnoreCase);
+
+        clean = Regex.Replace(clean,
+            @"\b(19|20)\d{2}\b", " ", RegexOptions.IgnoreCase);
+
+        clean = Regex.Replace(clean,
+            @"\b(oscar|academy awards?|golden globes?|bafta|emmys?|cannes|venice|cesar|césar|saturn awards?|screen actors guild|sag awards?|golden raspberry|razzies?)\b",
+            " ", RegexOptions.IgnoreCase);
+
+        // Remove status labels wherever a provider placed them (prefix or suffix).
+        clean = Regex.Replace(clean,
+            @"\b(победа|победитель|победительница|победу|победил|победила|номинация|номинант|номинантка|выиграл|выиграла|winner|won|wins|nominee|nominated)\b",
+            " ", RegexOptions.IgnoreCase);
+
+        clean = Regex.Replace(clean, @"[\[\]()]", " ");
+        clean = Regex.Replace(clean, @"\s*[-–—:;,|]+\s*", " ");
+        clean = Regex.Replace(clean, @"\s{2,}", " ").Trim(' ', '.', ':', ';', '-', '–', '—');
+        return clean;
+    }
+
     private static bool IsAwardNomination(string entry) =>
         ContainsAny(entry, "номинац", "nomination", "nominated", "nominee");
 
     private static bool IsAwardWin(string entry) =>
-        ContainsAny(entry, "побед", "выиграл", "лауреат", "winner", "won ", "wins ", "award winner");
+        ContainsAny(entry, "побед", "выиграл", "лауреат", "winner", "won ", "win ", "wins ", "award winner");
 
     private static string GetAwardGroupName(string line)
     {

@@ -11,6 +11,7 @@ using Windows.System;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Xml;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace CineLibraryCS.Views;
 
@@ -1043,7 +1044,11 @@ public sealed partial class MovieDetailDialog : Window
     private void PopulateAwardIcons(List<string> awards)
     {
         AwardsIconsPanel.Children.Clear();
-        if (awards.Count == 0) return;
+        if (awards.Count == 0)
+        {
+            AwardsIconsPanel.Visibility = Visibility.Collapsed;
+            return;
+        }
 
         var groups = awards
             .SelectMany(SplitAwardEntries)
@@ -1055,46 +1060,138 @@ public sealed partial class MovieDetailDialog : Window
                 var wins = entries.Count(IsAwardWin);
                 return new AwardGroup(name, GetAwardIcon(name), wins, entries);
             })
-            .OrderByDescending(x => x.Wins)
-            .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase);
+            .OrderBy(x => GetAwardSortOrder(x.Name))
+            .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
-        foreach (var group in groups)
+        for (int i = 0; i < groups.Count; i++)
         {
-            // One unframed icon per award organization. The image is 3x the
-            // previous 20x27 display size; Uniform keeps the artwork proportional.
-            var icon = new StackPanel
+            var group = groups[i];
+            // Compact, frameless award artwork with a small win counter anchored
+            // to the lower-right corner of the image itself.
+            var icon = new Grid
             {
-                Orientation = Orientation.Horizontal,
-                Spacing = 4,
-                Margin = new Thickness(3, 2, 3, 2),
+                Width = 52,
+                Height = 66,
+                Margin = new Thickness(2, 1, 5, 1),
                 VerticalAlignment = VerticalAlignment.Center
             };
             icon.Children.Add(new Image
             {
-                Width = 60,
-                Height = 81,
+                Width = 48,
+                Height = 64,
                 Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform,
                 Source = new BitmapImage(new Uri($"ms-appx:///Assets/Awards/{group.IconAsset}")),
+                HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             });
+
             if (group.Wins > 0)
             {
-                icon.Children.Add(new TextBlock
+                var count = new Border
+                {
+                    Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                        Microsoft.UI.ColorHelper.FromArgb(238, 20, 20, 20)),
+                    BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                        Microsoft.UI.ColorHelper.FromArgb(230, 218, 177, 83)),
+                    BorderThickness = new Thickness(1),
+                    CornerRadius = new CornerRadius(10),
+                    MinWidth = 20,
+                    Height = 20,
+                    Padding = new Thickness(4, 0, 4, 0),
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    VerticalAlignment = VerticalAlignment.Bottom
+                };
+                count.Child = new TextBlock
                 {
                     Text = group.Wins.ToString(CultureInfo.InvariantCulture),
-                    FontSize = 13,
-                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                    FontSize = 11,
+                    FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+                    HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
                     Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextBrush"]
-                });
+                };
+                icon.Children.Add(count);
             }
 
-            ToolTipService.SetToolTip(icon,
-                group.Name + Environment.NewLine +
-                string.Join(Environment.NewLine, group.Entries.Select(x => "• " + x)));
+            ToolTipService.SetToolTip(icon, BuildAwardToolTip(group));
+            int index = i;
+            Grid.SetRow(icon, index / 9);
+            Grid.SetColumn(icon, index % 9);
             AwardsIconsPanel.Children.Add(icon);
         }
+
+        AwardsIconsPanel.Visibility = Visibility.Visible;
     }
+
+    private static int GetAwardSortOrder(string name)
+    {
+        if (name.Equals("Оскар", StringComparison.OrdinalIgnoreCase)) return 0;
+        if (name.Equals("Золотой глобус", StringComparison.OrdinalIgnoreCase)) return 1;
+        if (name.Equals("BAFTA", StringComparison.OrdinalIgnoreCase)) return 2;
+        if (name.Equals("Венецианский кинофестиваль", StringComparison.OrdinalIgnoreCase)) return 3;
+        if (name.Equals("Золотая малина", StringComparison.OrdinalIgnoreCase)) return 100;
+        return 10;
+    }
+
+    private static UIElement BuildAwardToolTip(AwardGroup group)
+    {
+        var wins = group.Entries.Where(IsAwardWin).ToList();
+        var nominations = group.Entries.Where(IsAwardNomination).ToList();
+        var other = group.Entries.Where(x => !IsAwardWin(x) && !IsAwardNomination(x)).ToList();
+        nominations.AddRange(other);
+
+        var content = new StackPanel
+        {
+            Spacing = 5,
+            MinWidth = 230,
+            MaxWidth = 390
+        };
+        content.Children.Add(new TextBlock
+        {
+            Text = group.Name,
+            FontSize = 14,
+            FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+            TextWrapping = TextWrapping.Wrap
+        });
+
+        AddAwardToolTipSection(content, $"Победы ({wins.Count})", wins, false);
+        AddAwardToolTipSection(content, $"Номинации ({nominations.Count})", nominations, true);
+        return content;
+    }
+
+    private static void AddAwardToolTipSection(StackPanel parent, string heading,
+        List<string> entries, bool muted)
+    {
+        if (entries.Count == 0) return;
+        var brush = muted
+            ? new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(170, 165, 165, 165))
+            : (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextBrush"];
+        var section = new StackPanel { Spacing = 2 };
+        section.Children.Add(new TextBlock
+        {
+            Text = heading,
+            FontSize = 12,
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            Foreground = brush
+        });
+        foreach (var entry in entries)
+        {
+            var clean = Regex.Replace(entry, @"^\s*(победа|победитель|номинация|номинант|winner|won|nominee|nominated)\s*[:\-–—]?\s*", "",
+                RegexOptions.IgnoreCase);
+            section.Children.Add(new TextBlock
+            {
+                Text = "• " + clean,
+                FontSize = 12,
+                Foreground = brush,
+                TextWrapping = TextWrapping.Wrap
+            });
+        }
+        parent.Children.Add(section);
+    }
+
+    private static bool IsAwardNomination(string entry) =>
+        ContainsAny(entry, "номинац", "nomination", "nominated", "nominee");
 
     private static bool IsAwardWin(string entry) =>
         ContainsAny(entry, "побед", "выиграл", "лауреат", "winner", "won ", "wins ", "award winner");

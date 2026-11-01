@@ -165,8 +165,7 @@
                             <TextBlock x:Name="DetailTitle" Grid.Column="0" FontSize="34" FontWeight="Bold"
                                        Foreground="{ThemeResource TextBrush}"
                                        TextWrapping="Wrap" LineHeight="40"/>
-                            <StackPanel x:Name="AwardsIconsPanel" Grid.Column="1" Orientation="Horizontal"
-                                        Spacing="5" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                            
                         </Grid>
                         <TextBlock x:Name="OriginalTitle" FontSize="14" FontStyle="Italic"
                                    Foreground="{ThemeResource MutedBrush}" Visibility="Collapsed"
@@ -188,10 +187,24 @@
                         <!-- v4.5.0 (#24): genres right under the rating / year / runtime line -->
                         <!-- Genre chips live directly below the poster. -->
                         <!-- Tech badges and ratings are placed in the right-hand technical column. -->
-                        <StackPanel x:Name="TechRatingsRow" Orientation="Vertical" Spacing="12" Margin="0,4,0,0"
+                        <StackPanel x:Name="TechRatingsRow" Orientation="Vertical" Spacing="4" Margin="0,3,0,0"
                                     VerticalAlignment="Center">
                             <StackPanel x:Name="RatingsPanel" Orientation="Horizontal" Spacing="18"
                                         VerticalAlignment="Center" Visibility="Collapsed"/>
+                            <Grid x:Name="AwardsIconsPanel" Visibility="Collapsed" Margin="0,2,0,0"
+                                  HorizontalAlignment="Left">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                            </Grid>
                             <ItemsControl x:Name="TechBadges" VerticalAlignment="Center">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>

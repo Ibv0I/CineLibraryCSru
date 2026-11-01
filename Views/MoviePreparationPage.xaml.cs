@@ -553,6 +553,30 @@ public sealed partial class MoviePreparationPage : Page
                 throw new IOException("Не удалось загрузить фоновое изображение из TMDb.");
 
             var technicalInfo = AnalyzeMediaFile(candidate.Videos.OrderByDescending(GetFileSizeSafe).FirstOrDefault() ?? string.Empty);
+            // Financial figures are part of TMDb movie details; awards are fetched
+            // during preparation so they are available immediately after library import.
+            var awards = new List<string>();
+            if (movie.KinopoiskId <= 0 && !string.IsNullOrWhiteSpace(CineLibraryCS.Services.KinopoiskSettings.ApiToken))
+            {
+                try
+                {
+                    using var kpLookup = new CineLibraryCS.Services.KinopoiskClient();
+                    var kpMatches = await kpLookup.SearchMovieAsync(movie.Title, movie.Year > 0 ? movie.Year : null);
+                    var best = kpMatches.OrderBy(x => movie.Year > 0 && x.Year > 0 ? Math.Abs(x.Year - movie.Year) : 0)
+                        .ThenByDescending(x => TitleSimilarityForAwards(x.Title, movie.Title)).FirstOrDefault();
+                    if (best != null) movie.KinopoiskId = best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId;
+                }
+                catch { /* Awards are optional; don't fail movie preparation. */ }
+            }
+            if (movie.KinopoiskId > 0 && !string.IsNullOrWhiteSpace(CineLibraryCS.Services.KinopoiskSettings.ApiToken))
+            {
+                try
+                {
+                    using var kp = new CineLibraryCS.Services.KinopoiskClient();
+                    awards = await kp.GetAwardsAsync(movie.KinopoiskId);
+                }
+                catch { /* Keep the film import successful when awards are unavailable. */ }
+            }
             var actorThumbs = new Dictionary<int, string>();
             if (candidate.DownloadActorPhotos)
             {
@@ -575,7 +599,7 @@ public sealed partial class MoviePreparationPage : Page
                     if (File.Exists(actorPath)) actorThumbs[actor.Order] = ".actors/" + actorFile;
                 }
             }
-            WriteMovieNfo(tempNfo, movie, technicalInfo, actorThumbs);
+            WriteMovieNfo(tempNfo, movie, technicalInfo, actorThumbs, awards);
             File.Move(tempPoster, posterPath, true);
             File.Move(tempFanart, fanartPath, true);
             File.Move(tempNfo, nfoPath, true); // Write NFO last, so scanner only sees completed preparation.
@@ -599,7 +623,18 @@ public sealed partial class MoviePreparationPage : Page
         }
     }
 
-    private static void WriteMovieNfo(string path, TmdbMovie movie, MediaTechnicalInfo? technicalInfo, IReadOnlyDictionary<int, string>? actorThumbs = null)
+
+    private static double TitleSimilarityForAwards(string? left, string? right)
+    {
+        static string Normalize(string? value) => new string((value ?? string.Empty).ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
+        var a = Normalize(left); var b = Normalize(right);
+        if (a.Length == 0 || b.Length == 0) return 0;
+        if (a == b) return 100;
+        if (a.Contains(b, StringComparison.Ordinal) || b.Contains(a, StringComparison.Ordinal)) return 80;
+        return a.Intersect(b).Count() / (double)Math.Max(a.Length, b.Length) * 50;
+    }
+
+    private static void WriteMovieNfo(string path, TmdbMovie movie, MediaTechnicalInfo? technicalInfo, IReadOnlyDictionary<int, string>? actorThumbs = null, IReadOnlyList<string>? awards = null)
     {
         var settings = new XmlWriterSettings { Indent = true, Encoding = new System.Text.UTF8Encoding(false), CloseOutput = true };
         using var writer = XmlWriter.Create(path, settings);
@@ -636,6 +671,15 @@ public sealed partial class MoviePreparationPage : Page
             WriteElement(writer, "duration", hours > 0
                 ? $"{hours} ч {minutes:D2} мин"
                 : $"{minutes} мин");
+        }
+        if (movie.Budget > 0) WriteElement(writer, "budget", movie.Budget.ToString(CultureInfo.InvariantCulture));
+        if (movie.Revenue > 0) WriteElement(writer, "revenue", movie.Revenue.ToString(CultureInfo.InvariantCulture));
+        if (awards is { Count: > 0 })
+        {
+            writer.WriteStartElement("awards");
+            foreach (var award in awards.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase))
+                WriteElement(writer, "award", award);
+            writer.WriteEndElement();
         }
         WriteElement(writer, "rating", movie.Rating.ToString("0.0", CultureInfo.InvariantCulture));
         WriteElement(writer, "votes", movie.VoteCount.ToString(CultureInfo.InvariantCulture));

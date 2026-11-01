@@ -995,7 +995,61 @@ public sealed partial class MovieDetailDialog : Window
         RevenueDetailText.Visibility = string.IsNullOrWhiteSpace(revenue) ? Visibility.Collapsed : Visibility.Visible;
         AwardsDetailText.Text = string.Join(Environment.NewLine, awards.Select(x => "• " + x));
         AwardsDetailBlock.Visibility = awards.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        PopulateAwardIcons(awards);
         FinanceAwardsPanel.Visibility = (!string.IsNullOrWhiteSpace(budget) || !string.IsNullOrWhiteSpace(revenue) || awards.Count > 0) ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private sealed record AwardGroup(string Name, string Icon, int Wins, List<string> Entries);
+
+    private void PopulateAwardIcons(List<string> awards)
+    {
+        AwardsIconsPanel.Children.Clear();
+        if (awards.Count == 0) return;
+        var groups = awards.GroupBy(GetAwardGroupName, StringComparer.OrdinalIgnoreCase)
+            .Select(g =>
+            {
+                var name = g.Key;
+                var entries = g.ToList();
+                var wins = entries.Count(x => x.Contains("Победа", StringComparison.OrdinalIgnoreCase) || x.Contains("win", StringComparison.OrdinalIgnoreCase));
+                return new AwardGroup(name, GetAwardIcon(name), wins, entries);
+            })
+            .OrderByDescending(x => x.Wins).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase);
+        foreach (var group in groups)
+        {
+            var button = new Button
+            {
+                Padding = new Thickness(5, 3, 5, 3), Margin = new Thickness(0),
+                MinWidth = 0, MinHeight = 0,
+                Background = new SolidColorBrush(Color.FromArgb(35, 255, 255, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(55, 255, 255, 255)),
+                BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6),
+                Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, Children = {
+                    new TextBlock { Text = group.Icon, FontSize = 15, VerticalAlignment = VerticalAlignment.Center },
+                    new TextBlock { Text = group.Wins.ToString(CultureInfo.InvariantCulture), FontSize = 11, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center }
+                }}
+            };
+            ToolTipService.SetToolTip(button, group.Name + Environment.NewLine + string.Join(Environment.NewLine, group.Entries.Select(x => "• " + x)));
+            AutomationProperties.SetName(button, $"{group.Name}: побед {group.Wins}");
+            AwardsIconsPanel.Children.Add(button);
+        }
+    }
+
+    private static string GetAwardGroupName(string line)
+    {
+        var parts = line.Split(new[] { " — ", " – ", " - " }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        return parts.FirstOrDefault(x => !int.TryParse(x, out _) && !x.Equals("Победа", StringComparison.OrdinalIgnoreCase) && !x.Equals("Номинация", StringComparison.OrdinalIgnoreCase)) ?? "Награды";
+    }
+
+    private static string GetAwardIcon(string name)
+    {
+        if (name.Contains("оскар", StringComparison.OrdinalIgnoreCase) || name.Contains("academy", StringComparison.OrdinalIgnoreCase)) return "🏆";
+        if (name.Contains("золотой глобус", StringComparison.OrdinalIgnoreCase) || name.Contains("golden globe", StringComparison.OrdinalIgnoreCase)) return "🌐";
+        if (name.Contains("bafta", StringComparison.OrdinalIgnoreCase) || name.Contains("британ", StringComparison.OrdinalIgnoreCase)) return "🎭";
+        if (name.Contains("эмми", StringComparison.OrdinalIgnoreCase) || name.Contains("emmy", StringComparison.OrdinalIgnoreCase)) return "📺";
+        if (name.Contains("канн", StringComparison.OrdinalIgnoreCase) || name.Contains("cannes", StringComparison.OrdinalIgnoreCase)) return "🌴";
+        if (name.Contains("венец", StringComparison.OrdinalIgnoreCase) || name.Contains("venice", StringComparison.OrdinalIgnoreCase)) return "🦁";
+        if (name.Contains("сезар", StringComparison.OrdinalIgnoreCase) || name.Contains("cesar", StringComparison.OrdinalIgnoreCase)) return "🎬";
+        return "🏅";
     }
 
     private static string FormatMoney(string? raw)

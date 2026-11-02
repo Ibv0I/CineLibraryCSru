@@ -1088,30 +1088,19 @@ public sealed partial class MovieDetailDialog : Window
 
             if (group.Wins > 0)
             {
-                var count = new Border
-                {
-                    Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                        Microsoft.UI.ColorHelper.FromArgb(238, 20, 20, 20)),
-                    BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                        Microsoft.UI.ColorHelper.FromArgb(230, 218, 177, 83)),
-                    BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(10),
-                    MinWidth = 20,
-                    Height = 20,
-                    Padding = new Thickness(4, 0, 4, 0),
-                    HorizontalAlignment = HorizontalAlignment.Right,
-                    VerticalAlignment = VerticalAlignment.Bottom
-                };
-                count.Child = new TextBlock
+                // Show only the win count, in a gold trophy-like style.
+                // No badge/circle is rendered, and zero wins produce no number.
+                icon.Children.Add(new TextBlock
                 {
                     Text = group.Wins.ToString(CultureInfo.InvariantCulture),
-                    FontSize = 11,
+                    FontSize = 13,
                     FontWeight = Microsoft.UI.Text.FontWeights.Bold,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextBrush"]
-                };
-                icon.Children.Add(count);
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    VerticalAlignment = VerticalAlignment.Bottom,
+                    Margin = new Thickness(0, 0, 1, 0),
+                    Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                        Microsoft.UI.ColorHelper.FromArgb(255, 255, 205, 92))
+                });
             }
 
             ToolTipService.SetToolTip(icon, BuildAwardToolTip(group));
@@ -1148,8 +1137,17 @@ public sealed partial class MovieDetailDialog : Window
             MaxWidth = 390
         };
 
-        // The award name is already represented by the trophy icon and is not
-        // repeated inside the list. The tooltip starts with wins, then nominations.
+        // Show the award name first, followed by wins and then nominations.
+        content.Children.Add(new TextBlock
+        {
+            Text = group.Name,
+            FontSize = 14,
+            FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+            Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                Microsoft.UI.ColorHelper.FromArgb(255, 255, 255, 255)),
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0, 0, 0, 3)
+        });
         AddAwardToolTipSection(content, $"Победы ({wins.Count})", wins, false, group.Name);
         AddAwardToolTipSection(content, $"Номинации ({nominations.Count})", nominations, true, group.Name);
         return content;

@@ -311,94 +311,63 @@ public sealed partial class NfoEditorDialog : Window
         Saved = true;
     }
 
-    /// <summary>Kinopoisk phase 1: resolve only Kinopoisk ID and refresh only its rating.</summary>
-    public async Task<bool> ProcessKinopoiskIdentityBatchAsync()
+    /// <summary>Runs the same "Собрать информацию" operation as the per-movie button, silently for batch processing.</summary>
+    public async Task<bool> ProcessCollectInformationBatchAsync()
     {
         _silentBatch = true;
         try
         {
-            var title = FirstNonEmpty(TitleBox.Text, OriginalTitleBox.Text,
-                Path.GetFileName(Path.GetDirectoryName(_path)) ?? "");
-            var originalTitle = FirstNonEmpty(OriginalTitleBox.Text, TitleBox.Text);
-            int? year = int.TryParse(YearBox.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedYear)
-                && parsedYear >= 1700 && parsedYear <= 2100 ? parsedYear : null;
-
-            if (string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
-                throw new InvalidOperationException("Не задан API-ключ КиноПоиска.");
-
-            using var client = new KinopoiskClient();
-            var kpIdText = GetIdentifierValue("kinopoisk");
-            int? kpId = int.TryParse(kpIdText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedId) && parsedId > 0
-                ? parsedId : null;
-
-            if (!kpId.HasValue)
-            {
-                var candidate = await FindExactKinopoiskMatchAsync(client, title, originalTitle, year);
-                var resolvedId = candidate == null ? 0 :
-                    (candidate.KinopoiskId > 0 ? candidate.KinopoiskId : candidate.TmdbId);
-                if (resolvedId <= 0)
-                    throw new InvalidOperationException("Точное совпадение в КиноПоиске не найдено.");
-                AddIdentifierIfMissing("kinopoisk", resolvedId.ToString(CultureInfo.InvariantCulture), new List<string>());
-                kpId = resolvedId;
-            }
-
-            var movie = await client.GetMovieDetailsAsync(kpId.Value)
-                ?? throw new InvalidOperationException("КиноПоиск не вернул карточку фильма.");
-
-            if (movie.Rating is double rating && rating > 0)
-                UpsertRating("kinopoisk", rating, Math.Max(0, movie.VoteCount));
-
+            await CollectMissingInfoAsync(showDialogs: false);
             SaveNfoCore();
-            return movie.Rating is double value && value > 0;
+            return true;
         }
         finally { Close(); }
     }
 
-    /// <summary>Kinopoisk phase 2: fetch budgets/revenue (via existing TMDb ID) and Kinopoisk awards.</summary>
-    public async Task<bool> ProcessKinopoiskFinancialBatchAsync()
+    /// <summary>Runs the same budget/revenue operation as the per-movie button, silently for batch processing.</summary>
+    public async Task<bool> ProcessBudgetsRevenueBatchAsync()
     {
         _silentBatch = true;
-        var foundAny = false;
+        var changed = false;
         try
         {
+            // Финансы загружаются из TMDb по уже имеющемуся идентификатору.
+            // Ошибка или отсутствие TMDb ID не должны мешать загрузке наград Кинопоиска.
+            try
+            {
+                changed |= await LoadExternalDataAsync(showDialogs: false);
+            }
+            catch
+            {
+                // Продолжаем обработку наград независимо от результата финансового этапа.
+            }
+
             var kpText = GetIdentifierValue("kinopoisk");
-            if (int.TryParse(kpText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kpId) &&
-                kpId > 0 && !string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
+            if (int.TryParse(kpText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kpId) && kpId > 0 &&
+                !string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
             {
-                using var kp = new KinopoiskClient();
-                var awards = await kp.GetAwardsAsync(kpId);
-                if (awards.Count > 0)
+                try
                 {
-                    AwardsBox.Text = string.Join(Environment.NewLine, awards);
-                    foundAny = true;
+                    using var kpClient = new KinopoiskClient();
+                    var awards = await kpClient.GetAwardsAsync(kpId);
+                    if (awards != null && awards.Count > 0)
+                    {
+                        var newAwards = string.Join(Environment.NewLine, awards.Distinct(StringComparer.OrdinalIgnoreCase));
+                        if (!string.Equals(AwardsBox.Text.Trim(), newAwards.Trim(), StringComparison.Ordinal))
+                        {
+                            AwardsBox.Text = newAwards;
+                            changed = true;
+                        }
+                    }
+                }
+                catch
+                {
+                    // Награды могут быть недоступны для конкретного фильма; остальные фильмы обрабатываются.
                 }
             }
 
-            // The Kinopoisk API does not expose budget/revenue. Use the movie's already
-            // stored TMDb ID as the financial-data source; do not discover or add any
-            // other provider identifiers as part of this Kinopoisk-only operation.
-            var tmdbText = GetIdentifierValue("tmdb");
-            if (int.TryParse(tmdbText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var tmdbId) && tmdbId > 0)
-            {
-                using var tmdb = new TmdbClient(language: "ru-RU");
-                var movie = await tmdb.GetMovieDetailsAsync(tmdbId);
-                if (movie != null)
-                {
-                    if (movie.Budget > 0)
-                    {
-                        BudgetBox.Text = movie.Budget.ToString(CultureInfo.InvariantCulture);
-                        foundAny = true;
-                    }
-                    if (movie.Revenue > 0)
-                    {
-                        RevenueBox.Text = movie.Revenue.ToString(CultureInfo.InvariantCulture);
-                        foundAny = true;
-                    }
-                }
-            }
-
-            SaveNfoCore();
-            return foundAny;
+            if (changed) SaveNfoCore();
+            return changed;
         }
         finally { Close(); }
     }
@@ -764,16 +733,9 @@ public sealed partial class NfoEditorDialog : Window
                 if (movie.Budget > 0) { BudgetBox.Text = movie.Budget.ToString(CultureInfo.InvariantCulture); financialDataFound = true; }
                 if (movie.Revenue > 0) { RevenueBox.Text = movie.Revenue.ToString(CultureInfo.InvariantCulture); financialDataFound = true; }
             }
-            var kpText = _identifiers.FirstOrDefault(x => new[] { "kinopoisk", "kinopoiskdev", "poiskkino" }.Contains(x.Source, StringComparer.OrdinalIgnoreCase))?.Identifier;
-            if (int.TryParse(kpText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kpId) && kpId > 0 && !string.IsNullOrWhiteSpace(CineLibraryCS.Services.KinopoiskSettings.ApiToken))
-            {
-                using var kp = new CineLibraryCS.Services.KinopoiskClient();
-                var awards = await kp.GetAwardsAsync(kpId);
-                if (awards.Count > 0) AwardsBox.Text = string.Join(Environment.NewLine, awards);
-            }
             if (showDialogs)
             {
-                var info = new ContentDialog { Title = "Загрузка завершена", Content = "Финансовые данные получены из TMDb. Награды загружены, если API КиноПоиска предоставил их.", CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
+                var info = new ContentDialog { Title = "Загрузка завершена", Content = "Бюджет и сборы загружены из TMDb.", CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
                 await info.ShowAsync();
             }
             return financialDataFound;
@@ -793,7 +755,7 @@ public sealed partial class NfoEditorDialog : Window
             if (showDialogs)
             {
                 LoadExternalDataButton.IsEnabled = true;
-                LoadExternalDataButton.Content = "↓ Загрузить бюджет, сборы и награды";
+                LoadExternalDataButton.Content = "↓ Загрузить бюджеты и сборы";
             }
         }
     }

@@ -480,41 +480,59 @@ public sealed partial class MainWindow : Window
             int unavailable = 0;
             foreach (var row in rows)
             {
-                if (!connected.TryGetValue(row.VolumeSerial, out var driveLetter) || string.IsNullOrWhiteSpace(driveLetter))
+                // local_nfo is a path relative to the application's cache directory,
+                // not a path inside the movie folder. Resolve both locations: prefer
+                // the original NFO beside the movie (so the source file is updated),
+                // but fall back to the cached NFO when the drive is disconnected or
+                // the source NFO uses a non-standard filename.
+                string? driveRoot = null;
+                string? folder = null;
+                if (connected.TryGetValue(row.VolumeSerial, out var driveLetter) && !string.IsNullOrWhiteSpace(driveLetter))
                 {
-                    unavailable++;
-                    continue;
+                    driveRoot = Path.GetFullPath(driveLetter.TrimEnd('\\', '/') + Path.DirectorySeparatorChar);
+                    folder = Path.GetFullPath(Path.Combine(driveRoot,
+                        (row.FolderRelPath ?? string.Empty).Replace('/', Path.DirectorySeparatorChar)));
                 }
 
-                var driveRoot = Path.GetFullPath(driveLetter.TrimEnd('\\', '/') + Path.DirectorySeparatorChar);
-                var folder = Path.GetFullPath(Path.Combine(driveRoot,
-                    row.FolderRelPath.Replace('/', Path.DirectorySeparatorChar)));
-                if (!Directory.Exists(folder))
+                string? nfoPath = null;
+                if (!string.IsNullOrWhiteSpace(folder) && Directory.Exists(folder))
                 {
-                    unavailable++;
-                    continue;
+                    var candidates = new List<string>
+                    {
+                        Path.Combine(folder, "movie.nfo"),
+                        Path.Combine(folder, Path.GetFileName(folder) + ".nfo"),
+                    };
+                    if (!string.IsNullOrWhiteSpace(row.VideoFileRelPath))
+                    {
+                        var videoName = Path.GetFileNameWithoutExtension(row.VideoFileRelPath);
+                        if (!string.IsNullOrWhiteSpace(videoName))
+                            candidates.Add(Path.Combine(folder, videoName + ".nfo"));
+                    }
+                    nfoPath = candidates.FirstOrDefault(File.Exists);
+                    if (nfoPath == null)
+                    {
+                        var allNfos = Directory.GetFiles(folder, "*.nfo", SearchOption.TopDirectoryOnly);
+                        if (allNfos.Length == 1) nfoPath = allNfos[0];
+                    }
                 }
 
-                var candidates = new List<string>
+                bool nfoIsSourceFile = nfoPath != null;
+                // ScannerService stores local_nfo under Db.DataDir. It must not be
+                // interpreted as a path relative to the movie folder or drive root.
+                if (nfoPath == null && !string.IsNullOrWhiteSpace(row.LocalNfo))
                 {
-                    Path.Combine(folder, "movie.nfo"),
-                    Path.Combine(folder, Path.GetFileName(folder) + ".nfo"),
-                };
-                if (!string.IsNullOrWhiteSpace(row.VideoFileRelPath))
-                {
-                    var videoName = Path.GetFileNameWithoutExtension(row.VideoFileRelPath);
-                    if (!string.IsNullOrWhiteSpace(videoName))
-                        candidates.Add(Path.Combine(folder, videoName + ".nfo"));
-                }
-                var nfoPath = candidates.FirstOrDefault(File.Exists);
-                if (nfoPath == null)
-                {
-                    var allNfos = Directory.GetFiles(folder, "*.nfo", SearchOption.TopDirectoryOnly);
-                    if (allNfos.Length == 1) nfoPath = allNfos[0];
+                    var cachedNfo = Path.GetFullPath(Path.Combine(AppState.Instance.Db.DataDir,
+                        row.LocalNfo.Replace('/', Path.DirectorySeparatorChar)));
+                    if (File.Exists(cachedNfo)) nfoPath = cachedNfo;
                 }
 
                 if (nfoPath == null) { unavailable++; continue; }
-                workItems.Add((nfoPath, folder, driveRoot, row.VolumeSerial));
+                // Empty folder/root marks a cache-only item; it can be processed
+                // without a mounted source drive, but must not trigger a disk rescan.
+                var sourceAvailable = nfoIsSourceFile && !string.IsNullOrWhiteSpace(folder)
+                    && Directory.Exists(folder) && !string.IsNullOrWhiteSpace(driveRoot);
+                workItems.Add((nfoPath, sourceAvailable ? folder! : string.Empty,
+                    sourceAvailable ? driveRoot! : string.Empty, row.VolumeSerial));
             }
 
             if (workItems.Count == 0)
@@ -527,8 +545,8 @@ public sealed partial class MainWindow : Window
             {
                 Title = "Массовый сбор данных",
                 Content = $"Будут обработаны все доступные фильмы библиотеки: {workItems.Count}.\n\n" +
-                          "Этап 1: добавление идентификатора КиноПоиска (если его нет) и рейтинга КиноПоиска. " +
-                          "Этап 2: загрузка бюджета, сборов и наград. Другие идентификаторы, рейтинги и метаданные изменяться не будут.\n\n" +
+                          "Этап 1: для каждого фильма выполняется действие «Собрать информацию» из редактора NFO.\n" +
+                          "Этап 2: для каждого фильма выполняется действие «Загрузить бюджеты и сборы». Награды не загружаются.\n\n" +
                           $"Недоступно или не найден NFO: {unavailable}.\n\n" +
                           "Исходные NFO будут сохранены с резервными копиями. Продолжить?",
                 PrimaryButtonText = "Начать сбор",
@@ -550,7 +568,6 @@ public sealed partial class MainWindow : Window
 
             int infoProcessed = 0, infoSucceeded = 0, financialSucceeded = 0, partial = 0, failed = 0;
             var errors = new List<string>();
-            var financialQueue = new List<(string NfoPath, string FolderPath, string DriveRoot, string Serial)>();
             bool cancelled = false;
             try
             {
@@ -560,13 +577,12 @@ public sealed partial class MainWindow : Window
                     if (token.IsCancellationRequested) { cancelled = true; break; }
                     var item = workItems[i];
                     infoProcessed++;
-                    batchKinopoiskStatus.Text = $"Этап 1/2 — идентификатор и рейтинг КиноПоиска: {infoProcessed} из {workItems.Count}\n{Path.GetFileName(item.FolderPath)}";
+                    batchKinopoiskStatus.Text = $"Этап 1/2 — «Собрать информацию»: {infoProcessed} из {workItems.Count}\n{Path.GetFileName(item.FolderPath)}";
                     try
                     {
                         var editor = new NfoEditorDialog(item.NfoPath, this);
-                        await editor.ProcessKinopoiskIdentityBatchAsync();
+                        await editor.ProcessCollectInformationBatchAsync();
                         infoSucceeded++;
-                        financialQueue.Add(item);
                     }
                     catch (Exception ex)
                     {
@@ -576,18 +592,18 @@ public sealed partial class MainWindow : Window
                     await Task.Yield();
                 }
 
-                // Phase 2: only after phase 1 is complete, fetch budgets, revenue and awards.
+                // Phase 2: only after phase 1 is complete, run the same budget/revenue action for every available movie.
                 if (!cancelled)
                 {
-                    for (int i = 0; i < financialQueue.Count; i++)
+                    for (int i = 0; i < workItems.Count; i++)
                     {
                         if (token.IsCancellationRequested) { cancelled = true; break; }
-                        var item = financialQueue[i];
-                        batchKinopoiskStatus.Text = $"Этап 2/2 — бюджет, сборы и награды: {i + 1} из {financialQueue.Count}\n{Path.GetFileName(item.FolderPath)}";
+                        var item = workItems[i];
+                        batchKinopoiskStatus.Text = $"Этап 2/2 — «Загрузить бюджеты и сборы»: {i + 1} из {workItems.Count}\n{Path.GetFileName(item.FolderPath)}";
                         try
                         {
                             var editor = new NfoEditorDialog(item.NfoPath, this);
-                            if (await editor.ProcessKinopoiskFinancialBatchAsync())
+                            if (await editor.ProcessBudgetsRevenueBatchAsync())
                                 financialSucceeded++;
                             else
                                 partial++;
@@ -595,19 +611,22 @@ public sealed partial class MainWindow : Window
                         catch (Exception ex)
                         {
                             partial++;
-                            if (errors.Count < 12) errors.Add($"{Path.GetFileName(item.FolderPath)} (бюджет/сборы): {ex.Message}");
+                            if (errors.Count < 12) errors.Add($"{Path.GetFileName(item.FolderPath)} (бюджеты/сборы): {ex.Message}");
                         }
 
                         // Re-parse the updated NFO so the library database and cards reflect it.
-                        try
+                        if (!string.IsNullOrWhiteSpace(item.FolderPath) && !string.IsNullOrWhiteSpace(item.DriveRoot))
                         {
-                            await AppState.Instance.Scanner.ScanAsync(
-                                item.Serial, item.DriveRoot, scanFolder: item.FolderPath, incremental: false);
-                        }
-                        catch (Exception ex)
-                        {
-                            partial++;
-                            if (errors.Count < 12) errors.Add($"{Path.GetFileName(item.FolderPath)} (обновление библиотеки): {ex.Message}");
+                            try
+                            {
+                                await AppState.Instance.Scanner.ScanAsync(
+                                    item.Serial, item.DriveRoot, scanFolder: item.FolderPath, incremental: false);
+                            }
+                            catch (Exception ex)
+                            {
+                                partial++;
+                                if (errors.Count < 12) errors.Add($"{Path.GetFileName(item.FolderPath)} (обновление библиотеки): {ex.Message}");
+                            }
                         }
                         await Task.Yield();
                     }
@@ -625,7 +644,7 @@ public sealed partial class MainWindow : Window
 
             var summary = $"Фильмов в библиотеке: {rows.Count}\nДоступно для обработки: {workItems.Count}\n" +
                           $"Получен идентификатор/рейтинг КиноПоиска: {infoSucceeded}\n" +
-                          $"Получены бюджет, сборы или награды: {financialSucceeded}\n" +
+                          $"Получены бюджеты и/или сборы: {financialSucceeded}\n" +
                           $"Частично обработано: {partial}\nОшибки: {failed}\nНедоступно или без NFO: {unavailable}";
             if (cancelled) summary += "\n\nОбработка остановлена пользователем.";
             if (errors.Count > 0) summary += "\n\nПервые ошибки:\n" + string.Join("\n", errors);

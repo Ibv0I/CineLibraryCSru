@@ -1616,28 +1616,6 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         }
     }
 
-    /// <summary>Returns all active movie folders for library-wide NFO maintenance.</summary>
-    [MethodImpl(MethodImplOptions.Synchronized)]
-    public List<(int Id, string VolumeSerial, string FolderRelPath, string? VideoFileRelPath, string? LocalNfo)> GetAllMovieNfoLocations()
-    {
-        var rows = new List<(int, string, string, string?, string?)>();
-        using var cmd = _conn.CreateCommand();
-        cmd.CommandText = @"SELECT id, volume_serial, folder_rel_path, video_file_rel_path, local_nfo
-                            FROM movies WHERE archived_at IS NULL
-                            ORDER BY sort_title";
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
-        {
-            rows.Add((
-                reader.GetInt32(0),
-                reader.IsDBNull(1) ? "" : reader.GetString(1),
-                reader.IsDBNull(2) ? "" : reader.GetString(2),
-                reader.IsDBNull(3) ? null : reader.GetString(3),
-                reader.IsDBNull(4) ? null : reader.GetString(4)));
-        }
-        return rows;
-    }
-
     [MethodImpl(MethodImplOptions.Synchronized)]
     public List<MovieListItem> GetMovies(ListOptions opts, Dictionary<string, string> connected)
     {

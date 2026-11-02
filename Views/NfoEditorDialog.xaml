@@ -131,7 +131,7 @@
             <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="8">
                 <Button x:Name="CollectMissingInfoButton" Content="✦ Собрать информацию"
                         MinWidth="170" Click="OnCollectMissingInfo" />
-                <Button x:Name="LoadExternalDataButton" Content="↓ Загрузить бюджеты и сборы"
+                <Button x:Name="LoadExternalDataButton" Content="↓ Загрузить бюджет и награды"
                         MinWidth="190" Click="OnLoadExternalData" />
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">

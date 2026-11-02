@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using CineLibraryCS.Services.Tmdb;
@@ -89,22 +89,22 @@ public sealed class KinopoiskClient : IDisposable
     public async Task<List<string>> GetAwardsAsync(int id)
     {
         var output = new List<string>();
-        // Не подавляем ошибки API: вызывающий массовый обработчик должен показать
-        // реальную причину, если награды не удалось загрузить.
-        var json = await _http.GetStringAsync($"{BaseUrl}/v2.2/films/{id}/awards");
-        using var doc = JsonDocument.Parse(json);
-        if (!doc.RootElement.TryGetProperty("items", out var items) || items.ValueKind != JsonValueKind.Array)
-            return output;
-
-        foreach (var item in items.EnumerateArray())
+        try
         {
-            var name = First(Str(item, "name"), Str(item, "awardName"), Str(item, "award"));
-            var category = First(Str(item, "nominationName"), Str(item, "category"));
-            var year = Int(item, "year");
-            var won = item.TryGetProperty("win", out var win) && win.ValueKind == JsonValueKind.True;
-            var line = string.Join(" — ", new[] { year > 0 ? year.ToString(CultureInfo.InvariantCulture) : "", name, category, won ? "Победа" : "Номинация" }.Where(x => !string.IsNullOrWhiteSpace(x)));
-            if (!string.IsNullOrWhiteSpace(line)) output.Add(line);
+            var json = await _http.GetStringAsync($"{BaseUrl}/v2.2/films/{id}/awards");
+            using var doc = JsonDocument.Parse(json);
+            if (!doc.RootElement.TryGetProperty("items", out var items) || items.ValueKind != JsonValueKind.Array) return output;
+            foreach (var item in items.EnumerateArray())
+            {
+                var name = First(Str(item, "name"), Str(item, "awardName"), Str(item, "award"));
+                var category = First(Str(item, "nominationName"), Str(item, "category"));
+                var year = Int(item, "year");
+                var won = item.TryGetProperty("win", out var win) && win.ValueKind == JsonValueKind.True;
+                var line = string.Join(" — ", new[] { year > 0 ? year.ToString(CultureInfo.InvariantCulture) : "", name, category, won ? "Победа" : "Номинация" }.Where(x => !string.IsNullOrWhiteSpace(x)));
+                if (!string.IsNullOrWhiteSpace(line)) output.Add(line);
+            }
         }
+        catch (HttpRequestException) { }
         return output.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
 

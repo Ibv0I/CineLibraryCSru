@@ -1,4 +1,4 @@
-<Window
+﻿<Window
     x:Class="CineLibraryCS.Views.TmdbMoviePreviewDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -20,7 +20,7 @@
             </Grid>
             <StackPanel Grid.Row="2" Spacing="3">
                 <CheckBox x:Name="DownloadActorPhotosCheckBox" Content="Скачивать фотографии актёров в папку .actors" IsChecked="True"/>
-                <CheckBox x:Name="IncludeKinopoiskRatingCheckBox" Content="Добавить рейтинг фильма с КиноПоиска" IsChecked="False"/>
+                <CheckBox x:Name="IncludeKinopoiskRatingCheckBox" Content="Добавить данные фильма с КиноПоиска" IsChecked="False"/>
                 <TextBlock x:Name="KinopoiskApiHintText" Text="Чтобы использовать эту функцию, добавьте API-ключ КиноПоиска в настройках." FontSize="12" Foreground="#FFB8B8C0" TextWrapping="Wrap" Visibility="Collapsed"/>
             </StackPanel>
             <TextBlock x:Name="ImageStatusText" Grid.Row="3" Visibility="Collapsed" Text="" TextWrapping="Wrap"/>

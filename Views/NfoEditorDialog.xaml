@@ -1,4 +1,4 @@
-<Window
+﻿<Window
     x:Class="CineLibraryCS.Views.NfoEditorDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -21,31 +21,34 @@
                             <TextBox x:Name="PremieredBox" Header="Дата выхода (ДД-ММ-ГГГГ)" Grid.Column="1" TextChanged="OnDateChanged"/>
                             <TextBox x:Name="RuntimeBox" Header="Длительность, мин" Grid.Column="2" InputScope="Number"/>
                         </Grid>
-                        <Grid ColumnSpacing="10">
+                        <Grid ColumnSpacing="10" RowSpacing="8">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <TextBox x:Name="StudiosBox" Header="Студии (по одной на строку)" Grid.Column="0" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"/>
-                            <TextBox x:Name="CountriesBox" Header="Страны (по одной на строку)" Grid.Column="1" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"/>
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                            <TextBox x:Name="StudiosBox" Header="Студии (по одной на строку)" Grid.Row="0" Grid.Column="0" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"/>
+                            <TextBox x:Name="CountriesBox" Header="Страны (по одной на строку)" Grid.Row="0" Grid.Column="1" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"/>
+                            <StackPanel Grid.Row="1" Grid.Column="0" Spacing="8">
+                                <Grid ColumnSpacing="24" Margin="0,2,0,0">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Spacing="3">
+                                        <TextBlock Text="Бюджет (USD)" Foreground="{ThemeResource MutedBrush}" FontSize="12"/>
+                                        <TextBlock x:Name="BudgetBox" Text="—" FontSize="15" Foreground="{ThemeResource TextBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="3">
+                                        <TextBlock Text="Мировые сборы (USD)" Foreground="{ThemeResource MutedBrush}" FontSize="12"/>
+                                        <TextBlock x:Name="RevenueBox" Text="—" FontSize="15" Foreground="{ThemeResource TextBrush}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5">
+                                <TextBox x:Name="GenresBox" Header="Жанры (через запятую)"
+                                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" MaxHeight="64" />
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Button Content="＋ Добавить жанр" Click="OnAddGenre" />
+                                </StackPanel>
+                            </StackPanel>
                         </Grid>
                         <ComboBox x:Name="CertificationBox" Header="Сертификация / возрастной рейтинг"
                                   IsEditable="False" HorizontalAlignment="Left" MinWidth="280" />
-                        <Grid ColumnSpacing="24" Margin="0,4,0,0">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Spacing="3">
-                                <TextBlock Text="Бюджет (USD)" Foreground="{ThemeResource MutedBrush}" FontSize="12"/>
-                                <TextBlock x:Name="BudgetBox" Text="—" FontSize="15" Foreground="{ThemeResource TextBrush}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="3">
-                                <TextBlock Text="Мировые сборы (USD)" Foreground="{ThemeResource MutedBrush}" FontSize="12"/>
-                                <TextBlock x:Name="RevenueBox" Text="—" FontSize="15" Foreground="{ThemeResource TextBrush}"/>
-                            </StackPanel>
-                        </Grid>
-                        <StackPanel Spacing="5">
-                            <TextBox x:Name="GenresBox" Header="Жанры (через запятую)"
-                                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" MaxHeight="64" />
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <Button Content="＋ Добавить жанр" Click="OnAddGenre" />
-                            </StackPanel>
-                        </StackPanel>
                         <TextBox x:Name="AwardsBox" Header="Награды и номинации (по одной на строку)" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" MaxHeight="120" />
                         <Grid ColumnSpacing="12" Margin="0,2,0,0">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>

@@ -1,4 +1,4 @@
-using Microsoft.UI;
+﻿using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -301,49 +301,95 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             return;
         }
 
-        if (IncludeKinopoiskRating)
+        // IMDb rating is also collected during a new movie addition whenever the
+        // Kinopoisk API is configured. The checkbox controls only whether Kinopoisk
+        // identifiers/rating are written to the library.
+        var shouldLoadExternalRatings = !_isEditingExistingMovie
+            && (!string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken) || IncludeKinopoiskRating);
+
+        if (shouldLoadExternalRatings)
         {
             UseSelectionButton.IsEnabled = false;
             Busy.IsActive = true;
             try
             {
                 var year = Movie.Year > 0 ? Movie.Year : (int?)null;
-                TmdbMovie? kpDetails;
+                TmdbMovie? externalDetails = null;
+
                 if (!string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
                 {
                     using var kp = new KinopoiskClient();
                     var matches = await kp.SearchMovieAsync(Movie.Title, year);
-                    if (matches.Count == 0 && !string.IsNullOrWhiteSpace(Movie.OriginalTitle) && !string.Equals(Movie.OriginalTitle, Movie.Title, StringComparison.OrdinalIgnoreCase))
+                    if (matches.Count == 0 && !string.IsNullOrWhiteSpace(Movie.OriginalTitle)
+                        && !string.Equals(Movie.OriginalTitle, Movie.Title, StringComparison.OrdinalIgnoreCase))
                         matches = await kp.SearchMovieAsync(Movie.OriginalTitle, year);
-                    var best = matches.OrderBy(m => year.HasValue && m.Year > 0 ? Math.Abs(m.Year - year.Value) : 0).ThenByDescending(m => TitleSimilarity(m.Title, Movie.Title)).FirstOrDefault();
-                    if (best == null) throw new InvalidOperationException("КиноПоиск не нашёл подходящий фильм для получения рейтинга.");
-                    kpDetails = await kp.GetMovieDetailsAsync(best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId);
+
+                    var best = matches
+                        .OrderBy(m => year.HasValue && m.Year > 0 ? Math.Abs(m.Year - year.Value) : 0)
+                        .ThenByDescending(m => TitleSimilarity(m.Title, Movie.Title))
+                        .FirstOrDefault();
+
+                    if (best != null)
+                        externalDetails = await kp.GetMovieDetailsAsync(best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId);
+                    else if (IncludeKinopoiskRating)
+                        throw new InvalidOperationException("КиноПоиск не нашёл подходящий фильм для получения данных.");
                 }
-                else
+                else if (IncludeKinopoiskRating)
                 {
                     using var poisk = new PoiskKinoClient();
                     var matches = await poisk.SearchMovieAsync(Movie.Title, year);
-                    if (matches.Count == 0 && !string.IsNullOrWhiteSpace(Movie.OriginalTitle) && !string.Equals(Movie.OriginalTitle, Movie.Title, StringComparison.OrdinalIgnoreCase))
+                    if (matches.Count == 0 && !string.IsNullOrWhiteSpace(Movie.OriginalTitle)
+                        && !string.Equals(Movie.OriginalTitle, Movie.Title, StringComparison.OrdinalIgnoreCase))
                         matches = await poisk.SearchMovieAsync(Movie.OriginalTitle, year);
-                    var best = matches.OrderBy(m => year.HasValue && m.Year > 0 ? Math.Abs(m.Year - year.Value) : 0).ThenByDescending(m => TitleSimilarity(m.Title, Movie.Title)).FirstOrDefault();
-                    if (best == null) throw new InvalidOperationException("ПоискКино не нашёл подходящий фильм для получения рейтинга.");
-                    kpDetails = await poisk.GetMovieDetailsAsync(best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId);
+                    var best = matches
+                        .OrderBy(m => year.HasValue && m.Year > 0 ? Math.Abs(m.Year - year.Value) : 0)
+                        .ThenByDescending(m => TitleSimilarity(m.Title, Movie.Title))
+                        .FirstOrDefault();
+                    if (best == null)
+                        throw new InvalidOperationException("ПоискКино не нашёл подходящий фильм для получения рейтинга.");
+                    externalDetails = await poisk.GetMovieDetailsAsync(best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId);
                 }
-                if (kpDetails == null || kpDetails.Rating <= 0)
-                    throw new InvalidOperationException("Источник не вернул рейтинг КиноПоиска для найденного фильма.");
-                Movie.KinopoiskId = kpDetails.KinopoiskId > 0 ? kpDetails.KinopoiskId : kpDetails.TmdbId;
-                Movie.KinopoiskRating = kpDetails.Rating;
-                Movie.KinopoiskVoteCount = kpDetails.VoteCount;
-                ImageStatusText.Text = $"Рейтинг КиноПоиска добавлен: {kpDetails.Rating:0.0}/10.";
-                ImageStatusText.Visibility = Visibility.Visible;
+
+                if (externalDetails != null)
+                {
+                    if (externalDetails.ImdbRating is > 0)
+                    {
+                        Movie.ImdbRating = externalDetails.ImdbRating;
+                        Movie.ImdbVoteCount = externalDetails.ImdbVoteCount;
+                    }
+
+                    if (IncludeKinopoiskRating)
+                    {
+                        if (externalDetails.Rating <= 0)
+                            throw new InvalidOperationException("Источник не вернул рейтинг КиноПоиска для найденного фильма.");
+                        Movie.KinopoiskId = externalDetails.KinopoiskId > 0 ? externalDetails.KinopoiskId : externalDetails.TmdbId;
+                        Movie.KinopoiskRating = externalDetails.Rating;
+                        Movie.KinopoiskVoteCount = externalDetails.VoteCount;
+                    }
+                }
+
+                var messages = new List<string>();
+                if (Movie.ImdbRating is > 0) messages.Add($"IMDb: {Movie.ImdbRating:0.0}/10");
+                if (IncludeKinopoiskRating && Movie.KinopoiskRating is > 0)
+                    messages.Add($"КиноПоиск: {Movie.KinopoiskRating:0.0}/10");
+                if (messages.Count > 0)
+                {
+                    ImageStatusText.Text = "Добавлены данные: " + string.Join("; ", messages) + ".";
+                    ImageStatusText.Visibility = Visibility.Visible;
+                }
             }
             catch (Exception ex)
             {
-                ImageStatusText.Text = "Не удалось получить рейтинг КиноПоиска: " + ex.GetBaseException().Message;
+                ImageStatusText.Text = "Не удалось получить дополнительные рейтинги: " + ex.GetBaseException().Message;
                 ImageStatusText.Visibility = Visibility.Visible;
-                Busy.IsActive = false;
-                UseSelectionButton.IsEnabled = true;
-                return;
+                // Failure to fetch optional IMDb data must not prevent adding the movie.
+                // If the user explicitly requested Kinopoisk data, keep the dialog open.
+                if (IncludeKinopoiskRating)
+                {
+                    Busy.IsActive = false;
+                    UseSelectionButton.IsEnabled = true;
+                    return;
+                }
             }
             finally
             {
@@ -351,6 +397,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
                 UseSelectionButton.IsEnabled = true;
             }
         }
+
         CloseWithResult(ContentDialogResult.Primary);
     }
 

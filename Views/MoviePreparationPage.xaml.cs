@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using CineLibraryCS.Services.Tmdb;
 using System.Collections.ObjectModel;
@@ -711,6 +711,13 @@ public sealed partial class MoviePreparationPage : Page
             writer.WriteStartElement("rating"); writer.WriteAttributeString("name", "kinopoisk"); writer.WriteAttributeString("max", "10"); writer.WriteAttributeString("default", "false");
             WriteElement(writer, "value", movie.KinopoiskRating.Value.ToString("0.0", CultureInfo.InvariantCulture));
             if (movie.KinopoiskVoteCount.HasValue) WriteElement(writer, "votes", movie.KinopoiskVoteCount.Value.ToString(CultureInfo.InvariantCulture));
+            writer.WriteEndElement();
+        }
+        if (movie.ImdbRating.HasValue && movie.ImdbRating.Value > 0)
+        {
+            writer.WriteStartElement("rating"); writer.WriteAttributeString("name", "imdb"); writer.WriteAttributeString("max", "10"); writer.WriteAttributeString("default", "false");
+            WriteElement(writer, "value", movie.ImdbRating.Value.ToString("0.0", CultureInfo.InvariantCulture));
+            if (movie.ImdbVoteCount.HasValue) WriteElement(writer, "votes", movie.ImdbVoteCount.Value.ToString(CultureInfo.InvariantCulture));
             writer.WriteEndElement();
         }
         writer.WriteEndElement();

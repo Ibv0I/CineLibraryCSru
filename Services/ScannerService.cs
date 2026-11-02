@@ -716,7 +716,12 @@ public class ScannerService
             var videoNames = Directory.EnumerateFiles(folder)
                 .Where(x => VideoExts.Contains(Path.GetExtension(x)))
                 .Select(x => Path.GetFileNameWithoutExtension(x));
-            var stems = new[] { folderName }.Concat(videoNames).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase);
+            var nfoNames = Directory.EnumerateFiles(folder, "*.nfo")
+                .Where(x => !Path.GetFileNameWithoutExtension(x).Equals("movie", StringComparison.OrdinalIgnoreCase))
+                .Select(x => Path.GetFileNameWithoutExtension(x));
+            var stems = new[] { folderName }.Concat(videoNames).Concat(nfoNames)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase);
             var extensions = new[] { ".jpg", ".jpeg", ".png" };
             foreach (var stem in stems)
                 foreach (var ext in extensions)

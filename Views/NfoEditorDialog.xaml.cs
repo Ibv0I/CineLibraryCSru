@@ -379,39 +379,66 @@ public sealed partial class NfoEditorDialog : Window
                 catch (Exception ex) { errors.Add("Поиск фильма в TMDb: " + ex.Message); }
             }
 
-            // 4. Resolve Kinopoisk ID/details when the API token is configured.
-            if (string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
+            // 4. Resolve Kinopoisk ID/details. Try Kinopoisk API Unofficial first,
+            // then PoiskKino API when the first provider is unavailable or has no match.
+            var hasUnofficial = !string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken);
+            var hasPoiskKino = !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken);
+            if (!kpId.HasValue && !string.IsNullOrWhiteSpace(title))
             {
-                if (!kpId.HasValue) unavailable.Add("Кинопоиск ID (не задан API-ключ КиноПоиска)");
-            }
-            else
-            {
-                try
+                if (hasUnofficial)
                 {
-                    using var kpClient = new KinopoiskClient();
-                    if (!kpId.HasValue && !string.IsNullOrWhiteSpace(title))
+                    try
                     {
-                        var kpCandidate = await FindExactKinopoiskMatchAsync(kpClient, title, originalTitle, year);
-                        if (kpCandidate != null)
+                        using var kpClient = new KinopoiskClient();
+                        var candidate = await FindExactKinopoiskMatchAsync(kpClient, title, originalTitle, year);
+                        if (candidate != null)
                         {
-                            var resolvedKpId = kpCandidate.KinopoiskId > 0 ? kpCandidate.KinopoiskId : kpCandidate.TmdbId;
-                            if (resolvedKpId > 0)
-                            {
-                                kpId = resolvedKpId;
-                                AddIdentifierIfMissing("kinopoisk", resolvedKpId.ToString(CultureInfo.InvariantCulture), added);
-                            }
+                            var id = candidate.KinopoiskId > 0 ? candidate.KinopoiskId : candidate.TmdbId;
+                            if (id > 0) { kpId = id; AddIdentifierIfMissing("kinopoisk", id.ToString(CultureInfo.InvariantCulture), added); }
                         }
                     }
-
-                    if (kpId.HasValue && kpId.Value > 0)
-                    {
-                        try { kpMovie = await kpClient.GetMovieDetailsAsync(kpId.Value); }
-                        catch (Exception ex) { errors.Add("Данные КиноПоиска: " + ex.Message); }
-                    }
-                    else unavailable.Add("Кинопоиск ID (точное совпадение не найдено)");
+                    catch (Exception ex) { errors.Add("КиноПоиск API Unofficial: " + ex.Message); }
                 }
-                catch (Exception ex) { errors.Add("КиноПоиск: " + ex.Message); }
+                if (!kpId.HasValue && hasPoiskKino)
+                {
+                    try
+                    {
+                        using var poisk = new PoiskKinoClient();
+                        var candidate = await FindExactPoiskKinoMatchAsync(poisk, title, originalTitle, year);
+                        if (candidate != null && candidate.KinopoiskId > 0)
+                        {
+                            kpId = candidate.KinopoiskId;
+                            AddIdentifierIfMissing("kinopoisk", kpId.Value.ToString(CultureInfo.InvariantCulture), added);
+                        }
+                    }
+                    catch (Exception ex) { errors.Add("ПоискКино API: " + ex.Message); }
+                }
             }
+
+            if (kpId.HasValue)
+            {
+                if (hasUnofficial)
+                {
+                    try { using var kp = new KinopoiskClient(); kpMovie = await kp.GetMovieDetailsAsync(kpId.Value); }
+                    catch (Exception ex) { errors.Add("Данные КиноПоиск API Unofficial: " + ex.Message); }
+                }
+                if ((kpMovie == null || kpMovie.Rating <= 0) && hasPoiskKino)
+                {
+                    try
+                    {
+                        using var poisk = new PoiskKinoClient();
+                        var alternative = await poisk.GetMovieDetailsAsync(kpId.Value);
+                        if (alternative != null && (kpMovie == null || alternative.Rating > kpMovie.Rating))
+                            kpMovie = alternative;
+                    }
+                    catch (Exception ex) { errors.Add("Данные ПоискКино API: " + ex.Message); }
+                }
+                if (kpMovie == null) unavailable.Add("Данные КиноПоиска (оба API не вернули фильм)");
+            }
+            else if (!hasUnofficial && !hasPoiskKino)
+                unavailable.Add("КиноПоиск ID (не настроены оба API)");
+            else
+                unavailable.Add("КиноПоиск ID (совпадение не найдено через оба API)");
 
             // Kinopoisk often provides IMDb ID. Use it to resolve TMDb if still absent.
             if (string.IsNullOrWhiteSpace(imdbId) && !string.IsNullOrWhiteSpace(kpMovie?.ImdbId))
@@ -612,6 +639,26 @@ public sealed partial class NfoEditorDialog : Window
         return null;
     }
 
+
+    private static async Task<TmdbMovie?> FindExactPoiskKinoMatchAsync(PoiskKinoClient client,
+        string title, string originalTitle, int? year)
+    {
+        var queries = new[] { title, originalTitle }.Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+        foreach (var query in queries)
+        {
+            var results = await client.SearchMovieAsync(query, year);
+            var match = results.FirstOrDefault(x =>
+                (year == null || x.Year == 0 || x.Year == year.Value) &&
+                (NormalizeTitle(x.Title) == NormalizeTitle(title) ||
+                 NormalizeTitle(x.Title) == NormalizeTitle(originalTitle) ||
+                 NormalizeTitle(x.OriginalTitle) == NormalizeTitle(title) ||
+                 NormalizeTitle(x.OriginalTitle) == NormalizeTitle(originalTitle)));
+            if (match != null) return match;
+        }
+        return null;
+    }
+
     private static string? MapRussianCertification(string? value)
     {
         if (string.IsNullOrWhiteSpace(value)) return null;
@@ -646,10 +693,21 @@ public sealed partial class NfoEditorDialog : Window
                 if (movie.Revenue > 0) RevenueBox.Text = movie.Revenue.ToString(CultureInfo.InvariantCulture);
             }
             var kpText = _identifiers.FirstOrDefault(x => new[] { "kinopoisk", "kinopoiskdev", "poiskkino" }.Contains(x.Source, StringComparer.OrdinalIgnoreCase))?.Identifier;
-            if (int.TryParse(kpText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kpId) && kpId > 0 && !string.IsNullOrWhiteSpace(CineLibraryCS.Services.KinopoiskSettings.ApiToken))
+            if (int.TryParse(kpText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kpId) && kpId > 0)
             {
-                using var kp = new CineLibraryCS.Services.KinopoiskClient();
-                var awards = await kp.GetAwardsAsync(kpId);
+                List<string> awards = new();
+                if (!string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
+                {
+                    try { using var kp = new KinopoiskClient(); awards = await kp.GetAwardsAsync(kpId); }
+                    catch { /* try the second provider for movie details below */ }
+                }
+                // PoiskKino is also queried as a fallback for the movie record.
+                // The current PoiskKino API client does not expose an awards endpoint.
+                if ((awards.Count == 0) && !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken))
+                {
+                    try { using var poisk = new PoiskKinoClient(); _ = await poisk.GetMovieDetailsAsync(kpId); }
+                    catch { }
+                }
                 if (awards.Count > 0) AwardsBox.Text = string.Join(Environment.NewLine, awards);
             }
             var info = new ContentDialog { Title = "Загрузка завершена", Content = "Финансовые данные получены из TMDb. Награды загружены, если API КиноПоиска предоставил их.", CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };

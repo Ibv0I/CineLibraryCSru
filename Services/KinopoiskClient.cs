@@ -44,7 +44,13 @@ public sealed class KinopoiskClient : IDisposable
                 OriginalTitle = Str(item, "nameEn"),
                 ReleaseDate = releaseYear > 0 ? $"{releaseYear:0000}-01-01" : string.Empty,
                 Overview = Str(item, "description"),
-                Rating = Double(item, "rating"),
+                // In search-by-keyword the API documents rating as a string
+                // (for example "7.9" or "99%" for unreleased titles) and
+                // ratingVoteCount as a separate integer field.
+                Rating = ParseReleasedFilmRating(Str(item, "rating")),
+                VoteCount = Int(item, "ratingVoteCount"),
+                KinopoiskRating = ParseReleasedFilmRating(Str(item, "rating")),
+                KinopoiskVoteCount = Int(item, "ratingVoteCount"),
                 PosterPath = Str(item, "posterUrl"),
                 BackdropPath = string.Empty,
             });
@@ -183,6 +189,18 @@ public sealed class KinopoiskClient : IDisposable
         }
         return 0;
     }
+
+    private static double ParseReleasedFilmRating(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return 0;
+        // The search endpoint may return a percentage (e.g. "99%") for
+        // unreleased films. That is not a 0..10 Kinopoisk rating.
+        var normalized = value.Trim();
+        if (normalized.Contains('%')) return 0;
+        return double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out var rating)
+            && rating >= 0 && rating <= 10 ? rating : 0;
+    }
+
     private static string First(params string[] values) => values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v)) ?? string.Empty;
     public void Dispose() => _http.Dispose();
 }

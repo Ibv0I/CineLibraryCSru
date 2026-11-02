@@ -428,7 +428,8 @@ public sealed partial class NfoEditorDialog : Window
                     {
                         using var poisk = new PoiskKinoClient();
                         var alternative = await poisk.GetMovieDetailsAsync(kpId.Value);
-                        if (alternative != null && (kpMovie == null || alternative.Rating > kpMovie.Rating))
+                        if (alternative != null && (kpMovie == null || alternative.Rating > kpMovie.Rating ||
+                            ((kpMovie.ImdbRating ?? 0) <= 0 && (alternative.ImdbRating ?? 0) > 0)))
                             kpMovie = alternative;
                     }
                     catch (Exception ex) { errors.Add("Данные ПоискКино API: " + ex.Message); }
@@ -516,6 +517,28 @@ public sealed partial class NfoEditorDialog : Window
             await TryLoadRatingForIdentifierAsync("tmdb", GetIdentifierValue("tmdb"));
             await TryLoadRatingForIdentifierAsync("kinopoisk", GetIdentifierValue("kinopoisk"));
             await TryLoadRatingForIdentifierAsync("imdb", GetIdentifierValue("imdb"));
+            // Collect awards here as well: if Unofficial is rate-limited (e.g. HTTP 402),
+            // fall back to the documented PoiskKino movie-awards endpoint.
+            if (string.IsNullOrWhiteSpace(AwardsBox.Text) &&
+                int.TryParse(GetIdentifierValue("kinopoisk"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var awardsMovieId) && awardsMovieId > 0)
+            {
+                List<string> collectedAwards = new();
+                if (!string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
+                {
+                    try { using var kp = new KinopoiskClient(); collectedAwards = await kp.GetAwardsAsync(awardsMovieId); }
+                    catch (Exception ex) { errors.Add("Награды через Kinopoisk API Unofficial: " + ex.Message); }
+                }
+                if (collectedAwards.Count == 0 && !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken))
+                {
+                    try { using var poisk = new PoiskKinoClient(); collectedAwards = await poisk.GetAwardsAsync(awardsMovieId); }
+                    catch (Exception ex) { errors.Add("Награды через ПоискКино API: " + ex.Message); }
+                }
+                if (collectedAwards.Count > 0)
+                {
+                    AwardsBox.Text = string.Join(Environment.NewLine, collectedAwards);
+                    added.Add("Награды и номинации");
+                }
+            }
 
             if (string.IsNullOrWhiteSpace(GetIdentifierValue("tmdb"))) unavailable.Add("TMDb ID");
             if (string.IsNullOrWhiteSpace(GetIdentifierValue("imdb"))) unavailable.Add("IMDb ID");
@@ -699,14 +722,12 @@ public sealed partial class NfoEditorDialog : Window
                 if (!string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
                 {
                     try { using var kp = new KinopoiskClient(); awards = await kp.GetAwardsAsync(kpId); }
-                    catch { /* try the second provider for movie details below */ }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Awards via Unofficial failed: {ex.Message}"); }
                 }
-                // PoiskKino is also queried as a fallback for the movie record.
-                // The current PoiskKino API client does not expose an awards endpoint.
-                if ((awards.Count == 0) && !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken))
+                if (awards.Count == 0 && !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken))
                 {
-                    try { using var poisk = new PoiskKinoClient(); _ = await poisk.GetMovieDetailsAsync(kpId); }
-                    catch { }
+                    try { using var poisk = new PoiskKinoClient(); awards = await poisk.GetAwardsAsync(kpId); }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Awards via PoiskKino failed: {ex.Message}"); }
                 }
                 if (awards.Count > 0) AwardsBox.Text = string.Join(Environment.NewLine, awards);
             }
@@ -858,17 +879,19 @@ public sealed partial class NfoEditorDialog : Window
             var kpIdentifier = GetIdentifierValue("kinopoisk");
             if (!int.TryParse(kpIdentifier, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kpId) || kpId <= 0 ||
                 string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken)) return;
-            try
+            TmdbMovie? movie = null;
+            if (!string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
             {
-                using var client = new KinopoiskClient();
-                var movie = await client.GetMovieDetailsAsync(kpId);
-                if (movie?.ImdbRating is not double imdbRating || imdbRating <= 0) return;
+                try { using var client = new KinopoiskClient(); movie = await client.GetMovieDetailsAsync(kpId); }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"IMDb rating via Unofficial failed: {ex.Message}"); }
+            }
+            if ((movie?.ImdbRating ?? 0) <= 0 && !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken))
+            {
+                try { using var client = new PoiskKinoClient(); movie = await client.GetMovieDetailsAsync(kpId); }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"IMDb rating via PoiskKino failed: {ex.Message}"); }
+            }
+            if (movie?.ImdbRating is double imdbRating && imdbRating > 0)
                 UpsertRating("imdb", imdbRating, Math.Max(0, movie.ImdbVoteCount ?? 0));
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"IMDb rating lookup failed: {ex.Message}");
-            }
             return;
         }
 
@@ -890,11 +913,20 @@ public sealed partial class NfoEditorDialog : Window
             }
             else if (provider.Equals("kinopoisk", StringComparison.OrdinalIgnoreCase) || provider.Equals("kinopoiskdev", StringComparison.OrdinalIgnoreCase))
             {
-                using var client = new CineLibraryCS.Services.KinopoiskClient();
-                var movie = await client.GetMovieDetailsAsync(id);
+                TmdbMovie? movie = null;
+                if (!string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
+                {
+                    try { using var client = new CineLibraryCS.Services.KinopoiskClient(); movie = await client.GetMovieDetailsAsync(id); }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Kinopoisk rating via Unofficial failed: {ex.Message}"); }
+                }
+                if ((movie?.Rating ?? 0) <= 0 && !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken))
+                {
+                    try { using var client = new PoiskKinoClient(); movie = await client.GetMovieDetailsAsync(id); }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Kinopoisk rating via PoiskKino failed: {ex.Message}"); }
+                }
                 if (movie?.Rating is not double kpRating || kpRating <= 0) return;
                 rating = kpRating;
-                votes = Math.Max(0, movie.VoteCount);
+                votes = Math.Max(0, movie.KinopoiskVoteCount ?? movie.VoteCount);
                 provider = "kinopoisk";
             }
             else return;

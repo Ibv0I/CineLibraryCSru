@@ -47,6 +47,10 @@ public sealed class PoiskKinoClient : IDisposable
                 Overview = First(Str(item, "description"), Str(item, "shortDescription")),
                 Rating = Number(Prop(item, "rating"), "kp"),
                 VoteCount = Int(Prop(item, "votes"), "kp"),
+                KinopoiskRating = Number(Prop(item, "rating"), "kp"),
+                KinopoiskVoteCount = Int(Prop(item, "votes"), "kp"),
+                ImdbRating = NullableNumber(Prop(item, "rating"), "imdb"),
+                ImdbVoteCount = NullableInt(Prop(item, "votes"), "imdb"),
                 PosterPath = Str(Prop(item, "poster"), "url"),
                 BackdropPath = Str(Prop(item, "backdrop"), "url"),
                 ImdbId = Str(external, "imdb"),
@@ -76,6 +80,10 @@ public sealed class PoiskKinoClient : IDisposable
             Tagline = Str(root, "slogan"),
             Rating = Number(Prop(root, "rating"), "kp"),
             VoteCount = Int(Prop(root, "votes"), "kp"),
+            KinopoiskRating = Number(Prop(root, "rating"), "kp"),
+            KinopoiskVoteCount = Int(Prop(root, "votes"), "kp"),
+            ImdbRating = NullableNumber(Prop(root, "rating"), "imdb"),
+            ImdbVoteCount = NullableInt(Prop(root, "votes"), "imdb"),
             Runtime = Int(root, "movieLength"),
             ImdbId = Str(external, "imdb"),
             PosterPath = Str(Prop(root, "poster"), "url"),
@@ -136,10 +144,60 @@ public sealed class PoiskKinoClient : IDisposable
         return new TmdbMovieImages(posters.Distinct(StringComparer.OrdinalIgnoreCase).ToList(), backdrops.Distinct(StringComparer.OrdinalIgnoreCase).ToList());
     }
 
+
+    /// <summary>Returns awards and nominations for a movie using the documented v1.5 endpoint.</summary>
+    public async Task<List<string>> GetAwardsAsync(int movieId)
+    {
+        var output = new List<string>();
+        string? next = null;
+        // Cursor pagination; cap at 10 pages to respect the documented demo/free limit.
+        for (var page = 0; page < 10; page++)
+        {
+            var query = $"movieId={movieId}&limit=250&selectFields=movieId&selectFields=winning&selectFields=nomination.title&selectFields=nomination.award.title&selectFields=nomination.award.year";
+            if (!string.IsNullOrWhiteSpace(next)) query += "&next=" + Uri.EscapeDataString(next);
+            using var response = await _http.GetAsync($"{BaseUrl}/movie/awards?{query}");
+            response.EnsureSuccessStatusCode();
+            using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var root = doc.RootElement;
+            if (!root.TryGetProperty("docs", out var docs) || docs.ValueKind != JsonValueKind.Array) break;
+            foreach (var item in docs.EnumerateArray())
+            {
+                var nomination = Prop(item, "nomination");
+                var award = Prop(nomination, "award");
+                var awardName = Str(award, "title");
+                var category = Str(nomination, "title");
+                var year = Int(award, "year");
+                var winning = Prop(item, "winning");
+                var isWinner = winning.ValueKind == JsonValueKind.True ||
+                    (winning.ValueKind == JsonValueKind.String && bool.TryParse(winning.GetString(), out var parsed) && parsed);
+                var line = string.Join(" — ", new[] { year > 0 ? year.ToString(CultureInfo.InvariantCulture) : "", awardName, category, isWinner ? "Победа" : "Номинация" }.Where(x => !string.IsNullOrWhiteSpace(x)));
+                if (!string.IsNullOrWhiteSpace(line)) output.Add(line);
+            }
+            next = Str(root, "next");
+            var hasNext = Prop(root, "hasNext");
+            if (hasNext.ValueKind != JsonValueKind.True || string.IsNullOrWhiteSpace(next)) break;
+        }
+        return output.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
+    public async Task<TmdbMovie?> GetMovieByImdbIdAsync(string imdbId)
+    {
+        if (string.IsNullOrWhiteSpace(imdbId)) return null;
+        var url = $"{BaseUrl}/movie?externalId.imdb={Uri.EscapeDataString(imdbId.Trim())}&limit=1";
+        using var response = await _http.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        if (!doc.RootElement.TryGetProperty("docs", out var docs) || docs.ValueKind != JsonValueKind.Array || docs.GetArrayLength() == 0) return null;
+        var id = Int(docs[0], "id");
+        return id > 0 ? await GetMovieDetailsAsync(id) : null;
+    }
+
     private static JsonElement Prop(JsonElement e, string name) => e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) ? v : default;
     private static string Str(JsonElement e, string name) { var v = Prop(e, name); return v.ValueKind == JsonValueKind.String ? v.GetString() ?? string.Empty : string.Empty; }
     private static int Int(JsonElement e, string name) { var v = Prop(e, name); if (v.ValueKind == JsonValueKind.Number && v.TryGetInt32(out var n)) return n; if (v.ValueKind == JsonValueKind.String && int.TryParse(v.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out n)) return n; return 0; }
+    private static int? NullableInt(JsonElement e, string name) { var n = Int(e, name); return n > 0 ? n : null; }
     private static double Number(JsonElement e, string name) { var v = Prop(e, name); if (v.ValueKind == JsonValueKind.Number && v.TryGetDouble(out var n)) return n; if (v.ValueKind == JsonValueKind.String && double.TryParse(v.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out n)) return n; return 0; }
+    private static double? NullableNumber(JsonElement e, string name) { var n = Number(e, name); return n > 0 ? n : null; }
     private static string First(params string[] values) => values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v)) ?? string.Empty;
     public void Dispose() => _http.Dispose();
 }

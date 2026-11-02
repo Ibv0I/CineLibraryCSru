@@ -30,6 +30,7 @@ public sealed partial class NfoEditorDialog : Window
     private bool _ownerDisabled;
     private bool _shown;
     private bool _savingSize;
+    private bool _silentBatch;
     private string SettingsPath => Path.Combine(CineLibraryCS.Services.AppState.Instance.DataDir, "NfoEditorWindow.settings.json");
     private XmlDocument _doc = new() { PreserveWhitespace = true };
     private XmlElement _root = null!;
@@ -277,23 +278,7 @@ public sealed partial class NfoEditorDialog : Window
     {
         try
         {
-            Set("title", TitleBox.Text); Set("originaltitle", OriginalTitleBox.Text); Set("tagline", TaglineBox.Text);
-            if (!string.IsNullOrWhiteSpace(YearBox.Text) && !IsValidYear(YearBox.Text)) throw new InvalidDataException("Год должен быть в диапазоне 1700–2100.");
-            if (!string.IsNullOrWhiteSpace(PremieredBox.Text) && !DateTime.TryParseExact(PremieredBox.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _)) throw new InvalidDataException("Дата должна быть корректной и иметь формат ДД-ММ-ГГГГ.");
-            Set("plot", PlotBox.Text); Set("year", YearBox.Text);
-            Set("premiered", DateTime.TryParseExact(PremieredBox.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var releaseDate) ? releaseDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : "");
-            Set("runtime", RuntimeBox.Text); Set("mpaa", CertificationBox.SelectedItem as string);
-            Set("budget", BudgetBox.Text == "—" ? "" : BudgetBox.Text);
-            Set("revenue", RevenueBox.Text == "—" ? "" : RevenueBox.Text);
-            SetAwards(AwardsBox.Text);
-            SetList("studio", StudiosBox.Text); SetList("country", CountriesBox.Text); SetList("genre", string.Join(Environment.NewLine, GenresBox.Text.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Distinct(StringComparer.OrdinalIgnoreCase)));
-            SetRatings(); SetIdentifiers(); SetTechnical();
-            var backup = _path + ".bak-" + DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
-            File.Copy(_path, backup, overwrite: false);
-            var temp = _path + ".tmp";
-            using (var writer = XmlWriter.Create(temp, new XmlWriterSettings { Encoding = new System.Text.UTF8Encoding(false), Indent = true })) _doc.Save(writer);
-            File.Move(temp, _path, overwrite: true);
-            Saved = true;
+            SaveNfoCore();
             _completion.TrySetResult(ContentDialogResult.Primary);
             Close();
         }
@@ -302,6 +287,120 @@ public sealed partial class NfoEditorDialog : Window
             var dialog = new ContentDialog { Title = "Не удалось сохранить NFO", Content = ex.Message, CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
             await dialog.ShowAsync();
         }
+    }
+
+    private void SaveNfoCore()
+    {
+        Set("title", TitleBox.Text); Set("originaltitle", OriginalTitleBox.Text); Set("tagline", TaglineBox.Text);
+        if (!string.IsNullOrWhiteSpace(YearBox.Text) && !IsValidYear(YearBox.Text)) throw new InvalidDataException("Год должен быть в диапазоне 1700–2100.");
+        if (!string.IsNullOrWhiteSpace(PremieredBox.Text) && !DateTime.TryParseExact(PremieredBox.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _)) throw new InvalidDataException("Дата должна быть корректной и иметь формат ДД-ММ-ГГГГ.");
+        Set("plot", PlotBox.Text); Set("year", YearBox.Text);
+        Set("premiered", DateTime.TryParseExact(PremieredBox.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var releaseDate) ? releaseDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : "");
+        Set("runtime", RuntimeBox.Text); Set("mpaa", CertificationBox.SelectedItem as string);
+        Set("budget", BudgetBox.Text == "—" ? "" : BudgetBox.Text);
+        Set("revenue", RevenueBox.Text == "—" ? "" : RevenueBox.Text);
+        SetAwards(AwardsBox.Text);
+        SetList("studio", StudiosBox.Text); SetList("country", CountriesBox.Text); SetList("genre", string.Join(Environment.NewLine, GenresBox.Text.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Distinct(StringComparer.OrdinalIgnoreCase)));
+        SetRatings(); SetIdentifiers(); SetTechnical();
+        var backup = _path + ".bak-" + DateTime.Now.ToString("yyyyMMdd-HHmmss-fff", CultureInfo.InvariantCulture) +
+            "-" + Guid.NewGuid().ToString("N")[..6];
+        File.Copy(_path, backup, overwrite: false);
+        var temp = _path + ".tmp";
+        using (var writer = XmlWriter.Create(temp, new XmlWriterSettings { Encoding = new System.Text.UTF8Encoding(false), Indent = true })) _doc.Save(writer);
+        File.Move(temp, _path, overwrite: true);
+        Saved = true;
+    }
+
+    /// <summary>Kinopoisk phase 1: resolve only Kinopoisk ID and refresh only its rating.</summary>
+    public async Task<bool> ProcessKinopoiskIdentityBatchAsync()
+    {
+        _silentBatch = true;
+        try
+        {
+            var title = FirstNonEmpty(TitleBox.Text, OriginalTitleBox.Text,
+                Path.GetFileName(Path.GetDirectoryName(_path)) ?? "");
+            var originalTitle = FirstNonEmpty(OriginalTitleBox.Text, TitleBox.Text);
+            int? year = int.TryParse(YearBox.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedYear)
+                && parsedYear >= 1700 && parsedYear <= 2100 ? parsedYear : null;
+
+            if (string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
+                throw new InvalidOperationException("Не задан API-ключ КиноПоиска.");
+
+            using var client = new KinopoiskClient();
+            var kpIdText = GetIdentifierValue("kinopoisk");
+            int? kpId = int.TryParse(kpIdText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedId) && parsedId > 0
+                ? parsedId : null;
+
+            if (!kpId.HasValue)
+            {
+                var candidate = await FindExactKinopoiskMatchAsync(client, title, originalTitle, year);
+                var resolvedId = candidate == null ? 0 :
+                    (candidate.KinopoiskId > 0 ? candidate.KinopoiskId : candidate.TmdbId);
+                if (resolvedId <= 0)
+                    throw new InvalidOperationException("Точное совпадение в КиноПоиске не найдено.");
+                AddIdentifierIfMissing("kinopoisk", resolvedId.ToString(CultureInfo.InvariantCulture), new List<string>());
+                kpId = resolvedId;
+            }
+
+            var movie = await client.GetMovieDetailsAsync(kpId.Value)
+                ?? throw new InvalidOperationException("КиноПоиск не вернул карточку фильма.");
+
+            if (movie.Rating is double rating && rating > 0)
+                UpsertRating("kinopoisk", rating, Math.Max(0, movie.VoteCount));
+
+            SaveNfoCore();
+            return movie.Rating is double value && value > 0;
+        }
+        finally { Close(); }
+    }
+
+    /// <summary>Kinopoisk phase 2: fetch budgets/revenue (via existing TMDb ID) and Kinopoisk awards.</summary>
+    public async Task<bool> ProcessKinopoiskFinancialBatchAsync()
+    {
+        _silentBatch = true;
+        var foundAny = false;
+        try
+        {
+            var kpText = GetIdentifierValue("kinopoisk");
+            if (int.TryParse(kpText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kpId) &&
+                kpId > 0 && !string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
+            {
+                using var kp = new KinopoiskClient();
+                var awards = await kp.GetAwardsAsync(kpId);
+                if (awards.Count > 0)
+                {
+                    AwardsBox.Text = string.Join(Environment.NewLine, awards);
+                    foundAny = true;
+                }
+            }
+
+            // The Kinopoisk API does not expose budget/revenue. Use the movie's already
+            // stored TMDb ID as the financial-data source; do not discover or add any
+            // other provider identifiers as part of this Kinopoisk-only operation.
+            var tmdbText = GetIdentifierValue("tmdb");
+            if (int.TryParse(tmdbText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var tmdbId) && tmdbId > 0)
+            {
+                using var tmdb = new TmdbClient(language: "ru-RU");
+                var movie = await tmdb.GetMovieDetailsAsync(tmdbId);
+                if (movie != null)
+                {
+                    if (movie.Budget > 0)
+                    {
+                        BudgetBox.Text = movie.Budget.ToString(CultureInfo.InvariantCulture);
+                        foundAny = true;
+                    }
+                    if (movie.Revenue > 0)
+                    {
+                        RevenueBox.Text = movie.Revenue.ToString(CultureInfo.InvariantCulture);
+                        foundAny = true;
+                    }
+                }
+            }
+
+            SaveNfoCore();
+            return foundAny;
+        }
+        finally { Close(); }
     }
 
     private void SetAwards(string text)
@@ -316,9 +415,15 @@ public sealed partial class NfoEditorDialog : Window
     }
 
     private async void OnCollectMissingInfo(object sender, RoutedEventArgs e)
+        => await CollectMissingInfoAsync(showDialogs: true);
+
+    private async Task CollectMissingInfoAsync(bool showDialogs)
     {
-        CollectMissingInfoButton.IsEnabled = false;
-        CollectMissingInfoButton.Content = "Сбор информации…";
+        if (showDialogs)
+        {
+            CollectMissingInfoButton.IsEnabled = false;
+            CollectMissingInfoButton.Content = "Сбор информации…";
+        }
         var added = new List<string>();
         var unavailable = new List<string>();
         var errors = new List<string>();
@@ -508,17 +613,24 @@ public sealed partial class NfoEditorDialog : Window
                 RequestedTheme = ElementTheme.Dark,
                 XamlRoot = RootGrid.XamlRoot
             };
-            await result.ShowAsync();
+            if (showDialogs) await result.ShowAsync();
         }
         catch (Exception ex)
         {
-            var error = new ContentDialog { Title = "Не удалось собрать информацию", Content = ex.Message, CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
-            await error.ShowAsync();
+            if (showDialogs)
+            {
+                var error = new ContentDialog { Title = "Не удалось собрать информацию", Content = ex.Message, CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
+                await error.ShowAsync();
+            }
+            else throw;
         }
         finally
         {
-            CollectMissingInfoButton.IsEnabled = true;
-            CollectMissingInfoButton.Content = "✦ Собрать информацию";
+            if (showDialogs)
+            {
+                CollectMissingInfoButton.IsEnabled = true;
+                CollectMissingInfoButton.Content = "✦ Собрать информацию";
+            }
         }
     }
 
@@ -631,19 +743,26 @@ public sealed partial class NfoEditorDialog : Window
     }
 
     private async void OnLoadExternalData(object sender, RoutedEventArgs e)
+        => await LoadExternalDataAsync(showDialogs: true);
+
+    private async Task<bool> LoadExternalDataAsync(bool showDialogs)
     {
+        var financialDataFound = false;
         try
         {
             var tmdbText = _identifiers.FirstOrDefault(x => x.Source.Equals("tmdb", StringComparison.OrdinalIgnoreCase))?.Identifier;
             if (!int.TryParse(tmdbText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var tmdbId) || tmdbId <= 0)
-                throw new InvalidOperationException("Сначала добавь корректный TMDb ID.");
-            LoadExternalDataButton.IsEnabled = false; LoadExternalDataButton.Content = "Загрузка…";
+            {
+                if (showDialogs) throw new InvalidOperationException("Сначала добавь корректный TMDb ID.");
+                return false;
+            }
+            if (showDialogs) { LoadExternalDataButton.IsEnabled = false; LoadExternalDataButton.Content = "Загрузка…"; }
             using (var client = new CineLibraryCS.Services.Tmdb.TmdbClient(language: "ru-RU"))
             {
                 var movie = await client.GetMovieDetailsAsync(tmdbId);
                 if (movie == null) throw new InvalidOperationException("TMDb не вернул данные фильма.");
-                if (movie.Budget > 0) BudgetBox.Text = movie.Budget.ToString(CultureInfo.InvariantCulture);
-                if (movie.Revenue > 0) RevenueBox.Text = movie.Revenue.ToString(CultureInfo.InvariantCulture);
+                if (movie.Budget > 0) { BudgetBox.Text = movie.Budget.ToString(CultureInfo.InvariantCulture); financialDataFound = true; }
+                if (movie.Revenue > 0) { RevenueBox.Text = movie.Revenue.ToString(CultureInfo.InvariantCulture); financialDataFound = true; }
             }
             var kpText = _identifiers.FirstOrDefault(x => new[] { "kinopoisk", "kinopoiskdev", "poiskkino" }.Contains(x.Source, StringComparer.OrdinalIgnoreCase))?.Identifier;
             if (int.TryParse(kpText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kpId) && kpId > 0 && !string.IsNullOrWhiteSpace(CineLibraryCS.Services.KinopoiskSettings.ApiToken))
@@ -652,11 +771,31 @@ public sealed partial class NfoEditorDialog : Window
                 var awards = await kp.GetAwardsAsync(kpId);
                 if (awards.Count > 0) AwardsBox.Text = string.Join(Environment.NewLine, awards);
             }
-            var info = new ContentDialog { Title = "Загрузка завершена", Content = "Финансовые данные получены из TMDb. Награды загружены, если API КиноПоиска предоставил их.", CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
-            await info.ShowAsync();
+            if (showDialogs)
+            {
+                var info = new ContentDialog { Title = "Загрузка завершена", Content = "Финансовые данные получены из TMDb. Награды загружены, если API КиноПоиска предоставил их.", CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
+                await info.ShowAsync();
+            }
+            return financialDataFound;
         }
-        catch (Exception ex) { var error = new ContentDialog { Title = "Не удалось загрузить данные", Content = ex.Message, CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot }; await error.ShowAsync(); }
-        finally { LoadExternalDataButton.IsEnabled = true; LoadExternalDataButton.Content = "↓ Загрузить бюджет, сборы и награды"; }
+        catch (Exception ex)
+        {
+            if (showDialogs)
+            {
+                var error = new ContentDialog { Title = "Не удалось загрузить данные", Content = ex.Message, CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
+                await error.ShowAsync();
+                return false;
+            }
+            else throw;
+        }
+        finally
+        {
+            if (showDialogs)
+            {
+                LoadExternalDataButton.IsEnabled = true;
+                LoadExternalDataButton.Content = "↓ Загрузить бюджет, сборы и награды";
+            }
+        }
     }
 
     private static bool IsValidYear(string? text) => int.TryParse(text, out var y) && y >= 1700 && y <= 2100;
@@ -845,8 +984,12 @@ public sealed partial class NfoEditorDialog : Window
         }
         catch (Exception ex)
         {
-            var dialog = new ContentDialog { Title = "Не удалось загрузить рейтинг", Content = ex.Message, CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
-            await dialog.ShowAsync();
+            System.Diagnostics.Debug.WriteLine($"Rating lookup failed ({provider}): {ex.Message}");
+            if (!_silentBatch)
+            {
+                var dialog = new ContentDialog { Title = "Не удалось загрузить рейтинг", Content = ex.Message, CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
+                await dialog.ShowAsync();
+            }
         }
     }
     private async void OnEditIdentifier(object sender, RoutedEventArgs e)

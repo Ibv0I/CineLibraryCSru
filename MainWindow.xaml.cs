@@ -437,6 +437,214 @@ public sealed partial class MainWindow : Window
         panel.Children.Add(saveKinopoiskToken);
         panel.Children.Add(kinopoiskTokenStatus);
 
+        var batchKinopoiskButton = new Button
+        {
+            Content = "Собрать данные с Кинопоиск",
+            Margin = new Thickness(0, 10, 0, 0),
+            HorizontalAlignment = HorizontalAlignment.Left,
+        };
+        var batchKinopoiskStatus = new TextBlock
+        {
+            FontSize = 12, Opacity = 0.85, Foreground = muted,
+            TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0),
+        };
+        var cancelBatchButton = new Button
+        {
+            Content = "Остановить обработку",
+            Visibility = Visibility.Collapsed,
+            Margin = new Thickness(0, 4, 0, 0),
+        };
+        CancellationTokenSource? batchCts = null;
+        batchKinopoiskButton.Click += async (_, _) =>
+        {
+            if (string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
+            {
+                batchKinopoiskStatus.Text = "Сначала сохрани API-ключ КиноПоиска.";
+                return;
+            }
+
+            List<(int Id, string VolumeSerial, string FolderRelPath, string? VideoFileRelPath, string? LocalNfo)> rows;
+            try
+            {
+                AppState.Instance.RefreshConnected();
+                rows = AppState.Instance.Db.GetAllMovieNfoLocations();
+            }
+            catch (Exception ex)
+            {
+                batchKinopoiskStatus.Text = "Не удалось получить список фильмов: " + ex.Message;
+                return;
+            }
+
+            var connected = AppState.Instance.Connected;
+            var workItems = new List<(string NfoPath, string FolderPath, string DriveRoot, string Serial)>();
+            int unavailable = 0;
+            foreach (var row in rows)
+            {
+                if (!connected.TryGetValue(row.VolumeSerial, out var driveLetter) || string.IsNullOrWhiteSpace(driveLetter))
+                {
+                    unavailable++;
+                    continue;
+                }
+
+                var driveRoot = Path.GetFullPath(driveLetter.TrimEnd('\\', '/') + Path.DirectorySeparatorChar);
+                var folder = Path.GetFullPath(Path.Combine(driveRoot,
+                    row.FolderRelPath.Replace('/', Path.DirectorySeparatorChar)));
+                if (!Directory.Exists(folder))
+                {
+                    unavailable++;
+                    continue;
+                }
+
+                var candidates = new List<string>
+                {
+                    Path.Combine(folder, "movie.nfo"),
+                    Path.Combine(folder, Path.GetFileName(folder) + ".nfo"),
+                };
+                if (!string.IsNullOrWhiteSpace(row.VideoFileRelPath))
+                {
+                    var videoName = Path.GetFileNameWithoutExtension(row.VideoFileRelPath);
+                    if (!string.IsNullOrWhiteSpace(videoName))
+                        candidates.Add(Path.Combine(folder, videoName + ".nfo"));
+                }
+                var nfoPath = candidates.FirstOrDefault(File.Exists);
+                if (nfoPath == null)
+                {
+                    var allNfos = Directory.GetFiles(folder, "*.nfo", SearchOption.TopDirectoryOnly);
+                    if (allNfos.Length == 1) nfoPath = allNfos[0];
+                }
+
+                if (nfoPath == null) { unavailable++; continue; }
+                workItems.Add((nfoPath, folder, driveRoot, row.VolumeSerial));
+            }
+
+            if (workItems.Count == 0)
+            {
+                batchKinopoiskStatus.Text = $"Нет доступных NFO для обработки. Фильмов в библиотеке: {rows.Count}; недоступно или без NFO: {unavailable}.";
+                return;
+            }
+
+            var confirm = new ContentDialog
+            {
+                Title = "Массовый сбор данных",
+                Content = $"Будут обработаны все доступные фильмы библиотеки: {workItems.Count}.\n\n" +
+                          "Этап 1: добавление идентификатора КиноПоиска (если его нет) и рейтинга КиноПоиска. " +
+                          "Этап 2: загрузка бюджета, сборов и наград. Другие идентификаторы, рейтинги и метаданные изменяться не будут.\n\n" +
+                          $"Недоступно или не найден NFO: {unavailable}.\n\n" +
+                          "Исходные NFO будут сохранены с резервными копиями. Продолжить?",
+                PrimaryButtonText = "Начать сбор",
+                CloseButtonText = "Отмена",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = Content.XamlRoot,
+                RequestedTheme = CurrentTheme,
+            };
+            if (await confirm.ShowAsync() != ContentDialogResult.Primary) return;
+
+            batchCts = new CancellationTokenSource();
+            var token = batchCts.Token;
+            batchKinopoiskButton.IsEnabled = false;
+            cancelBatchButton.Visibility = Visibility.Visible;
+            cancelBatchButton.IsEnabled = true;
+            batchKinopoiskStatus.Text = $"Подготовка: 0 из {workItems.Count}.";
+            cancelBatchButton.Click += CancelBatchClick;
+            void CancelBatchClick(object? s, RoutedEventArgs args) => batchCts?.Cancel();
+
+            int infoProcessed = 0, infoSucceeded = 0, financialSucceeded = 0, partial = 0, failed = 0;
+            var errors = new List<string>();
+            var financialQueue = new List<(string NfoPath, string FolderPath, string DriveRoot, string Serial)>();
+            bool cancelled = false;
+            try
+            {
+                // Phase 1: collect missing metadata for EVERY movie before any financial lookup starts.
+                for (int i = 0; i < workItems.Count; i++)
+                {
+                    if (token.IsCancellationRequested) { cancelled = true; break; }
+                    var item = workItems[i];
+                    infoProcessed++;
+                    batchKinopoiskStatus.Text = $"Этап 1/2 — идентификатор и рейтинг КиноПоиска: {infoProcessed} из {workItems.Count}\n{Path.GetFileName(item.FolderPath)}";
+                    try
+                    {
+                        var editor = new NfoEditorDialog(item.NfoPath, this);
+                        await editor.ProcessKinopoiskIdentityBatchAsync();
+                        infoSucceeded++;
+                        financialQueue.Add(item);
+                    }
+                    catch (Exception ex)
+                    {
+                        failed++;
+                        if (errors.Count < 12) errors.Add($"{Path.GetFileName(item.FolderPath)} (информация): {ex.Message}");
+                    }
+                    await Task.Yield();
+                }
+
+                // Phase 2: only after phase 1 is complete, fetch budgets, revenue and awards.
+                if (!cancelled)
+                {
+                    for (int i = 0; i < financialQueue.Count; i++)
+                    {
+                        if (token.IsCancellationRequested) { cancelled = true; break; }
+                        var item = financialQueue[i];
+                        batchKinopoiskStatus.Text = $"Этап 2/2 — бюджет, сборы и награды: {i + 1} из {financialQueue.Count}\n{Path.GetFileName(item.FolderPath)}";
+                        try
+                        {
+                            var editor = new NfoEditorDialog(item.NfoPath, this);
+                            if (await editor.ProcessKinopoiskFinancialBatchAsync())
+                                financialSucceeded++;
+                            else
+                                partial++;
+                        }
+                        catch (Exception ex)
+                        {
+                            partial++;
+                            if (errors.Count < 12) errors.Add($"{Path.GetFileName(item.FolderPath)} (бюджет/сборы): {ex.Message}");
+                        }
+
+                        // Re-parse the updated NFO so the library database and cards reflect it.
+                        try
+                        {
+                            await AppState.Instance.Scanner.ScanAsync(
+                                item.Serial, item.DriveRoot, scanFolder: item.FolderPath, incremental: false);
+                        }
+                        catch (Exception ex)
+                        {
+                            partial++;
+                            if (errors.Count < 12) errors.Add($"{Path.GetFileName(item.FolderPath)} (обновление библиотеки): {ex.Message}");
+                        }
+                        await Task.Yield();
+                    }
+                }
+            }
+            finally
+            {
+                cancelled = cancelled || token.IsCancellationRequested;
+                batchCts?.Dispose();
+                batchCts = null;
+                batchKinopoiskButton.IsEnabled = true;
+                cancelBatchButton.Visibility = Visibility.Collapsed;
+                cancelBatchButton.Click -= CancelBatchClick;
+            }
+
+            var summary = $"Фильмов в библиотеке: {rows.Count}\nДоступно для обработки: {workItems.Count}\n" +
+                          $"Получен идентификатор/рейтинг КиноПоиска: {infoSucceeded}\n" +
+                          $"Получены бюджет, сборы или награды: {financialSucceeded}\n" +
+                          $"Частично обработано: {partial}\nОшибки: {failed}\nНедоступно или без NFO: {unavailable}";
+            if (cancelled) summary += "\n\nОбработка остановлена пользователем.";
+            if (errors.Count > 0) summary += "\n\nПервые ошибки:\n" + string.Join("\n", errors);
+            batchKinopoiskStatus.Text = summary;
+
+            var report = new ContentDialog
+            {
+                Title = cancelled ? "Сбор остановлен" : "Сбор данных завершён",
+                Content = new ScrollViewer { Content = new TextBlock { Text = summary, TextWrapping = TextWrapping.Wrap }, MaxHeight = 420 },
+                CloseButtonText = "ОК",
+                XamlRoot = Content.XamlRoot,
+                RequestedTheme = CurrentTheme,
+            };
+            await report.ShowAsync();
+        };
+        panel.Children.Add(batchKinopoiskButton);
+        panel.Children.Add(cancelBatchButton);
+        panel.Children.Add(batchKinopoiskStatus);
+
         // ── PoiskKino API ──
         panel.Children.Add(Header("ПоискКино API (poiskkino.dev)"));
         panel.Children.Add(new TextBlock

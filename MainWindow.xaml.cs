@@ -461,8 +461,21 @@ public sealed partial class MainWindow : Window
             Margin = new Thickness(0, 4, 0, 0),
         };
         CancellationTokenSource? batchCts = null;
+        bool batchConfirmationPending = false;
         batchKinopoiskButton.Click += async (_, _) =>
         {
+            // Settings is itself a ContentDialog. WinUI allows only one ContentDialog
+            // at a time, so confirmation/report dialogs here would throw 0x80000019.
+            // Use a two-click inline confirmation and keep all feedback inside Settings.
+            if (!batchConfirmationPending)
+            {
+                batchConfirmationPending = true;
+                batchKinopoiskStatus.Text = "Будут выполнены два этапа для всех фильмов библиотеки: 1) «Собрать информацию»; 2) бюджеты, сборы и награды. Нажми кнопку ещё раз для подтверждения.";
+                batchKinopoiskButton.Content = "Подтвердить и начать";
+                return;
+            }
+            batchConfirmationPending = false;
+            batchKinopoiskButton.Content = "Собрать данные с Кинопоиск";
             batchKinopoiskStatus.Text = "Запуск массовой обработки…";
             batchKinopoiskButton.IsEnabled = false;
             try
@@ -551,21 +564,8 @@ public sealed partial class MainWindow : Window
                 return;
             }
 
-            var confirm = new ContentDialog
-            {
-                Title = "Массовый сбор данных",
-                Content = $"Будут обработаны все доступные фильмы библиотеки: {workItems.Count}.\n\n" +
-                          "Этап 1: для каждого фильма выполняется действие «Собрать информацию» из редактора NFO.\n" +
-                          "Этап 2: для каждого фильма выполняется действие «Загрузить бюджеты и сборы», а также загружаются награды Кинопоиска.\n\n" +
-                          $"Недоступно или не найден NFO: {unavailable}.\n\n" +
-                          "Исходные NFO будут сохранены с резервными копиями. Продолжить?",
-                PrimaryButtonText = "Начать сбор",
-                CloseButtonText = "Отмена",
-                DefaultButton = ContentDialogButton.Close,
-                XamlRoot = Content.XamlRoot,
-                RequestedTheme = CurrentTheme,
-            };
-            if (await confirm.ShowAsync() != ContentDialogResult.Primary) return;
+            // No nested ContentDialog here: this settings panel is already modal.
+            // The inline two-click confirmation above replaces the old modal prompt.
 
             batchCts = new CancellationTokenSource();
             var token = batchCts.Token;
@@ -673,36 +673,20 @@ public sealed partial class MainWindow : Window
             if (errors.Count > 0) summary += "\n\nПервые ошибки:\n" + string.Join("\n", errors);
             batchKinopoiskStatus.Text = summary;
 
-            var report = new ContentDialog
-            {
-                Title = cancelled ? "Сбор остановлен" : "Сбор данных завершён",
-                Content = new ScrollViewer { Content = new TextBlock { Text = summary, TextWrapping = TextWrapping.Wrap }, MaxHeight = 420 },
-                CloseButtonText = "ОК",
-                XamlRoot = Content.XamlRoot,
-                RequestedTheme = CurrentTheme,
-            };
-            await report.ShowAsync();
+            // Keep the final report inline in Settings; opening another ContentDialog
+            // while the Settings ContentDialog is open causes COMException 0x80000019.
+            batchKinopoiskStatus.Text = summary;
             }
             catch (Exception ex)
             {
                 batchKinopoiskStatus.Text = "Ошибка запуска массовой обработки: " + ex;
-                try
-                {
-                    var errorDialog = new ContentDialog
-                    {
-                        Title = "Ошибка массовой обработки",
-                        Content = new ScrollViewer { Content = new TextBlock { Text = ex.ToString(), TextWrapping = TextWrapping.Wrap }, MaxHeight = 420 },
-                        CloseButtonText = "ОК",
-                        XamlRoot = Content.XamlRoot,
-                        RequestedTheme = CurrentTheme,
-                    };
-                    await errorDialog.ShowAsync();
-                }
-                catch { /* Keep the error visible in the settings panel if a dialog cannot be shown. */ }
+                // Settings is already a ContentDialog. Show detailed error inline.
+
             }
             finally
             {
                 batchKinopoiskButton.IsEnabled = true;
+                batchKinopoiskButton.Content = "Собрать данные с Кинопоиск";
             }
         };
         panel.Children.Add(batchKinopoiskButton);

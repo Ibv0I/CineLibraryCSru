@@ -11,6 +11,8 @@ using System.Text.Json;
 using System.Globalization;
 using System.Xml;
 using System.Collections.ObjectModel;
+using CineLibraryCS.Services;
+using CineLibraryCS.Services.Tmdb;
 
 namespace CineLibraryCS.Views;
 
@@ -212,7 +214,17 @@ public sealed partial class NfoEditorDialog : Window
         CountriesBox.Text = string.Join(Environment.NewLine, Elements("country").Select(x => x.InnerText));
         GenresBox.Text = string.Join(", ", Elements("genre").Select(x => x.InnerText));
         _ratings.Clear(); foreach (var x in Elements("ratings/rating")) _ratings.Add(new RatingRow { Source = x.GetAttribute("name"), Value = Child(x, "value") ?? x.InnerText, Votes = Child(x, "votes") ?? "0" });
-        _identifiers.Clear(); foreach (var x in Elements("uniqueid")) _identifiers.Add(new IdentifierRow { Source = x.GetAttribute("type"), Identifier = x.InnerText });
+        _identifiers.Clear();
+        foreach (var x in Elements("uniqueid"))
+        {
+            var source = NormalizeIdentifierSource(x.GetAttribute("type"));
+            if (!string.IsNullOrWhiteSpace(source) && !string.IsNullOrWhiteSpace(x.InnerText) &&
+                !_identifiers.Any(row => NormalizeIdentifierSource(row.Source) == source))
+                _identifiers.Add(new IdentifierRow { Source = source, Identifier = x.InnerText.Trim() });
+        }
+        AddLegacyIdentifierIfMissing("tmdb", Get("tmdbid"));
+        AddLegacyIdentifierIfMissing("imdb", Get("imdbid"));
+        AddLegacyIdentifierIfMissing("kinopoisk", Get("kinopoiskid"));
         OnYearChanged(YearBox, null!); OnDateChanged(PremieredBox, null!);
 
         var video = FindStream("video");
@@ -277,6 +289,310 @@ public sealed partial class NfoEditorDialog : Window
         var awards = _doc.CreateElement("awards");
         foreach (var line in lines) { var item = _doc.CreateElement("award"); item.InnerText = line; awards.AppendChild(item); }
         _root.AppendChild(awards);
+    }
+
+    private async void OnCollectMissingInfo(object sender, RoutedEventArgs e)
+    {
+        CollectMissingInfoButton.IsEnabled = false;
+        CollectMissingInfoButton.Content = "Сбор информации…";
+        var added = new List<string>();
+        var unavailable = new List<string>();
+        var errors = new List<string>();
+
+        try
+        {
+            var title = FirstNonEmpty(TitleBox.Text, OriginalTitleBox.Text,
+                Path.GetFileName(Path.GetDirectoryName(_path)) ?? "");
+            var originalTitle = FirstNonEmpty(OriginalTitleBox.Text, TitleBox.Text);
+            int? year = int.TryParse(YearBox.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedYear)
+                && parsedYear >= 1700 && parsedYear <= 2100 ? parsedYear : null;
+
+            var tmdbId = GetIdentifierValue("tmdb");
+            var imdbId = GetIdentifierValue("imdb");
+            var kpIdText = GetIdentifierValue("kinopoisk");
+            int? kpId = int.TryParse(kpIdText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedKp) && parsedKp > 0
+                ? parsedKp : null;
+
+            TmdbMovie? tmdbMovie = null;
+            TmdbMovie? kpMovie = null;
+            using var tmdbClient = new TmdbClient(language: "ru-RU");
+
+            // 1. Use an existing TMDb ID first.
+            if (int.TryParse(tmdbId, NumberStyles.Integer, CultureInfo.InvariantCulture, out var existingTmdbId) && existingTmdbId > 0)
+            {
+                try { tmdbMovie = await tmdbClient.GetMovieDetailsAsync(existingTmdbId); }
+                catch (Exception ex) { errors.Add("TMDb: " + ex.Message); }
+            }
+
+            // 2. If TMDb ID is missing, resolve it from IMDb.
+            if (tmdbMovie == null && !string.IsNullOrWhiteSpace(imdbId))
+            {
+                try
+                {
+                    var foundId = await tmdbClient.FindMovieIdByImdbAsync(imdbId);
+                    if (foundId.HasValue)
+                    {
+                        AddIdentifierIfMissing("tmdb", foundId.Value.ToString(CultureInfo.InvariantCulture), added);
+                        tmdbMovie = await tmdbClient.GetMovieDetailsAsync(foundId.Value);
+                    }
+                }
+                catch (Exception ex) { errors.Add("Поиск TMDb по IMDb: " + ex.Message); }
+            }
+
+            // 3. If both TMDb and IMDb are absent, search by title/year.
+            if (tmdbMovie == null && string.IsNullOrWhiteSpace(tmdbId) &&
+                !string.IsNullOrWhiteSpace(title))
+            {
+                try
+                {
+                    var candidate = await FindExactTmdbMatchAsync(tmdbClient, title, originalTitle, year);
+                    if (candidate != null)
+                    {
+                        AddIdentifierIfMissing("tmdb", candidate.TmdbId.ToString(CultureInfo.InvariantCulture), added);
+                        tmdbMovie = await tmdbClient.GetMovieDetailsAsync(candidate.TmdbId);
+                    }
+                }
+                catch (Exception ex) { errors.Add("Поиск фильма в TMDb: " + ex.Message); }
+            }
+
+            // 4. Resolve Kinopoisk ID/details when the API token is configured.
+            if (string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
+            {
+                if (!kpId.HasValue) unavailable.Add("Кинопоиск ID (не задан API-ключ КиноПоиска)");
+            }
+            else
+            {
+                try
+                {
+                    using var kpClient = new KinopoiskClient();
+                    if (!kpId.HasValue && !string.IsNullOrWhiteSpace(title))
+                    {
+                        var kpCandidate = await FindExactKinopoiskMatchAsync(kpClient, title, originalTitle, year);
+                        if (kpCandidate != null)
+                        {
+                            var resolvedKpId = kpCandidate.KinopoiskId > 0 ? kpCandidate.KinopoiskId : kpCandidate.TmdbId;
+                            if (resolvedKpId > 0)
+                            {
+                                kpId = resolvedKpId;
+                                AddIdentifierIfMissing("kinopoisk", resolvedKpId.ToString(CultureInfo.InvariantCulture), added);
+                            }
+                        }
+                    }
+
+                    if (kpId.HasValue && kpId.Value > 0)
+                    {
+                        try { kpMovie = await kpClient.GetMovieDetailsAsync(kpId.Value); }
+                        catch (Exception ex) { errors.Add("Данные КиноПоиска: " + ex.Message); }
+                    }
+                    else unavailable.Add("Кинопоиск ID (точное совпадение не найдено)");
+                }
+                catch (Exception ex) { errors.Add("КиноПоиск: " + ex.Message); }
+            }
+
+            // Kinopoisk often provides IMDb ID. Use it to resolve TMDb if still absent.
+            if (string.IsNullOrWhiteSpace(imdbId) && !string.IsNullOrWhiteSpace(kpMovie?.ImdbId))
+            {
+                imdbId = kpMovie!.ImdbId!.Trim();
+                AddIdentifierIfMissing("imdb", imdbId, added);
+            }
+            if (tmdbMovie == null && string.IsNullOrWhiteSpace(tmdbId) && !string.IsNullOrWhiteSpace(imdbId))
+            {
+                try
+                {
+                    var foundId = await tmdbClient.FindMovieIdByImdbAsync(imdbId);
+                    if (foundId.HasValue)
+                    {
+                        AddIdentifierIfMissing("tmdb", foundId.Value.ToString(CultureInfo.InvariantCulture), added);
+                        tmdbMovie = await tmdbClient.GetMovieDetailsAsync(foundId.Value);
+                    }
+                }
+                catch (Exception ex) { errors.Add("Поиск TMDb по IMDb: " + ex.Message); }
+            }
+
+            // Fill only empty fields. Existing user-edited NFO values are never overwritten.
+            if (string.IsNullOrWhiteSpace(imdbId) && !string.IsNullOrWhiteSpace(tmdbMovie?.ImdbId))
+            {
+                imdbId = tmdbMovie!.ImdbId!.Trim();
+                AddIdentifierIfMissing("imdb", imdbId, added);
+            }
+
+            var resolvedYear = tmdbMovie != null && tmdbMovie.Year > 0 ? tmdbMovie.Year : (kpMovie?.Year ?? 0);
+            var resolvedTagline = FirstNonEmpty(tmdbMovie?.Tagline, kpMovie?.Tagline);
+            var resolvedGenres = tmdbMovie != null && tmdbMovie.Genres.Count > 0
+                ? tmdbMovie.Genres
+                : (kpMovie?.Genres ?? new List<TmdbNamed>());
+            if (string.IsNullOrWhiteSpace(YearBox.Text) && resolvedYear > 0)
+            {
+                YearBox.Text = resolvedYear.ToString(CultureInfo.InvariantCulture);
+                added.Add("Год");
+            }
+            if (string.IsNullOrWhiteSpace(TaglineBox.Text) && !string.IsNullOrWhiteSpace(resolvedTagline))
+            {
+                TaglineBox.Text = resolvedTagline;
+                added.Add("Слоган");
+            }
+            if (string.IsNullOrWhiteSpace(GenresBox.Text) && resolvedGenres.Count > 0)
+            {
+                GenresBox.Text = string.Join(", ", resolvedGenres.Select(x => x.Name)
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Distinct(StringComparer.OrdinalIgnoreCase));
+                if (!string.IsNullOrWhiteSpace(GenresBox.Text)) added.Add("Жанры");
+            }
+            if (CertificationBox.SelectedItem == null)
+            {
+                var certification = MapRussianCertification(
+                    FirstNonEmpty(tmdbMovie?.RussianCertification, kpMovie?.RussianCertification,
+                        tmdbMovie?.Certification, kpMovie?.Certification));
+                if (certification != null)
+                {
+                    CertificationBox.SelectedItem = certification;
+                    added.Add("Возрастной рейтинг");
+                }
+            }
+            if (string.IsNullOrWhiteSpace(PremieredBox.Text))
+            {
+                var releaseDate = FirstNonEmpty(tmdbMovie?.RussianReleaseDate,
+                    tmdbMovie?.ReleaseDate, kpMovie?.ReleaseDate);
+                if (DateTime.TryParse(releaseDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+                {
+                    PremieredBox.Text = date.ToString("dd-MM-yyyy", CultureInfo.InvariantCulture);
+                    added.Add("Дата выхода");
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(GetIdentifierValue("tmdb"))) unavailable.Add("TMDb ID");
+            if (string.IsNullOrWhiteSpace(GetIdentifierValue("imdb"))) unavailable.Add("IMDb ID");
+            if (string.IsNullOrWhiteSpace(GetIdentifierValue("kinopoisk"))) unavailable.Add("Кинопоиск ID");
+
+            var report = new List<string>();
+            if (added.Count > 0) report.Add("Добавлено: " + string.Join(", ", added.Distinct(StringComparer.OrdinalIgnoreCase)) + ".");
+            if (unavailable.Count > 0) report.Add("Не удалось получить: " + string.Join(", ", unavailable.Distinct(StringComparer.OrdinalIgnoreCase)) + ".");
+            if (errors.Count > 0) report.Add("Ошибки источников:\n" + string.Join("\n", errors));
+            if (report.Count == 0) report.Add("Все основные поля уже заполнены. Изменений не требуется.");
+
+            var result = new ContentDialog
+            {
+                Title = "Сбор информации завершён",
+                Content = new ScrollViewer { Content = new TextBlock { Text = string.Join("\n\n", report), TextWrapping = TextWrapping.Wrap }, MaxHeight = 420 },
+                CloseButtonText = "ОК",
+                RequestedTheme = ElementTheme.Dark,
+                XamlRoot = RootGrid.XamlRoot
+            };
+            await result.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            var error = new ContentDialog { Title = "Не удалось собрать информацию", Content = ex.Message, CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
+            await error.ShowAsync();
+        }
+        finally
+        {
+            CollectMissingInfoButton.IsEnabled = true;
+            CollectMissingInfoButton.Content = "✦ Собрать информацию";
+        }
+    }
+
+    private void AddLegacyIdentifierIfMissing(string source, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return;
+        source = NormalizeIdentifierSource(source);
+        if (_identifiers.Any(x => NormalizeIdentifierSource(x.Source) == source)) return;
+        _identifiers.Add(new IdentifierRow { Source = source, Identifier = value.Trim() });
+    }
+
+    private string GetIdentifierValue(string canonicalSource)
+    {
+        var row = _identifiers.FirstOrDefault(x => NormalizeIdentifierSource(x.Source) == canonicalSource);
+        if (!string.IsNullOrWhiteSpace(row?.Identifier)) return row.Identifier.Trim();
+
+        var legacyNode = canonicalSource switch
+        {
+            "tmdb" => _root.SelectSingleNode("tmdbid")?.InnerText,
+            "imdb" => _root.SelectSingleNode("imdbid")?.InnerText,
+            "kinopoisk" => _root.SelectSingleNode("kinopoiskid")?.InnerText,
+            _ => null
+        };
+        return legacyNode?.Trim() ?? "";
+    }
+
+    private static string NormalizeIdentifierSource(string source)
+    {
+        var value = (source ?? "").Trim().ToLowerInvariant();
+        if (value is "kp" or "kinopoisk" or "kinopoiskdev" or "poiskkino" or "kinopoisk_id") return "kinopoisk";
+        if (value is "imdb" or "imdbid" or "imdb_id") return "imdb";
+        if (value is "tmdb" or "tmdbid" or "tmdb_id") return "tmdb";
+        return value;
+    }
+
+    private void AddIdentifierIfMissing(string source, string identifier, List<string> added)
+    {
+        if (string.IsNullOrWhiteSpace(identifier)) return;
+        source = NormalizeIdentifierSource(source);
+        var existing = _identifiers.FirstOrDefault(x => NormalizeIdentifierSource(x.Source) == source);
+        if (existing != null)
+        {
+            if (string.IsNullOrWhiteSpace(existing.Identifier))
+            {
+                var index = _identifiers.IndexOf(existing);
+                if (index >= 0) _identifiers[index] = new IdentifierRow { Source = source, Identifier = identifier.Trim() };
+                added.Add(source.ToUpperInvariant() + " ID");
+            }
+            return;
+        }
+        _identifiers.Add(new IdentifierRow { Source = source, Identifier = identifier.Trim() });
+        added.Add(source.ToUpperInvariant() + " ID");
+    }
+
+    private static string FirstNonEmpty(params string?[] values) =>
+        values.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x))?.Trim() ?? "";
+
+    private static string NormalizeMatchTitle(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "";
+        return new string(value.Trim().ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
+    }
+
+    private static async Task<TmdbMovie?> FindExactTmdbMatchAsync(TmdbClient client,
+        string title, string originalTitle, int? year)
+    {
+        foreach (var query in new[] { title, originalTitle }.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            var results = await client.SearchMovieAsync(query, year);
+            var queryNames = new[] { title, originalTitle }.Select(NormalizeMatchTitle).Where(x => x.Length > 0).ToHashSet();
+            var exact = results.FirstOrDefault(x =>
+                (queryNames.Contains(NormalizeMatchTitle(x.Title)) || queryNames.Contains(NormalizeMatchTitle(x.OriginalTitle))) &&
+                (!year.HasValue || x.Year == 0 || x.Year == year.Value));
+            if (exact != null) return exact;
+        }
+        return null;
+    }
+
+    private static async Task<TmdbMovie?> FindExactKinopoiskMatchAsync(KinopoiskClient client,
+        string title, string originalTitle, int? year)
+    {
+        foreach (var query in new[] { title, originalTitle }.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            var results = await client.SearchMovieAsync(query, year);
+            var queryNames = new[] { title, originalTitle }.Select(NormalizeMatchTitle).Where(x => x.Length > 0).ToHashSet();
+            var exact = results.FirstOrDefault(x =>
+                (queryNames.Contains(NormalizeMatchTitle(x.Title)) || queryNames.Contains(NormalizeMatchTitle(x.OriginalTitle))) &&
+                (!year.HasValue || x.Year == 0 || x.Year == year.Value));
+            if (exact != null) return exact;
+        }
+        return null;
+    }
+
+    private static string? MapRussianCertification(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var normalized = value.Trim().ToLowerInvariant().Replace(" ", "");
+        if (normalized.Contains("age0") || normalized is "0" or "0+") return "Без ограничений";
+        if (normalized.Contains("age6") || normalized is "6" or "6+") return "6+";
+        if (normalized.Contains("age12") || normalized is "12" or "12+") return "12+";
+        if (normalized.Contains("age16") || normalized is "16" or "16+") return "16+";
+        if (normalized.Contains("age18") || normalized is "18" or "18+") return "18+";
+        if (normalized.Contains("age21") || normalized is "21" or "21+") return "18+";
+        return null;
     }
 
     private async void OnLoadExternalData(object sender, RoutedEventArgs e)
@@ -537,10 +853,12 @@ public sealed partial class NfoEditorDialog : Window
         var items = _identifiers.Select(x => new[] { x.Source, x.Identifier }).Where(x => x[0].Length > 0 && x[1].Length > 0).ToList();
         foreach (var old in Elements("uniqueid")) _root.RemoveChild(old);
         foreach (var p in items) { var id = _doc.CreateElement("uniqueid"); id.SetAttribute("type", p[0]); id.InnerText = p[1]; _root.AppendChild(id); }
-        var tmdb = items.FirstOrDefault(x => x[0].Equals("tmdb", StringComparison.OrdinalIgnoreCase));
-        var imdb = items.FirstOrDefault(x => x[0].Equals("imdb", StringComparison.OrdinalIgnoreCase));
+        var tmdb = items.FirstOrDefault(x => NormalizeIdentifierSource(x[0]) == "tmdb");
+        var imdb = items.FirstOrDefault(x => NormalizeIdentifierSource(x[0]) == "imdb");
+        var kinopoisk = items.FirstOrDefault(x => NormalizeIdentifierSource(x[0]) == "kinopoisk");
         Set("tmdbid", tmdb?[1]);
         Set("imdbid", imdb?[1]);
+        Set("kinopoiskid", kinopoisk?[1]);
     }
 
     private void SetTechnical()

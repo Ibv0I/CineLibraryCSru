@@ -57,6 +57,24 @@ public sealed class TmdbClient : IDisposable
         return result?.Results ?? new List<TmdbMovie>();
     }
 
+    /// <summary>Finds a TMDb movie using its IMDb external identifier.</summary>
+    public async Task<int?> FindMovieIdByImdbAsync(string imdbId)
+    {
+        if (string.IsNullOrWhiteSpace(imdbId)) return null;
+        await RateLimitAsync();
+        var externalId = Uri.EscapeDataString(imdbId.Trim());
+        var url = $"{BaseUrl}/find/{externalId}?api_key={_apiKey}&external_source=imdb_id&language={Uri.EscapeDataString(_language)}";
+        var response = await _http.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        if (!doc.RootElement.TryGetProperty("movie_results", out var results) ||
+            results.ValueKind != JsonValueKind.Array) return null;
+        foreach (var item in results.EnumerateArray())
+            if (item.TryGetProperty("id", out var id) && id.TryGetInt32(out var tmdbId) && tmdbId > 0)
+                return tmdbId;
+        return null;
+    }
+
     /// <summary>Returns available poster and backdrop file paths for a movie.</summary>
     public async Task<TmdbMovieImages> GetMovieImagesAsync(int tmdbId)
     {

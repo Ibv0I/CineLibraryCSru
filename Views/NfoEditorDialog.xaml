@@ -42,7 +42,12 @@
                             <TextBox x:Name="RevenueBox" Header="Мировые сборы (USD)" Grid.Column="1" />
                         </Grid>
                         <TextBox x:Name="AwardsBox" Header="Награды и номинации (по одной на строку)" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" MaxHeight="120" />
-                        <Button x:Name="LoadExternalDataButton" Content="↓ Загрузить бюджет, сборы и награды" HorizontalAlignment="Left" Click="OnLoadExternalData" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="CollectMissingInfoButton" Content="✦ Собрать информацию"
+                                    HorizontalAlignment="Left" Click="OnCollectMissingInfo" />
+                            <Button x:Name="LoadExternalDataButton" Content="↓ Загрузить бюджет, сборы и награды"
+                                    HorizontalAlignment="Left" Click="OnLoadExternalData" />
+                        </StackPanel>
                         <Grid ColumnSpacing="12" Margin="0,2,0,0">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Spacing="5">

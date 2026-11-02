@@ -1242,7 +1242,12 @@ public sealed partial class MovieDetailDialog : Window
             return "Золотая малина";
         if (ContainsAny(line, "critics choice", "critics' choice", "выбор критиков"))
             return "Critics Choice";
-        if (ContainsAny(line, "screen actors guild", "sag award", "sag awards", "гильдия киноакт", "гильдия актер", "гильдия актёр"))
+        if (ContainsAny(line,
+            "screen actors guild", "screen actors", "sag award", "sag awards", "sag-aftra",
+            "the actor awards", "actor awards", "actor award", "actors guild", "guild of actors",
+            "гильдия киноакт", "гильдия актер", "гильдия актёр",
+            "премия актер", "премия актёр", "награда актер", "награда актёр",
+            "экранных актер", "экранных актёр"))
             return "SAG Awards";
         if (ContainsAny(line, "producers guild", "pga award"))
             return "PGA Awards";
@@ -1292,8 +1297,12 @@ public sealed partial class MovieDetailDialog : Window
         if (ContainsAny(name, "сезар", "cesar", "césar")) return "cesar.png";
         if (ContainsAny(name, "золотая малина", "golden raspberry", "razzie")) return "razzie.png";
         if (ContainsAny(name, "critics choice", "critics' choice", "выбор критиков")) return "critics-choice.png";
-        if (ContainsAny(name, "screen actors guild", "sag award", "sag awards",
-            "гильдия киноакт", "гильдия актер", "гильдия актёр")) return "sag.png";
+        if (ContainsAny(name,
+            "screen actors guild", "screen actors", "sag award", "sag awards", "sag-aftra",
+            "the actor awards", "actor awards", "actor award", "actors guild", "guild of actors",
+            "гильдия киноакт", "гильдия актер", "гильдия актёр",
+            "премия актер", "премия актёр", "награда актер", "награда актёр",
+            "экранных актер", "экранных актёр")) return "sag.png";
         if (ContainsAny(name, "saturn", "сатурн")) return "saturn.png";
         if (ContainsAny(name, "producers guild", "pga award")) return "guild.png";
         if (ContainsAny(name, "directors guild", "dga award")) return "guild.png";

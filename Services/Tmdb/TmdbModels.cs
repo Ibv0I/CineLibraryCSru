@@ -22,6 +22,9 @@ public class TmdbMovie
     /// <summary>Optional Kinopoisk rating attached to a TMDb-selected movie.</summary>
     public double? KinopoiskRating { get; set; }
     public int? KinopoiskVoteCount { get; set; }
+    /// <summary>IMDb rating returned by the Kinopoisk API when available.</summary>
+    public double? ImdbRating { get; set; }
+    public int? ImdbVoteCount { get; set; }
 
     [JsonPropertyName("imdb_id")]
     public string? ImdbId { get; set; }

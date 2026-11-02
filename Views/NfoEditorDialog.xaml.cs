@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Globalization;
 using System.Xml;
+using System.Text.RegularExpressions;
 using System.Collections.ObjectModel;
 using CineLibraryCS.Services;
 using CineLibraryCS.Services.Tmdb;
@@ -57,7 +58,13 @@ public sealed partial class NfoEditorDialog : Window
     }
     private static readonly string[] RatingSources = { "tmdb", "imdb", "kinopoisk" };
     private static readonly string[] StandardGenres = { "Боевик", "Приключения", "Анимация", "Комедия", "Криминал", "Документальный", "Драма", "Семейный", "Фэнтези", "История", "Ужасы", "Музыка", "Детектив", "Мелодрама", "Фантастика", "Телевизионный фильм", "Триллер", "Военный", "Вестерн" };
-    private static readonly string[] RussianCertifications = { "Без ограничений", "0+", "6+", "12+", "16+", "18+", "Неизвестно" };
+    private static readonly string[] RussianCertifications =
+    {
+        "Без ограничений", "0+", "6+", "12+", "16+", "18+", "21+", "Неизвестно",
+        "G", "PG", "PG-13", "R", "NC-17", "NR", "Not Rated", "Unrated",
+        "TV-Y", "TV-Y7", "TV-G", "TV-PG", "TV-14", "TV-MA",
+        "U", "U/A", "A", "12A", "15", "18", "M", "MA15+", "R18+"
+    };
     public bool Saved { get; private set; }
 
     public NfoEditorDialog(string nfoPath, Window ownerWindow)
@@ -203,13 +210,19 @@ public sealed partial class NfoEditorDialog : Window
         if (DateTime.TryParseExact(premiered, new[] { "yyyy-MM-dd", "dd-MM-yyyy", "yyyy-M-d" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var releaseDate)) PremieredBox.Text = releaseDate.ToString("dd-MM-yyyy", CultureInfo.InvariantCulture);
         else PremieredBox.Text = premiered ?? "";
         RuntimeBox.Text = Get("runtime");
-        BudgetBox.Text = Get("budget");
-        RevenueBox.Text = Get("revenue");
+        BudgetBox.Text = FirstNonEmpty(Get("budget"), "—");
+        RevenueBox.Text = FirstNonEmpty(Get("revenue"), "—");
         AwardsBox.Text = string.Join(Environment.NewLine, Elements("awards/award").Select(x => x.InnerText));
         if (string.IsNullOrWhiteSpace(AwardsBox.Text)) AwardsBox.Text = Get("awards") ?? "";
         var certification = Get("mpaa") ?? Get("certification");
         CertificationBox.SelectedItem = RussianCertifications.FirstOrDefault(x => string.Equals(x, certification, StringComparison.OrdinalIgnoreCase));
-        if (CertificationBox.SelectedItem == null && !string.IsNullOrWhiteSpace(certification)) CertificationBox.SelectedItem = "Неизвестно";
+        if (CertificationBox.SelectedItem == null && !string.IsNullOrWhiteSpace(certification))
+        {
+            var certificationOptions = RussianCertifications.ToList();
+            certificationOptions.Add(certification);
+            CertificationBox.ItemsSource = certificationOptions;
+            CertificationBox.SelectedItem = certification;
+        }
         StudiosBox.Text = string.Join(Environment.NewLine, Elements("studio").Select(x => x.InnerText));
         CountriesBox.Text = string.Join(Environment.NewLine, Elements("country").Select(x => x.InnerText));
         GenresBox.Text = string.Join(", ", Elements("genre").Select(x => x.InnerText));
@@ -260,7 +273,8 @@ public sealed partial class NfoEditorDialog : Window
             Set("plot", PlotBox.Text); Set("year", YearBox.Text);
             Set("premiered", DateTime.TryParseExact(PremieredBox.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var releaseDate) ? releaseDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : "");
             Set("runtime", RuntimeBox.Text); Set("mpaa", CertificationBox.SelectedItem as string);
-            Set("budget", BudgetBox.Text); Set("revenue", RevenueBox.Text);
+            Set("budget", BudgetBox.Text == "—" ? "" : BudgetBox.Text);
+            Set("revenue", RevenueBox.Text == "—" ? "" : RevenueBox.Text);
             SetAwards(AwardsBox.Text);
             SetList("studio", StudiosBox.Text); SetList("country", CountriesBox.Text); SetList("genre", string.Join(Environment.NewLine, GenresBox.Text.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Distinct(StringComparer.OrdinalIgnoreCase)));
             SetRatings(); SetIdentifiers(); SetTechnical();
@@ -460,6 +474,12 @@ public sealed partial class NfoEditorDialog : Window
                 }
             }
 
+            // Refresh ratings for every known provider ID after discovery, not only when
+            // an identifier is manually added in the dialog.
+            await TryLoadRatingForIdentifierAsync("tmdb", GetIdentifierValue("tmdb"));
+            await TryLoadRatingForIdentifierAsync("kinopoisk", GetIdentifierValue("kinopoisk"));
+            await TryLoadRatingForIdentifierAsync("imdb", GetIdentifierValue("imdb"));
+
             if (string.IsNullOrWhiteSpace(GetIdentifierValue("tmdb"))) unavailable.Add("TMDb ID");
             if (string.IsNullOrWhiteSpace(GetIdentifierValue("imdb"))) unavailable.Add("IMDb ID");
             if (string.IsNullOrWhiteSpace(GetIdentifierValue("kinopoisk"))) unavailable.Add("Кинопоиск ID");
@@ -591,7 +611,12 @@ public sealed partial class NfoEditorDialog : Window
         if (normalized.Contains("age12") || normalized is "12" or "12+") return "12+";
         if (normalized.Contains("age16") || normalized is "16" or "16+") return "16+";
         if (normalized.Contains("age18") || normalized is "18" or "18+") return "18+";
-        if (normalized.Contains("age21") || normalized is "21" or "21+") return "18+";
+        if (normalized.Contains("age21") || normalized is "21" or "21+") return "21+";
+        // Keep foreign classifications (R, PG-13, TV-MA, etc.) in their original form.
+        if (RussianCertifications.Any(x => string.Equals(x, value.Trim(), StringComparison.OrdinalIgnoreCase)))
+            return RussianCertifications.First(x => string.Equals(x, value.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (Regex.IsMatch(value.Trim(), @"^(G|PG|PG-13|R|NC-17|NR|TV-[A-Z0-9-]+|U/A|U|12A|15|18|MA15\+|R18\+)$", RegexOptions.IgnoreCase))
+            return value.Trim().ToUpperInvariant();
         return null;
     }
 
@@ -710,9 +735,53 @@ public sealed partial class NfoEditorDialog : Window
         }
     }
 
+    private void UpsertRating(string provider, double rating, int votes)
+    {
+        if (rating <= 0) return;
+        var existing = _ratings.FirstOrDefault(x => x.Source.Equals(provider, StringComparison.OrdinalIgnoreCase));
+        var row = new RatingRow
+        {
+            Source = provider,
+            Value = rating.ToString("0.0#", CultureInfo.InvariantCulture),
+            Votes = Math.Max(0, votes).ToString(CultureInfo.InvariantCulture)
+        };
+        if (existing != null)
+        {
+            var index = _ratings.IndexOf(existing);
+            if (index >= 0) _ratings[index] = row;
+        }
+        else _ratings.Add(row);
+    }
+
     private async Task TryLoadRatingForIdentifierAsync(string provider, string identifier)
     {
+        if (string.IsNullOrWhiteSpace(identifier)) return;
+        if (_ratings.Any(x => x.Source.Equals(provider, StringComparison.OrdinalIgnoreCase) &&
+                              double.TryParse(x.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var saved) && saved > 0))
+            return;
+        if (provider.Equals("imdb", StringComparison.OrdinalIgnoreCase))
+        {
+            var kpIdentifier = GetIdentifierValue("kinopoisk");
+            if (!int.TryParse(kpIdentifier, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kpId) || kpId <= 0 ||
+                string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken)) return;
+            try
+            {
+                using var client = new KinopoiskClient();
+                var movie = await client.GetMovieDetailsAsync(kpId);
+                if (movie?.ImdbRating is not double imdbRating || imdbRating <= 0) return;
+                UpsertRating("imdb", imdbRating, Math.Max(0, movie.ImdbVoteCount ?? 0));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"IMDb rating lookup failed: {ex.Message}");
+            }
+            return;
+        }
+
         if (!int.TryParse(identifier, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) || id <= 0) return;
+        if ((provider.Equals("kinopoisk", StringComparison.OrdinalIgnoreCase) ||
+             provider.Equals("kinopoiskdev", StringComparison.OrdinalIgnoreCase)) &&
+            string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken)) return;
         try
         {
             double rating;
@@ -736,14 +805,7 @@ public sealed partial class NfoEditorDialog : Window
             }
             else return;
 
-            var existing = _ratings.FirstOrDefault(x => x.Source.Equals(provider, StringComparison.OrdinalIgnoreCase));
-            var row = new RatingRow { Source = provider, Value = rating.ToString("0.0#", CultureInfo.InvariantCulture), Votes = votes.ToString(CultureInfo.InvariantCulture) };
-            if (existing != null)
-            {
-                var index = _ratings.IndexOf(existing);
-                if (index >= 0) _ratings[index] = row;
-            }
-            else _ratings.Add(row);
+            UpsertRating(provider, rating, votes);
         }
         catch (Exception ex)
         {

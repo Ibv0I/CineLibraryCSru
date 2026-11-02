@@ -1246,7 +1246,7 @@ public sealed partial class MovieDetailDialog : Window
             "screen actors guild", "screen actors", "sag award", "sag awards", "sag-aftra",
             "the actor awards", "actor awards", "actor award", "actors guild", "guild of actors",
             "гильдия киноакт", "гильдия актер", "гильдия актёр",
-            "премия актер", "премия актёр", "награда актер", "награда актёр",
+            "премия актер", "премия актёр", "премия гильдии актеров", "премия гильдии актёров", "награда актер", "награда актёр",
             "экранных актер", "экранных актёр"))
             return "SAG Awards";
         if (ContainsAny(line, "producers guild", "pga award"))
@@ -1301,7 +1301,7 @@ public sealed partial class MovieDetailDialog : Window
             "screen actors guild", "screen actors", "sag award", "sag awards", "sag-aftra",
             "the actor awards", "actor awards", "actor award", "actors guild", "guild of actors",
             "гильдия киноакт", "гильдия актер", "гильдия актёр",
-            "премия актер", "премия актёр", "награда актер", "награда актёр",
+            "премия актер", "премия актёр", "премия гильдии актеров", "премия гильдии актёров", "награда актер", "награда актёр",
             "экранных актер", "экранных актёр")) return "sag.png";
         if (ContainsAny(name, "saturn", "сатурн")) return "saturn.png";
         if (ContainsAny(name, "producers guild", "pga award")) return "guild.png";

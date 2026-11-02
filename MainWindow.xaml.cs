@@ -463,6 +463,10 @@ public sealed partial class MainWindow : Window
         CancellationTokenSource? batchCts = null;
         batchKinopoiskButton.Click += async (_, _) =>
         {
+            batchKinopoiskStatus.Text = "Запуск массовой обработки…";
+            batchKinopoiskButton.IsEnabled = false;
+            try
+            {
             if (string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
             {
                 batchKinopoiskStatus.Text = "Сначала сохрани API-ключ КиноПоиска.";
@@ -678,6 +682,28 @@ public sealed partial class MainWindow : Window
                 RequestedTheme = CurrentTheme,
             };
             await report.ShowAsync();
+            }
+            catch (Exception ex)
+            {
+                batchKinopoiskStatus.Text = "Ошибка запуска массовой обработки: " + ex;
+                try
+                {
+                    var errorDialog = new ContentDialog
+                    {
+                        Title = "Ошибка массовой обработки",
+                        Content = new ScrollViewer { Content = new TextBlock { Text = ex.ToString(), TextWrapping = TextWrapping.Wrap }, MaxHeight = 420 },
+                        CloseButtonText = "ОК",
+                        XamlRoot = Content.XamlRoot,
+                        RequestedTheme = CurrentTheme,
+                    };
+                    await errorDialog.ShowAsync();
+                }
+                catch { /* Keep the error visible in the settings panel if a dialog cannot be shown. */ }
+            }
+            finally
+            {
+                batchKinopoiskButton.IsEnabled = true;
+            }
         };
         panel.Children.Add(batchKinopoiskButton);
         panel.Children.Add(cancelBatchButton);

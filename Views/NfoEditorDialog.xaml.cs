@@ -315,13 +315,9 @@ public sealed partial class NfoEditorDialog : Window
     public async Task<bool> ProcessCollectInformationBatchAsync()
     {
         _silentBatch = true;
-        try
-        {
-            await CollectMissingInfoAsync(showDialogs: false);
-            SaveNfoCore();
-            return true;
-        }
-        finally { Close(); }
+        await CollectMissingInfoAsync(showDialogs: false);
+        SaveNfoCore();
+        return true;
     }
 
     /// <summary>Runs the same budget/revenue operation as the per-movie button, silently for batch processing.</summary>
@@ -329,47 +325,35 @@ public sealed partial class NfoEditorDialog : Window
     {
         _silentBatch = true;
         var changed = false;
-        try
+
+        // Финансы загружаются из TMDb по уже имеющемуся идентификатору.
+        // Ошибка или отсутствие TMDb ID не должны мешать загрузке наград Кинопоиска.
+        try { changed |= await LoadExternalDataAsync(showDialogs: false); }
+        catch { /* Continue with Kinopoisk awards. */ }
+
+        var kpText = GetIdentifierValue("kinopoisk");
+        if (int.TryParse(kpText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kpId) && kpId > 0 &&
+            !string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
         {
-            // Финансы загружаются из TMDb по уже имеющемуся идентификатору.
-            // Ошибка или отсутствие TMDb ID не должны мешать загрузке наград Кинопоиска.
             try
             {
-                changed |= await LoadExternalDataAsync(showDialogs: false);
-            }
-            catch
-            {
-                // Продолжаем обработку наград независимо от результата финансового этапа.
-            }
-
-            var kpText = GetIdentifierValue("kinopoisk");
-            if (int.TryParse(kpText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kpId) && kpId > 0 &&
-                !string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
-            {
-                try
+                using var kpClient = new KinopoiskClient();
+                var awards = await kpClient.GetAwardsAsync(kpId);
+                if (awards != null && awards.Count > 0)
                 {
-                    using var kpClient = new KinopoiskClient();
-                    var awards = await kpClient.GetAwardsAsync(kpId);
-                    if (awards != null && awards.Count > 0)
+                    var newAwards = string.Join(Environment.NewLine, awards.Distinct(StringComparer.OrdinalIgnoreCase));
+                    if (!string.Equals(AwardsBox.Text.Trim(), newAwards.Trim(), StringComparison.Ordinal))
                     {
-                        var newAwards = string.Join(Environment.NewLine, awards.Distinct(StringComparer.OrdinalIgnoreCase));
-                        if (!string.Equals(AwardsBox.Text.Trim(), newAwards.Trim(), StringComparison.Ordinal))
-                        {
-                            AwardsBox.Text = newAwards;
-                            changed = true;
-                        }
+                        AwardsBox.Text = newAwards;
+                        changed = true;
                     }
                 }
-                catch
-                {
-                    // Награды могут быть недоступны для конкретного фильма; остальные фильмы обрабатываются.
-                }
             }
-
-            if (changed) SaveNfoCore();
-            return changed;
+            catch { /* Awards may be unavailable for an individual movie. */ }
         }
-        finally { Close(); }
+
+        if (changed) SaveNfoCore();
+        return changed;
     }
 
     private void SetAwards(string text)

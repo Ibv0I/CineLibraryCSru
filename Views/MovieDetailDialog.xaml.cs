@@ -1121,6 +1121,7 @@ public sealed partial class MovieDetailDialog : Window
         if (name.Equals("Золотой глобус", StringComparison.OrdinalIgnoreCase)) return 1;
         if (name.Equals("BAFTA", StringComparison.OrdinalIgnoreCase)) return 2;
         if (name.Equals("Венецианский кинофестиваль", StringComparison.OrdinalIgnoreCase)) return 3;
+        if (name.Equals("Берлинский кинофестиваль", StringComparison.OrdinalIgnoreCase)) return 4;
         if (name.Equals("Золотая малина", StringComparison.OrdinalIgnoreCase)) return 100;
         return 10;
     }
@@ -1267,6 +1268,10 @@ public sealed partial class MovieDetailDialog : Window
             return "Goya Awards";
         if (ContainsAny(line, "david di donatello"))
             return "David di Donatello";
+        if (ContainsAny(line, "berlinale", "berlin international film festival", "berlin film festival",
+            "берлинале", "берлинский кинофестиваль", "берлинский международный кинофестиваль",
+            "золотой медведь", "golden bear"))
+            return "Берлинский кинофестиваль";
 
         // Unknown organizations remain separate by their explicit award name;
         // never merge unrelated records into one generic "all awards" icon.
@@ -1312,6 +1317,9 @@ public sealed partial class MovieDetailDialog : Window
         if (ContainsAny(name, "european film award", "европейская кинопремия")) return "european.png";
         if (ContainsAny(name, "goya award", "премия гойя")) return "goya.png";
         if (ContainsAny(name, "david di donatello", "давид ди донателло")) return "david.png";
+        if (ContainsAny(name, "berlinale", "berlin international film festival", "berlin film festival",
+            "берлинале", "берлинский кинофестиваль", "берлинский международный кинофестиваль",
+            "золотой медведь", "golden bear")) return "berlinale.png";
         return "generic.png";
     }
 

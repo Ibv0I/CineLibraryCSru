@@ -126,6 +126,8 @@ public sealed class TmdbClient : IDisposable
             movie.RussianReleaseDate = ParseReleaseDate(rd, "RU");
             movie.Certification = ParseCertification(rd, "US");
         }
+        if (string.IsNullOrWhiteSpace(movie.Certification))
+            movie.Certification = ParseAnyCertification(rd);
         if (string.IsNullOrWhiteSpace(movie.RussianCertification))
             movie.RussianCertification = movie.Certification;
         if (root.TryGetProperty("credits", out var credits))
@@ -304,6 +306,36 @@ public sealed class TmdbClient : IDisposable
                     var value = cert.GetString();
                     if (!string.IsNullOrWhiteSpace(value)) return value.Trim();
                 }
+        }
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Fallback certification lookup across TMDb regions. Prefer common English-language
+    /// classifications, then accept the first available country certification.
+    /// </summary>
+    private static string ParseAnyCertification(JsonElement releaseDates)
+    {
+        if (releaseDates.ValueKind != JsonValueKind.Object) return string.Empty;
+        foreach (var country in new[] { "GB", "AU", "CA", "DE", "FR", "ES", "IT", "JP", "KR", "BR" })
+        {
+            var value = ParseCertification(releaseDates, country);
+            if (!string.IsNullOrWhiteSpace(value)) return value;
+        }
+        if (releaseDates.TryGetProperty("results", out var results) && results.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var region in results.EnumerateArray())
+            {
+                if (!region.TryGetProperty("release_dates", out var dates) || dates.ValueKind != JsonValueKind.Array)
+                    continue;
+                foreach (var item in dates.EnumerateArray())
+                {
+                    if (item.TryGetProperty("certification", out var cert) &&
+                        cert.ValueKind == JsonValueKind.String &&
+                        !string.IsNullOrWhiteSpace(cert.GetString()))
+                        return cert.GetString()!.Trim();
+                }
+            }
         }
         return string.Empty;
     }

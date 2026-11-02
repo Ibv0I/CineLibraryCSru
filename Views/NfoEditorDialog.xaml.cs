@@ -60,7 +60,7 @@ public sealed partial class NfoEditorDialog : Window
     private static readonly string[] StandardGenres = { "Боевик", "Приключения", "Анимация", "Комедия", "Криминал", "Документальный", "Драма", "Семейный", "Фэнтези", "История", "Ужасы", "Музыка", "Детектив", "Мелодрама", "Фантастика", "Телевизионный фильм", "Триллер", "Военный", "Вестерн" };
     private static readonly string[] RussianCertifications =
     {
-        "Без ограничений", "0+", "6+", "12+", "16+", "18+", "21+", "Неизвестно",
+        "Без ограничений", "0+", "6+", "12+", "16+", "18+", "21+",
         "G", "PG", "PG-13", "R", "NC-17", "NR", "Not Rated", "Unrated",
         "TV-Y", "TV-Y7", "TV-G", "TV-PG", "TV-14", "TV-MA",
         "U", "U/A", "A", "12A", "15", "18", "M", "MA15+", "R18+"
@@ -215,8 +215,11 @@ public sealed partial class NfoEditorDialog : Window
         AwardsBox.Text = string.Join(Environment.NewLine, Elements("awards/award").Select(x => x.InnerText));
         if (string.IsNullOrWhiteSpace(AwardsBox.Text)) AwardsBox.Text = Get("awards") ?? "";
         var certification = Get("mpaa") ?? Get("certification");
-        CertificationBox.SelectedItem = RussianCertifications.FirstOrDefault(x => string.Equals(x, certification, StringComparison.OrdinalIgnoreCase));
-        if (CertificationBox.SelectedItem == null && !string.IsNullOrWhiteSpace(certification))
+        CertificationBox.SelectedItem = RussianCertifications.FirstOrDefault(x =>
+            string.Equals(x, certification, StringComparison.OrdinalIgnoreCase));
+        if (CertificationBox.SelectedItem == null &&
+            !string.IsNullOrWhiteSpace(certification) &&
+            !certification.Equals("Неизвестно", StringComparison.OrdinalIgnoreCase))
         {
             var certificationOptions = RussianCertifications.ToList();
             certificationOptions.Add(certification);
@@ -226,7 +229,14 @@ public sealed partial class NfoEditorDialog : Window
         StudiosBox.Text = string.Join(Environment.NewLine, Elements("studio").Select(x => x.InnerText));
         CountriesBox.Text = string.Join(Environment.NewLine, Elements("country").Select(x => x.InnerText));
         GenresBox.Text = string.Join(", ", Elements("genre").Select(x => x.InnerText));
-        _ratings.Clear(); foreach (var x in Elements("ratings/rating")) _ratings.Add(new RatingRow { Source = x.GetAttribute("name"), Value = Child(x, "value") ?? x.InnerText, Votes = Child(x, "votes") ?? "0" });
+        _ratings.Clear();
+        foreach (var x in Elements("ratings/rating"))
+        {
+            var source = NormalizeRatingSource(x.GetAttribute("name"));
+            if (_ratings.Any(row => NormalizeRatingSource(row.Source).Equals(source, StringComparison.OrdinalIgnoreCase)))
+                continue;
+            _ratings.Add(new RatingRow { Source = source, Value = Child(x, "value") ?? x.InnerText, Votes = Child(x, "votes") ?? "0" });
+        }
         _identifiers.Clear();
         foreach (var x in Elements("uniqueid"))
         {
@@ -615,7 +625,7 @@ public sealed partial class NfoEditorDialog : Window
         // Keep foreign classifications (R, PG-13, TV-MA, etc.) in their original form.
         if (RussianCertifications.Any(x => string.Equals(x, value.Trim(), StringComparison.OrdinalIgnoreCase)))
             return RussianCertifications.First(x => string.Equals(x, value.Trim(), StringComparison.OrdinalIgnoreCase));
-        if (Regex.IsMatch(value.Trim(), @"^(G|PG|PG-13|R|NC-17|NR|TV-[A-Z0-9-]+|U/A|U|12A|15|18|MA15\+|R18\+)$", RegexOptions.IgnoreCase))
+        if (Regex.IsMatch(value.Trim(), @"^[A-Za-z0-9+/-]{1,12}$"))
             return value.Trim().ToUpperInvariant();
         return null;
     }
@@ -735,10 +745,35 @@ public sealed partial class NfoEditorDialog : Window
         }
     }
 
+    private static string NormalizeRatingSource(string? source)
+    {
+        var value = (source ?? "").Trim().ToLowerInvariant().Replace(" ", "").Replace("-", "").Replace("_", "");
+        return value switch
+        {
+            "themoviedb" or "tmdb" or "themoviedborg" => "tmdb",
+            "imdb" or "internetmoviedatabase" => "imdb",
+            "kinopoisk" or "kinopoiskdev" or "kp" => "kinopoisk",
+            _ => (source ?? "").Trim()
+        };
+    }
+
+    private void NormalizeExistingRatingSources()
+    {
+        var normalized = _ratings
+            .Where(x => !string.IsNullOrWhiteSpace(x.Source))
+            .GroupBy(x => NormalizeRatingSource(x.Source), StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
+            .ToList();
+        _ratings.Clear();
+        foreach (var row in normalized)
+            _ratings.Add(new RatingRow { Source = NormalizeRatingSource(row.Source), Value = row.Value, Votes = row.Votes });
+    }
+
     private void UpsertRating(string provider, double rating, int votes)
     {
         if (rating <= 0) return;
-        var existing = _ratings.FirstOrDefault(x => x.Source.Equals(provider, StringComparison.OrdinalIgnoreCase));
+        provider = NormalizeRatingSource(provider);
+        var existing = _ratings.FirstOrDefault(x => NormalizeRatingSource(x.Source).Equals(provider, StringComparison.OrdinalIgnoreCase));
         var row = new RatingRow
         {
             Source = provider,
@@ -756,7 +791,8 @@ public sealed partial class NfoEditorDialog : Window
     private async Task TryLoadRatingForIdentifierAsync(string provider, string identifier)
     {
         if (string.IsNullOrWhiteSpace(identifier)) return;
-        if (_ratings.Any(x => x.Source.Equals(provider, StringComparison.OrdinalIgnoreCase) &&
+        provider = NormalizeRatingSource(provider);
+        if (_ratings.Any(x => NormalizeRatingSource(x.Source).Equals(provider, StringComparison.OrdinalIgnoreCase) &&
                               double.TryParse(x.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var saved) && saved > 0))
             return;
         if (provider.Equals("imdb", StringComparison.OrdinalIgnoreCase))
@@ -896,7 +932,8 @@ public sealed partial class NfoEditorDialog : Window
 
     private void SetRatings()
     {
-        var lines = _ratings.Select(x => new[] { x.Source, x.Value, x.Votes }).Where(x => x[0].Length > 0).ToList();
+        NormalizeExistingRatingSources();
+        var lines = _ratings.Select(x => new[] { NormalizeRatingSource(x.Source), x.Value, x.Votes }).Where(x => x[0].Length > 0).ToList();
         var ratings = _root.SelectSingleNode("ratings") as XmlElement;
         if (ratings == null) { ratings = _doc.CreateElement("ratings"); _root.AppendChild(ratings); }
         foreach (XmlNode n in ratings.SelectNodes("rating")!.Cast<XmlNode>().ToList()) ratings.RemoveChild(n);

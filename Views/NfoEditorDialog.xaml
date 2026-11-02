@@ -26,27 +26,26 @@
                             <TextBox x:Name="StudiosBox" Header="Студии (по одной на строку)" Grid.Column="0" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"/>
                             <TextBox x:Name="CountriesBox" Header="Страны (по одной на строку)" Grid.Column="1" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"/>
                         </Grid>
-                        <Grid ColumnSpacing="10">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <ComboBox x:Name="CertificationBox" Header="Сертификация / возрастной рейтинг" Grid.Column="0" IsEditable="False" />
-                            <StackPanel Grid.Column="1" Spacing="5">
-                                <TextBox x:Name="GenresBox" Header="Жанры (через запятую)" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" MaxHeight="64" />
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <Button Content="＋ Добавить жанр" Click="OnAddGenre" />
-                                </StackPanel>
-                            </StackPanel>
-                        </Grid>
-                        <Grid ColumnSpacing="10">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Spacing="4">
+                        <ComboBox x:Name="CertificationBox" Header="Сертификация / возрастной рейтинг"
+                                  IsEditable="False" HorizontalAlignment="Left" MinWidth="280" />
+                        <Grid ColumnSpacing="24" Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Spacing="3">
                                 <TextBlock Text="Бюджет (USD)" Foreground="{ThemeResource MutedBrush}" FontSize="12"/>
                                 <TextBlock x:Name="BudgetBox" Text="—" FontSize="15" Foreground="{ThemeResource TextBrush}"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="4">
+                            <StackPanel Grid.Column="1" Spacing="3">
                                 <TextBlock Text="Мировые сборы (USD)" Foreground="{ThemeResource MutedBrush}" FontSize="12"/>
                                 <TextBlock x:Name="RevenueBox" Text="—" FontSize="15" Foreground="{ThemeResource TextBrush}"/>
                             </StackPanel>
                         </Grid>
+                        <StackPanel Spacing="5">
+                            <TextBox x:Name="GenresBox" Header="Жанры (через запятую)"
+                                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" MaxHeight="64" />
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <Button Content="＋ Добавить жанр" Click="OnAddGenre" />
+                            </StackPanel>
+                        </StackPanel>
                         <TextBox x:Name="AwardsBox" Header="Награды и номинации (по одной на строку)" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" MaxHeight="120" />
                         <Grid ColumnSpacing="12" Margin="0,2,0,0">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -124,13 +123,21 @@
                         <TextBlock Text="Формат строк указан над полями. Неизвестные XML-поля сохраняются при записи." FontSize="12" Foreground="{ThemeResource MutedBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
                 </ScrollViewer>
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="8">
-            <Button x:Name="CollectMissingInfoButton" Content="✦ Собрать информацию"
-                    MinWidth="170" Click="OnCollectMissingInfo" />
-            <Button x:Name="LoadExternalDataButton" Content="↓ Загрузить бюджет и награды"
-                    MinWidth="190" Click="OnLoadExternalData" />
-            <Button Content="Отмена" MinWidth="100" Click="OnCancelClick"/>
-            <Button Content="Сохранить" MinWidth="110" Style="{ThemeResource AccentButtonStyle}" Click="OnSaveClick"/>
-        </StackPanel>
+        <Grid Grid.Row="1" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="8">
+                <Button x:Name="CollectMissingInfoButton" Content="✦ Собрать информацию"
+                        MinWidth="170" Click="OnCollectMissingInfo" />
+                <Button x:Name="LoadExternalDataButton" Content="↓ Загрузить бюджет и награды"
+                        MinWidth="190" Click="OnLoadExternalData" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="Отмена" MinWidth="100" Click="OnCancelClick"/>
+                <Button Content="Сохранить" MinWidth="110" Style="{ThemeResource AccentButtonStyle}" Click="OnSaveClick"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

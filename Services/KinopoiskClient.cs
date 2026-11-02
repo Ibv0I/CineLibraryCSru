@@ -104,7 +104,6 @@ public sealed class KinopoiskClient : IDisposable
                 if (!string.IsNullOrWhiteSpace(line)) output.Add(line);
             }
         }
-        catch (HttpRequestException) { }
         return output.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
 

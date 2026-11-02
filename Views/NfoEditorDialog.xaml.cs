@@ -315,44 +315,64 @@ public sealed partial class NfoEditorDialog : Window
     public async Task<bool> ProcessCollectInformationBatchAsync()
     {
         _silentBatch = true;
+        var before = File.ReadAllBytes(_path);
         await CollectMissingInfoAsync(showDialogs: false);
         SaveNfoCore();
-        return true;
+        var after = File.ReadAllBytes(_path);
+        return !before.SequenceEqual(after);
     }
 
-    /// <summary>Runs the same budget/revenue operation as the per-movie button, silently for batch processing.</summary>
+    /// <summary>Runs budgets, revenue and Kinopoisk awards; never hides source/API failures.</summary>
     public async Task<bool> ProcessBudgetsRevenueBatchAsync()
     {
         _silentBatch = true;
         var changed = false;
+        var failures = new List<string>();
 
-        // Финансы загружаются из TMDb по уже имеющемуся идентификатору.
-        // Ошибка или отсутствие TMDb ID не должны мешать загрузке наград Кинопоиска.
-        try { changed |= await LoadExternalDataAsync(showDialogs: false); }
-        catch { /* Continue with Kinopoisk awards. */ }
+        // GetIdentifierValue also understands legacy NFO identifiers and normalized source names.
+        var tmdbText = GetIdentifierValue("tmdb");
+        if (int.TryParse(tmdbText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var tmdbId) && tmdbId > 0)
+        {
+            try
+            {
+                using var tmdbClient = new TmdbClient(language: "ru-RU");
+                var movie = await tmdbClient.GetMovieDetailsAsync(tmdbId);
+                if (movie == null) failures.Add("TMDb: пустой ответ");
+                else
+                {
+                    if (movie.Budget > 0 && BudgetBox.Text != movie.Budget.ToString(CultureInfo.InvariantCulture))
+                    { BudgetBox.Text = movie.Budget.ToString(CultureInfo.InvariantCulture); changed = true; }
+                    if (movie.Revenue > 0 && RevenueBox.Text != movie.Revenue.ToString(CultureInfo.InvariantCulture))
+                    { RevenueBox.Text = movie.Revenue.ToString(CultureInfo.InvariantCulture); changed = true; }
+                    if (movie.Budget <= 0 && movie.Revenue <= 0) failures.Add("TMDb: бюджет и сборы не указаны у источника");
+                }
+            }
+            catch (Exception ex) { failures.Add("TMDb: " + ex.Message); }
+        }
+        else failures.Add("TMDb: отсутствует корректный TMDb ID");
 
         var kpText = GetIdentifierValue("kinopoisk");
-        if (int.TryParse(kpText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kpId) && kpId > 0 &&
-            !string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
+        if (int.TryParse(kpText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kpId) && kpId > 0)
         {
             try
             {
                 using var kpClient = new KinopoiskClient();
                 var awards = await kpClient.GetAwardsAsync(kpId);
-                if (awards != null && awards.Count > 0)
+                if (awards.Count > 0)
                 {
                     var newAwards = string.Join(Environment.NewLine, awards.Distinct(StringComparer.OrdinalIgnoreCase));
                     if (!string.Equals(AwardsBox.Text.Trim(), newAwards.Trim(), StringComparison.Ordinal))
-                    {
-                        AwardsBox.Text = newAwards;
-                        changed = true;
-                    }
+                    { AwardsBox.Text = newAwards; changed = true; }
                 }
+                else failures.Add("Кинопоиск: награды не найдены");
             }
-            catch { /* Awards may be unavailable for an individual movie. */ }
+            catch (Exception ex) { failures.Add("Кинопоиск (награды): " + ex.Message); }
         }
+        else failures.Add("Кинопоиск: отсутствует корректный Kinopoisk ID");
 
         if (changed) SaveNfoCore();
+        if (!changed && failures.Count > 0)
+            throw new InvalidOperationException(string.Join("; ", failures));
         return changed;
     }
 
@@ -703,7 +723,7 @@ public sealed partial class NfoEditorDialog : Window
         var financialDataFound = false;
         try
         {
-            var tmdbText = _identifiers.FirstOrDefault(x => x.Source.Equals("tmdb", StringComparison.OrdinalIgnoreCase))?.Identifier;
+            var tmdbText = GetIdentifierValue("tmdb");
             if (!int.TryParse(tmdbText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var tmdbId) || tmdbId <= 0)
             {
                 if (showDialogs) throw new InvalidOperationException("Сначала добавь корректный TMDb ID.");

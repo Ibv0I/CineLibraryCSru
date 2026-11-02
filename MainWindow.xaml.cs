@@ -596,6 +596,7 @@ public sealed partial class MainWindow : Window
                     {
                         var editor = new NfoEditorDialog(item.NfoPath, this);
                         if (await editor.ProcessCollectInformationBatchAsync()) infoSucceeded++;
+                        else partial++;
                     }
                     catch (Exception ex)
                     {

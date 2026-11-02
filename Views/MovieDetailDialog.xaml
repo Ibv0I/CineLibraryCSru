@@ -428,8 +428,6 @@
                             Background="{ThemeResource CardBrush}" BorderBrush="{ThemeResource BorderBrush}"
                             BorderThickness="1" CornerRadius="8" MaxWidth="560" HorizontalAlignment="Left">
                         <StackPanel Spacing="10">
-                            <TextBlock Text="ФИНАНСЫ" FontSize="10" FontWeight="SemiBold"
-                                       CharacterSpacing="150" Foreground="{ThemeResource MutedBrush}" />
                             <Grid ColumnSpacing="16">
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" Spacing="3">

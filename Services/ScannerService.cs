@@ -683,32 +683,53 @@ public class ScannerService
     {
         try
         {
-            foreach (var f in Directory.EnumerateFiles(folder, "*.nfo"))
+            // Prefer Kodi convention, then files named after the folder or its video.
+            var standard = Path.Combine(folder, "movie.nfo");
+            if (File.Exists(standard)) return standard;
+            var folderName = Path.GetFileName(Path.TrimEndingDirectorySeparator(folder));
+            var named = Path.Combine(folder, folderName + ".nfo");
+            if (File.Exists(named)) return named;
+            foreach (var video in Directory.EnumerateFiles(folder).Where(x => VideoExts.Contains(Path.GetExtension(x))))
             {
-                var name = Path.GetFileNameWithoutExtension(f).ToLower();
-                if (name != "tvshow" && name != "season") return f;
+                var byVideo = Path.Combine(folder, Path.GetFileNameWithoutExtension(video) + ".nfo");
+                if (File.Exists(byVideo)) return byVideo;
             }
+            var remaining = Directory.EnumerateFiles(folder, "*.nfo")
+                .Where(x => !Path.GetFileNameWithoutExtension(x).Equals("tvshow", StringComparison.OrdinalIgnoreCase)
+                         && !Path.GetFileNameWithoutExtension(x).Equals("season", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            return remaining.Count == 1 ? remaining[0] : null;
         }
-        catch { }
-        return null;
+        catch { return null; }
     }
 
     private static string? FindArtwork(string folder, string[] names, string kind)
     {
         foreach (var n in names)
         {
-            var p = Path.Combine(folder, n);
-            if (File.Exists(p)) return p;
+            var candidate = Path.Combine(folder, n);
+            if (File.Exists(candidate)) return candidate;
         }
         try
         {
-            foreach (var f in Directory.EnumerateFiles(folder))
+            var folderName = Path.GetFileName(Path.TrimEndingDirectorySeparator(folder));
+            var videoNames = Directory.EnumerateFiles(folder)
+                .Where(x => VideoExts.Contains(Path.GetExtension(x)))
+                .Select(x => Path.GetFileNameWithoutExtension(x));
+            var stems = new[] { folderName }.Concat(videoNames).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase);
+            var extensions = new[] { ".jpg", ".jpeg", ".png" };
+            foreach (var stem in stems)
+                foreach (var ext in extensions)
+                {
+                    var candidate = Path.Combine(folder, $"{stem}-{kind}{ext}");
+                    if (File.Exists(candidate)) return candidate;
+                }
+            foreach (var file in Directory.EnumerateFiles(folder))
             {
-                var ext = Path.GetExtension(f).ToLower();
+                var ext = Path.GetExtension(file).ToLowerInvariant();
                 if (!ImageExts.Contains(ext)) continue;
-                var lower = Path.GetFileName(f).ToLower();
-                if (lower.Contains($"-{kind}") || lower.StartsWith(kind + ".") || lower.EndsWith(kind + ext))
-                    return f;
+                var lower = Path.GetFileName(file).ToLowerInvariant();
+                if (lower.Contains($"-{kind}") || lower.StartsWith(kind + ".") || lower.EndsWith(kind + ext)) return file;
             }
         }
         catch { }

@@ -305,7 +305,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
         // Kinopoisk API is configured. The checkbox controls only whether Kinopoisk
         // identifiers/rating are written to the library.
         var shouldLoadExternalRatings = !_isEditingExistingMovie
-            && (!string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken) || IncludeKinopoiskRating);
+            && (!string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken) || !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken) || IncludeKinopoiskRating);
 
         if (shouldLoadExternalRatings)
         {
@@ -316,38 +316,65 @@ public sealed partial class TmdbMoviePreviewDialog : Window
                 var year = Movie.Year > 0 ? Movie.Year : (int?)null;
                 TmdbMovie? externalDetails = null;
 
+                // Try Kinopoisk API Unofficial first; if it is unavailable, fails,
+                // or cannot find the movie, retry through PoiskKino API.
+                Exception? firstProviderError = null;
                 if (!string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
                 {
-                    using var kp = new KinopoiskClient();
-                    var matches = await kp.SearchMovieAsync(Movie.Title, year);
-                    if (matches.Count == 0 && !string.IsNullOrWhiteSpace(Movie.OriginalTitle)
-                        && !string.Equals(Movie.OriginalTitle, Movie.Title, StringComparison.OrdinalIgnoreCase))
-                        matches = await kp.SearchMovieAsync(Movie.OriginalTitle, year);
-
-                    var best = matches
-                        .OrderBy(m => year.HasValue && m.Year > 0 ? Math.Abs(m.Year - year.Value) : 0)
-                        .ThenByDescending(m => TitleSimilarity(m.Title, Movie.Title))
-                        .FirstOrDefault();
-
-                    if (best != null)
-                        externalDetails = await kp.GetMovieDetailsAsync(best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId);
-                    else if (IncludeKinopoiskRating)
-                        throw new InvalidOperationException("КиноПоиск не нашёл подходящий фильм для получения данных.");
+                    try
+                    {
+                        using var kp = new KinopoiskClient();
+                        var matches = await kp.SearchMovieAsync(Movie.Title, year);
+                        if (matches.Count == 0 && !string.IsNullOrWhiteSpace(Movie.OriginalTitle)
+                            && !string.Equals(Movie.OriginalTitle, Movie.Title, StringComparison.OrdinalIgnoreCase))
+                            matches = await kp.SearchMovieAsync(Movie.OriginalTitle, year);
+                        var best = matches
+                            .OrderBy(m => year.HasValue && m.Year > 0 ? Math.Abs(m.Year - year.Value) : 0)
+                            .ThenByDescending(m => TitleSimilarity(m.Title, Movie.Title))
+                            .FirstOrDefault();
+                        if (best != null)
+                        {
+                            externalDetails = await kp.GetMovieDetailsAsync(best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId);
+                            if (IncludeKinopoiskRating && externalDetails != null && externalDetails.Rating <= 0)
+                                throw new InvalidOperationException("КиноПоиск API Unofficial не вернул рейтинг.");
+                        }
+                        else
+                            firstProviderError = new InvalidOperationException("КиноПоиск API Unofficial не нашёл фильм.");
+                    }
+                    catch (Exception ex) { externalDetails = null; firstProviderError = ex; }
                 }
-                else if (IncludeKinopoiskRating)
+
+                if (externalDetails == null && !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken))
                 {
-                    using var poisk = new PoiskKinoClient();
-                    var matches = await poisk.SearchMovieAsync(Movie.Title, year);
-                    if (matches.Count == 0 && !string.IsNullOrWhiteSpace(Movie.OriginalTitle)
-                        && !string.Equals(Movie.OriginalTitle, Movie.Title, StringComparison.OrdinalIgnoreCase))
-                        matches = await poisk.SearchMovieAsync(Movie.OriginalTitle, year);
-                    var best = matches
-                        .OrderBy(m => year.HasValue && m.Year > 0 ? Math.Abs(m.Year - year.Value) : 0)
-                        .ThenByDescending(m => TitleSimilarity(m.Title, Movie.Title))
-                        .FirstOrDefault();
-                    if (best == null)
-                        throw new InvalidOperationException("ПоискКино не нашёл подходящий фильм для получения рейтинга.");
-                    externalDetails = await poisk.GetMovieDetailsAsync(best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId);
+                    try
+                    {
+                        using var poisk = new PoiskKinoClient();
+                        var matches = await poisk.SearchMovieAsync(Movie.Title, year);
+                        if (matches.Count == 0 && !string.IsNullOrWhiteSpace(Movie.OriginalTitle)
+                            && !string.Equals(Movie.OriginalTitle, Movie.Title, StringComparison.OrdinalIgnoreCase))
+                            matches = await poisk.SearchMovieAsync(Movie.OriginalTitle, year);
+                        var best = matches
+                            .OrderBy(m => year.HasValue && m.Year > 0 ? Math.Abs(m.Year - year.Value) : 0)
+                            .ThenByDescending(m => TitleSimilarity(m.Title, Movie.Title))
+                            .FirstOrDefault();
+                        if (best != null)
+                            externalDetails = await poisk.GetMovieDetailsAsync(best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId);
+                        else if (IncludeKinopoiskRating)
+                            throw new InvalidOperationException("ПоискКино API не нашёл фильм.");
+                    }
+                    catch (Exception ex)
+                    {
+                        if (IncludeKinopoiskRating)
+                            throw new InvalidOperationException("Оба источника КиноПоиска не смогли получить данные. " +
+                                (firstProviderError == null ? string.Empty : "Первый источник: " + firstProviderError.GetBaseException().Message + " ") +
+                                "Второй источник: " + ex.GetBaseException().Message, ex);
+                    }
+                }
+
+                if (IncludeKinopoiskRating && externalDetails == null)
+                {
+                    var reason = firstProviderError?.GetBaseException().Message ?? "оба API-ключа не настроены";
+                    throw new InvalidOperationException("Не удалось получить данные КиноПоиска. " + reason);
                 }
 
                 if (externalDetails != null)

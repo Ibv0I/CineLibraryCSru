@@ -443,9 +443,15 @@ public sealed partial class MainWindow : Window
             Margin = new Thickness(0, 10, 0, 0),
             HorizontalAlignment = HorizontalAlignment.Left,
         };
+        var batchKinopoiskProgress = new ProgressBar
+        {
+            Minimum = 0, Maximum = 1, Value = 0,
+            Height = 8, Margin = new Thickness(0, 8, 0, 2),
+            Visibility = Visibility.Collapsed,
+        };
         var batchKinopoiskStatus = new TextBlock
         {
-            FontSize = 12, Opacity = 0.85, Foreground = muted,
+            FontSize = 12, Opacity = 0.9, Foreground = muted,
             TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0),
         };
         var cancelBatchButton = new Button
@@ -546,7 +552,7 @@ public sealed partial class MainWindow : Window
                 Title = "Массовый сбор данных",
                 Content = $"Будут обработаны все доступные фильмы библиотеки: {workItems.Count}.\n\n" +
                           "Этап 1: для каждого фильма выполняется действие «Собрать информацию» из редактора NFO.\n" +
-                          "Этап 2: для каждого фильма выполняется действие «Загрузить бюджеты и сборы». Награды не загружаются.\n\n" +
+                          "Этап 2: для каждого фильма выполняется действие «Загрузить бюджеты и сборы», а также загружаются награды Кинопоиска.\n\n" +
                           $"Недоступно или не найден NFO: {unavailable}.\n\n" +
                           "Исходные NFO будут сохранены с резервными копиями. Продолжить?",
                 PrimaryButtonText = "Начать сбор",
@@ -562,7 +568,10 @@ public sealed partial class MainWindow : Window
             batchKinopoiskButton.IsEnabled = false;
             cancelBatchButton.Visibility = Visibility.Visible;
             cancelBatchButton.IsEnabled = true;
-            batchKinopoiskStatus.Text = $"Подготовка: 0 из {workItems.Count}.";
+            batchKinopoiskProgress.Visibility = Visibility.Visible;
+            batchKinopoiskProgress.Maximum = Math.Max(1, workItems.Count * 2);
+            batchKinopoiskProgress.Value = 0;
+            batchKinopoiskStatus.Text = $"Подготовка: обработано 0 из {workItems.Count * 2}; осталось {workItems.Count * 2}.";
             cancelBatchButton.Click += CancelBatchClick;
             void CancelBatchClick(object? s, RoutedEventArgs args) => batchCts?.Cancel();
 
@@ -577,18 +586,20 @@ public sealed partial class MainWindow : Window
                     if (token.IsCancellationRequested) { cancelled = true; break; }
                     var item = workItems[i];
                     infoProcessed++;
-                    batchKinopoiskStatus.Text = $"Этап 1/2 — «Собрать информацию»: {infoProcessed} из {workItems.Count}\n{Path.GetFileName(item.FolderPath)}";
+                    batchKinopoiskProgress.Value = infoProcessed - 1;
+                    batchKinopoiskStatus.Text = $"Этап 1/2 — «Собрать информацию»\nОбработано: {infoProcessed - 1} из {workItems.Count}; осталось: {workItems.Count - (infoProcessed - 1)}\n{Path.GetFileName(item.FolderPath)}";
                     try
                     {
                         var editor = new NfoEditorDialog(item.NfoPath, this);
-                        await editor.ProcessCollectInformationBatchAsync();
-                        infoSucceeded++;
+                        if (await editor.ProcessCollectInformationBatchAsync()) infoSucceeded++;
                     }
                     catch (Exception ex)
                     {
                         failed++;
                         if (errors.Count < 12) errors.Add($"{Path.GetFileName(item.FolderPath)} (информация): {ex.Message}");
                     }
+                    batchKinopoiskProgress.Value = infoProcessed;
+                    batchKinopoiskStatus.Text = $"Этап 1/2 завершён\nОбработано: {infoProcessed} из {workItems.Count}; осталось: 0\nПереход ко второму этапу…";
                     await Task.Yield();
                 }
 
@@ -599,7 +610,8 @@ public sealed partial class MainWindow : Window
                     {
                         if (token.IsCancellationRequested) { cancelled = true; break; }
                         var item = workItems[i];
-                        batchKinopoiskStatus.Text = $"Этап 2/2 — «Загрузить бюджеты и сборы»: {i + 1} из {workItems.Count}\n{Path.GetFileName(item.FolderPath)}";
+                        batchKinopoiskProgress.Value = workItems.Count + i;
+                        batchKinopoiskStatus.Text = $"Этап 2/2 — «Бюджеты, сборы и награды»\nОбработано: {i} из {workItems.Count}; осталось: {workItems.Count - i}\nВсего по двум этапам: {workItems.Count + i} из {workItems.Count * 2}\n{Path.GetFileName(item.FolderPath)}";
                         try
                         {
                             var editor = new NfoEditorDialog(item.NfoPath, this);
@@ -628,9 +640,15 @@ public sealed partial class MainWindow : Window
                                 if (errors.Count < 12) errors.Add($"{Path.GetFileName(item.FolderPath)} (обновление библиотеки): {ex.Message}");
                             }
                         }
+                        batchKinopoiskProgress.Value = workItems.Count + i + 1;
                         await Task.Yield();
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                failed++;
+                if (errors.Count < 12) errors.Add("Общая ошибка обработки: " + ex.Message);
             }
             finally
             {
@@ -639,6 +657,7 @@ public sealed partial class MainWindow : Window
                 batchCts = null;
                 batchKinopoiskButton.IsEnabled = true;
                 cancelBatchButton.Visibility = Visibility.Collapsed;
+                batchKinopoiskProgress.Visibility = Visibility.Collapsed;
                 cancelBatchButton.Click -= CancelBatchClick;
             }
 
@@ -662,6 +681,7 @@ public sealed partial class MainWindow : Window
         };
         panel.Children.Add(batchKinopoiskButton);
         panel.Children.Add(cancelBatchButton);
+        panel.Children.Add(batchKinopoiskProgress);
         panel.Children.Add(batchKinopoiskStatus);
 
         // ── PoiskKino API ──

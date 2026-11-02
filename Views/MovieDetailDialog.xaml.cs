@@ -1082,6 +1082,8 @@ public sealed partial class MovieDetailDialog : Window
                 Height = 64,
                 Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform,
                 Source = new BitmapImage(new Uri($"ms-appx:///Assets/Awards/{group.IconAsset}")),
+                // Nomination-only awards are visually subdued; any win restores full brightness.
+                Opacity = group.Wins > 0 ? 1.0 : 0.38,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             });
@@ -1240,7 +1242,7 @@ public sealed partial class MovieDetailDialog : Window
             return "Золотая малина";
         if (ContainsAny(line, "critics choice", "critics' choice", "выбор критиков"))
             return "Critics Choice";
-        if (ContainsAny(line, "screen actors guild", "sag award", "гильдия киноакт"))
+        if (ContainsAny(line, "screen actors guild", "sag award", "sag awards", "гильдия киноакт", "гильдия актер", "гильдия актёр"))
             return "SAG Awards";
         if (ContainsAny(line, "producers guild", "pga award"))
             return "PGA Awards";
@@ -1250,7 +1252,7 @@ public sealed partial class MovieDetailDialog : Window
             return "WGA Awards";
         if (ContainsAny(line, "independent spirit", "спирит"))
             return "Independent Spirit";
-        if (ContainsAny(line, "saturn award", "премия сатурн"))
+        if (ContainsAny(line, "saturn", "сатурн"))
             return "Saturn Awards";
         if (ContainsAny(line, "annie award", "премия энни"))
             return "Annie Awards";
@@ -1279,25 +1281,28 @@ public sealed partial class MovieDetailDialog : Window
 
     private static string GetAwardIcon(string name)
     {
-        if (name.Equals("Оскар", StringComparison.OrdinalIgnoreCase)) return "oscar.png";
-        if (name.Equals("Золотой глобус", StringComparison.OrdinalIgnoreCase)) return "golden-globe.png";
-        if (name.Equals("BAFTA", StringComparison.OrdinalIgnoreCase)) return "bafta.png";
-        if (name.Equals("Эмми", StringComparison.OrdinalIgnoreCase)) return "emmy.png";
-        if (name.Equals("Каннский кинофестиваль", StringComparison.OrdinalIgnoreCase)) return "cannes.png";
-        if (name.Equals("Венецианский кинофестиваль", StringComparison.OrdinalIgnoreCase)) return "venice.png";
-        if (name.Equals("Сезар", StringComparison.OrdinalIgnoreCase)) return "cesar.png";
-        if (name.Equals("Золотая малина", StringComparison.OrdinalIgnoreCase)) return "razzie.png";
-        if (name.Equals("Critics Choice", StringComparison.OrdinalIgnoreCase)) return "critics-choice.png";
-        if (name.Equals("SAG Awards", StringComparison.OrdinalIgnoreCase)) return "sag.png";
-        if (name.Equals("PGA Awards", StringComparison.OrdinalIgnoreCase) ||
-            name.Equals("DGA Awards", StringComparison.OrdinalIgnoreCase) ||
-            name.Equals("WGA Awards", StringComparison.OrdinalIgnoreCase)) return "guild.png";
-        if (name.Equals("Independent Spirit", StringComparison.OrdinalIgnoreCase)) return "spirit.png";
-        if (name.Equals("Saturn Awards", StringComparison.OrdinalIgnoreCase)) return "saturn.png";
-        if (name.Equals("Annie Awards", StringComparison.OrdinalIgnoreCase)) return "annie.png";
-        if (name.Equals("European Film Awards", StringComparison.OrdinalIgnoreCase)) return "european.png";
-        if (name.Equals("Goya Awards", StringComparison.OrdinalIgnoreCase)) return "goya.png";
-        if (name.Equals("David di Donatello", StringComparison.OrdinalIgnoreCase)) return "david.png";
+        // Match aliases rather than requiring one exact display label.
+        // TMDb/NFO providers vary between singular/plural and Russian/English names.
+        if (ContainsAny(name, "оскар", "oscar", "academy award")) return "oscar.png";
+        if (ContainsAny(name, "золотой глобус", "golden globe")) return "golden-globe.png";
+        if (ContainsAny(name, "bafta", "британская академия")) return "bafta.png";
+        if (ContainsAny(name, "эмми", "emmy")) return "emmy.png";
+        if (ContainsAny(name, "канн", "cannes", "palme d'or")) return "cannes.png";
+        if (ContainsAny(name, "венец", "venice", "leone d'oro")) return "venice.png";
+        if (ContainsAny(name, "сезар", "cesar", "césar")) return "cesar.png";
+        if (ContainsAny(name, "золотая малина", "golden raspberry", "razzie")) return "razzie.png";
+        if (ContainsAny(name, "critics choice", "critics' choice", "выбор критиков")) return "critics-choice.png";
+        if (ContainsAny(name, "screen actors guild", "sag award", "sag awards",
+            "гильдия киноакт", "гильдия актер", "гильдия актёр")) return "sag.png";
+        if (ContainsAny(name, "saturn", "сатурн")) return "saturn.png";
+        if (ContainsAny(name, "producers guild", "pga award")) return "guild.png";
+        if (ContainsAny(name, "directors guild", "dga award")) return "guild.png";
+        if (ContainsAny(name, "writers guild", "wga award")) return "guild.png";
+        if (ContainsAny(name, "independent spirit", "спирит")) return "spirit.png";
+        if (ContainsAny(name, "annie award", "премия энни")) return "annie.png";
+        if (ContainsAny(name, "european film award", "европейская кинопремия")) return "european.png";
+        if (ContainsAny(name, "goya award", "премия гойя")) return "goya.png";
+        if (ContainsAny(name, "david di donatello", "давид ди донателло")) return "david.png";
         return "generic.png";
     }
 

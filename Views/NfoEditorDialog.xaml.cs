@@ -650,10 +650,10 @@ public sealed partial class NfoEditorDialog : Window
             var results = await client.SearchMovieAsync(query, year);
             var match = results.FirstOrDefault(x =>
                 (year == null || x.Year == 0 || x.Year == year.Value) &&
-                (NormalizeTitle(x.Title) == NormalizeTitle(title) ||
-                 NormalizeTitle(x.Title) == NormalizeTitle(originalTitle) ||
-                 NormalizeTitle(x.OriginalTitle) == NormalizeTitle(title) ||
-                 NormalizeTitle(x.OriginalTitle) == NormalizeTitle(originalTitle)));
+                (NormalizeMatchTitle(x.Title) == NormalizeMatchTitle(title) ||
+                 NormalizeMatchTitle(x.Title) == NormalizeMatchTitle(originalTitle) ||
+                 NormalizeMatchTitle(x.OriginalTitle) == NormalizeMatchTitle(title) ||
+                 NormalizeMatchTitle(x.OriginalTitle) == NormalizeMatchTitle(originalTitle)));
             if (match != null) return match;
         }
         return null;

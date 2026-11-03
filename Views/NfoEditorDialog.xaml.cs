@@ -469,7 +469,11 @@ public sealed partial class NfoEditorDialog : Window
             }
 
             var resolvedYear = tmdbMovie != null && tmdbMovie.Year > 0 ? tmdbMovie.Year : (kpMovie?.Year ?? 0);
-            var resolvedTagline = FirstNonEmpty(tmdbMovie?.Tagline, kpMovie?.Tagline);
+            // When PoiskKino supplied the active Kinopoisk record, prefer its localized slogan.
+            // TMDb's tagline may be English even when the dialog is configured for Russian.
+            var resolvedTagline = string.Equals(kpMovie?.SourceProvider, "poiskkino", StringComparison.OrdinalIgnoreCase)
+                ? FirstNonEmpty(kpMovie?.Tagline, tmdbMovie?.Tagline)
+                : FirstNonEmpty(tmdbMovie?.Tagline, kpMovie?.Tagline);
             var resolvedGenres = tmdbMovie != null && tmdbMovie.Genres.Count > 0
                 ? tmdbMovie.Genres
                 : (kpMovie?.Genres ?? new List<TmdbNamed>());
@@ -525,7 +529,17 @@ public sealed partial class NfoEditorDialog : Window
             var report = new List<string>();
             if (added.Count > 0) report.Add("Добавлено: " + string.Join(", ", added.Distinct(StringComparer.OrdinalIgnoreCase)) + ".");
             if (unavailable.Count > 0) report.Add("Не удалось получить: " + string.Join(", ", unavailable.Distinct(StringComparer.OrdinalIgnoreCase)) + ".");
-            if (errors.Count > 0) report.Add("Ошибки источников:\n" + string.Join("\n", errors));
+            if (errors.Count > 0)
+            {
+                // The same 402 can be encountered during search and details lookup.
+                // Show the daily-limit explanation only once, while preserving other diagnostics.
+                const string limitMessage = "Исчерпан дневной лимит запросов (HTTP 402). Для продолжения используйте API ПоискКино или дождитесь сброса лимита.";
+                var has402 = errors.Any(x => x.Contains("HTTP 402", StringComparison.OrdinalIgnoreCase));
+                var otherErrors = errors.Where(x => !x.Contains("HTTP 402", StringComparison.OrdinalIgnoreCase))
+                    .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+                if (has402) otherErrors.Insert(0, limitMessage);
+                if (otherErrors.Count > 0) report.Add("Ошибки источников:\n" + string.Join("\n", otherErrors));
+            }
             if (report.Count == 0) report.Add("Все основные поля уже заполнены. Изменений не требуется.");
 
             var result = new ContentDialog

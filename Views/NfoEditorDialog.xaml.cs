@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -476,12 +476,18 @@ public sealed partial class NfoEditorDialog : Window
             // returned by either Kinopoisk provider as a fallback.
             var tmdbGenres = tmdbMovie?.Genres ?? new List<TmdbNamed>();
             var kpGenres = kpMovie?.Genres ?? new List<TmdbNamed>();
-            var russianTmdbGenres = tmdbGenres.Any(g => ContainsCyrillic(g.Name));
-            var russianKpGenres = kpGenres.Any(g => ContainsCyrillic(g.Name));
-            var sourceGenres = russianTmdbGenres ? tmdbGenres : russianKpGenres ? kpGenres :
-                tmdbGenres.Count > 0 ? tmdbGenres : kpGenres;
-            var resolvedGenres = sourceGenres.Select(g => new TmdbNamed { Name = NormalizeRussianGenre(g.Name) })
-                .Where(g => !string.IsNullOrWhiteSpace(g.Name)).ToList();
+            // Keep Russian genre names in preference to English ones. English names are
+            // translated through the local map only when neither provider has Russian names.
+            var russianGenres = tmdbGenres.Concat(kpGenres)
+                .Where(g => ContainsCyrillic(g.Name))
+                .Select(g => NormalizeRussianGenre(g.Name));
+            var englishGenres = tmdbGenres.Concat(kpGenres)
+                .Where(g => !ContainsCyrillic(g.Name))
+                .Select(g => NormalizeRussianGenre(g.Name));
+            var resolvedGenres = (russianGenres.Any() ? russianGenres : englishGenres)
+                .Where(g => ContainsCyrillic(g)) // never write an untranslated English genre to NFO
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Select(g => new TmdbNamed { Name = CapitalizeGenre(g) }).ToList();
             if (string.IsNullOrWhiteSpace(YearBox.Text) && resolvedYear > 0)
             {
                 YearBox.Text = resolvedYear.ToString(CultureInfo.InvariantCulture);
@@ -492,12 +498,28 @@ public sealed partial class NfoEditorDialog : Window
                 TaglineBox.Text = resolvedTagline;
                 added.Add("Слоган");
             }
-            if (string.IsNullOrWhiteSpace(GenresBox.Text) && resolvedGenres.Count > 0)
+            // On every information-collection run, inspect existing NFO genres.
+            // If English genres are present, remove them and replace with Russian names.
+            var existingGenres = GenresBox.Text.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            var hasEnglishGenres = existingGenres.Any(g => !ContainsCyrillic(g));
+            var normalizedExistingRussian = existingGenres.Where(ContainsCyrillic)
+                .Select(g => CapitalizeGenre(g)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            if (hasEnglishGenres)
             {
-                GenresBox.Text = string.Join(", ", resolvedGenres.Select(x => x.Name)
-                    .Where(x => !string.IsNullOrWhiteSpace(x))
-                    .Distinct(StringComparer.OrdinalIgnoreCase));
-                if (!string.IsNullOrWhiteSpace(GenresBox.Text)) added.Add("Жанры");
+                var replacement = resolvedGenres.Select(g => g.Name).ToList();
+                GenresBox.Text = string.Join(", ", replacement);
+                if (replacement.Count > 0) added.Add("Жанры (заменены на русские)");
+                else if (normalizedExistingRussian.Count > 0) GenresBox.Text = string.Join(", ", normalizedExistingRussian);
+                else GenresBox.Text = string.Empty;
+            }
+            else if (normalizedExistingRussian.Count > 0)
+            {
+                GenresBox.Text = string.Join(", ", normalizedExistingRussian);
+            }
+            else if (resolvedGenres.Count > 0)
+            {
+                GenresBox.Text = string.Join(", ", resolvedGenres.Select(x => x.Name));
+                added.Add("Жанры");
             }
             if (CertificationBox.SelectedItem == null)
             {
@@ -638,11 +660,18 @@ public sealed partial class NfoEditorDialog : Window
     private static bool ContainsCyrillic(string? value) =>
         !string.IsNullOrWhiteSpace(value) && value.Any(ch => ch >= '\u0400' && ch <= '\u04FF');
 
+    private static string CapitalizeGenre(string? genre)
+    {
+        var value = (genre ?? string.Empty).Trim();
+        if (value.Length == 0) return value;
+        return char.ToUpper(value[0], CultureInfo.GetCultureInfo("ru-RU")) + value.Substring(1);
+    }
+
     private static string NormalizeRussianGenre(string? genre)
     {
         var value = (genre ?? string.Empty).Trim();
         if (value.Any(ch => ch >= '\u0400' && ch <= '\u04FF')) return value;
-        return value.ToLowerInvariant() switch
+        return CapitalizeGenre(value.ToLowerInvariant() switch
         {
             "action" => "Боевик", "adventure" => "Приключения", "animation" => "Анимация",
             "anime" => "Аниме", "comedy" => "Комедия", "crime" => "Криминал",
@@ -654,7 +683,7 @@ public sealed partial class NfoEditorDialog : Window
             "biography" => "Биография", "sport" => "Спорт", "musical" => "Мюзикл",
             "short" => "Короткометражка",
             _ => value
-        };
+        });
     }
 
     private static string NormalizeMatchTitle(string? value)

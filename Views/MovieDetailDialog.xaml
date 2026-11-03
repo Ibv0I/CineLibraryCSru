@@ -149,7 +149,7 @@
                             <Grid>
                                 <TextBlock x:Name="PosterPlaceholder" Text="🎬" FontSize="56"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <Image x:Name="PosterImage" Stretch="Uniform"/>
+                                <Image x:Name="PosterImage" Stretch="Fill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                             </Grid>
                         </Border>
                         <controls:WrapPanel x:Name="GenreChips" HorizontalSpacing="6" VerticalSpacing="6"

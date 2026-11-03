@@ -425,14 +425,19 @@ public sealed partial class MainWindow : Window
             Text = "Ключ хранится в настройках текущего пользователя Windows и используется для поиска фильмов, метаданных и изображений. Запросы используют общий прокси приложения.",
             FontSize = 12, Opacity = 0.8, Foreground = muted, TextWrapping = TextWrapping.Wrap,
         });
-        var kinopoiskToken = new PasswordBox { Header = "API-ключ", Password = KinopoiskSettings.ApiToken, PlaceholderText = "Вставь токен Kinopoisk API Unofficial" };
-        panel.Children.Add(kinopoiskToken);
-        var saveKinopoiskToken = new Button { Content = "Сохранить ключ КиноПоиска", Margin = new Thickness(0, 6, 0, 0) };
+        var kinopoiskTokenFields = new StackPanel { Spacing = 6 };
+        foreach (var savedToken in KinopoiskSettings.ApiTokens.DefaultIfEmpty(string.Empty))
+            kinopoiskTokenFields.Children.Add(new PasswordBox { Header = $"API-ключ {kinopoiskTokenFields.Children.Count + 1}", Password = savedToken, PlaceholderText = "Вставь токен Kinopoisk API Unofficial" });
+        var addKinopoiskToken = new Button { Content = "+", Width = 42, Margin = new Thickness(0, 6, 0, 0) };
+        addKinopoiskToken.Click += (_, _) => kinopoiskTokenFields.Children.Add(new PasswordBox { Header = $"API-ключ {kinopoiskTokenFields.Children.Count + 1}", PlaceholderText = "Вставь дополнительный ключ" });
+        panel.Children.Add(kinopoiskTokenFields);
+        panel.Children.Add(addKinopoiskToken);
+        var saveKinopoiskToken = new Button { Content = "Сохранить ключи КиноПоиска", Margin = new Thickness(0, 6, 0, 0) };
         var kinopoiskTokenStatus = new TextBlock { FontSize = 12, Opacity = 0.8, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0) };
         saveKinopoiskToken.Click += (_, _) =>
         {
-            KinopoiskSettings.Save(kinopoiskToken.Password);
-            kinopoiskTokenStatus.Text = string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken) ? "Ключ очищен. Поиск КиноПоиска не будет доступен." : "Ключ КиноПоиска сохранён.";
+            KinopoiskSettings.Save(kinopoiskTokenFields.Children.OfType<PasswordBox>().Select(x => x.Password));
+            kinopoiskTokenStatus.Text = KinopoiskSettings.ApiTokens.Count == 0 ? "Ключи очищены. Kinopoisk API Unofficial недоступен." : $"Сохранено ключей: {KinopoiskSettings.ApiTokens.Count}. Они будут использоваться по порядку.";
         };
         panel.Children.Add(saveKinopoiskToken);
         panel.Children.Add(kinopoiskTokenStatus);

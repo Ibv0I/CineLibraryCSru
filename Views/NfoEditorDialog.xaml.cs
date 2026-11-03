@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -472,9 +472,16 @@ public sealed partial class NfoEditorDialog : Window
             // Store a tagline only when it contains Russian (Cyrillic) text.
             // Neither API is guaranteed to return a localized slogan; never fall back to English.
             var resolvedTagline = FirstRussianTagline(kpMovie?.Tagline, tmdbMovie?.Tagline);
-            var resolvedGenres = tmdbMovie != null && tmdbMovie.Genres.Count > 0
-                ? tmdbMovie.Genres
-                : (kpMovie?.Genres ?? new List<TmdbNamed>());
+            // Prefer Russian-localized TMDb genres; translate common English genre names
+            // returned by either Kinopoisk provider as a fallback.
+            var tmdbGenres = tmdbMovie?.Genres ?? new List<TmdbNamed>();
+            var kpGenres = kpMovie?.Genres ?? new List<TmdbNamed>();
+            var russianTmdbGenres = tmdbGenres.Any(g => ContainsCyrillic(g.Name));
+            var russianKpGenres = kpGenres.Any(g => ContainsCyrillic(g.Name));
+            var sourceGenres = russianTmdbGenres ? tmdbGenres : russianKpGenres ? kpGenres :
+                tmdbGenres.Count > 0 ? tmdbGenres : kpGenres;
+            var resolvedGenres = sourceGenres.Select(g => new TmdbNamed { Name = NormalizeRussianGenre(g.Name) })
+                .Where(g => !string.IsNullOrWhiteSpace(g.Name)).ToList();
             if (string.IsNullOrWhiteSpace(YearBox.Text) && resolvedYear > 0)
             {
                 YearBox.Text = resolvedYear.ToString(CultureInfo.InvariantCulture);
@@ -626,6 +633,28 @@ public sealed partial class NfoEditorDialog : Window
                 return text;
         }
         return string.Empty;
+    }
+
+    private static bool ContainsCyrillic(string? value) =>
+        !string.IsNullOrWhiteSpace(value) && value.Any(ch => ch >= '\u0400' && ch <= '\u04FF');
+
+    private static string NormalizeRussianGenre(string? genre)
+    {
+        var value = (genre ?? string.Empty).Trim();
+        if (value.Any(ch => ch >= '\u0400' && ch <= '\u04FF')) return value;
+        return value.ToLowerInvariant() switch
+        {
+            "action" => "Боевик", "adventure" => "Приключения", "animation" => "Анимация",
+            "anime" => "Аниме", "comedy" => "Комедия", "crime" => "Криминал",
+            "documentary" => "Документальный", "drama" => "Драма", "family" => "Семейный",
+            "fantasy" => "Фэнтези", "history" => "История", "horror" => "Ужасы",
+            "music" => "Музыка", "mystery" => "Детектив", "romance" => "Мелодрама",
+            "sci-fi" or "science fiction" => "Фантастика", "tv movie" or "tv-movie" => "Телевизионный фильм",
+            "thriller" => "Триллер", "war" => "Военный", "western" => "Вестерн",
+            "biography" => "Биография", "sport" => "Спорт", "musical" => "Мюзикл",
+            "short" => "Короткометражка",
+            _ => value
+        };
     }
 
     private static string NormalizeMatchTitle(string? value)

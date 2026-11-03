@@ -10,21 +10,23 @@ public sealed class KinopoiskClient : IDisposable
 {
     private const string BaseUrl = "https://kinopoiskapiunofficial.tech/api";
     private readonly HttpClient _http;
+    private readonly List<string> _apiTokens;
 
     public KinopoiskClient(string? token = null)
     {
-        var apiToken = string.IsNullOrWhiteSpace(token) ? KinopoiskSettings.ApiToken : token.Trim();
-        if (string.IsNullOrWhiteSpace(apiToken))
-            throw new InvalidOperationException("Укажи API-ключ КиноПоиска в настройках приложения.");
+        _apiTokens = string.IsNullOrWhiteSpace(token)
+            ? KinopoiskSettings.ApiTokens.ToList()
+            : new List<string> { token.Trim() };
+        if (_apiTokens.Count == 0)
+            throw new InvalidOperationException("Укажи хотя бы один API-ключ КиноПоиска в настройках приложения.");
         _http = ProxySettings.CreateHttpClient(TimeSpan.FromSeconds(25));
-        _http.DefaultRequestHeaders.Add("X-API-KEY", apiToken);
         _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
     }
 
     public async Task<List<TmdbMovie>> SearchMovieAsync(string title, int? year = null)
     {
         var query = Uri.EscapeDataString(title ?? string.Empty);
-        var json = await _http.GetStringAsync($"{BaseUrl}/v2.1/films/search-by-keyword?keyword={query}&page=1");
+        var json = await GetStringWithKeyRetryAsync($"{BaseUrl}/v2.1/films/search-by-keyword?keyword={query}&page=1");
         using var doc = JsonDocument.Parse(json);
         var results = new List<TmdbMovie>();
         if (!doc.RootElement.TryGetProperty("films", out var films) || films.ValueKind != JsonValueKind.Array)
@@ -60,7 +62,7 @@ public sealed class KinopoiskClient : IDisposable
 
     public async Task<TmdbMovie?> GetMovieDetailsAsync(int id)
     {
-        var json = await _http.GetStringAsync($"{BaseUrl}/v2.2/films/{id}");
+        var json = await GetStringWithKeyRetryAsync($"{BaseUrl}/v2.2/films/{id}");
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
         var year = Int(root, "year");
@@ -95,9 +97,7 @@ public sealed class KinopoiskClient : IDisposable
     public async Task<List<string>> GetAwardsAsync(int id)
     {
         var output = new List<string>();
-        try
-        {
-            var json = await _http.GetStringAsync($"{BaseUrl}/v2.2/films/{id}/awards");
+        var json = await GetStringWithKeyRetryAsync($"{BaseUrl}/v2.2/films/{id}/awards");
             using var doc = JsonDocument.Parse(json);
             if (!doc.RootElement.TryGetProperty("items", out var items) || items.ValueKind != JsonValueKind.Array) return output;
             foreach (var item in items.EnumerateArray())
@@ -109,8 +109,6 @@ public sealed class KinopoiskClient : IDisposable
                 var line = string.Join(" — ", new[] { year > 0 ? year.ToString(CultureInfo.InvariantCulture) : "", name, category, won ? "Победа" : "Номинация" }.Where(x => !string.IsNullOrWhiteSpace(x)));
                 if (!string.IsNullOrWhiteSpace(line)) output.Add(line);
             }
-        }
-        catch (HttpRequestException) { }
         return output.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
 
@@ -123,12 +121,35 @@ public sealed class KinopoiskClient : IDisposable
         return new TmdbMovieImages(posters, backdrops);
     }
 
+    private async Task<string> GetStringWithKeyRetryAsync(string url)
+    {
+        HttpRequestException? lastLimitError = null;
+        for (var index = 0; index < _apiTokens.Count; index++)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Add("X-API-KEY", _apiTokens[index]);
+            using var response = await _http.SendAsync(request);
+            if (response.StatusCode == System.Net.HttpStatusCode.PaymentRequired ||
+                (int)response.StatusCode == 402)
+            {
+                lastLimitError = new HttpRequestException(
+                    index == _apiTokens.Count - 1
+                        ? "Исчерпан дневной лимит запросов всех сохранённых ключей Kinopoisk API Unofficial (HTTP 402)."
+                        : "Лимит ключа исчерпан; переключение на следующий ключ.", null, response.StatusCode);
+                continue;
+            }
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+        throw lastLimitError ?? new HttpRequestException("Все ключи Kinopoisk API Unofficial исчерпали дневной лимит (HTTP 402).", null, System.Net.HttpStatusCode.PaymentRequired);
+    }
+
     private async Task<List<string>> GetImagesOfTypeAsync(int id, string type)
     {
         var output = new List<string>();
         try
         {
-            var json = await _http.GetStringAsync($"{BaseUrl}/v2.2/films/{id}/images?type={type}&page=1");
+            var json = await GetStringWithKeyRetryAsync($"{BaseUrl}/v2.2/films/{id}/images?type={type}&page=1");
             using var doc = JsonDocument.Parse(json);
             if (doc.RootElement.TryGetProperty("items", out var items) && items.ValueKind == JsonValueKind.Array)
                 foreach (var item in items.EnumerateArray())
@@ -145,7 +166,7 @@ public sealed class KinopoiskClient : IDisposable
     {
         try
         {
-            var json = await _http.GetStringAsync($"{BaseUrl}/v1/staff?filmId={id}");
+            var json = await GetStringWithKeyRetryAsync($"{BaseUrl}/v1/staff?filmId={id}");
             using var doc = JsonDocument.Parse(json);
             if (doc.RootElement.ValueKind != JsonValueKind.Array) return;
             var order = 0;

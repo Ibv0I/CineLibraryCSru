@@ -189,6 +189,11 @@ public sealed partial class NfoEditorDialog : Window
         SaveWindowSize(_pendingSize.Width > 0 ? _pendingSize : _appWindow?.Size ?? new SizeInt32(0, 0));
         if (_ownerDisabled && _ownerHandle != 0) { EnableWindow(_ownerHandle, true); _ownerDisabled = false; }
         if (!_completion.Task.IsCompleted) _completion.TrySetResult(ContentDialogResult.None);
+        // Drop the parsed XML tree and bound collections as soon as the editor closes.
+        // This prevents a closed editor from retaining large NFO documents during long sessions.
+        try { _ratings.Clear(); _identifiers.Clear(); _audioTracks.Clear(); _subtitles.Clear(); } catch { }
+        _doc = new XmlDocument { PreserveWhitespace = true };
+        _root = null!;
     }
 
     private void OnCancelClick(object sender, RoutedEventArgs e)

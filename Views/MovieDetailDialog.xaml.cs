@@ -280,10 +280,14 @@ public sealed partial class MovieDetailDialog : Window
         GenreChips.Visibility = m.Genres.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         foreach (var g in m.Genres.Take(3))
         {
+            // NFO may already contain correctly capitalized Russian genres,
+            // while database/import sources can retain lowercase display text.
+            // Normalize only the visible label; keep the original value for filtering.
+            var displayGenre = CapitalizeGenreLabel(g);
             var captured = g;
             var chip = new Button
             {
-                Content = g,
+                Content = displayGenre,
                 FontSize = 12,
                 MinHeight = 0,
                 Padding = new Thickness(10, 3, 10, 3),
@@ -416,6 +420,17 @@ public sealed partial class MovieDetailDialog : Window
         var role = actors.Max(a => TextHeight(a.Role, 11, Microsoft.UI.Text.FontWeights.Normal));
         // 210 headshot + two 8 px gaps, plus a little slack for rounding.
         CastGridLayout.MinItemHeight = Math.Max(280, Math.Ceiling(210 + 8 + name + 8 + role + 4));
+    }
+
+    private static string CapitalizeGenreLabel(string? genre)
+    {
+        if (string.IsNullOrWhiteSpace(genre)) return genre ?? string.Empty;
+        var trimmed = genre.Trim();
+        int firstLetter = 0;
+        while (firstLetter < trimmed.Length && !char.IsLetter(trimmed[firstLetter]))
+            firstLetter++;
+        if (firstLetter >= trimmed.Length) return trimmed;
+        return trimmed[..firstLetter] + char.ToUpperInvariant(trimmed[firstLetter]) + trimmed[(firstLetter + 1)..];
     }
 
     private static readonly string[] ActorThumbExts = { ".jpg", ".jpeg", ".png", ".tbn", ".webp" };

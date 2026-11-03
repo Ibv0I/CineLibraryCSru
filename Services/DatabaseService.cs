@@ -4780,5 +4780,24 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void Dispose() => _conn.Dispose();
+    public void Dispose()
+    {
+        // Flush committed WAL pages into the main database on a clean shutdown.
+        // SQLite removes the -wal/-shm sidecars itself after the last connection closes.
+        try
+        {
+            if (_conn.State == System.Data.ConnectionState.Open)
+            {
+                using var checkpoint = _conn.CreateCommand();
+                checkpoint.CommandText = "PRAGMA wal_checkpoint(TRUNCATE);";
+                checkpoint.CommandTimeout = 5;
+                checkpoint.ExecuteNonQuery();
+            }
+        }
+        catch { /* Disposal must continue even if a checkpoint is busy. */ }
+        finally
+        {
+            try { _conn.Dispose(); } catch { }
+        }
+    }
 }

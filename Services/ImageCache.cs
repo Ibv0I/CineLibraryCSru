@@ -21,7 +21,7 @@ public static class ImageCache
 {
     // 80 MB — enough for a few hundred posters in typical libraries, tiny
     // compared to WinUI's own image decode cache.
-    private const long MaxBytes = 80L * 1024 * 1024;
+    private const long MaxBytes = 32L * 1024 * 1024;
 
     // LinkedList gives O(1) touch-to-front + O(1) evict-from-tail.
     // Dictionary of key -> node gives O(1) lookup.
@@ -120,7 +120,7 @@ public static class ImageCache
     // scrolls back into view (or any other control showing the same poster at
     // the same size) reuses it instantly — no decode at all. Bounded by an
     // estimated decoded-pixel budget with strict LRU eviction.
-    private const long MaxDecodedBytes = 160L * 1024 * 1024;
+    private const long MaxDecodedBytes = 64L * 1024 * 1024;
     private static readonly Dictionary<string, LinkedListNode<DecEntry>> _decMap = new();
     private static readonly LinkedList<DecEntry> _decLru = new();
     private static long _decBytes;

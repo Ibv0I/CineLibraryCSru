@@ -469,11 +469,9 @@ public sealed partial class NfoEditorDialog : Window
             }
 
             var resolvedYear = tmdbMovie != null && tmdbMovie.Year > 0 ? tmdbMovie.Year : (kpMovie?.Year ?? 0);
-            // When PoiskKino supplied the active Kinopoisk record, prefer its localized slogan.
-            // TMDb's tagline may be English even when the dialog is configured for Russian.
-            var resolvedTagline = string.Equals(kpMovie?.SourceProvider, "poiskkino", StringComparison.OrdinalIgnoreCase)
-                ? FirstNonEmpty(kpMovie?.Tagline, tmdbMovie?.Tagline)
-                : FirstNonEmpty(tmdbMovie?.Tagline, kpMovie?.Tagline);
+            // Store a tagline only when it contains Russian (Cyrillic) text.
+            // Neither API is guaranteed to return a localized slogan; never fall back to English.
+            var resolvedTagline = FirstRussianTagline(kpMovie?.Tagline, tmdbMovie?.Tagline);
             var resolvedGenres = tmdbMovie != null && tmdbMovie.Genres.Count > 0
                 ? tmdbMovie.Genres
                 : (kpMovie?.Genres ?? new List<TmdbNamed>());
@@ -617,6 +615,18 @@ public sealed partial class NfoEditorDialog : Window
 
     private static string FirstNonEmpty(params string?[] values) =>
         values.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x))?.Trim() ?? "";
+
+    private static string FirstRussianTagline(params string?[] values)
+    {
+        foreach (var value in values)
+        {
+            if (string.IsNullOrWhiteSpace(value)) continue;
+            var text = value.Trim();
+            if (text.Any(c => c >= '\u0400' && c <= '\u04FF'))
+                return text;
+        }
+        return string.Empty;
+    }
 
     private static string NormalizeMatchTitle(string? value)
     {

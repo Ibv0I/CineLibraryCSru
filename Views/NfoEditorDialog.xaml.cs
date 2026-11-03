@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -397,7 +397,7 @@ public sealed partial class NfoEditorDialog : Window
                             if (id > 0) { kpId = id; AddIdentifierIfMissing("kinopoisk", id.ToString(CultureInfo.InvariantCulture), added); }
                         }
                     }
-                    catch (Exception ex) { errors.Add("КиноПоиск API Unofficial: " + ex.Message); }
+                    catch (Exception ex) { errors.Add("КиноПоиск API Unofficial: " + FormatKinopoiskApiError(ex)); }
                 }
                 if (!kpId.HasValue && hasPoiskKino)
                 {
@@ -420,7 +420,7 @@ public sealed partial class NfoEditorDialog : Window
                 if (hasUnofficial)
                 {
                     try { using var kp = new KinopoiskClient(); kpMovie = await kp.GetMovieDetailsAsync(kpId.Value); }
-                    catch (Exception ex) { errors.Add("Данные КиноПоиск API Unofficial: " + ex.Message); }
+                    catch (Exception ex) { errors.Add("Данные КиноПоиск API Unofficial: " + FormatKinopoiskApiError(ex)); }
                 }
                 if ((kpMovie == null || kpMovie.Rating <= 0) && hasPoiskKino)
                 {
@@ -517,29 +517,7 @@ public sealed partial class NfoEditorDialog : Window
             await TryLoadRatingForIdentifierAsync("tmdb", GetIdentifierValue("tmdb"));
             await TryLoadRatingForIdentifierAsync("kinopoisk", GetIdentifierValue("kinopoisk"));
             await TryLoadRatingForIdentifierAsync("imdb", GetIdentifierValue("imdb"));
-            // Collect awards here as well: if Unofficial is rate-limited (e.g. HTTP 402),
-            // fall back to the documented PoiskKino movie-awards endpoint.
-            if (string.IsNullOrWhiteSpace(AwardsBox.Text) &&
-                int.TryParse(GetIdentifierValue("kinopoisk"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var awardsMovieId) && awardsMovieId > 0)
-            {
-                List<string> collectedAwards = new();
-                if (!string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
-                {
-                    try { using var kp = new KinopoiskClient(); collectedAwards = await kp.GetAwardsAsync(awardsMovieId); }
-                    catch (Exception ex) { errors.Add("Награды через Kinopoisk API Unofficial: " + ex.Message); }
-                }
-                if (collectedAwards.Count == 0 && !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken))
-                {
-                    try { using var poisk = new PoiskKinoClient(); collectedAwards = await poisk.GetAwardsAsync(awardsMovieId); }
-                    catch (Exception ex) { errors.Add("Награды через ПоискКино API: " + ex.Message); }
-                }
-                if (collectedAwards.Count > 0)
-                {
-                    AwardsBox.Text = string.Join(Environment.NewLine, collectedAwards);
-                    added.Add("Награды и номинации");
-                }
-            }
-
+            // Награды и номинации загружаются отдельно кнопкой «Загрузить бюджет, сборы и награды».
             if (string.IsNullOrWhiteSpace(GetIdentifierValue("tmdb"))) unavailable.Add("TMDb ID");
             if (string.IsNullOrWhiteSpace(GetIdentifierValue("imdb"))) unavailable.Add("IMDb ID");
             if (string.IsNullOrWhiteSpace(GetIdentifierValue("kinopoisk"))) unavailable.Add("Кинопоиск ID");
@@ -662,6 +640,13 @@ public sealed partial class NfoEditorDialog : Window
         return null;
     }
 
+
+    private static string FormatKinopoiskApiError(Exception exception)
+    {
+        if (exception is HttpRequestException http && http.StatusCode == System.Net.HttpStatusCode.PaymentRequired)
+            return "исчерпан дневной лимит запросов (HTTP 402). Для продолжения используйте API ПоискКино или дождитесь сброса лимита.";
+        return exception.Message;
+    }
 
     private static async Task<TmdbMovie?> FindExactPoiskKinoMatchAsync(PoiskKinoClient client,
         string title, string originalTitle, int? year)

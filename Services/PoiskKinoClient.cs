@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.Json;
 using CineLibraryCS.Services.Tmdb;
 
@@ -153,7 +153,9 @@ public sealed class PoiskKinoClient : IDisposable
         // Cursor pagination; cap at 10 pages to respect the documented demo/free limit.
         for (var page = 0; page < 10; page++)
         {
-            var query = $"movieId={movieId}&limit=250&selectFields=movieId&selectFields=winning&selectFields=nomination.title&selectFields=nomination.award.title&selectFields=nomination.award.year";
+            // selectFields accepts top-level model fields only. Request the whole nomination
+            // object; nested paths here cause HTTP 400 in PoiskKino API.
+            var query = $"movieId={movieId}&limit=250&selectFields=movieId&selectFields=winning&selectFields=nomination";
             if (!string.IsNullOrWhiteSpace(next)) query += "&next=" + Uri.EscapeDataString(next);
             using var response = await _http.GetAsync($"{BaseUrl}/movie/awards?{query}");
             response.EnsureSuccessStatusCode();

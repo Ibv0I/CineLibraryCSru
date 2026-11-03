@@ -278,6 +278,24 @@ public sealed partial class NfoEditorDialog : Window
         return parent?.SelectNodes(name)?.OfType<XmlElement>().ToList() ?? new();
     }
 
+    private void PersistNfoAndSyncDatabase()
+    {
+        var backup = _path + ".bak-" + DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
+        File.Copy(_path, backup, overwrite: false);
+        var temp = _path + ".tmp";
+        try
+        {
+            using (var writer = XmlWriter.Create(temp, new XmlWriterSettings { Encoding = new System.Text.UTF8Encoding(false), Indent = true }))
+                _doc.Save(writer);
+            File.Move(temp, _path, overwrite: true);
+        }
+        finally { try { if (File.Exists(temp)) File.Delete(temp); } catch { } }
+
+        // Keep the SQLite cache in sync with the NFO immediately; a later full scan is not required.
+        try { AppState.Instance.Db.SyncMovieFromNfo(_path); }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine("NFO database sync failed: " + ex); }
+    }
+
     private async void OnSaveClick(object sender, RoutedEventArgs args)
     {
         try
@@ -293,11 +311,7 @@ public sealed partial class NfoEditorDialog : Window
             SetAwards(AwardsBox.Text);
             SetList("studio", StudiosBox.Text); SetList("country", CountriesBox.Text); SetList("genre", string.Join(Environment.NewLine, GenresBox.Text.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Distinct(StringComparer.OrdinalIgnoreCase)));
             SetRatings(); SetIdentifiers(); SetTechnical();
-            var backup = _path + ".bak-" + DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
-            File.Copy(_path, backup, overwrite: false);
-            var temp = _path + ".tmp";
-            using (var writer = XmlWriter.Create(temp, new XmlWriterSettings { Encoding = new System.Text.UTF8Encoding(false), Indent = true })) _doc.Save(writer);
-            File.Move(temp, _path, overwrite: true);
+            PersistNfoAndSyncDatabase();
             Saved = true;
             _completion.TrySetResult(ContentDialogResult.Primary);
             Close();
@@ -558,6 +572,16 @@ public sealed partial class NfoEditorDialog : Window
             if (string.IsNullOrWhiteSpace(GetIdentifierValue("imdb"))) unavailable.Add("IMDb ID");
             if (string.IsNullOrWhiteSpace(GetIdentifierValue("kinopoisk"))) unavailable.Add("Кинопоиск ID");
 
+            // Persist fetched metadata immediately so long editing sessions do not accumulate unsaved state.
+            Set("title", TitleBox.Text); Set("originaltitle", OriginalTitleBox.Text); Set("tagline", TaglineBox.Text);
+            Set("plot", PlotBox.Text); Set("year", YearBox.Text);
+            Set("premiered", DateTime.TryParseExact(PremieredBox.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var collectedDate) ? collectedDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : Get("premiered"));
+            Set("runtime", RuntimeBox.Text); Set("mpaa", CertificationBox.SelectedItem as string);
+            SetList("studio", StudiosBox.Text); SetList("country", CountriesBox.Text);
+            SetList("genre", string.Join(Environment.NewLine, GenresBox.Text.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Distinct(StringComparer.OrdinalIgnoreCase)));
+            SetRatings(); SetIdentifiers();
+            PersistNfoAndSyncDatabase();
+
             var report = new List<string>();
             if (added.Count > 0) report.Add("Добавлено: " + string.Join(", ", added.Distinct(StringComparer.OrdinalIgnoreCase)) + ".");
             if (unavailable.Count > 0) report.Add("Не удалось получить: " + string.Join(", ", unavailable.Distinct(StringComparer.OrdinalIgnoreCase)) + ".");
@@ -803,6 +827,11 @@ public sealed partial class NfoEditorDialog : Window
                 }
                 if (awards.Count > 0) AwardsBox.Text = string.Join(Environment.NewLine, awards);
             }
+            // Financial data and awards are persisted immediately, not held only in controls.
+            Set("budget", BudgetBox.Text == "—" ? "" : BudgetBox.Text);
+            Set("revenue", RevenueBox.Text == "—" ? "" : RevenueBox.Text);
+            SetAwards(AwardsBox.Text);
+            PersistNfoAndSyncDatabase();
             var info = new ContentDialog { Title = "Загрузка завершена", Content = "Финансовые данные получены из TMDb. Награды загружены, если API КиноПоиска предоставил их.", CloseButtonText = "ОК", RequestedTheme = ElementTheme.Dark, XamlRoot = RootGrid.XamlRoot };
             await info.ShowAsync();
         }

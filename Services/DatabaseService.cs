@@ -1,3 +1,4 @@
+﻿using System.Globalization;
 using Microsoft.Data.Sqlite;
 using CineLibraryCS.Models;
 using System.Runtime.CompilerServices;
@@ -3984,6 +3985,45 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         using var r = cmd.ExecuteReader();
         while (r.Read()) ids.Add(r.GetInt32(0));
         return ids;
+    }
+
+
+    /// <summary>Refreshes the cached movie row and its normalized relations from a saved NFO.</summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public bool SyncMovieFromNfo(string nfoPath)
+    {
+        if (string.IsNullOrWhiteSpace(nfoPath) || !File.Exists(nfoPath)) return false;
+        var fullNfo = Path.GetFullPath(nfoPath);
+        int movieId = 0;
+        var connected = GetConnectedDrives();
+        using (var find = _conn.CreateCommand())
+        {
+            find.CommandText = "SELECT id, volume_serial, folder_rel_path FROM movies WHERE folder_rel_path IS NOT NULL";
+            using var reader = find.ExecuteReader();
+            while (reader.Read())
+            {
+                var serial = reader.IsDBNull(1) ? "" : reader.GetString(1);
+                var folderRel = reader.IsDBNull(2) ? "" : reader.GetString(2);
+                if (!connected.TryGetValue(serial, out var letter) || string.IsNullOrWhiteSpace(folderRel)) continue;
+                var folderPath = Path.GetFullPath(Path.Combine(letter + ":\\", folderRel.Replace('/', Path.DirectorySeparatorChar)));
+                if (string.Equals(folderPath, Path.GetDirectoryName(fullNfo), StringComparison.OrdinalIgnoreCase))
+                {
+                    movieId = reader.GetInt32(0);
+                    break;
+                }
+            }
+        }
+        if (movieId <= 0) return false;
+
+        var parsed = NfoParser.Parse(fullNfo);
+        if (parsed == null) return false;
+        UpdateMovieMetadata(movieId, parsed.Title, parsed.OriginalTitle, parsed.Tagline, parsed.Plot,
+            parsed.Premiered, parsed.Year, parsed.Runtime, parsed.Rating, parsed.Country, parsed.Studio,
+            parsed.ImdbId, parsed.TmdbId, parsed.Genres, parsed.Directors, parsed.Writers,
+            parsed.Actors.Select(a => a.Name).ToList());
+        foreach (var rating in parsed.Ratings)
+            UpdateMovieRating(movieId, rating.Source, rating.Value, rating.Votes);
+        return true;
     }
 
     /// <summary>Updates the cached poster and fanart paths for a movie.</summary>

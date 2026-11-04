@@ -1254,7 +1254,7 @@ public sealed partial class MovieDetailDialog : Window
             @"\b(19|20)\d{2}\b", " ", RegexOptions.IgnoreCase);
 
         clean = Regex.Replace(clean,
-            @"\b(oscar|academy awards?|golden globes?|bafta|british academy|emmys?|cannes|venice|cesar|césar|saturn(?: awards?)?|academy of science fiction, fantasy and horror films|screen actors guild(?: awards?)?|the actor awards?|actors guild(?: awards?)?|sag(?:-aftra)? awards?|golden raspberry|razzies?)\b|британская академия|(?:премия\s+)?гильдия\s+киноакт[её]ров(?:\s+сша)?|премия\s+гильдии\s+акт[её]ров(?:\s+сша)?|гильдии\s+акт[её]ров(?:\s+сша)?|(?:премия\s+)?сатурн(?:\s+премия)?|академия научной фантастики, фэнтези и фильмов ужасов|сандэнс|sundance(?: film festival)?|золотой ор[её]л|golden eagle(?: award)?|премия канала mtv|mtv movie awards?|европейская киноакадемия|european film academy|карловы вары|karlovy vary|(?:премия\s+)?гойя|goya awards?|жорж|georges? award|сан-себастьян|san sebastian(?: film festival)?|азиатская киноакадемия|asian film academy|кинонаграды\s*[«""]?mtv-россия[»""]?|mtv russia",
+            @"\b(oscar|academy awards?|golden globes?|bafta|british academy|emmys?|cannes|venice|cesar|césar|saturn(?: awards?)?|academy of science fiction, fantasy and horror films|screen actors guild(?: awards?)?|the actor awards?|actors guild(?: awards?)?|sag(?:-aftra)? awards?|golden raspberry|razzies?)\b|британская академия|(?:премия\s+)?гильдия\s+киноакт[её]ров(?:\s+сша)?|премия\s+гильдии\s+акт[её]ров(?:\s+сша)?|гильдии\s+акт[её]ров(?:\s+сша)?|(?:премия\s+)?сатурн(?:\s+премия)?|академия научной фантастики, фэнтези и фильмов ужасов|сандэнс|sundance(?: film festival)?|золотой ор[её]л|golden eagle(?: award)?|премия\s+канала\s*[«"" ]?mtv[»"" ]?|mtv movie awards?|европейская киноакадемия|european film academy|карловы вары|karlovy vary|(?:премия\s+)?гойя|goya awards?|жорж|georges? award|сан-себастьян|san sebastian(?: film festival)?|азиатская киноакадемия|asian film academy|кинонаграды\s*[«""]?mtv-россия[»""]?|mtv russia",
             " ", RegexOptions.IgnoreCase);
 
         // Remove status labels wherever a provider placed them (prefix or suffix).
@@ -1327,7 +1327,7 @@ public sealed partial class MovieDetailDialog : Window
         if (ContainsAny(line, "сандэнс", "sundance")) return "Сандэнс";
         if (ContainsAny(line, "золотой орёл", "золотой орел", "golden eagle")) return "Золотой орёл";
         if (ContainsAny(line, "mtv-россия", "mtv russia", "кинонаграды")) return "Кинонаграды «MTV-Россия»";
-        if (ContainsAny(line, "премия канала mtv", "mtv movie award", "mtv movie awards") ||
+        if (ContainsAny(line, "премия канала mtv", "премия канала «mtv»", "премия канала \"mtv\"", "mtv movie award", "mtv movie awards") ||
             line.Trim().Equals("mtv", StringComparison.OrdinalIgnoreCase)) return "Премия канала MTV";
         if (ContainsAny(line, "европейская киноакадемия", "european film academy")) return "Европейская киноакадемия";
         if (ContainsAny(line, "карловы вары", "karlovy vary")) return "Карловы Вары";
@@ -1386,10 +1386,9 @@ public sealed partial class MovieDetailDialog : Window
             "золотой медведь", "golden bear")) return "berlinale.png";
         if (ContainsAny(name, "сандэнс", "sundance")) return "sundance.png";
         if (ContainsAny(name, "золотой орёл", "золотой орел", "golden eagle")) return "golden-eagle.png";
-        // Keep MTV Russia separate; all other MTV Movie Awards aliases use
-        // the dedicated golden-popcorn statuette rather than generic.png.
-        if (ContainsAny(name, "mtv-россия", "mtv russia", "кинонаграды")) return "mtv-russia.png";
-        if (ContainsAny(name, "премия канала mtv", "mtv movie award", "mtv movie awards") ||
+        // Both Russian MTV award names use the dedicated golden-popcorn statuette.
+        if (ContainsAny(name, "mtv-россия", "mtv russia", "кинонаграды",
+            "премия канала mtv", "премия канала «mtv»", "премия канала \"mtv\"", "mtv movie award", "mtv movie awards") ||
             name.Trim().Equals("mtv", StringComparison.OrdinalIgnoreCase)) return "mtv-channel.png";
         if (ContainsAny(name, "европейская киноакадемия", "european film academy")) return "european-film-academy.png";
         if (ContainsAny(name, "карловы вары", "karlovy vary")) return "karlovy-vary.png";
@@ -1397,7 +1396,6 @@ public sealed partial class MovieDetailDialog : Window
         if (ContainsAny(name, "жорж", "georges")) return "georges.png";
         if (ContainsAny(name, "сан-себастьян", "san sebastian")) return "san-sebastian.png";
         if (ContainsAny(name, "азиатская киноакадемия", "asian film academy")) return "asian-film-academy.png";
-        if (ContainsAny(name, "mtv-россия", "mtv russia", "кинонаграды")) return "mtv-russia.png";
         return "generic.png";
     }
 

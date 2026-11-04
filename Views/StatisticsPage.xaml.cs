@@ -197,7 +197,7 @@ public sealed partial class StatisticsPage : Page
         {
             Height = 10,
             CornerRadius = new CornerRadius(5),
-            Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xA7, 0x8B, 0xFA)),
+            Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x3B, 0x82, 0xF6)),
         };
         filled.SetValue(Grid.ColumnProperty, 0);
         barHost.Children.Add(filled);

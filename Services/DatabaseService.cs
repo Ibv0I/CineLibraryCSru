@@ -1540,7 +1540,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             }
         }
         if (opts.DriveSerial != null) where.Add("m.volume_serial=@serial");
-        if (opts.Genre != null) where.Add("EXISTS (SELECT 1 FROM movie_genres mg JOIN genres g ON g.id=mg.genre_id WHERE mg.movie_id=m.id AND g.name=@genre)");
+        if (opts.Genre != null) where.Add("EXISTS (SELECT 1 FROM movie_genres mg JOIN genres g ON g.id=mg.genre_id WHERE mg.movie_id=m.id AND LOWER(TRIM(g.name))=LOWER(TRIM(@genre)))");
         if (opts.Actor != null) where.Add("EXISTS (SELECT 1 FROM movie_actors ma JOIN actors a ON a.id=ma.actor_id WHERE ma.movie_id=m.id AND LOWER(a.name)=LOWER(@actor))");
         if (opts.Director != null) where.Add("EXISTS (SELECT 1 FROM movie_directors md JOIN directors d ON d.id=md.director_id WHERE md.movie_id=m.id AND LOWER(d.name)=LOWER(@director))");
         if (opts.Studio != null) where.Add("LOWER(m.studio)=LOWER(@studio)");
@@ -3131,35 +3131,48 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
     {
         var list = new List<BrowseEntry>();
         using var cmd = _conn.CreateCommand();
-        // For each genre: count + a representative fanart from a high-rated member.
+        // Merge genre records that differ only by capitalization/outer whitespace.
+        // Counts are distinct movies, so a movie tagged with both variants is counted once.
         cmd.CommandText = @"
-            SELECT g.name,
+            SELECT MIN(TRIM(g.name) COLLATE NOCASE) AS display_name,
                    COUNT(DISTINCT m.id) c,
                    (SELECT m2.local_fanart FROM movies m2
                     JOIN movie_genres mg2 ON mg2.movie_id=m2.id
-                    WHERE mg2.genre_id=g.id AND m2.local_fanart IS NOT NULL AND m2.is_missing=0 AND m2.archived_at IS NULL
+                    JOIN genres g2 ON g2.id=mg2.genre_id
+                    WHERE LOWER(TRIM(g2.name))=LOWER(TRIM(g.name))
+                      AND m2.local_fanart IS NOT NULL AND m2.is_missing=0 AND m2.archived_at IS NULL
                     ORDER BY COALESCE(m2.rating,0) DESC LIMIT 1) AS fanart,
                    (SELECT m3.local_poster FROM movies m3
                     JOIN movie_genres mg3 ON mg3.movie_id=m3.id
-                    WHERE mg3.genre_id=g.id AND m3.local_poster IS NOT NULL AND m3.is_missing=0 AND m3.archived_at IS NULL
+                    JOIN genres g3 ON g3.id=mg3.genre_id
+                    WHERE LOWER(TRIM(g3.name))=LOWER(TRIM(g.name))
+                      AND m3.local_poster IS NOT NULL AND m3.is_missing=0 AND m3.archived_at IS NULL
                     ORDER BY COALESCE(m3.rating,0) DESC LIMIT 1) AS poster
             FROM genres g
             JOIN movie_genres mg ON mg.genre_id=g.id
             JOIN movies m ON m.id=mg.movie_id AND m.is_missing=0 AND m.archived_at IS NULL
-            GROUP BY g.id
+            GROUP BY LOWER(TRIM(g.name))
             HAVING c > 0
-            ORDER BY c DESC, g.name ASC";
+            ORDER BY c DESC, display_name COLLATE NOCASE ASC";
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
+            var label = CapitalizeGenreLabel(r.GetString(0));
             list.Add(new BrowseEntry(
-                Key: r.GetString(0),
-                Label: r.GetString(0),
+                Key: label,
+                Label: label,
                 Count: r.GetInt32(1),
                 SampleFanart: r.IsDBNull(2) ? null : r.GetString(2),
                 SamplePoster: r.IsDBNull(3) ? null : r.GetString(3)));
         }
         return list;
+    }
+
+    private static string CapitalizeGenreLabel(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return value;
+        value = value.Trim();
+        return char.ToUpperInvariant(value[0]) + value.Substring(1);
     }
 
     private List<BrowseEntry> BrowseByDecade()

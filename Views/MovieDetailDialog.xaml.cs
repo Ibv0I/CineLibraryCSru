@@ -1326,7 +1326,9 @@ public sealed partial class MovieDetailDialog : Window
             return "Берлинский кинофестиваль";
         if (ContainsAny(line, "сандэнс", "sundance")) return "Сандэнс";
         if (ContainsAny(line, "золотой орёл", "золотой орел", "golden eagle")) return "Золотой орёл";
-        if (ContainsAny(line, "премия канала mtv", "mtv movie award", "mtv movie awards")) return "Премия канала MTV";
+        if (ContainsAny(line, "mtv-россия", "mtv russia", "кинонаграды")) return "Кинонаграды «MTV-Россия»";
+        if (ContainsAny(line, "премия канала mtv", "mtv movie award", "mtv movie awards") ||
+            line.Trim().Equals("mtv", StringComparison.OrdinalIgnoreCase)) return "Премия канала MTV";
         if (ContainsAny(line, "европейская киноакадемия", "european film academy")) return "Европейская киноакадемия";
         if (ContainsAny(line, "карловы вары", "karlovy vary")) return "Карловы Вары";
         if (ContainsAny(line, "гойя", "goya award", "goya awards")) return "Гойя";
@@ -1384,7 +1386,11 @@ public sealed partial class MovieDetailDialog : Window
             "золотой медведь", "golden bear")) return "berlinale.png";
         if (ContainsAny(name, "сандэнс", "sundance")) return "sundance.png";
         if (ContainsAny(name, "золотой орёл", "золотой орел", "golden eagle")) return "golden-eagle.png";
-        if (ContainsAny(name, "премия канала mtv", "mtv movie award")) return "mtv-channel.png";
+        // Keep MTV Russia separate; all other MTV Movie Awards aliases use
+        // the dedicated golden-popcorn statuette rather than generic.png.
+        if (ContainsAny(name, "mtv-россия", "mtv russia", "кинонаграды")) return "mtv-russia.png";
+        if (ContainsAny(name, "премия канала mtv", "mtv movie award", "mtv movie awards") ||
+            name.Trim().Equals("mtv", StringComparison.OrdinalIgnoreCase)) return "mtv-channel.png";
         if (ContainsAny(name, "европейская киноакадемия", "european film academy")) return "european-film-academy.png";
         if (ContainsAny(name, "карловы вары", "karlovy vary")) return "karlovy-vary.png";
         if (ContainsAny(name, "гойя", "goya")) return "goya-new.png";

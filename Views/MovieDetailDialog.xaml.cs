@@ -1,4 +1,4 @@
-using Microsoft.UI;
+﻿using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -1155,20 +1155,47 @@ public sealed partial class MovieDetailDialog : Window
             MaxWidth = 390
         };
 
-        // Show the award name first, followed by wins and then nominations.
-        content.Children.Add(new TextBlock
+        // Show the short award name with its organization in smaller parentheses,
+        // followed by wins and nominations without repeating the award name.
+        var title = new TextBlock
+        {
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0, 0, 0, 3)
+        };
+        title.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run
         {
             Text = group.Name,
             FontSize = 14,
             FontWeight = Microsoft.UI.Text.FontWeights.Bold,
             Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                Microsoft.UI.ColorHelper.FromArgb(255, 255, 255, 255)),
-            TextWrapping = TextWrapping.Wrap,
-            Margin = new Thickness(0, 0, 0, 3)
+                Microsoft.UI.ColorHelper.FromArgb(255, 255, 255, 255))
         });
+        var organization = GetAwardOrganizationSubtitle(group.Name);
+        if (!string.IsNullOrWhiteSpace(organization))
+        {
+            title.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run
+            {
+                Text = $" ({organization})",
+                FontSize = 10,
+                Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                    Microsoft.UI.ColorHelper.FromArgb(190, 205, 210, 220))
+            });
+        }
+        content.Children.Add(title);
         AddAwardToolTipSection(content, $"Победы ({wins.Count})", wins, false, group.Name);
         AddAwardToolTipSection(content, $"Номинации ({nominations.Count})", nominations, true, group.Name);
         return content;
+    }
+
+    private static string? GetAwardOrganizationSubtitle(string awardName)
+    {
+        if (awardName.Equals("BAFTA", StringComparison.OrdinalIgnoreCase))
+            return "Британская академия";
+        if (awardName.Equals("SAG Awards", StringComparison.OrdinalIgnoreCase))
+            return "Гильдия киноактёров США";
+        if (awardName.Equals("Saturn Awards", StringComparison.OrdinalIgnoreCase))
+            return "Академия научной фантастики, фэнтези и фильмов ужасов";
+        return null;
     }
 
     private static void AddAwardToolTipSection(StackPanel parent, string heading,
@@ -1217,7 +1244,7 @@ public sealed partial class MovieDetailDialog : Window
             @"\b(19|20)\d{2}\b", " ", RegexOptions.IgnoreCase);
 
         clean = Regex.Replace(clean,
-            @"\b(oscar|academy awards?|golden globes?|bafta|emmys?|cannes|venice|cesar|césar|saturn awards?|screen actors guild|sag awards?|golden raspberry|razzies?)\b",
+            @"\b(oscar|academy awards?|golden globes?|bafta|british academy|emmys?|cannes|venice|cesar|césar|saturn awards?|academy of science fiction, fantasy and horror films|screen actors guild|sag awards?|golden raspberry|razzies?)\b|британская академия|гильдия киноакт[её]ров(?: сша)?|академия научной фантастики, фэнтези и фильмов ужасов",
             " ", RegexOptions.IgnoreCase);
 
         // Remove status labels wherever a provider placed them (prefix or suffix).

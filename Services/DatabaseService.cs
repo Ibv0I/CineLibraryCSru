@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Microsoft.Data.Sqlite;
 using CineLibraryCS.Models;
 using System.Runtime.CompilerServices;
@@ -29,6 +29,9 @@ public class DatabaseService : IDisposable
         _conn.CreateFunction<string?, string?, bool>("UNICASECONTAINS",
             (value, query) => !string.IsNullOrEmpty(value) && !string.IsNullOrEmpty(query)
                 && value.Contains(query, StringComparison.OrdinalIgnoreCase));
+        // SQLite LOWER/NOCASE do not normalize Cyrillic. Use a .NET Unicode-aware
+        // canonical key for genre grouping and filtering without changing stored data.
+        _conn.CreateFunction<string?, string?>("GENREKEY", NormalizeGenreKey);
         ExecutePragmas();
         CreateSchema();
         RunMigrations();
@@ -1541,13 +1544,7 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         }
         if (opts.DriveSerial != null) where.Add("m.volume_serial=@serial");
         if (opts.Genre != null) where.Add(@"EXISTS (SELECT 1 FROM movie_genres mg JOIN genres g ON g.id=mg.genre_id
-            WHERE mg.movie_id=m.id AND
-            CASE LOWER(TRIM(g.name)) WHEN 'drama' THEN 'драма' WHEN 'драма' THEN 'драма'
-                 WHEN 'history' THEN 'история' WHEN 'история' THEN 'история'
-                 ELSE LOWER(TRIM(g.name)) END =
-            CASE LOWER(TRIM(@genre)) WHEN 'drama' THEN 'драма' WHEN 'драма' THEN 'драма'
-                 WHEN 'history' THEN 'история' WHEN 'история' THEN 'история'
-                 ELSE LOWER(TRIM(@genre)) END)");
+            WHERE mg.movie_id=m.id AND GENREKEY(g.name)=GENREKEY(@genre))");
         if (opts.Actor != null) where.Add("EXISTS (SELECT 1 FROM movie_actors ma JOIN actors a ON a.id=ma.actor_id WHERE ma.movie_id=m.id AND LOWER(a.name)=LOWER(@actor))");
         if (opts.Director != null) where.Add("EXISTS (SELECT 1 FROM movie_directors md JOIN directors d ON d.id=md.director_id WHERE md.movie_id=m.id AND LOWER(d.name)=LOWER(@director))");
         if (opts.Studio != null) where.Add("LOWER(m.studio)=LOWER(@studio)");
@@ -3136,58 +3133,102 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
 
     private List<BrowseEntry> BrowseByGenre()
     {
-        var list = new List<BrowseEntry>();
+        // Fetch raw genre rows, then group in .NET. SQLite LOWER/NOCASE are ASCII-only
+        // and therefore split Cyrillic variants such as "Драма" and "драма".
+        var groups = new Dictionary<string, (string Label, HashSet<int> Movies, string? Fanart, string? Poster, double BestRating)>(StringComparer.Ordinal);
         using var cmd = _conn.CreateCommand();
-        // Merge genre records that differ only by capitalization/outer whitespace.
-        // Counts are distinct movies, so a movie tagged with both variants is counted once.
-        // Browse-only canonicalization: merge Russian/English translations and
-        // case variants for the common genre pairs without rewriting NFO files,
-        // genre rows, or any movie metadata in the main library.
-        const string genreKey = "CASE LOWER(TRIM({0}.name)) " +
-            "WHEN 'drama' THEN 'драма' WHEN 'драма' THEN 'драма' " +
-            "WHEN 'history' THEN 'история' WHEN 'история' THEN 'история' " +
-            "ELSE LOWER(TRIM({0}.name)) END";
-        cmd.CommandText = $@"
-            SELECT CASE {string.Format(genreKey, "g")}
-                       WHEN 'драма' THEN 'Драма' WHEN 'история' THEN 'История'
-                       ELSE MIN(TRIM(g.name) COLLATE NOCASE) END AS display_name,
-                   COUNT(DISTINCT m.id) c,
-                   (SELECT m2.local_fanart FROM movies m2
-                    JOIN movie_genres mg2 ON mg2.movie_id=m2.id
-                    JOIN genres g2 ON g2.id=mg2.genre_id
-                    WHERE {string.Format(genreKey, "g2")}={string.Format(genreKey, "g")}
-                      AND m2.local_fanart IS NOT NULL AND m2.is_missing=0 AND m2.archived_at IS NULL
-                    ORDER BY COALESCE(m2.rating,0) DESC LIMIT 1) AS fanart,
-                   (SELECT m3.local_poster FROM movies m3
-                    JOIN movie_genres mg3 ON mg3.movie_id=m3.id
-                    JOIN genres g3 ON g3.id=mg3.genre_id
-                    WHERE {string.Format(genreKey, "g3")}={string.Format(genreKey, "g")}
-                      AND m3.local_poster IS NOT NULL AND m3.is_missing=0 AND m3.archived_at IS NULL
-                    ORDER BY COALESCE(m3.rating,0) DESC LIMIT 1) AS poster
+        cmd.CommandText = @"
+            SELECT g.name, m.id, m.local_fanart, m.local_poster, COALESCE(m.rating,0)
             FROM genres g
             JOIN movie_genres mg ON mg.genre_id=g.id
-            JOIN movies m ON m.id=mg.movie_id AND m.is_missing=0 AND m.archived_at IS NULL
-            GROUP BY {string.Format(genreKey, "g")}
-            HAVING c > 0
-            ORDER BY c DESC, display_name COLLATE NOCASE ASC";
+            JOIN movies m ON m.id=mg.movie_id
+            WHERE m.is_missing=0 AND m.archived_at IS NULL
+            ORDER BY COALESCE(m.rating,0) DESC";
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
-            var label = CapitalizeGenreLabel(r.GetString(0));
-            list.Add(new BrowseEntry(
-                Key: label,
-                Label: label,
-                Count: r.GetInt32(1),
-                SampleFanart: r.IsDBNull(2) ? null : r.GetString(2),
-                SamplePoster: r.IsDBNull(3) ? null : r.GetString(3)));
+            var raw = r.IsDBNull(0) ? "" : r.GetString(0);
+            var key = NormalizeGenreKey(raw);
+            if (string.IsNullOrWhiteSpace(key)) continue;
+            var id = r.GetInt32(1);
+            var fanart = r.IsDBNull(2) ? null : r.GetString(2);
+            var poster = r.IsDBNull(3) ? null : r.GetString(3);
+            var rating = r.GetDouble(4);
+            if (!groups.TryGetValue(key, out var g))
+                g = (GetCanonicalGenreLabel(key, raw), new HashSet<int>(), null, null, double.MinValue);
+            g.Movies.Add(id);
+            if (rating > g.BestRating)
+                g = (g.Label, g.Movies, fanart ?? g.Fanart, poster ?? g.Poster, rating);
+            else if (g.Fanart == null && fanart != null || g.Poster == null && poster != null)
+                g = (g.Label, g.Movies, g.Fanart ?? fanart, g.Poster ?? poster, g.BestRating);
+            groups[key] = g;
         }
-        return list;
+
+        return groups.Values
+            .Where(g => g.Movies.Count > 0)
+            .Select(g => new BrowseEntry(g.Label, g.Label, g.Movies.Count, g.Fanart, g.Poster))
+            .OrderByDescending(x => x.Count)
+            .ThenBy(x => x.Label, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 
-    private static string CapitalizeGenreLabel(string value)
+    private static string NormalizeGenreKey(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value)) return value;
-        value = value.Trim();
+        if (string.IsNullOrWhiteSpace(value)) return "";
+        var key = string.Join(" ", value.Trim().Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
+            .ToLowerInvariant();
+        // Common TMDb/Kinopoisk English/Russian equivalents. Grouping is display/filter-only;
+        // the original genre values in NFO and SQLite remain untouched.
+        return key switch
+        {
+            "drama" or "драма" => "драма",
+            "history" or "historical" or "история" or "исторический" => "история",
+            "action" or "боевик" => "боевик",
+            "adventure" or "приключения" => "приключения",
+            "comedy" or "комедия" => "комедия",
+            "crime" or "криминал" => "криминал",
+            "documentary" or "документальный" or "документальное" => "документальный",
+            "family" or "семейный" or "семейное" => "семейный",
+            "fantasy" or "фэнтези" => "фэнтези",
+            "science fiction" or "sci-fi" or "фантастика" or "научная фантастика" => "фантастика",
+            "horror" or "ужасы" => "ужасы",
+            "thriller" or "триллер" => "триллер",
+            "romance" or "мелодрама" or "романтика" => "мелодрама",
+            "animation" or "анимация" or "мультфильм" => "анимация",
+            "music" or "музыка" or "музыкальный" => "музыка",
+            "mystery" or "детектив" or "тайна" => "детектив",
+            "war" or "военный" or "военное" => "военный",
+            "western" or "вестерн" => "вестерн",
+            "tv movie" or "телефильм" => "телефильм",
+            "biography" or "биография" => "биография",
+            "sport" or "sports" or "спорт" => "спорт",
+            "short" or "короткометражка" or "короткометражный" => "короткометражный",
+            "musical" or "мюзикл" => "мюзикл",
+            "reality" or "реалити" => "реалити",
+            "news" or "новости" => "новости",
+            "talk show" or "ток-шоу" => "ток-шоу",
+            "game show" or "игровое шоу" => "игровое шоу",
+            _ => key
+        };
+    }
+
+    private static string GetCanonicalGenreLabel(string key, string fallback)
+    {
+        var labels = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["драма"]="Драма", ["история"]="История", ["боевик"]="Боевик",
+            ["приключения"]="Приключения", ["комедия"]="Комедия", ["криминал"]="Криминал",
+            ["документальный"]="Документальный", ["семейный"]="Семейный", ["фэнтези"]="Фэнтези",
+            ["фантастика"]="Фантастика", ["ужасы"]="Ужасы", ["триллер"]="Триллер",
+            ["мелодрама"]="Мелодрама", ["анимация"]="Анимация", ["музыка"]="Музыка",
+            ["детектив"]="Детектив", ["военный"]="Военный", ["вестерн"]="Вестерн",
+            ["телефильм"]="Телефильм", ["биография"]="Биография", ["спорт"]="Спорт",
+            ["короткометражный"]="Короткометражный", ["мюзикл"]="Мюзикл",
+            ["реалити"]="Реалити", ["новости"]="Новости", ["ток-шоу"]="Ток-шоу",
+            ["игровое шоу"]="Игровое шоу"
+        };
+        if (labels.TryGetValue(key, out var label)) return label;
+        var value = string.IsNullOrWhiteSpace(fallback) ? key : fallback.Trim();
         return char.ToUpperInvariant(value[0]) + value.Substring(1);
     }
 

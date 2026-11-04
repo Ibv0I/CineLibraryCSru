@@ -1,4 +1,4 @@
-﻿using Microsoft.UI;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -1195,6 +1195,16 @@ public sealed partial class MovieDetailDialog : Window
             return "Гильдия киноактёров США";
         if (awardName.Equals("Saturn Awards", StringComparison.OrdinalIgnoreCase))
             return "Академия научной фантастики, фэнтези и фильмов ужасов";
+        if (awardName.Equals("Сандэнс", StringComparison.OrdinalIgnoreCase)) return "Фестиваль независимого кино";
+        if (awardName.Equals("Золотой орёл", StringComparison.OrdinalIgnoreCase)) return "Национальная академия кинематографических искусств и наук России";
+        if (awardName.Equals("Премия канала MTV", StringComparison.OrdinalIgnoreCase)) return "MTV";
+        if (awardName.Equals("Европейская киноакадемия", StringComparison.OrdinalIgnoreCase)) return "European Film Academy";
+        if (awardName.Equals("Карловы Вары", StringComparison.OrdinalIgnoreCase)) return "Международный кинофестиваль";
+        if (awardName.Equals("Гойя", StringComparison.OrdinalIgnoreCase)) return "Испанская академия кинематографических искусств и наук";
+        if (awardName.Equals("Жорж", StringComparison.OrdinalIgnoreCase)) return "Российская кинопремия";
+        if (awardName.Equals("Сан-Себастьян", StringComparison.OrdinalIgnoreCase)) return "Международный кинофестиваль";
+        if (awardName.Equals("Азиатская киноакадемия", StringComparison.OrdinalIgnoreCase)) return "Asian Film Academy";
+        if (awardName.Equals("Кинонаграды «MTV-Россия»", StringComparison.OrdinalIgnoreCase)) return "MTV Россия";
         return null;
     }
 
@@ -1244,7 +1254,7 @@ public sealed partial class MovieDetailDialog : Window
             @"\b(19|20)\d{2}\b", " ", RegexOptions.IgnoreCase);
 
         clean = Regex.Replace(clean,
-            @"\b(oscar|academy awards?|golden globes?|bafta|british academy|emmys?|cannes|venice|cesar|césar|saturn(?: awards?)?|academy of science fiction, fantasy and horror films|screen actors guild(?: awards?)?|the actor awards?|actors guild(?: awards?)?|sag(?:-aftra)? awards?|golden raspberry|razzies?)\b|британская академия|(?:премия\s+)?гильдия\s+киноакт[её]ров(?:\s+сша)?|премия\s+гильдии\s+акт[её]ров(?:\s+сша)?|гильдии\s+акт[её]ров(?:\s+сша)?|(?:премия\s+)?сатурн(?:\s+премия)?|академия научной фантастики, фэнтези и фильмов ужасов",
+            @"\b(oscar|academy awards?|golden globes?|bafta|british academy|emmys?|cannes|venice|cesar|césar|saturn(?: awards?)?|academy of science fiction, fantasy and horror films|screen actors guild(?: awards?)?|the actor awards?|actors guild(?: awards?)?|sag(?:-aftra)? awards?|golden raspberry|razzies?)\b|британская академия|(?:премия\s+)?гильдия\s+киноакт[её]ров(?:\s+сша)?|премия\s+гильдии\s+акт[её]ров(?:\s+сша)?|гильдии\s+акт[её]ров(?:\s+сша)?|(?:премия\s+)?сатурн(?:\s+премия)?|академия научной фантастики, фэнтези и фильмов ужасов|сандэнс|sundance(?: film festival)?|золотой ор[её]л|golden eagle(?: award)?|премия канала mtv|mtv movie awards?|европейская киноакадемия|european film academy|карловы вары|karlovy vary|(?:премия\s+)?гойя|goya awards?|жорж|georges? award|сан-себастьян|san sebastian(?: film festival)?|азиатская киноакадемия|asian film academy|кинонаграды\s*[«""]?mtv-россия[»""]?|mtv russia",
             " ", RegexOptions.IgnoreCase);
 
         // Remove status labels wherever a provider placed them (prefix or suffix).
@@ -1314,6 +1324,16 @@ public sealed partial class MovieDetailDialog : Window
             "берлинале", "берлинский кинофестиваль", "берлинский международный кинофестиваль",
             "золотой медведь", "golden bear"))
             return "Берлинский кинофестиваль";
+        if (ContainsAny(line, "сандэнс", "sundance")) return "Сандэнс";
+        if (ContainsAny(line, "золотой орёл", "золотой орел", "golden eagle")) return "Золотой орёл";
+        if (ContainsAny(line, "премия канала mtv", "mtv movie award", "mtv movie awards")) return "Премия канала MTV";
+        if (ContainsAny(line, "европейская киноакадемия", "european film academy")) return "Европейская киноакадемия";
+        if (ContainsAny(line, "карловы вары", "karlovy vary")) return "Карловы Вары";
+        if (ContainsAny(line, "гойя", "goya award", "goya awards")) return "Гойя";
+        if (ContainsAny(line, "жорж", "georges award")) return "Жорж";
+        if (ContainsAny(line, "сан-себастьян", "san sebastian")) return "Сан-Себастьян";
+        if (ContainsAny(line, "азиатская киноакадемия", "asian film academy")) return "Азиатская киноакадемия";
+        if (ContainsAny(line, "кинонаграды", "mtv-россия", "mtv russia")) return "Кинонаграды «MTV-Россия»";
 
         // Unknown organizations remain separate by their explicit award name;
         // never merge unrelated records into one generic "all awards" icon.
@@ -1362,6 +1382,16 @@ public sealed partial class MovieDetailDialog : Window
         if (ContainsAny(name, "berlinale", "berlin international film festival", "berlin film festival",
             "берлинале", "берлинский кинофестиваль", "берлинский международный кинофестиваль",
             "золотой медведь", "golden bear")) return "berlinale.png";
+        if (ContainsAny(name, "сандэнс", "sundance")) return "sundance.png";
+        if (ContainsAny(name, "золотой орёл", "золотой орел", "golden eagle")) return "golden-eagle.png";
+        if (ContainsAny(name, "премия канала mtv", "mtv movie award")) return "mtv-channel.png";
+        if (ContainsAny(name, "европейская киноакадемия", "european film academy")) return "european-film-academy.png";
+        if (ContainsAny(name, "карловы вары", "karlovy vary")) return "karlovy-vary.png";
+        if (ContainsAny(name, "гойя", "goya")) return "goya-new.png";
+        if (ContainsAny(name, "жорж", "georges")) return "georges.png";
+        if (ContainsAny(name, "сан-себастьян", "san sebastian")) return "san-sebastian.png";
+        if (ContainsAny(name, "азиатская киноакадемия", "asian film academy")) return "asian-film-academy.png";
+        if (ContainsAny(name, "mtv-россия", "mtv russia", "кинонаграды")) return "mtv-russia.png";
         return "generic.png";
     }
 

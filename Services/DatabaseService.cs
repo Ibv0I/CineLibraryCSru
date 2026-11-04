@@ -1540,7 +1540,14 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
             }
         }
         if (opts.DriveSerial != null) where.Add("m.volume_serial=@serial");
-        if (opts.Genre != null) where.Add("EXISTS (SELECT 1 FROM movie_genres mg JOIN genres g ON g.id=mg.genre_id WHERE mg.movie_id=m.id AND LOWER(TRIM(g.name))=LOWER(TRIM(@genre)))");
+        if (opts.Genre != null) where.Add(@"EXISTS (SELECT 1 FROM movie_genres mg JOIN genres g ON g.id=mg.genre_id
+            WHERE mg.movie_id=m.id AND
+            CASE LOWER(TRIM(g.name)) WHEN 'drama' THEN 'драма' WHEN 'драма' THEN 'драма'
+                 WHEN 'history' THEN 'история' WHEN 'история' THEN 'история'
+                 ELSE LOWER(TRIM(g.name)) END =
+            CASE LOWER(TRIM(@genre)) WHEN 'drama' THEN 'драма' WHEN 'драма' THEN 'драма'
+                 WHEN 'history' THEN 'история' WHEN 'история' THEN 'история'
+                 ELSE LOWER(TRIM(@genre)) END)");
         if (opts.Actor != null) where.Add("EXISTS (SELECT 1 FROM movie_actors ma JOIN actors a ON a.id=ma.actor_id WHERE ma.movie_id=m.id AND LOWER(a.name)=LOWER(@actor))");
         if (opts.Director != null) where.Add("EXISTS (SELECT 1 FROM movie_directors md JOIN directors d ON d.id=md.director_id WHERE md.movie_id=m.id AND LOWER(d.name)=LOWER(@director))");
         if (opts.Studio != null) where.Add("LOWER(m.studio)=LOWER(@studio)");
@@ -3133,25 +3140,34 @@ CREATE INDEX IF NOT EXISTS idx_tv_show_tags_tag ON tv_show_tags(tag_id);
         using var cmd = _conn.CreateCommand();
         // Merge genre records that differ only by capitalization/outer whitespace.
         // Counts are distinct movies, so a movie tagged with both variants is counted once.
-        cmd.CommandText = @"
-            SELECT MIN(TRIM(g.name) COLLATE NOCASE) AS display_name,
+        // Browse-only canonicalization: merge Russian/English translations and
+        // case variants for the common genre pairs without rewriting NFO files,
+        // genre rows, or any movie metadata in the main library.
+        const string genreKey = "CASE LOWER(TRIM({0}.name)) " +
+            "WHEN 'drama' THEN 'драма' WHEN 'драма' THEN 'драма' " +
+            "WHEN 'history' THEN 'история' WHEN 'история' THEN 'история' " +
+            "ELSE LOWER(TRIM({0}.name)) END";
+        cmd.CommandText = $@"
+            SELECT CASE {string.Format(genreKey, "g")}
+                       WHEN 'драма' THEN 'Драма' WHEN 'история' THEN 'История'
+                       ELSE MIN(TRIM(g.name) COLLATE NOCASE) END AS display_name,
                    COUNT(DISTINCT m.id) c,
                    (SELECT m2.local_fanart FROM movies m2
                     JOIN movie_genres mg2 ON mg2.movie_id=m2.id
                     JOIN genres g2 ON g2.id=mg2.genre_id
-                    WHERE LOWER(TRIM(g2.name))=LOWER(TRIM(g.name))
+                    WHERE {string.Format(genreKey, "g2")}={string.Format(genreKey, "g")}
                       AND m2.local_fanart IS NOT NULL AND m2.is_missing=0 AND m2.archived_at IS NULL
                     ORDER BY COALESCE(m2.rating,0) DESC LIMIT 1) AS fanart,
                    (SELECT m3.local_poster FROM movies m3
                     JOIN movie_genres mg3 ON mg3.movie_id=m3.id
                     JOIN genres g3 ON g3.id=mg3.genre_id
-                    WHERE LOWER(TRIM(g3.name))=LOWER(TRIM(g.name))
+                    WHERE {string.Format(genreKey, "g3")}={string.Format(genreKey, "g")}
                       AND m3.local_poster IS NOT NULL AND m3.is_missing=0 AND m3.archived_at IS NULL
                     ORDER BY COALESCE(m3.rating,0) DESC LIMIT 1) AS poster
             FROM genres g
             JOIN movie_genres mg ON mg.genre_id=g.id
             JOIN movies m ON m.id=mg.movie_id AND m.is_missing=0 AND m.archived_at IS NULL
-            GROUP BY LOWER(TRIM(g.name))
+            GROUP BY {string.Format(genreKey, "g")}
             HAVING c > 0
             ORDER BY c DESC, display_name COLLATE NOCASE ASC";
         using var r = cmd.ExecuteReader();

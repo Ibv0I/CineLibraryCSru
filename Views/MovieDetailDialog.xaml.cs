@@ -1244,7 +1244,7 @@ public sealed partial class MovieDetailDialog : Window
             @"\b(19|20)\d{2}\b", " ", RegexOptions.IgnoreCase);
 
         clean = Regex.Replace(clean,
-            @"\b(oscar|academy awards?|golden globes?|bafta|british academy|emmys?|cannes|venice|cesar|césar|saturn(?: awards?)?|academy of science fiction, fantasy and horror films|screen actors guild(?: awards?)?|the actor awards?|actors guild(?: awards?)?|sag(?:-aftra)? awards?|golden raspberry|razzies?)\b|британская академия|гильдия киноакт[её]ров(?: сша)?|академия научной фантастики, фэнтези и фильмов ужасов",
+            @"\b(oscar|academy awards?|golden globes?|bafta|british academy|emmys?|cannes|venice|cesar|césar|saturn(?: awards?)?|academy of science fiction, fantasy and horror films|screen actors guild(?: awards?)?|the actor awards?|actors guild(?: awards?)?|sag(?:-aftra)? awards?|golden raspberry|razzies?)\b|британская академия|(?:премия\s+)?гильдия\s+киноакт[её]ров(?:\s+сша)?|премия\s+гильдии\s+акт[её]ров(?:\s+сша)?|гильдии\s+акт[её]ров(?:\s+сша)?|(?:премия\s+)?сатурн(?:\s+премия)?|академия научной фантастики, фэнтези и фильмов ужасов",
             " ", RegexOptions.IgnoreCase);
 
         // Remove status labels wherever a provider placed them (prefix or suffix).

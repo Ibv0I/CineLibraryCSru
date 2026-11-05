@@ -31,11 +31,12 @@ public sealed partial class NfoEditorDialog : Window
     private bool _shown;
     private bool _savingSize;
     private Border? _activeBlock;
+    private FrameworkElement? _activeBlockHandle;
     private bool _resizingBlock;
     private Windows.Foundation.Point _blockPointerStart;
     private double _blockStartHeight;
     private double _blockStartWidth;
-    private const double BlockResizeGrip = 18;
+    private int _pendingBlockIndex = -1;
     private string BlockSettingsPath => Path.Combine(CineLibraryCS.Services.AppState.Instance.DataDir, "NfoEditorBlocks.settings.json");
     private string SettingsPath => Path.Combine(CineLibraryCS.Services.AppState.Instance.DataDir, "NfoEditorWindow.settings.json");
     private XmlDocument _doc = new() { PreserveWhitespace = true };
@@ -90,7 +91,8 @@ public sealed partial class NfoEditorDialog : Window
         LoadNfo();
     }
 
-    // NFO block layout is stored separately from the movie data and window size.
+    // NFO block layout is stored separately from movie data and window size.
+    // Dragging and resizing are bound to dedicated handles so text fields keep normal input behavior.
     private void InitializeBlockLayout()
     {
         try
@@ -99,41 +101,67 @@ public sealed partial class NfoEditorDialog : Window
             foreach (var block in blocks)
             {
                 block.CornerRadius = new CornerRadius(10);
-                if (block.Child is FrameworkElement content)
+                if (block.Child is not FrameworkElement content) continue;
+
+                var card = new Grid { RowSpacing = 6 };
+                card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+                var header = new Border
                 {
-                    var card = new Grid();
-                    card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                    card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                    card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                    var dragHeader = new TextBlock
-                    {
-                        Text = "⠿  " + (block.Tag?.ToString() ?? "Блок"),
-                        FontSize = 12,
-                        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                        Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 150, 160, 178)),
-                        Margin = new Thickness(0, 0, 0, 8)
-                    };
-                    Grid.SetRow(dragHeader, 0);
-                    card.Children.Add(dragHeader);
-                    Grid.SetRow(content, 1);
-                    card.Children.Add(content);
-                    var resizeGrip = new TextBlock
-                    {
-                        Text = "⋰",
-                        FontSize = 16,
-                        HorizontalAlignment = HorizontalAlignment.Right,
-                        Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 125, 135, 155)),
-                        Margin = new Thickness(0, 2, 0, -4)
-                    };
-                    Grid.SetRow(resizeGrip, 2);
-                    card.Children.Add(resizeGrip);
-                    block.Child = card;
-                }
-                block.PointerPressed += OnBlockPointerPressed;
-                block.PointerMoved += OnBlockPointerMoved;
-                block.PointerReleased += OnBlockPointerReleased;
-                block.PointerCaptureLost += OnBlockPointerCaptureLost;
-                ToolTipService.SetToolTip(block, "Перемещение: перетащите заголовок блока. Изменение высоты: потяните за значок в правом нижнем углу.");
+                    Background = new SolidColorBrush(Windows.UI.Color.FromArgb(18, 150, 160, 178)),
+                    CornerRadius = new CornerRadius(5),
+                    Padding = new Thickness(6, 4, 6, 4),
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    Tag = block,
+                    IsHitTestVisible = true
+                };
+                header.Child = new TextBlock
+                {
+                    Text = "⠿  " + (block.Tag?.ToString() ?? "Блок"),
+                    FontSize = 12,
+                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                    Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 150, 160, 178))
+                };
+                header.PointerPressed += OnBlockHandlePointerPressed;
+                header.PointerMoved += OnBlockHandlePointerMoved;
+                header.PointerReleased += OnBlockHandlePointerReleased;
+                header.PointerCaptureLost += OnBlockHandlePointerCaptureLost;
+                ToolTipService.SetToolTip(header, "Перетащите, чтобы изменить порядок блоков");
+                Grid.SetRow(header, 0);
+                card.Children.Add(header);
+
+                Grid.SetRow(content, 1);
+                card.Children.Add(content);
+
+                var footer = new Grid { Height = 18, HorizontalAlignment = HorizontalAlignment.Stretch };
+                var resizeGrip = new Border
+                {
+                    Width = 28, Height = 18,
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    Background = new SolidColorBrush(Windows.UI.Color.FromArgb(22, 150, 160, 178)),
+                    CornerRadius = new CornerRadius(4),
+                    Tag = block
+                };
+                resizeGrip.Child = new TextBlock
+                {
+                    Text = "⋰", FontSize = 15,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 150, 160, 178))
+                };
+                resizeGrip.PointerPressed += OnBlockHandlePointerPressed;
+                resizeGrip.PointerMoved += OnBlockHandlePointerMoved;
+                resizeGrip.PointerReleased += OnBlockHandlePointerReleased;
+                resizeGrip.PointerCaptureLost += OnBlockHandlePointerCaptureLost;
+                ToolTipService.SetToolTip(resizeGrip, "Потяните, чтобы изменить ширину и высоту блока");
+                footer.Children.Add(resizeGrip);
+                Grid.SetRow(footer, 2);
+                card.Children.Add(footer);
+                block.Child = card;
+                block.MinWidth = 280;
+                block.HorizontalAlignment = HorizontalAlignment.Stretch;
             }
 
             if (File.Exists(BlockSettingsPath))
@@ -143,9 +171,10 @@ public sealed partial class NfoEditorDialog : Window
                 {
                     var block = blocks.FirstOrDefault(x => string.Equals(x.Tag?.ToString(), item.Id, StringComparison.Ordinal));
                     if (block == null) continue;
-                    if (item.Height >= 70 && item.Height <= 1200) block.Height = item.Height;
+                    if (item.Height >= 90 && item.Height <= 1600) block.Height = item.Height;
+                    if (item.Width >= 280 && item.Width <= 1600) block.Width = item.Width;
                 }
-                var ordered = saved.Select(x => x.Id).ToList();
+                var ordered = saved.Select(x => x.Id).Distinct(StringComparer.Ordinal).ToList();
                 foreach (var id in ordered)
                 {
                     var block = blocks.FirstOrDefault(x => string.Equals(x.Tag?.ToString(), id, StringComparison.Ordinal));
@@ -155,35 +184,39 @@ public sealed partial class NfoEditorDialog : Window
                 }
             }
         }
-        catch { /* Layout preferences are optional; never prevent opening the NFO editor. */ }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"NFO block layout initialization failed: {ex}");
+        }
     }
 
-    private void OnBlockPointerPressed(object sender, PointerRoutedEventArgs e)
+    private void OnBlockHandlePointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        if (sender is not Border block) return;
-        var point = e.GetCurrentPoint(block);
-        if (!point.Properties.IsLeftButtonPressed) return;
-        var position = point.Position;
-        _resizingBlock = position.X >= Math.Max(0, block.ActualWidth - BlockResizeGrip)
-                         && position.Y >= Math.Max(0, block.ActualHeight - BlockResizeGrip);
-        // The upper strip is the drag handle; the rest of the card remains available for editing.
-        if (!_resizingBlock && position.Y > 34) return;
+        if (sender is not FrameworkElement handle || handle.Tag is not Border block) return;
+        if (!e.GetCurrentPoint(handle).Properties.IsLeftButtonPressed) return;
+
         _activeBlock = block;
-        _blockPointerStart = position;
-        _blockStartHeight = block.ActualHeight;
-        _blockStartWidth = block.ActualWidth;
-        block.CapturePointer(e.Pointer);
+        _activeBlockHandle = handle;
+        _resizingBlock = handle is Border b && b.Width == 28 && b.Height == 18;
+        _blockPointerStart = e.GetCurrentPoint(RootGrid).Position;
+        _blockStartHeight = double.IsNaN(block.Height) ? block.ActualHeight : block.Height;
+        _blockStartWidth = double.IsNaN(block.Width) ? block.ActualWidth : block.Width;
+        _pendingBlockIndex = -1;
+        handle.CapturePointer(e.Pointer);
         e.Handled = true;
     }
 
-    private void OnBlockPointerMoved(object sender, PointerRoutedEventArgs e)
+    private void OnBlockHandlePointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (_activeBlock is null || sender is not Border block || block != _activeBlock) return;
-        var point = e.GetCurrentPoint(block).Position;
+        if (_activeBlock is null || _activeBlockHandle is null || sender is not FrameworkElement handle || handle != _activeBlockHandle) return;
+        var current = e.GetCurrentPoint(RootGrid).Position;
+        var dx = current.X - _blockPointerStart.X;
+        var dy = current.Y - _blockPointerStart.Y;
+
         if (_resizingBlock)
         {
-            var height = Math.Clamp(_blockStartHeight + point.Y - _blockPointerStart.Y, 70, 1200);
-            block.Height = height;
+            _activeBlock.Width = Math.Clamp(_blockStartWidth + dx, 280, 1600);
+            _activeBlock.Height = Math.Clamp(_blockStartHeight + dy, 90, 1600);
         }
         else
         {
@@ -191,33 +224,44 @@ public sealed partial class NfoEditorDialog : Window
             var targetIndex = MainBlocksPanel.Children.Count - 1;
             for (var i = 0; i < MainBlocksPanel.Children.Count; i++)
             {
-                if (MainBlocksPanel.Children[i] is not FrameworkElement candidate || candidate == block) continue;
+                if (MainBlocksPanel.Children[i] is not FrameworkElement candidate || candidate == _activeBlock) continue;
                 var top = candidate.TransformToVisual(MainBlocksPanel).TransformPoint(new Windows.Foundation.Point(0, 0)).Y;
                 if (panelPoint.Y < top + candidate.ActualHeight / 2) { targetIndex = i; break; }
             }
-            var currentIndex = MainBlocksPanel.Children.IndexOf(block);
-            if (currentIndex >= 0 && targetIndex != currentIndex)
-            {
-                MainBlocksPanel.Children.RemoveAt(currentIndex);
-                MainBlocksPanel.Children.Insert(Math.Clamp(targetIndex, 0, MainBlocksPanel.Children.Count), block);
-            }
+            _pendingBlockIndex = targetIndex;
         }
         e.Handled = true;
     }
 
-    private void OnBlockPointerReleased(object sender, PointerRoutedEventArgs e)
+    private void OnBlockHandlePointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        if (_activeBlock is null) return;
-        _activeBlock.ReleasePointerCapture(e.Pointer);
+        if (_activeBlockHandle is null) return;
+        var handle = _activeBlockHandle;
+        var block = _activeBlock;
+        var pendingIndex = _pendingBlockIndex;
         _activeBlock = null;
+        _activeBlockHandle = null;
+        _pendingBlockIndex = -1;
+        handle.ReleasePointerCapture(e.Pointer);
+        if (!_resizingBlock && block != null && pendingIndex >= 0)
+        {
+            var currentIndex = MainBlocksPanel.Children.IndexOf(block);
+            if (currentIndex >= 0 && currentIndex != pendingIndex)
+            {
+                MainBlocksPanel.Children.RemoveAt(currentIndex);
+                MainBlocksPanel.Children.Insert(Math.Clamp(pendingIndex, 0, MainBlocksPanel.Children.Count), block);
+            }
+        }
         SaveBlockLayout();
         e.Handled = true;
     }
 
-    private void OnBlockPointerCaptureLost(object sender, PointerRoutedEventArgs e)
+    private void OnBlockHandlePointerCaptureLost(object sender, PointerRoutedEventArgs e)
     {
         if (_activeBlock is null) return;
         _activeBlock = null;
+        _activeBlockHandle = null;
+        _pendingBlockIndex = -1;
         SaveBlockLayout();
     }
 
@@ -226,7 +270,7 @@ public sealed partial class NfoEditorDialog : Window
         try
         {
             var layout = MainBlocksPanel.Children.OfType<Border>()
-                .Select(x => new SavedBlockLayout { Id = x.Tag?.ToString() ?? string.Empty, Height = double.IsNaN(x.Height) ? x.ActualHeight : x.Height })
+                .Select(x => new SavedBlockLayout { Id = x.Tag?.ToString() ?? string.Empty, Height = double.IsNaN(x.Height) ? x.ActualHeight : x.Height, Width = double.IsNaN(x.Width) ? x.ActualWidth : x.Width })
                 .Where(x => !string.IsNullOrWhiteSpace(x.Id))
                 .ToList();
             Directory.CreateDirectory(Path.GetDirectoryName(BlockSettingsPath)!);
@@ -239,6 +283,7 @@ public sealed partial class NfoEditorDialog : Window
     {
         public string Id { get; set; } = string.Empty;
         public double Height { get; set; }
+        public double Width { get; set; }
     }
 
     private void ConfigureWindow()

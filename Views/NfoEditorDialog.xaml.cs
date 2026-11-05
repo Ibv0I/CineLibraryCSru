@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -33,6 +33,7 @@ public sealed partial class NfoEditorDialog : Window
     private Border? _activeBlock;
     private FrameworkElement? _activeBlockHandle;
     private bool _resizingBlock;
+    private readonly HashSet<FrameworkElement> _resizeHandles = new();
     private Windows.Foundation.Point _blockPointerStart;
     private double _blockStartHeight;
     private double _blockStartWidth;
@@ -103,6 +104,11 @@ public sealed partial class NfoEditorDialog : Window
                 block.CornerRadius = new CornerRadius(10);
                 if (block.Child is not FrameworkElement content) continue;
 
+                // Detach the existing XAML child before re-parenting it into the card grid.
+                // Without this, WinUI throws "element is already the child of another element"
+                // and the outer catch aborts initialization for every block.
+                block.Child = null;
+
                 var card = new Grid { RowSpacing = 6 };
                 card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -151,6 +157,7 @@ public sealed partial class NfoEditorDialog : Window
                     VerticalAlignment = VerticalAlignment.Center,
                     Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 150, 160, 178))
                 };
+                _resizeHandles.Add(resizeGrip);
                 resizeGrip.PointerPressed += OnBlockHandlePointerPressed;
                 resizeGrip.PointerMoved += OnBlockHandlePointerMoved;
                 resizeGrip.PointerReleased += OnBlockHandlePointerReleased;
@@ -197,7 +204,7 @@ public sealed partial class NfoEditorDialog : Window
 
         _activeBlock = block;
         _activeBlockHandle = handle;
-        _resizingBlock = handle is Border b && b.Width == 28 && b.Height == 18;
+        _resizingBlock = _resizeHandles.Contains(handle);
         _blockPointerStart = e.GetCurrentPoint(RootGrid).Position;
         _blockStartHeight = double.IsNaN(block.Height) ? block.ActualHeight : block.Height;
         _blockStartWidth = double.IsNaN(block.Width) ? block.ActualWidth : block.Width;

@@ -30,6 +30,13 @@ public sealed partial class NfoEditorDialog : Window
     private bool _ownerDisabled;
     private bool _shown;
     private bool _savingSize;
+    private Border? _activeBlock;
+    private bool _resizingBlock;
+    private Windows.Foundation.Point _blockPointerStart;
+    private double _blockStartHeight;
+    private double _blockStartWidth;
+    private const double BlockResizeGrip = 18;
+    private string BlockSettingsPath => Path.Combine(CineLibraryCS.Services.AppState.Instance.DataDir, "NfoEditorBlocks.settings.json");
     private string SettingsPath => Path.Combine(CineLibraryCS.Services.AppState.Instance.DataDir, "NfoEditorWindow.settings.json");
     private XmlDocument _doc = new() { PreserveWhitespace = true };
     private XmlElement _root = null!;
@@ -72,7 +79,7 @@ public sealed partial class NfoEditorDialog : Window
         _path = nfoPath;
         _ownerWindow = ownerWindow;
         InitializeComponent();
-        RootGrid.Loaded += (_, _) => CineLibraryCS.Services.LocalizationService.TranslateTree(RootGrid);
+        RootGrid.Loaded += (_, _) => { CineLibraryCS.Services.LocalizationService.TranslateTree(RootGrid); InitializeBlockLayout(); };
         Closed += OnWindowClosed;
         ConfigureWindow();
         CertificationBox.ItemsSource = RussianCertifications;
@@ -81,6 +88,157 @@ public sealed partial class NfoEditorDialog : Window
         RatingsList.ItemsSource = _ratings;
         IdentifiersList.ItemsSource = _identifiers;
         LoadNfo();
+    }
+
+    // NFO block layout is stored separately from the movie data and window size.
+    private void InitializeBlockLayout()
+    {
+        try
+        {
+            var blocks = MainBlocksPanel.Children.OfType<Border>().ToList();
+            foreach (var block in blocks)
+            {
+                block.CornerRadius = new CornerRadius(10);
+                if (block.Child is UIElement content)
+                {
+                    var card = new Grid();
+                    card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                    card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                    card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                    var dragHeader = new TextBlock
+                    {
+                        Text = "⠿  " + (block.Tag?.ToString() ?? "Блок"),
+                        FontSize = 12,
+                        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                        Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 150, 160, 178)),
+                        Margin = new Thickness(0, 0, 0, 8)
+                    };
+                    Grid.SetRow(dragHeader, 0);
+                    card.Children.Add(dragHeader);
+                    Grid.SetRow(content, 1);
+                    card.Children.Add(content);
+                    var resizeGrip = new TextBlock
+                    {
+                        Text = "⋰",
+                        FontSize = 16,
+                        HorizontalAlignment = HorizontalAlignment.Right,
+                        Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 125, 135, 155)),
+                        Margin = new Thickness(0, 2, 0, -4)
+                    };
+                    Grid.SetRow(resizeGrip, 2);
+                    card.Children.Add(resizeGrip);
+                    block.Child = card;
+                }
+                block.PointerPressed += OnBlockPointerPressed;
+                block.PointerMoved += OnBlockPointerMoved;
+                block.PointerReleased += OnBlockPointerReleased;
+                block.PointerCaptureLost += OnBlockPointerCaptureLost;
+                ToolTipService.SetToolTip(block, "Перемещение: перетащите заголовок блока. Изменение высоты: потяните за значок в правом нижнем углу.");
+            }
+
+            if (File.Exists(BlockSettingsPath))
+            {
+                var saved = JsonSerializer.Deserialize<List<SavedBlockLayout>>(File.ReadAllText(BlockSettingsPath)) ?? new();
+                foreach (var item in saved)
+                {
+                    var block = blocks.FirstOrDefault(x => string.Equals(x.Tag?.ToString(), item.Id, StringComparison.Ordinal));
+                    if (block == null) continue;
+                    if (item.Height >= 70 && item.Height <= 1200) block.Height = item.Height;
+                }
+                var ordered = saved.Select(x => x.Id).ToList();
+                foreach (var id in ordered)
+                {
+                    var block = blocks.FirstOrDefault(x => string.Equals(x.Tag?.ToString(), id, StringComparison.Ordinal));
+                    if (block == null) continue;
+                    var current = MainBlocksPanel.Children.IndexOf(block);
+                    if (current >= 0) { MainBlocksPanel.Children.RemoveAt(current); MainBlocksPanel.Children.Add(block); }
+                }
+            }
+        }
+        catch { /* Layout preferences are optional; never prevent opening the NFO editor. */ }
+    }
+
+    private void OnBlockPointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is not Border block) return;
+        var point = e.GetCurrentPoint(block);
+        if (!point.Properties.IsLeftButtonPressed) return;
+        var position = point.Position;
+        _resizingBlock = position.X >= Math.Max(0, block.ActualWidth - BlockResizeGrip)
+                         && position.Y >= Math.Max(0, block.ActualHeight - BlockResizeGrip);
+        // The upper strip is the drag handle; the rest of the card remains available for editing.
+        if (!_resizingBlock && position.Y > 34) return;
+        _activeBlock = block;
+        _blockPointerStart = position;
+        _blockStartHeight = block.ActualHeight;
+        _blockStartWidth = block.ActualWidth;
+        block.CapturePointer(e.Pointer);
+        e.Handled = true;
+    }
+
+    private void OnBlockPointerMoved(object sender, PointerRoutedEventArgs e)
+    {
+        if (_activeBlock is null || sender is not Border block || block != _activeBlock) return;
+        var point = e.GetCurrentPoint(block).Position;
+        if (_resizingBlock)
+        {
+            var height = Math.Clamp(_blockStartHeight + point.Y - _blockPointerStart.Y, 70, 1200);
+            block.Height = height;
+        }
+        else
+        {
+            var panelPoint = e.GetCurrentPoint(MainBlocksPanel).Position;
+            var targetIndex = MainBlocksPanel.Children.Count - 1;
+            for (var i = 0; i < MainBlocksPanel.Children.Count; i++)
+            {
+                if (MainBlocksPanel.Children[i] is not FrameworkElement candidate || candidate == block) continue;
+                var top = candidate.TransformToVisual(MainBlocksPanel).TransformPoint(new Windows.Foundation.Point(0, 0)).Y;
+                if (panelPoint.Y < top + candidate.ActualHeight / 2) { targetIndex = i; break; }
+            }
+            var currentIndex = MainBlocksPanel.Children.IndexOf(block);
+            if (currentIndex >= 0 && targetIndex != currentIndex)
+            {
+                MainBlocksPanel.Children.RemoveAt(currentIndex);
+                MainBlocksPanel.Children.Insert(Math.Clamp(targetIndex, 0, MainBlocksPanel.Children.Count), block);
+            }
+        }
+        e.Handled = true;
+    }
+
+    private void OnBlockPointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        if (_activeBlock is null) return;
+        _activeBlock.ReleasePointerCapture(e.Pointer);
+        _activeBlock = null;
+        SaveBlockLayout();
+        e.Handled = true;
+    }
+
+    private void OnBlockPointerCaptureLost(object sender, PointerRoutedEventArgs e)
+    {
+        if (_activeBlock is null) return;
+        _activeBlock = null;
+        SaveBlockLayout();
+    }
+
+    private void SaveBlockLayout()
+    {
+        try
+        {
+            var layout = MainBlocksPanel.Children.OfType<Border>()
+                .Select(x => new SavedBlockLayout { Id = x.Tag?.ToString() ?? string.Empty, Height = double.IsNaN(x.Height) ? x.ActualHeight : x.Height })
+                .Where(x => !string.IsNullOrWhiteSpace(x.Id))
+                .ToList();
+            Directory.CreateDirectory(Path.GetDirectoryName(BlockSettingsPath)!);
+            File.WriteAllText(BlockSettingsPath, JsonSerializer.Serialize(layout, new JsonSerializerOptions { WriteIndented = true }));
+        }
+        catch { /* Layout persistence must not interfere with editing or saving NFO. */ }
+    }
+
+    private sealed class SavedBlockLayout
+    {
+        public string Id { get; set; } = string.Empty;
+        public double Height { get; set; }
     }
 
     private void ConfigureWindow()

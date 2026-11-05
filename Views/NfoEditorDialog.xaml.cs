@@ -99,7 +99,7 @@ public sealed partial class NfoEditorDialog : Window
             foreach (var block in blocks)
             {
                 block.CornerRadius = new CornerRadius(10);
-                if (block.Child is UIElement content)
+                if (block.Child is FrameworkElement content)
                 {
                     var card = new Grid();
                     card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });

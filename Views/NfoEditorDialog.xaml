@@ -1,27 +1,24 @@
-﻿<Window
-    x:Class="CineLibraryCS.Views.NfoEditorDialog"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Редактор NFO">
+<?xml version='1.0' encoding='utf-8'?>
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="CineLibraryCS.Views.NfoEditorDialog" Title="Редактор NFO">
     <Grid x:Name="RootGrid" RequestedTheme="Dark" Background="#121214" Padding="14" RowSpacing="8">
         <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,8,12,8">
                     <StackPanel Spacing="6">
-                        <Grid ColumnSpacing="10">
+                        <Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Название"><Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <TextBox x:Name="TitleBox" Header="Название" Grid.Column="0"/>
                             <TextBox x:Name="OriginalTitleBox" Header="Оригинальное название" Grid.Column="1"/>
                         </Grid>
-                        <TextBox x:Name="TaglineBox" Header="Слоган"/>
-                        <TextBox x:Name="PlotBox" Header="Сюжет" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="160"/>
-                        <Grid ColumnSpacing="10">
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Слоган"><TextBox x:Name="TaglineBox" Header="Слоган"/>
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Сюжет"><TextBox x:Name="PlotBox" Header="Сюжет" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="160"/>
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Год"><Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="100"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <TextBox x:Name="YearBox" Header="Год" Grid.Column="0" InputScope="Number" TextChanged="OnYearChanged"/>
                             <TextBox x:Name="PremieredBox" Header="Дата выхода (ДД-ММ-ГГГГ)" Grid.Column="1" TextChanged="OnDateChanged"/>
                             <TextBox x:Name="RuntimeBox" Header="Длительность, мин" Grid.Column="2" InputScope="Number"/>
                         </Grid>
-                        <Grid ColumnSpacing="10" RowSpacing="8">
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Студии (по одной на строку)"><Grid ColumnSpacing="10" RowSpacing="8">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                             <TextBox x:Name="StudiosBox" Header="Студии (по одной на строку)" Grid.Row="0" Grid.Column="0" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"/>
@@ -40,20 +37,18 @@
                                 </Grid>
                             </StackPanel>
                             <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5">
-                                <TextBox x:Name="GenresBox" Header="Жанры (через запятую)"
-                                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" MaxHeight="64" />
+                                <TextBox x:Name="GenresBox" Header="Жанры (через запятую)" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" MaxHeight="64"/>
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <Button Content="＋ Добавить жанр" Click="OnAddGenre" />
+                                    <Button Content="＋ Добавить жанр" Click="OnAddGenre"/>
                                 </StackPanel>
                             </StackPanel>
                         </Grid>
-                        <ComboBox x:Name="CertificationBox" Header="Сертификация / возрастной рейтинг"
-                                  IsEditable="False" HorizontalAlignment="Left" MinWidth="280" />
-                        <TextBox x:Name="AwardsBox" Header="Награды и номинации (по одной на строку)" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" MaxHeight="120" />
-                        <Grid ColumnSpacing="12" Margin="0,2,0,0">
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Сертификация / возрастной рейтинг"><ComboBox x:Name="CertificationBox" Header="Сертификация / возрастной рейтинг" IsEditable="False" HorizontalAlignment="Left" MinWidth="280"/>
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Награды и номинации (по одной на строку)"><TextBox x:Name="AwardsBox" Header="Награды и номинации (по одной на строку)" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" MaxHeight="120"/>
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Идентификаторы"><Grid ColumnSpacing="12" Margin="0,2,0,0">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Spacing="5">
-                                <TextBlock Text="Идентификаторы" Foreground="{ThemeResource TextBrush}" />
+                                <TextBlock Text="Идентификаторы" Foreground="{ThemeResource TextBrush}"/>
                                 <Grid ColumnSpacing="8">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="Источник" Grid.Column="0" FontSize="12" Foreground="{ThemeResource MutedBrush}" TextAlignment="Center" HorizontalAlignment="Stretch"/>
@@ -64,13 +59,13 @@
                                     <ListView.ItemTemplate><DataTemplate><Grid x:Name="IdentifierRowRoot" Height="28" ColumnSpacing="0"><Grid.ColumnDefinitions><ColumnDefinition Width="4"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border x:Name="IdentifierSelectionIndicator" Grid.Column="0" Background="#3987FF" CornerRadius="2" Margin="0,4,0,4" Opacity="0"/><Border x:Name="IdentifierRowBackground" Grid.Column="1" Background="Transparent" CornerRadius="6" Padding="2,0"><Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Source}" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Identifier}" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis"/></Grid></Border></Grid></DataTemplate></ListView.ItemTemplate>
                                 </ListView>
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <Button Content="＋ Добавить" Click="OnAddIdentifier" />
-                                    <Button Content="✎ Изменить" Click="OnEditIdentifier" />
-                                    <Button Content="－ Удалить" Click="OnRemoveIdentifier" />
+                                    <Button Content="＋ Добавить" Click="OnAddIdentifier"/>
+                                    <Button Content="✎ Изменить" Click="OnEditIdentifier"/>
+                                    <Button Content="－ Удалить" Click="OnRemoveIdentifier"/>
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Spacing="5">
-                                <TextBlock Text="Рейтинги" Foreground="{ThemeResource TextBrush}" />
+                                <TextBlock Text="Рейтинги" Foreground="{ThemeResource TextBrush}"/>
                                 <Grid ColumnSpacing="8">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="Источник" Grid.Column="0" FontSize="12" Foreground="{ThemeResource MutedBrush}" TextAlignment="Center" HorizontalAlignment="Stretch"/>
@@ -82,49 +77,49 @@
                                     <ListView.ItemTemplate><DataTemplate><Grid x:Name="RatingRowRoot" Height="28" ColumnSpacing="0"><Grid.ColumnDefinitions><ColumnDefinition Width="4"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border x:Name="RatingSelectionIndicator" Grid.Column="0" Background="#3987FF" CornerRadius="2" Margin="0,4,0,4" Opacity="0"/><Border x:Name="RatingRowBackground" Grid.Column="1" Background="Transparent" CornerRadius="6" Padding="2,0"><Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Source}" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Value}" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Votes}" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis"/></Grid></Border></Grid></DataTemplate></ListView.ItemTemplate>
                                 </ListView>
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <Button Content="＋ Добавить" Click="OnAddRating" />
-                                    <Button Content="✎ Изменить" Click="OnEditRating" />
-                                    <Button Content="－ Удалить" Click="OnRemoveRating" />
+                                    <Button Content="＋ Добавить" Click="OnAddRating"/>
+                                    <Button Content="✎ Изменить" Click="OnEditRating"/>
+                                    <Button Content="－ Удалить" Click="OnRemoveRating"/>
                                 </StackPanel>
                             </StackPanel>
                         </Grid>
-                    </StackPanel>
+                    </Border></StackPanel>
                 </ScrollViewer>
 
                 <ScrollViewer Grid.Row="0" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" Padding="0,8,12,8">
                     <StackPanel Spacing="10">
-                        <Grid ColumnSpacing="10">
+                        <Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Видеокодек"><Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <TextBox x:Name="VideoCodecBox" Header="Видеокодек" Grid.Column="0"/>
                             <TextBox x:Name="VideoBitrateBox" Header="Битрейт видео (бит/с)" Grid.Column="1"/>
                         </Grid>
-                        <Grid ColumnSpacing="10">
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Ширина видео"><Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <TextBox x:Name="WidthBox" Header="Ширина видео" Grid.Column="0"/>
                             <TextBox x:Name="HeightBox" Header="Высота видео" Grid.Column="1"/>
                             <TextBox x:Name="FrameRateBox" Header="Частота кадров" Grid.Column="2"/>
                         </Grid>
-                        <TextBox x:Name="HdrBox" Header="Формат HDR"/>
-                        <TextBlock Text="Звуковые дорожки" FontWeight="SemiBold" Foreground="{ThemeResource TextBrush}"/>
-                        <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Формат HDR"><TextBox x:Name="HdrBox" Header="Формат HDR"/>
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Звуковые дорожки"><TextBlock Text="Звуковые дорожки" FontWeight="SemiBold" Foreground="{ThemeResource TextBrush}"/>
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Кодек"><Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
                             <TextBlock Text="Кодек" Grid.Column="0" TextAlignment="Center"/><TextBlock Text="Язык" Grid.Column="1" TextAlignment="Center"/><TextBlock Text="Каналы" Grid.Column="2" TextAlignment="Center"/><TextBlock Text="Битрейт" Grid.Column="3" TextAlignment="Center"/><TextBlock Text="Частота" Grid.Column="4" TextAlignment="Center"/><TextBlock Text="Название" Grid.Column="5" TextAlignment="Center"/>
                         </Grid>
-                        <ListView x:Name="AudioTracksList" SelectionMode="Single" Padding="0" ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" SelectionChanged="OnAudioTrackSelectionChanged">
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Раздел"><ListView x:Name="AudioTracksList" SelectionMode="Single" Padding="0" ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" SelectionChanged="OnAudioTrackSelectionChanged">
                             <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Height" Value="25"/><Setter Property="MinHeight" Value="25"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,1"/><Setter Property="CornerRadius" Value="6"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style></ListView.ItemContainerStyle>
                             <ListView.ItemTemplate><DataTemplate><Grid x:Name="AudioRowRoot" Height="23" ColumnSpacing="0"><Grid.ColumnDefinitions><ColumnDefinition Width="4"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border x:Name="AudioSelectionIndicator" Grid.Column="0" Background="#3987FF" CornerRadius="2" Margin="0,4,0,4" Opacity="0"/><Border x:Name="AudioRowBackground" Grid.Column="1" Background="Transparent" CornerRadius="6" Padding="2,0"><Grid ColumnSpacing="4"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Values[0]}" Grid.Column="0" TextAlignment="Center" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/><TextBlock Text="{Binding Values[1]}" Grid.Column="1" TextAlignment="Center" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/><TextBlock Text="{Binding Values[2]}" Grid.Column="2" TextAlignment="Center" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/><TextBlock Text="{Binding Values[3]}" Grid.Column="3" TextAlignment="Center" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/><TextBlock Text="{Binding Values[4]}" Grid.Column="4" TextAlignment="Center" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/><TextBlock Text="{Binding Values[5]}" Grid.Column="5" TextAlignment="Center" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/></Grid></Border></Grid></DataTemplate></ListView.ItemTemplate>
                         </ListView>
-                        <StackPanel Orientation="Horizontal" Spacing="6"><Button Content="＋ Добавить" Click="OnAddAudioTrack"/><Button Content="✎ Изменить" Click="OnEditAudioTrack"/><Button Content="－ Удалить" Click="OnRemoveAudioTrack"/></StackPanel>
-                        <TextBlock Text="Субтитры" FontWeight="SemiBold" Foreground="{ThemeResource TextBrush}"/>
-                        <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Раздел"><StackPanel Orientation="Horizontal" Spacing="6"><Button Content="＋ Добавить" Click="OnAddAudioTrack"/><Button Content="✎ Изменить" Click="OnEditAudioTrack"/><Button Content="－ Удалить" Click="OnRemoveAudioTrack"/></StackPanel>
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Субтитры"><TextBlock Text="Субтитры" FontWeight="SemiBold" Foreground="{ThemeResource TextBrush}"/>
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Язык"><Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <TextBlock Text="Язык" Grid.Column="0" TextAlignment="Center"/><TextBlock Text="Формат" Grid.Column="1" TextAlignment="Center"/><TextBlock Text="Название" Grid.Column="2" TextAlignment="Center"/><TextBlock Text="По умолчанию" Grid.Column="3" TextAlignment="Center"/><TextBlock Text="Принудит." Grid.Column="4" TextAlignment="Center"/>
                         </Grid>
-                        <ListView x:Name="SubtitlesList" SelectionMode="Single" Padding="0" ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" SelectionChanged="OnSubtitleSelectionChanged">
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Раздел"><ListView x:Name="SubtitlesList" SelectionMode="Single" Padding="0" ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" SelectionChanged="OnSubtitleSelectionChanged">
                             <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Height" Value="25"/><Setter Property="MinHeight" Value="25"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,1"/><Setter Property="CornerRadius" Value="6"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style></ListView.ItemContainerStyle>
                             <ListView.ItemTemplate><DataTemplate><Grid x:Name="SubtitleRowRoot" Height="23" ColumnSpacing="0"><Grid.ColumnDefinitions><ColumnDefinition Width="4"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border x:Name="SubtitleSelectionIndicator" Grid.Column="0" Background="#3987FF" CornerRadius="2" Margin="0,4,0,4" Opacity="0"/><Border x:Name="SubtitleRowBackground" Grid.Column="1" Background="Transparent" CornerRadius="6" Padding="2,0"><Grid ColumnSpacing="4"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Values[0]}" Grid.Column="0" TextAlignment="Center" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/><TextBlock Text="{Binding Values[1]}" Grid.Column="1" TextAlignment="Center" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/><TextBlock Text="{Binding Values[2]}" Grid.Column="2" TextAlignment="Center" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/><TextBlock Text="{Binding Values[3]}" Grid.Column="3" TextAlignment="Center" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/><TextBlock Text="{Binding Values[4]}" Grid.Column="4" TextAlignment="Center" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/></Grid></Border></Grid></DataTemplate></ListView.ItemTemplate>
                         </ListView>
-                        <StackPanel Orientation="Horizontal" Spacing="6"><Button Content="＋ Добавить" Click="OnAddSubtitle"/><Button Content="✎ Изменить" Click="OnEditSubtitle"/><Button Content="－ Удалить" Click="OnRemoveSubtitle"/></StackPanel>
-                        <TextBlock Text="Формат строк указан над полями. Неизвестные XML-поля сохраняются при записи." FontSize="12" Foreground="{ThemeResource MutedBrush}" TextWrapping="Wrap"/>
-                    </StackPanel>
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Раздел"><StackPanel Orientation="Horizontal" Spacing="6"><Button Content="＋ Добавить" Click="OnAddSubtitle"/><Button Content="✎ Изменить" Click="OnEditSubtitle"/><Button Content="－ Удалить" Click="OnRemoveSubtitle"/></StackPanel>
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Формат строк указан над полями. Неизвестные XML-поля сохраняются при записи."><TextBlock Text="Формат строк указан над полями. Неизвестные XML-поля сохраняются при записи." FontSize="12" Foreground="{ThemeResource MutedBrush}" TextWrapping="Wrap"/>
+                    </Border></StackPanel>
                 </ScrollViewer>
         <Grid Grid.Row="1" ColumnSpacing="8">
             <Grid.ColumnDefinitions>
@@ -132,10 +127,8 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="8">
-                <Button x:Name="CollectMissingInfoButton" Content="✦ Собрать информацию"
-                        MinWidth="170" Click="OnCollectMissingInfo" />
-                <Button x:Name="LoadExternalDataButton" Content="↓ Загрузить бюджет и награды"
-                        MinWidth="190" Click="OnLoadExternalData" />
+                <Button x:Name="CollectMissingInfoButton" Content="✦ Собрать информацию" MinWidth="170" Click="OnCollectMissingInfo"/>
+                <Button x:Name="LoadExternalDataButton" Content="↓ Загрузить бюджет и награды" MinWidth="190" Click="OnLoadExternalData"/>
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
                 <Button Content="Отмена" MinWidth="100" Click="OnCancelClick"/>

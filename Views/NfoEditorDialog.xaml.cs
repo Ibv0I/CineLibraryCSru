@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI;
+using Microsoft.UI.Input;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Windows.Graphics;
@@ -105,6 +106,10 @@ public sealed partial class NfoEditorDialog : Window
         try
         {
             var blocks = MainBlocksPanel.Children.OfType<Border>().ToList();
+            foreach (var block in blocks)
+            {
+                try { BlockOwners.Add(block, this); } catch (ArgumentException) { }
+            }
             var viewportWidth = Math.Max(600, RootGrid.ActualWidth - 48);
             MainBlocksPanel.Width = viewportWidth;
 
@@ -134,7 +139,7 @@ public sealed partial class NfoEditorDialog : Window
                 grip.PointerMoved += OnBlockHandlePointerMoved;
                 grip.PointerReleased += OnBlockHandlePointerReleased;
                 grip.PointerCaptureLost += OnBlockHandlePointerCaptureLost;
-                ToolTipService.SetToolTip(grip, "Перетащите блок мышью, как папку в Проводнике");
+                ToolTipService.SetToolTip(grip, "Переместить");
                 titleRow.Children.Add(grip);
                 titleRow.Children.Add(new TextBlock
                 {
@@ -147,17 +152,33 @@ public sealed partial class NfoEditorDialog : Window
                 card.Children.Add(titleRow);
                 Grid.SetRow(content, 1);
                 card.Children.Add(content);
-                block.Child = card;
+
+                // The resize hit zones are explicit transparent overlays. Pointer events on
+                // the card's content are not reliable for edge resizing because TextBox/ListView
+                // children receive input first. Each zone captures the pointer and owns a native
+                // Windows resize cursor, just like the border of a resizable window.
+                var originalPadding = block.Padding;
+                card.Margin = originalPadding;
+                block.Padding = new Thickness(0);
+                var cardRoot = new Grid();
+                cardRoot.Children.Add(card);
+                var resizeOverlay = new Grid { IsHitTestVisible = true };
+                AddResizeHandle(resizeOverlay, block, "N", HorizontalAlignment.Stretch, VerticalAlignment.Top, double.NaN, 10, InputSystemCursorShape.SizeNorthSouth);
+                AddResizeHandle(resizeOverlay, block, "S", HorizontalAlignment.Stretch, VerticalAlignment.Bottom, double.NaN, 10, InputSystemCursorShape.SizeNorthSouth);
+                AddResizeHandle(resizeOverlay, block, "W", HorizontalAlignment.Left, VerticalAlignment.Stretch, 10, double.NaN, InputSystemCursorShape.SizeWestEast);
+                AddResizeHandle(resizeOverlay, block, "E", HorizontalAlignment.Right, VerticalAlignment.Stretch, 10, double.NaN, InputSystemCursorShape.SizeWestEast);
+                AddResizeHandle(resizeOverlay, block, "NW", HorizontalAlignment.Left, VerticalAlignment.Top, 16, 16, InputSystemCursorShape.SizeNorthwestSoutheast);
+                AddResizeHandle(resizeOverlay, block, "NE", HorizontalAlignment.Right, VerticalAlignment.Top, 16, 16, InputSystemCursorShape.SizeNortheastSouthwest);
+                AddResizeHandle(resizeOverlay, block, "SW", HorizontalAlignment.Left, VerticalAlignment.Bottom, 16, 16, InputSystemCursorShape.SizeNortheastSouthwest);
+                AddResizeHandle(resizeOverlay, block, "SE", HorizontalAlignment.Right, VerticalAlignment.Bottom, 16, 16, InputSystemCursorShape.SizeNorthwestSoutheast);
+                cardRoot.Children.Add(resizeOverlay);
+                block.Child = cardRoot;
                 block.MinWidth = BlockMinWidth;
                 block.MinHeight = BlockMinHeight;
                 block.Width = Math.Max(320, (viewportWidth - BlockGap) / 2);
                 block.Height = double.NaN;
                 block.HorizontalAlignment = HorizontalAlignment.Left;
                 block.VerticalAlignment = VerticalAlignment.Top;
-                block.PointerPressed += OnBlockBorderPointerPressed;
-                block.PointerMoved += OnBlockBorderPointerMoved;
-                block.PointerReleased += OnBlockBorderPointerReleased;
-                block.PointerCaptureLost += OnBlockBorderPointerCaptureLost;
             }
 
             // Default layout: two columns, top-to-bottom, with independent vertical flow.
@@ -295,74 +316,119 @@ public sealed partial class NfoEditorDialog : Window
         SaveBlockLayout();
     }
 
-    // Resize by grabbing any of the four edges or four corners, like resizing a native Windows window.
-    private void OnBlockBorderPointerPressed(object sender, PointerRoutedEventArgs e)
+    private static void AddResizeHandle(Grid overlay, Border block, string edge,
+        HorizontalAlignment horizontal, VerticalAlignment vertical, double width, double height,
+        InputSystemCursorShape cursorShape)
     {
-        if (sender is not Border block || !e.GetCurrentPoint(block).Properties.IsLeftButtonPressed) return;
-        var p = e.GetCurrentPoint(block).Position;
-        const double edgeSize = 10;
-        var edge = string.Empty;
-        if (p.X <= edgeSize) edge += 'W'; else if (p.X >= block.ActualWidth - edgeSize) edge += 'E';
-        if (p.Y <= edgeSize) edge += 'N'; else if (p.Y >= block.ActualHeight - edgeSize) edge += 'S';
-        if (edge.Length == 0) return;
+        var handle = new BlockResizeHandle(edge, cursorShape)
+        {
+            Tag = block,
+            Width = width,
+            Height = height,
+            HorizontalAlignment = horizontal,
+            VerticalAlignment = vertical,
+            Background = new SolidColorBrush(Windows.UI.Color.FromArgb(1, 255, 255, 255)),
+            IsHitTestVisible = true
+        };
+        handle.PointerPressed += OnResizeHandlePressedStatic;
+        overlay.Children.Add(handle);
+    }
+
+    private static void OnResizeHandlePressedStatic(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is not BlockResizeHandle handle || handle.Tag is not Border block) return;
+        if (!BlockOwners.TryGetValue(block, out var owner)) return;
+        owner.BeginBlockResize(block, handle, e);
+    }
+
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Border, NfoEditorDialog> BlockOwners = new();
+
+    private void BeginBlockResize(Border block, BlockResizeHandle handle, PointerRoutedEventArgs e)
+    {
         _activeBlock = block;
-        _activeBlockHandle = block;
+        _activeBlockHandle = handle;
         _resizingBlock = true;
-        _activeResizeEdge = edge;
+        _activeResizeEdge = handle.Edge;
         _blockPointerStart = e.GetCurrentPoint(MainBlocksPanel).Position;
+        _blockStartX = Canvas.GetLeft(block);
+        _blockStartY = Canvas.GetTop(block);
         _blockStartWidth = double.IsNaN(block.Width) ? block.ActualWidth : block.Width;
         _blockStartHeight = double.IsNaN(block.Height) ? block.ActualHeight : block.Height;
-        block.CapturePointer(e.Pointer);
+        handle.PointerMoved += OnResizeHandleMoved;
+        handle.PointerReleased += OnResizeHandleReleased;
+        handle.PointerCaptureLost += OnResizeHandleCaptureLost;
+        handle.CapturePointer(e.Pointer);
         e.Handled = true;
     }
 
-    private void OnBlockBorderPointerMoved(object sender, PointerRoutedEventArgs e)
+    private void OnResizeHandleMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (!_resizingBlock || _activeBlock is null || sender is not Border block || block != _activeBlock) return;
+        if (!_resizingBlock || _activeBlock is null || sender is not BlockResizeHandle handle || handle != _activeBlockHandle) return;
         var point = e.GetCurrentPoint(MainBlocksPanel).Position;
         var dx = point.X - _blockPointerStart.X;
         var dy = point.Y - _blockPointerStart.Y;
         var edge = _activeResizeEdge;
-        if (edge.Contains('E')) block.Width = Math.Clamp(_blockStartWidth + dx, BlockMinWidth, 1600);
+        var newWidth = _blockStartWidth;
+        var newHeight = _blockStartHeight;
+        var newX = _blockStartX;
+        var newY = _blockStartY;
+
+        if (edge.Contains('E')) newWidth = Math.Clamp(_blockStartWidth + dx, BlockMinWidth, 1600);
         if (edge.Contains('W'))
         {
-            var width = Math.Clamp(_blockStartWidth - dx, BlockMinWidth, 1600);
-            Canvas.SetLeft(block, Math.Max(0, Canvas.GetLeft(block) + (_blockStartWidth - width)));
-            block.Width = width;
+            newWidth = Math.Clamp(_blockStartWidth - dx, BlockMinWidth, 1600);
+            newX = _blockStartX + (_blockStartWidth - newWidth);
         }
-        if (edge.Contains('S')) block.Height = Math.Clamp(_blockStartHeight + dy, BlockMinHeight, 1600);
+        if (edge.Contains('S')) newHeight = Math.Clamp(_blockStartHeight + dy, BlockMinHeight, 1600);
         if (edge.Contains('N'))
         {
-            var height = Math.Clamp(_blockStartHeight - dy, BlockMinHeight, 1600);
-            Canvas.SetTop(block, Math.Max(0, Canvas.GetTop(block) + (_blockStartHeight - height)));
-            block.Height = height;
+            newHeight = Math.Clamp(_blockStartHeight - dy, BlockMinHeight, 1600);
+            newY = _blockStartY + (_blockStartHeight - newHeight);
         }
+
+        _activeBlock.Width = newWidth;
+        _activeBlock.Height = newHeight;
+        Canvas.SetLeft(_activeBlock, Math.Max(0, newX));
+        Canvas.SetTop(_activeBlock, Math.Max(0, newY));
         UpdateCanvasExtent();
         e.Handled = true;
     }
 
-    private void OnBlockBorderPointerReleased(object sender, PointerRoutedEventArgs e)
+    private void OnResizeHandleReleased(object sender, PointerRoutedEventArgs e)
     {
-        if (!_resizingBlock || _activeBlock is null) return;
-        var block = _activeBlock;
-        _activeBlock = null;
-        _activeBlockHandle = null;
-        _resizingBlock = false;
-        _activeResizeEdge = string.Empty;
-        block.ReleasePointerCapture(e.Pointer);
-        UpdateCanvasExtent();
-        SaveBlockLayout();
+        if (sender is not BlockResizeHandle handle || handle != _activeBlockHandle) return;
+        FinishBlockResize(handle, e.Pointer);
         e.Handled = true;
     }
 
-    private void OnBlockBorderPointerCaptureLost(object sender, PointerRoutedEventArgs e)
+    private void OnResizeHandleCaptureLost(object sender, PointerRoutedEventArgs e)
     {
-        if (!_resizingBlock) return;
+        if (sender is BlockResizeHandle handle && handle == _activeBlockHandle)
+            FinishBlockResize(handle, null);
+    }
+
+    private void FinishBlockResize(BlockResizeHandle handle, Windows.UI.Input.Pointer? pointer)
+    {
+        if (pointer != null) handle.ReleasePointerCapture(pointer);
+        handle.PointerMoved -= OnResizeHandleMoved;
+        handle.PointerReleased -= OnResizeHandleReleased;
+        handle.PointerCaptureLost -= OnResizeHandleCaptureLost;
         _activeBlock = null;
         _activeBlockHandle = null;
         _resizingBlock = false;
         _activeResizeEdge = string.Empty;
+        UpdateCanvasExtent();
         SaveBlockLayout();
+    }
+
+    private sealed class BlockResizeHandle : Border
+    {
+        public string Edge { get; }
+        public BlockResizeHandle(string edge, InputSystemCursorShape cursorShape)
+        {
+            Edge = edge;
+            ProtectedCursor = InputSystemCursor.Create(cursorShape);
+        }
     }
 
     private void SaveBlockLayout()

@@ -158,12 +158,24 @@ public sealed partial class NfoEditorDialog : Window
                 var originalPadding = block.Padding;
                 card.Margin = originalPadding;
                 block.Padding = new Thickness(0);
-                var cardRoot = new Grid();
+                var cardRoot = new Grid
+                {
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    VerticalAlignment = VerticalAlignment.Stretch
+                };
+                card.HorizontalAlignment = HorizontalAlignment.Stretch;
+                card.VerticalAlignment = VerticalAlignment.Stretch;
                 cardRoot.Children.Add(card);
-                // A 3x3 overlay gives every edge a guaranteed hit-test area.
-                // The previous Stretch + NaN sizing could collapse edge zones to zero
-                // for cards whose content measured differently (leaving only some corners usable).
-                var resizeOverlay = new Grid { IsHitTestVisible = true };
+
+                // Keep the hit-test surface explicitly sized to the rendered card.
+                // Canvas measures children with an unbounded constraint, so relying only
+                // on Star rows/columns here can leave resize zones with zero-sized cells.
+                var resizeOverlay = new Grid
+                {
+                    IsHitTestVisible = true,
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    VerticalAlignment = VerticalAlignment.Stretch
+                };
                 resizeOverlay.RowDefinitions.Add(new RowDefinition { Height = new GridLength(16) });
                 resizeOverlay.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
                 resizeOverlay.RowDefinitions.Add(new RowDefinition { Height = new GridLength(16) });
@@ -179,6 +191,11 @@ public sealed partial class NfoEditorDialog : Window
                 AddResizeHandle(resizeOverlay, block, "SW", 2, 0);
                 AddResizeHandle(resizeOverlay, block, "SE", 2, 2);
                 cardRoot.Children.Add(resizeOverlay);
+                cardRoot.SizeChanged += (_, args) =>
+                {
+                    resizeOverlay.Width = args.NewSize.Width;
+                    resizeOverlay.Height = args.NewSize.Height;
+                };
                 block.Child = cardRoot;
                 block.MinWidth = BlockMinWidth;
                 block.MinHeight = BlockMinHeight;

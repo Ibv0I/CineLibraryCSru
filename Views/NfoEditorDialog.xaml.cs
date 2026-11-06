@@ -160,15 +160,24 @@ public sealed partial class NfoEditorDialog : Window
                 block.Padding = new Thickness(0);
                 var cardRoot = new Grid();
                 cardRoot.Children.Add(card);
+                // A 3x3 overlay gives every edge a guaranteed hit-test area.
+                // The previous Stretch + NaN sizing could collapse edge zones to zero
+                // for cards whose content measured differently (leaving only some corners usable).
                 var resizeOverlay = new Grid { IsHitTestVisible = true };
-                AddResizeHandle(resizeOverlay, block, "N", HorizontalAlignment.Stretch, VerticalAlignment.Top, double.NaN, 10);
-                AddResizeHandle(resizeOverlay, block, "S", HorizontalAlignment.Stretch, VerticalAlignment.Bottom, double.NaN, 10);
-                AddResizeHandle(resizeOverlay, block, "W", HorizontalAlignment.Left, VerticalAlignment.Stretch, 10, double.NaN);
-                AddResizeHandle(resizeOverlay, block, "E", HorizontalAlignment.Right, VerticalAlignment.Stretch, 10, double.NaN);
-                AddResizeHandle(resizeOverlay, block, "NW", HorizontalAlignment.Left, VerticalAlignment.Top, 16, 16);
-                AddResizeHandle(resizeOverlay, block, "NE", HorizontalAlignment.Right, VerticalAlignment.Top, 16, 16);
-                AddResizeHandle(resizeOverlay, block, "SW", HorizontalAlignment.Left, VerticalAlignment.Bottom, 16, 16);
-                AddResizeHandle(resizeOverlay, block, "SE", HorizontalAlignment.Right, VerticalAlignment.Bottom, 16, 16);
+                resizeOverlay.RowDefinitions.Add(new RowDefinition { Height = new GridLength(16) });
+                resizeOverlay.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+                resizeOverlay.RowDefinitions.Add(new RowDefinition { Height = new GridLength(16) });
+                resizeOverlay.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(16) });
+                resizeOverlay.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                resizeOverlay.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(16) });
+                AddResizeHandle(resizeOverlay, block, "N", 0, 1);
+                AddResizeHandle(resizeOverlay, block, "S", 2, 1);
+                AddResizeHandle(resizeOverlay, block, "W", 1, 0);
+                AddResizeHandle(resizeOverlay, block, "E", 1, 2);
+                AddResizeHandle(resizeOverlay, block, "NW", 0, 0);
+                AddResizeHandle(resizeOverlay, block, "NE", 0, 2);
+                AddResizeHandle(resizeOverlay, block, "SW", 2, 0);
+                AddResizeHandle(resizeOverlay, block, "SE", 2, 2);
                 cardRoot.Children.Add(resizeOverlay);
                 block.Child = cardRoot;
                 block.MinWidth = BlockMinWidth;
@@ -314,19 +323,18 @@ public sealed partial class NfoEditorDialog : Window
         SaveBlockLayout();
     }
 
-    private static void AddResizeHandle(Grid overlay, Border block, string edge,
-        HorizontalAlignment horizontal, VerticalAlignment vertical, double width, double height)
+    private static void AddResizeHandle(Grid overlay, Border block, string edge, int row, int column)
     {
         var handle = new Border
         {
             Tag = block,
-            Width = width,
-            Height = height,
-            HorizontalAlignment = horizontal,
-            VerticalAlignment = vertical,
             Background = new SolidColorBrush(Windows.UI.Color.FromArgb(1, 255, 255, 255)),
-            IsHitTestVisible = true
+            IsHitTestVisible = true,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch
         };
+        Grid.SetRow(handle, row);
+        Grid.SetColumn(handle, column);
         ResizeHandleEdges.Add(handle, edge);
         // Register the complete pointer lifecycle before the first press. This keeps
         // move/release events attached to the captured hit target for the whole gesture.

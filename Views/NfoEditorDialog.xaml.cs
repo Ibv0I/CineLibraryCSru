@@ -320,7 +320,7 @@ public sealed partial class NfoEditorDialog : Window
         HorizontalAlignment horizontal, VerticalAlignment vertical, double width, double height,
         InputSystemCursorShape cursorShape)
     {
-        var handle = new BlockResizeHandle(edge, cursorShape)
+        var handle = new Border
         {
             Tag = block,
             Width = width,
@@ -328,27 +328,30 @@ public sealed partial class NfoEditorDialog : Window
             HorizontalAlignment = horizontal,
             VerticalAlignment = vertical,
             Background = new SolidColorBrush(Windows.UI.Color.FromArgb(1, 255, 255, 255)),
-            IsHitTestVisible = true
+            IsHitTestVisible = true,
+            ProtectedCursor = InputSystemCursor.Create(cursorShape)
         };
+        ResizeHandleEdges.Add(handle, edge);
         handle.PointerPressed += OnResizeHandlePressedStatic;
         overlay.Children.Add(handle);
     }
 
     private static void OnResizeHandlePressedStatic(object sender, PointerRoutedEventArgs e)
     {
-        if (sender is not BlockResizeHandle handle || handle.Tag is not Border block) return;
-        if (!BlockOwners.TryGetValue(block, out var owner)) return;
-        owner.BeginBlockResize(block, handle, e);
+        if (sender is not Border handle || handle.Tag is not Border block) return;
+        if (!BlockOwners.TryGetValue(block, out var owner) || !ResizeHandleEdges.TryGetValue(handle, out var edge)) return;
+        owner.BeginBlockResize(block, handle, edge, e);
     }
 
     private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Border, NfoEditorDialog> BlockOwners = new();
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Border, string> ResizeHandleEdges = new();
 
-    private void BeginBlockResize(Border block, BlockResizeHandle handle, PointerRoutedEventArgs e)
+    private void BeginBlockResize(Border block, Border handle, string edge, PointerRoutedEventArgs e)
     {
         _activeBlock = block;
         _activeBlockHandle = handle;
         _resizingBlock = true;
-        _activeResizeEdge = handle.Edge;
+        _activeResizeEdge = edge;
         _blockPointerStart = e.GetCurrentPoint(MainBlocksPanel).Position;
         _blockStartX = Canvas.GetLeft(block);
         _blockStartY = Canvas.GetTop(block);
@@ -363,7 +366,7 @@ public sealed partial class NfoEditorDialog : Window
 
     private void OnResizeHandleMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (!_resizingBlock || _activeBlock is null || sender is not BlockResizeHandle handle || handle != _activeBlockHandle) return;
+        if (!_resizingBlock || _activeBlock is null || sender is not Border handle || handle != _activeBlockHandle) return;
         var point = e.GetCurrentPoint(MainBlocksPanel).Position;
         var dx = point.X - _blockPointerStart.X;
         var dy = point.Y - _blockPointerStart.Y;
@@ -396,20 +399,20 @@ public sealed partial class NfoEditorDialog : Window
 
     private void OnResizeHandleReleased(object sender, PointerRoutedEventArgs e)
     {
-        if (sender is not BlockResizeHandle handle || handle != _activeBlockHandle) return;
-        FinishBlockResize(handle, e.Pointer);
+        if (sender is not Border handle || handle != _activeBlockHandle) return;
+        handle.ReleasePointerCapture(e.Pointer);
+        FinishBlockResize(handle);
         e.Handled = true;
     }
 
     private void OnResizeHandleCaptureLost(object sender, PointerRoutedEventArgs e)
     {
-        if (sender is BlockResizeHandle handle && handle == _activeBlockHandle)
-            FinishBlockResize(handle, null);
+        if (sender is Border handle && handle == _activeBlockHandle)
+            FinishBlockResize(handle);
     }
 
-    private void FinishBlockResize(BlockResizeHandle handle, Windows.UI.Input.Pointer? pointer)
+    private void FinishBlockResize(Border handle)
     {
-        if (pointer != null) handle.ReleasePointerCapture(pointer);
         handle.PointerMoved -= OnResizeHandleMoved;
         handle.PointerReleased -= OnResizeHandleReleased;
         handle.PointerCaptureLost -= OnResizeHandleCaptureLost;
@@ -419,16 +422,6 @@ public sealed partial class NfoEditorDialog : Window
         _activeResizeEdge = string.Empty;
         UpdateCanvasExtent();
         SaveBlockLayout();
-    }
-
-    private sealed class BlockResizeHandle : Border
-    {
-        public string Edge { get; }
-        public BlockResizeHandle(string edge, InputSystemCursorShape cursorShape)
-        {
-            Edge = edge;
-            ProtectedCursor = InputSystemCursor.Create(cursorShape);
-        }
     }
 
     private void SaveBlockLayout()

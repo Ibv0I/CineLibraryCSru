@@ -158,45 +158,18 @@ public sealed partial class NfoEditorDialog : Window
                 var originalPadding = block.Padding;
                 card.Margin = originalPadding;
                 block.Padding = new Thickness(0);
-                var cardRoot = new Grid
-                {
-                    HorizontalAlignment = HorizontalAlignment.Stretch,
-                    VerticalAlignment = VerticalAlignment.Stretch
-                };
-                card.HorizontalAlignment = HorizontalAlignment.Stretch;
-                card.VerticalAlignment = VerticalAlignment.Stretch;
-                cardRoot.Children.Add(card);
-
-                // Keep the hit-test surface explicitly sized to the rendered card.
-                // Canvas measures children with an unbounded constraint, so relying only
-                // on Star rows/columns here can leave resize zones with zero-sized cells.
-                var resizeOverlay = new Grid
-                {
-                    IsHitTestVisible = true,
-                    HorizontalAlignment = HorizontalAlignment.Stretch,
-                    VerticalAlignment = VerticalAlignment.Stretch
-                };
-                resizeOverlay.RowDefinitions.Add(new RowDefinition { Height = new GridLength(16) });
-                resizeOverlay.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-                resizeOverlay.RowDefinitions.Add(new RowDefinition { Height = new GridLength(16) });
-                resizeOverlay.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(16) });
-                resizeOverlay.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                resizeOverlay.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(16) });
-                AddResizeHandle(resizeOverlay, block, "N", 0, 1);
-                AddResizeHandle(resizeOverlay, block, "S", 2, 1);
-                AddResizeHandle(resizeOverlay, block, "W", 1, 0);
-                AddResizeHandle(resizeOverlay, block, "E", 1, 2);
-                AddResizeHandle(resizeOverlay, block, "NW", 0, 0);
-                AddResizeHandle(resizeOverlay, block, "NE", 0, 2);
-                AddResizeHandle(resizeOverlay, block, "SW", 2, 0);
-                AddResizeHandle(resizeOverlay, block, "SE", 2, 2);
-                cardRoot.Children.Add(resizeOverlay);
-                cardRoot.SizeChanged += (_, args) =>
-                {
-                    resizeOverlay.Width = args.NewSize.Width;
-                    resizeOverlay.Height = args.NewSize.Height;
-                };
-                block.Child = cardRoot;
+                // Resize is handled by the outer Border itself. This avoids nested
+                // transparent hit-test grids, whose layout/capture behavior was unreliable
+                // inside a Canvas containing interactive controls.
+                block.AddHandler(UIElement.PointerPressedEvent,
+                    new PointerEventHandler(OnBlockResizePointerPressed), true);
+                block.AddHandler(UIElement.PointerMovedEvent,
+                    new PointerEventHandler(OnBlockResizePointerMoved), true);
+                block.AddHandler(UIElement.PointerReleasedEvent,
+                    new PointerEventHandler(OnBlockResizePointerReleased), true);
+                block.AddHandler(UIElement.PointerCaptureLostEvent,
+                    new PointerEventHandler(OnBlockResizePointerCaptureLost), true);
+                block.Child = card;
                 block.MinWidth = BlockMinWidth;
                 block.MinHeight = BlockMinHeight;
                 block.Width = Math.Max(320, (viewportWidth - BlockGap) / 2);
@@ -340,60 +313,45 @@ public sealed partial class NfoEditorDialog : Window
         SaveBlockLayout();
     }
 
-    private static void AddResizeHandle(Grid overlay, Border block, string edge, int row, int column)
+    private void OnBlockResizePointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        var handle = new Border
-        {
-            Tag = block,
-            Background = new SolidColorBrush(Windows.UI.Color.FromArgb(1, 255, 255, 255)),
-            IsHitTestVisible = true,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            VerticalAlignment = VerticalAlignment.Stretch
-        };
-        Grid.SetRow(handle, row);
-        Grid.SetColumn(handle, column);
-        ResizeHandleEdges.Add(handle, edge);
-        // Register the complete pointer lifecycle before the first press. This keeps
-        // move/release events attached to the captured hit target for the whole gesture.
-        handle.PointerPressed += OnResizeHandlePressedStatic;
-        handle.PointerMoved += OnResizeHandleMovedStatic;
-        handle.PointerReleased += OnResizeHandleReleasedStatic;
-        handle.PointerCaptureLost += OnResizeHandleCaptureLostStatic;
-        overlay.Children.Add(handle);
+        if (sender is not Border block || !e.GetCurrentPoint(block).Properties.IsLeftButtonPressed)
+            return;
+
+        var point = e.GetCurrentPoint(block).Position;
+        var width = block.ActualWidth;
+        var height = block.ActualHeight;
+        const double edgeSize = 16;
+
+        // Determine the active edge from the pointer position within the block.
+        // Corners combine horizontal and vertical edges (for example, "NE").
+        var edge = string.Concat(
+            point.X <= edgeSize ? "W" : point.X >= width - edgeSize ? "E" : "",
+            point.Y <= edgeSize ? "N" : point.Y >= height - edgeSize ? "S" : "");
+        if (edge.Length == 0) return;
+
+        BeginBlockResize(block, block, edge, e);
     }
 
-    private static void OnResizeHandlePressedStatic(object sender, PointerRoutedEventArgs e)
+    private void OnBlockResizePointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (sender is not Border handle || handle.Tag is not Border block) return;
-        if (!BlockOwners.TryGetValue(block, out var owner) || !ResizeHandleEdges.TryGetValue(handle, out var edge)) return;
-        owner.BeginBlockResize(block, handle, edge, e);
+        if (_resizingBlock && sender is Border block)
+            OnResizeHandleMoved(block, e);
     }
 
-    private static void OnResizeHandleMovedStatic(object sender, PointerRoutedEventArgs e)
+    private void OnBlockResizePointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        if (sender is Border handle && handle.Tag is Border block &&
-            BlockOwners.TryGetValue(block, out var owner))
-            owner.OnResizeHandleMoved(sender, e);
+        if (_resizingBlock && sender is Border block)
+            OnResizeHandleReleased(block, e);
     }
 
-    private static void OnResizeHandleReleasedStatic(object sender, PointerRoutedEventArgs e)
+    private void OnBlockResizePointerCaptureLost(object sender, PointerRoutedEventArgs e)
     {
-        if (sender is Border handle && handle.Tag is Border block &&
-            BlockOwners.TryGetValue(block, out var owner))
-            owner.OnResizeHandleReleased(sender, e);
+        if (_resizingBlock && sender is Border block)
+            OnResizeHandleCaptureLost(block, e);
     }
 
-    private static void OnResizeHandleCaptureLostStatic(object sender, PointerRoutedEventArgs e)
-    {
-        if (sender is Border handle && handle.Tag is Border block &&
-            BlockOwners.TryGetValue(block, out var owner))
-            owner.OnResizeHandleCaptureLost(sender, e);
-    }
-
-    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Border, NfoEditorDialog> BlockOwners = new();
-    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Border, string> ResizeHandleEdges = new();
-
-    private void BeginBlockResize(Border block, Border handle, string edge, PointerRoutedEventArgs e)
+    private void BeginBlockResize(Border block, FrameworkElement handle, string edge, PointerRoutedEventArgs e)
     {
         _activeBlock = block;
         _activeBlockHandle = handle;
@@ -404,9 +362,7 @@ public sealed partial class NfoEditorDialog : Window
         _blockStartY = Canvas.GetTop(block);
         _blockStartWidth = double.IsNaN(block.Width) ? block.ActualWidth : block.Width;
         _blockStartHeight = double.IsNaN(block.Height) ? block.ActualHeight : block.Height;
-        // The resize handlers are registered when the hit zone is created.
-        // Capture the pointer so movement continues even after it leaves the narrow edge zone.
-        handle.CapturePointer(e.Pointer);
+        block.CapturePointer(e.Pointer);
         e.Handled = true;
     }
 

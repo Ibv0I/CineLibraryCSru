@@ -105,10 +105,6 @@ public sealed partial class NfoEditorDialog : Window
         try
         {
             var blocks = MainBlocksPanel.Children.OfType<Border>().ToList();
-            foreach (var block in blocks)
-            {
-                try { BlockOwners.Add(block, this); } catch (ArgumentException) { }
-            }
             var viewportWidth = Math.Max(600, RootGrid.ActualWidth - 48);
             MainBlocksPanel.Width = viewportWidth;
 

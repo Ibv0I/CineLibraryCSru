@@ -3,7 +3,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI;
-using Microsoft.UI.Input;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Windows.Graphics;
@@ -155,22 +154,21 @@ public sealed partial class NfoEditorDialog : Window
 
                 // The resize hit zones are explicit transparent overlays. Pointer events on
                 // the card's content are not reliable for edge resizing because TextBox/ListView
-                // children receive input first. Each zone captures the pointer and owns a native
-                // Windows resize cursor, just like the border of a resizable window.
+                // Children receive input first. Resize zones capture the pointer independently.
                 var originalPadding = block.Padding;
                 card.Margin = originalPadding;
                 block.Padding = new Thickness(0);
                 var cardRoot = new Grid();
                 cardRoot.Children.Add(card);
                 var resizeOverlay = new Grid { IsHitTestVisible = true };
-                AddResizeHandle(resizeOverlay, block, "N", HorizontalAlignment.Stretch, VerticalAlignment.Top, double.NaN, 10, InputSystemCursorShape.SizeNorthSouth);
-                AddResizeHandle(resizeOverlay, block, "S", HorizontalAlignment.Stretch, VerticalAlignment.Bottom, double.NaN, 10, InputSystemCursorShape.SizeNorthSouth);
-                AddResizeHandle(resizeOverlay, block, "W", HorizontalAlignment.Left, VerticalAlignment.Stretch, 10, double.NaN, InputSystemCursorShape.SizeWestEast);
-                AddResizeHandle(resizeOverlay, block, "E", HorizontalAlignment.Right, VerticalAlignment.Stretch, 10, double.NaN, InputSystemCursorShape.SizeWestEast);
-                AddResizeHandle(resizeOverlay, block, "NW", HorizontalAlignment.Left, VerticalAlignment.Top, 16, 16, InputSystemCursorShape.SizeNorthwestSoutheast);
-                AddResizeHandle(resizeOverlay, block, "NE", HorizontalAlignment.Right, VerticalAlignment.Top, 16, 16, InputSystemCursorShape.SizeNortheastSouthwest);
-                AddResizeHandle(resizeOverlay, block, "SW", HorizontalAlignment.Left, VerticalAlignment.Bottom, 16, 16, InputSystemCursorShape.SizeNortheastSouthwest);
-                AddResizeHandle(resizeOverlay, block, "SE", HorizontalAlignment.Right, VerticalAlignment.Bottom, 16, 16, InputSystemCursorShape.SizeNorthwestSoutheast);
+                AddResizeHandle(resizeOverlay, block, "N", HorizontalAlignment.Stretch, VerticalAlignment.Top, double.NaN, 10);
+                AddResizeHandle(resizeOverlay, block, "S", HorizontalAlignment.Stretch, VerticalAlignment.Bottom, double.NaN, 10);
+                AddResizeHandle(resizeOverlay, block, "W", HorizontalAlignment.Left, VerticalAlignment.Stretch, 10, double.NaN);
+                AddResizeHandle(resizeOverlay, block, "E", HorizontalAlignment.Right, VerticalAlignment.Stretch, 10, double.NaN);
+                AddResizeHandle(resizeOverlay, block, "NW", HorizontalAlignment.Left, VerticalAlignment.Top, 16, 16);
+                AddResizeHandle(resizeOverlay, block, "NE", HorizontalAlignment.Right, VerticalAlignment.Top, 16, 16);
+                AddResizeHandle(resizeOverlay, block, "SW", HorizontalAlignment.Left, VerticalAlignment.Bottom, 16, 16);
+                AddResizeHandle(resizeOverlay, block, "SE", HorizontalAlignment.Right, VerticalAlignment.Bottom, 16, 16);
                 cardRoot.Children.Add(resizeOverlay);
                 block.Child = cardRoot;
                 block.MinWidth = BlockMinWidth;
@@ -317,8 +315,7 @@ public sealed partial class NfoEditorDialog : Window
     }
 
     private static void AddResizeHandle(Grid overlay, Border block, string edge,
-        HorizontalAlignment horizontal, VerticalAlignment vertical, double width, double height,
-        InputSystemCursorShape cursorShape)
+        HorizontalAlignment horizontal, VerticalAlignment vertical, double width, double height)
     {
         var handle = new Border
         {
@@ -328,8 +325,7 @@ public sealed partial class NfoEditorDialog : Window
             HorizontalAlignment = horizontal,
             VerticalAlignment = vertical,
             Background = new SolidColorBrush(Windows.UI.Color.FromArgb(1, 255, 255, 255)),
-            IsHitTestVisible = true,
-            ProtectedCursor = InputSystemCursor.Create(cursorShape)
+            IsHitTestVisible = true
         };
         ResizeHandleEdges.Add(handle, edge);
         handle.PointerPressed += OnResizeHandlePressedStatic;

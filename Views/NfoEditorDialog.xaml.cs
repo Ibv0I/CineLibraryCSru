@@ -328,7 +328,12 @@ public sealed partial class NfoEditorDialog : Window
             IsHitTestVisible = true
         };
         ResizeHandleEdges.Add(handle, edge);
+        // Register the complete pointer lifecycle before the first press. This keeps
+        // move/release events attached to the captured hit target for the whole gesture.
         handle.PointerPressed += OnResizeHandlePressedStatic;
+        handle.PointerMoved += OnResizeHandleMovedStatic;
+        handle.PointerReleased += OnResizeHandleReleasedStatic;
+        handle.PointerCaptureLost += OnResizeHandleCaptureLostStatic;
         overlay.Children.Add(handle);
     }
 
@@ -337,6 +342,27 @@ public sealed partial class NfoEditorDialog : Window
         if (sender is not Border handle || handle.Tag is not Border block) return;
         if (!BlockOwners.TryGetValue(block, out var owner) || !ResizeHandleEdges.TryGetValue(handle, out var edge)) return;
         owner.BeginBlockResize(block, handle, edge, e);
+    }
+
+    private static void OnResizeHandleMovedStatic(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border handle && handle.Tag is Border block &&
+            BlockOwners.TryGetValue(block, out var owner))
+            owner.OnResizeHandleMoved(sender, e);
+    }
+
+    private static void OnResizeHandleReleasedStatic(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border handle && handle.Tag is Border block &&
+            BlockOwners.TryGetValue(block, out var owner))
+            owner.OnResizeHandleReleased(sender, e);
+    }
+
+    private static void OnResizeHandleCaptureLostStatic(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border handle && handle.Tag is Border block &&
+            BlockOwners.TryGetValue(block, out var owner))
+            owner.OnResizeHandleCaptureLost(sender, e);
     }
 
     private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Border, NfoEditorDialog> BlockOwners = new();
@@ -353,9 +379,8 @@ public sealed partial class NfoEditorDialog : Window
         _blockStartY = Canvas.GetTop(block);
         _blockStartWidth = double.IsNaN(block.Width) ? block.ActualWidth : block.Width;
         _blockStartHeight = double.IsNaN(block.Height) ? block.ActualHeight : block.Height;
-        handle.PointerMoved += OnResizeHandleMoved;
-        handle.PointerReleased += OnResizeHandleReleased;
-        handle.PointerCaptureLost += OnResizeHandleCaptureLost;
+        // The resize handlers are registered when the hit zone is created.
+        // Capture the pointer so movement continues even after it leaves the narrow edge zone.
         handle.CapturePointer(e.Pointer);
         e.Handled = true;
     }
@@ -409,9 +434,6 @@ public sealed partial class NfoEditorDialog : Window
 
     private void FinishBlockResize(Border handle)
     {
-        handle.PointerMoved -= OnResizeHandleMoved;
-        handle.PointerReleased -= OnResizeHandleReleased;
-        handle.PointerCaptureLost -= OnResizeHandleCaptureLost;
         _activeBlock = null;
         _activeBlockHandle = null;
         _resizingBlock = false;

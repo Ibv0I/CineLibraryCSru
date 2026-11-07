@@ -143,6 +143,15 @@ public sealed partial class NfoEditorDialog : Window
                     Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 205, 210, 220)),
                     VerticalAlignment = VerticalAlignment.Center
                 });
+                var hideButton = new Button
+                {
+                    Content = "×", Tag = block, MinWidth = 28, Height = 26,
+                    Padding = new Thickness(4, 0, 4, 0), FontSize = 16,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                ToolTipService.SetToolTip(hideButton, "Скрыть блок");
+                hideButton.Click += OnHideBlockClick;
+                titleRow.Children.Add(hideButton);
                 Grid.SetRow(titleRow, 0);
                 card.Children.Add(titleRow);
                 Grid.SetRow(content, 1);
@@ -165,6 +174,7 @@ public sealed partial class NfoEditorDialog : Window
                     new PointerEventHandler(OnBlockResizePointerReleased), true);
                 block.AddHandler(UIElement.PointerCaptureLostEvent,
                     new PointerEventHandler(OnBlockResizePointerCaptureLost), true);
+                block.PointerExited += (_, _) => { if (!_resizingBlock) SetArrowCursor(); };
                 block.Child = card;
                 block.MinWidth = BlockMinWidth;
                 block.MinHeight = BlockMinHeight;
@@ -199,6 +209,7 @@ public sealed partial class NfoEditorDialog : Window
                     if (block == null) continue;
                     if (item.Height >= BlockMinHeight && item.Height <= 1600) block.Height = item.Height;
                     if (item.Width >= BlockMinWidth && item.Width <= 1600) block.Width = item.Width;
+                    block.Visibility = item.Hidden ? Visibility.Collapsed : Visibility.Visible;
                     if (containsCoordinates)
                     {
                         Canvas.SetLeft(block, Math.Clamp(item.X, 0, Math.Max(0, viewportWidth - block.Width)));
@@ -315,15 +326,7 @@ public sealed partial class NfoEditorDialog : Window
             return;
 
         var point = e.GetCurrentPoint(block).Position;
-        var width = block.ActualWidth;
-        var height = block.ActualHeight;
-        const double edgeSize = 16;
-
-        // Determine the active edge from the pointer position within the block.
-        // Corners combine horizontal and vertical edges (for example, "NE").
-        var edge = string.Concat(
-            point.X <= edgeSize ? "W" : point.X >= width - edgeSize ? "E" : "",
-            point.Y <= edgeSize ? "N" : point.Y >= height - edgeSize ? "S" : "");
+        var edge = GetResizeEdge(block, point);
         if (edge.Length == 0) return;
 
         BeginBlockResize(block, block, edge, e);
@@ -331,8 +334,16 @@ public sealed partial class NfoEditorDialog : Window
 
     private void OnBlockResizePointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (_resizingBlock && sender is Border block)
+        if (sender is not Border block) return;
+        if (_resizingBlock)
+        {
             OnResizeHandleMoved(block, e);
+            return;
+        }
+
+        var point = e.GetCurrentPoint(block).Position;
+        var edge = GetResizeEdge(block, point);
+        SetResizeCursor(edge);
     }
 
     private void OnBlockResizePointerReleased(object sender, PointerRoutedEventArgs e)
@@ -346,6 +357,36 @@ public sealed partial class NfoEditorDialog : Window
         if (_resizingBlock && sender is Border block)
             OnResizeHandleCaptureLost(block, e);
     }
+
+    private static string GetResizeEdge(Border block, Windows.Foundation.Point point)
+    {
+        const double edgeSize = 16;
+        return string.Concat(
+            point.X <= edgeSize ? "W" : point.X >= block.ActualWidth - edgeSize ? "E" : "",
+            point.Y <= edgeSize ? "N" : point.Y >= block.ActualHeight - edgeSize ? "S" : "");
+    }
+
+    [DllImport("user32.dll", EntryPoint = "LoadCursorW", SetLastError = true)]
+    private static extern nint LoadSystemCursor(nint instance, nint cursorId);
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern nint SetCursor(nint cursor);
+
+    private static void SetResizeCursor(string edge)
+    {
+        if (string.IsNullOrEmpty(edge)) { SetArrowCursor(); return; }
+        // Standard Windows resize cursors: NW-SE, NE-SW, horizontal and vertical.
+        var id = edge switch
+        {
+            "WN" or "ES" => 32642,
+            "EN" or "WS" => 32643,
+            "W" or "E" => 32644,
+            "N" or "S" => 32645,
+            _ => 32512
+        };
+        SetCursor(LoadSystemCursor(0, new nint(id)));
+    }
+
+    private static void SetArrowCursor() => SetCursor(LoadSystemCursor(0, new nint(32512)));
 
     private void BeginBlockResize(Border block, FrameworkElement handle, string edge, PointerRoutedEventArgs e)
     {
@@ -429,7 +470,8 @@ public sealed partial class NfoEditorDialog : Window
                     Id = x.Tag?.ToString() ?? string.Empty,
                     X = Canvas.GetLeft(x), Y = Canvas.GetTop(x),
                     Height = double.IsNaN(x.Height) ? x.ActualHeight : x.Height,
-                    Width = double.IsNaN(x.Width) ? x.ActualWidth : x.Width
+                    Width = double.IsNaN(x.Width) ? x.ActualWidth : x.Width,
+                    Hidden = x.Visibility != Visibility.Visible
                 })
                 .Where(x => !string.IsNullOrWhiteSpace(x.Id))
                 .ToList();
@@ -446,6 +488,41 @@ public sealed partial class NfoEditorDialog : Window
         public double Y { get; set; }
         public double Height { get; set; }
         public double Width { get; set; }
+        public bool Hidden { get; set; }
+    }
+
+    private async void OnHideBlockClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not Border block) return;
+        block.Visibility = Visibility.Collapsed;
+        SaveBlockLayout();
+        UpdateCanvasExtent();
+    }
+
+    private async void OnAddBlockClick(object sender, RoutedEventArgs e)
+    {
+        var hiddenBlocks = MainBlocksPanel.Children.OfType<Border>()
+            .Where(x => x.Visibility != Visibility.Visible)
+            .ToList();
+        if (hiddenBlocks.Count == 0)
+        {
+            var info = new ContentDialog { Title = "Нет скрытых блоков", Content = "Все доступные блоки уже отображаются.", CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
+            await info.ShowAsync();
+            return;
+        }
+
+        var selector = new ComboBox { ItemsSource = hiddenBlocks.Select(x => x.Tag?.ToString() ?? "Раздел").ToList(), SelectedIndex = 0, MinWidth = 260 };
+        var dialog = new ContentDialog
+        {
+            Title = "Добавить блок", Content = selector,
+            PrimaryButtonText = "Добавить", CloseButtonText = "Отмена",
+            DefaultButton = ContentDialogButton.Primary, XamlRoot = RootGrid.XamlRoot
+        };
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary || selector.SelectedIndex < 0) return;
+        var selected = hiddenBlocks[selector.SelectedIndex];
+        selected.Visibility = Visibility.Visible;
+        SaveBlockLayout();
+        UpdateCanvasExtent();
     }
 
     private void ConfigureWindow()
@@ -575,6 +652,7 @@ public sealed partial class NfoEditorDialog : Window
         _root = _doc.DocumentElement ?? throw new InvalidDataException("NFO не содержит корневого XML-элемента.");
         TitleBox.Text = Get("title"); OriginalTitleBox.Text = Get("originaltitle");
         TaglineBox.Text = Get("tagline"); PlotBox.Text = Get("plot");
+        DirectorBox.Text = string.Join(Environment.NewLine, Elements("director").Select(x => x.InnerText));
         YearBox.Text = Get("year");
         var premiered = Get("premiered");
         if (DateTime.TryParseExact(premiered, new[] { "yyyy-MM-dd", "dd-MM-yyyy", "yyyy-M-d" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var releaseDate)) PremieredBox.Text = releaseDate.ToString("dd-MM-yyyy", CultureInfo.InvariantCulture);
@@ -669,6 +747,7 @@ public sealed partial class NfoEditorDialog : Window
             if (!string.IsNullOrWhiteSpace(YearBox.Text) && !IsValidYear(YearBox.Text)) throw new InvalidDataException("Год должен быть в диапазоне 1700–2100.");
             if (!string.IsNullOrWhiteSpace(PremieredBox.Text) && !DateTime.TryParseExact(PremieredBox.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _)) throw new InvalidDataException("Дата должна быть корректной и иметь формат ДД-ММ-ГГГГ.");
             Set("plot", PlotBox.Text); Set("year", YearBox.Text);
+            SetList("director", DirectorBox.Text);
             Set("premiered", DateTime.TryParseExact(PremieredBox.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var releaseDate) ? releaseDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : "");
             Set("runtime", RuntimeBox.Text); Set("mpaa", CertificationBox.SelectedItem as string);
             Set("budget", BudgetBox.Text == "—" ? "" : BudgetBox.Text);

@@ -1,9 +1,6 @@
 name: Build MovieLibrary
 
 on:
-  push:
-    branches:
-      - ru
   workflow_dispatch:
 
 jobs:

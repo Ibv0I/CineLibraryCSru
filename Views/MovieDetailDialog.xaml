@@ -212,56 +212,54 @@
                      in a wide window (v4.2.0) -->
                 <StackPanel x:Name="ActionsBlock">
                     <!-- Drive location -->
-                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,16,0,0">
-                        <TextBlock Text="Located on:" FontSize="12"
-                                   Foreground="{ThemeResource MutedBrush}" VerticalAlignment="Center"/>
-                        <Ellipse x:Name="DriveStatusDot" Width="8" Height="8" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="DriveText" FontSize="12"
-                                   Foreground="{ThemeResource TextBrush}" VerticalAlignment="Center"
-                                   TextWrapping="Wrap"/>
+                    <StackPanel Visibility="Collapsed">
+                        <Ellipse x:Name="DriveStatusDot" Width="8" Height="8"/>
+                        <TextBlock x:Name="DriveText"/>
                     </StackPanel>
 
                     <!-- Actions (wrap onto a second line in narrow windows) -->
                     <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8" Margin="0,12,0,0">
-                        <Button x:Name="PlayBtn" Click="OnPlay"
-                                Background="#3B82F6" Foreground="White"
-                                BorderThickness="0" CornerRadius="8" Padding="12,8"
-                                ToolTipService.ToolTip="Смотреть фильм"
-                                AutomationProperties.Name="Смотреть фильм">
-                            <FontIcon Glyph="&#xE768;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="18"/>
-                        </Button>
-                                                    
-                        <Button x:Name="FolderBtn" Click="OnOpenFolder"
-                                Style="{StaticResource MovieDetailActionButtonStyle}"
-                                Background="{ThemeResource CardBrush}"
-                                Foreground="{ThemeResource TextBrush}"
-                                BorderBrush="{ThemeResource BorderBrush}"
-                                CornerRadius="8" Padding="12,8"
-                                ToolTipService.ToolTip="Открыть папку фильма"
-                                AutomationProperties.Name="Открыть папку фильма">
-                            <FontIcon Glyph="&#xE838;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="16"/>
-                        </Button>
-                        <Button x:Name="EditArtworkBtn" Click="OnEditArtwork" IsTabStop="False" UseSystemFocusVisuals="False"
-                                Style="{StaticResource MovieDetailActionButtonStyle}"
-                                Background="{ThemeResource CardBrush}"
-                                Foreground="{ThemeResource TextBrush}"
-                                BorderBrush="{ThemeResource BorderBrush}"
-                                CornerRadius="8" Padding="12,8"
-                                ToolTipService.ToolTip="Изменить название, постер и баннер"
-                                AutomationProperties.Name="Изменить название, постер и баннер">
-                            <FontIcon Glyph="&#xE70F;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="16"/>
-                        </Button>
-                        <Button x:Name="EditNfoBtn" Click="OnEditNfo" IsTabStop="False" UseSystemFocusVisuals="False"
-                                Style="{StaticResource MovieDetailActionButtonStyle}"
-                                Background="{ThemeResource CardBrush}"
-                                Foreground="{ThemeResource TextBrush}"
-                                BorderBrush="{ThemeResource BorderBrush}"
-                                CornerRadius="8" Padding="12,8"
-                                ToolTipService.ToolTip="Редактировать NFO"
-                                AutomationProperties.Name="Редактировать NFO">
-                            <FontIcon Glyph="&#xE8A5;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="16"/>
-                        </Button>
-                        <Grid x:Name="AwardsIconsPanel" Visibility="Collapsed" Margin="8,2,0,0"
+                        <StackPanel Spacing="6" VerticalAlignment="Top">
+                            <Button x:Name="PlayBtn" Click="OnPlay"
+                                    Background="#3B82F6" Foreground="White"
+                                    BorderThickness="0" CornerRadius="8" Padding="12,8"
+                                    ToolTipService.ToolTip="Смотреть фильм"
+                                    AutomationProperties.Name="Смотреть фильм">
+                                <FontIcon Glyph="&#xE768;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="18"/>
+                            </Button>
+                            <Button x:Name="ManageActionsBtn"
+                                    Style="{StaticResource MovieDetailActionButtonStyle}"
+                                    Background="{ThemeResource CardBrush}"
+                                    Foreground="{ThemeResource TextBrush}"
+                                    BorderBrush="{ThemeResource BorderBrush}"
+                                    CornerRadius="8" Padding="8,5"
+                                    ToolTipService.ToolTip="Действия с фильмом"
+                                    AutomationProperties.Name="Действия с фильмом">
+                                <Button.Content>
+                                    <FontIcon Glyph="&#xE713;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="14"/>
+                                </Button.Content>
+                                <Button.Flyout>
+                                    <MenuFlyout Placement="Bottom">
+                                        <MenuFlyoutItem Text="Открыть папку" Click="OnOpenFolder">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE838;"/>
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Text="Изменить данные" Click="OnEditArtwork">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE70F;"/>
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Text="Редактор NFO" Click="OnEditNfo">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE8A5;"/>
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
+                        <Grid x:Name="AwardsIconsPanel" Visibility="Collapsed" Margin="18,2,0,0"
                                   HorizontalAlignment="Left">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>

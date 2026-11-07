@@ -1969,12 +1969,12 @@ public sealed partial class MovieDetailDialog : Window
         var folderPath = Path.Combine($"{_movie.CurrentLetter}:\\", _movie.FolderRelPath.Replace('/', '\\'));
         if (!Directory.Exists(folderPath)) return;
 
-        var originalBackground = FolderBtn.Background;
-        var originalForeground = FolderBtn.Foreground;
-        var originalToolTip = ToolTipService.GetToolTip(FolderBtn);
+        var originalBackground = ManageActionsBtn.Background;
+        var originalForeground = ManageActionsBtn.Foreground;
+        var originalToolTip = ToolTipService.GetToolTip(ManageActionsBtn);
         FolderBtn.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 59, 130, 246));
         FolderBtn.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
-        ToolTipService.SetToolTip(FolderBtn, null);
+        ToolTipService.SetToolTip(ManageActionsBtn, null);
         try { await Launcher.LaunchFolderPathAsync(folderPath); }
         finally
         {

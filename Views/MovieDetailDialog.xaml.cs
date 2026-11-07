@@ -256,7 +256,7 @@ public sealed partial class MovieDetailDialog : Window
 
         // Actions
         PlayBtn.IsEnabled = m.Playable;
-        FolderBtn.IsEnabled = m.IsOnline;
+        ManageActionsBtn.IsEnabled = m.IsOnline;
         FavBtn.Content = m.IsFavorite ? "♥ В избранном" : "♡ В избранное";
         WatchedBtn.Content = m.IsWatched ? "✓ Просмотрен" : "○ Отметить просмотренным";
         WatchlistBtn.Content = m.IsWatchlist ? CineLibraryCS.Services.LocalizationService.TranslateText("📌 В списке просмотра") : CineLibraryCS.Services.LocalizationService.TranslateText("☐ Добавить в список просмотра");
@@ -1972,15 +1972,15 @@ public sealed partial class MovieDetailDialog : Window
         var originalBackground = ManageActionsBtn.Background;
         var originalForeground = ManageActionsBtn.Foreground;
         var originalToolTip = ToolTipService.GetToolTip(ManageActionsBtn);
-        FolderBtn.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 59, 130, 246));
-        FolderBtn.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
+        ManageActionsBtn.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 59, 130, 246));
+        ManageActionsBtn.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
         ToolTipService.SetToolTip(ManageActionsBtn, null);
         try { await Launcher.LaunchFolderPathAsync(folderPath); }
         finally
         {
-            FolderBtn.Background = originalBackground;
-            FolderBtn.Foreground = originalForeground;
-            ToolTipService.SetToolTip(FolderBtn, originalToolTip);
+            ManageActionsBtn.Background = originalBackground;
+            ManageActionsBtn.Foreground = originalForeground;
+            ToolTipService.SetToolTip(ManageActionsBtn, originalToolTip);
         }
     }
 

@@ -259,7 +259,15 @@
                                 </Button.Flyout>
                             </Button>
                         </StackPanel>
-                        
+
+                        <ScrollViewer x:Name="AwardsIconsScroll" Visibility="Collapsed"
+                                      HorizontalScrollMode="Enabled" HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollMode="Disabled" VerticalScrollBarVisibility="Disabled"
+                                      MaxWidth="620" VerticalAlignment="Center" Margin="8,0,0,0">
+                            <StackPanel x:Name="AwardsIconsPanel" Orientation="Horizontal"
+                                        VerticalAlignment="Center"/>
+                        </ScrollViewer>
+
                         <Button x:Name="FavBtn" Click="OnToggleFav"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"
@@ -334,20 +342,7 @@
                 <!-- v4.2.0 (#14): file info, plot, notes and details, one under another.
                      In a wide window the code moves them beside the poster. -->
                 <StackPanel x:Name="BodyStack">
-                    <Grid x:Name="AwardsIconsPanel" Visibility="Collapsed" Margin="0,12,0,0"
-                                  HorizontalAlignment="Center">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                            </Grid>
+
 
                     <!-- File info panel (v2.2.2) — sits right under the action row -->
                     <Border x:Name="FileInfoPanel" Visibility="Collapsed"

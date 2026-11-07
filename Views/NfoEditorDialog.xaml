@@ -8,7 +8,7 @@
                         <Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Название"><TextBox x:Name="TitleBox" Header="Название" Grid.Column="0"/>
                             </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Оригинальное название"><TextBox x:Name="OriginalTitleBox" Header="Оригинальное название" Grid.Column="1"/>
                         </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Слоган"><TextBox x:Name="TaglineBox" Header="Слоган"/>
-                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Сюжет"><TextBox x:Name="PlotBox" Header="Сюжет" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="160"/>
+                        </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Режиссёр"><TextBox x:Name="DirectorBox" Header="Режиссёр (по одному на строку)" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="48" MaxHeight="100"/></Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Сюжет"><TextBox x:Name="PlotBox" Header="Сюжет" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="160"/>
                         </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Год"><TextBox x:Name="YearBox" Header="Год" Grid.Column="0" InputScope="Number" TextChanged="OnYearChanged"/>
                             </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Дата выхода"><TextBox x:Name="PremieredBox" Header="Дата выхода (ДД-ММ-ГГГГ)" Grid.Column="1" TextChanged="OnDateChanged"/>
                             </Border><Border Background="#1B1B20" BorderBrush="#303039" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,8" Tag="Длительность"><TextBox x:Name="RuntimeBox" Header="Длительность, мин" Grid.Column="2" InputScope="Number"/>
@@ -109,6 +109,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="8">
+                <Button Content="＋ Добавить блок" MinWidth="130" Click="OnAddBlockClick"/>
                 <Button x:Name="CollectMissingInfoButton" Content="✦ Собрать информацию" MinWidth="170" Click="OnCollectMissingInfo"/>
                 <Button x:Name="LoadExternalDataButton" Content="↓ Загрузить бюджет и награды" MinWidth="190" Click="OnLoadExternalData"/>
             </StackPanel>

@@ -110,6 +110,7 @@ public sealed partial class NfoEditorDialog : Window
 
             foreach (var block in blocks)
             {
+                block.Visibility = Visibility.Collapsed;
                 block.CornerRadius = new CornerRadius(10);
                 if (block.Child is not FrameworkElement content) continue;
                 block.Child = null;
@@ -120,7 +121,10 @@ public sealed partial class NfoEditorDialog : Window
                 var card = new Grid { RowSpacing = 8 };
                 card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                var titleRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
+                var titleRow = new Grid { ColumnSpacing = 8, VerticalAlignment = VerticalAlignment.Center };
+                titleRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                titleRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                titleRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var grip = new Border
                 {
                     Width = 22, Height = 22, CornerRadius = new CornerRadius(4),
@@ -135,22 +139,28 @@ public sealed partial class NfoEditorDialog : Window
                 grip.PointerReleased += OnBlockHandlePointerReleased;
                 grip.PointerCaptureLost += OnBlockHandlePointerCaptureLost;
                 ToolTipService.SetToolTip(grip, "Переместить");
+                Grid.SetColumn(grip, 0);
                 titleRow.Children.Add(grip);
-                titleRow.Children.Add(new TextBlock
+                var blockTitle = new TextBlock
                 {
                     Text = block.Tag?.ToString() ?? "Раздел", FontSize = 13,
                     FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
                     Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 205, 210, 220)),
                     VerticalAlignment = VerticalAlignment.Center
-                });
+                };
+                Grid.SetColumn(blockTitle, 1);
+                titleRow.Children.Add(blockTitle);
                 var hideButton = new Button
                 {
-                    Content = "×", Tag = block, MinWidth = 28, Height = 26,
+                    Content = "×", Tag = block, MinWidth = 28, Width = 28, Height = 26,
                     Padding = new Thickness(4, 0, 4, 0), FontSize = 16,
-                    VerticalAlignment = VerticalAlignment.Center
+                    HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top,
+                    Background = new SolidColorBrush(Windows.UI.Color.FromArgb(35, 255, 255, 255)),
+                    BorderThickness = new Thickness(0)
                 };
                 ToolTipService.SetToolTip(hideButton, "Скрыть блок");
                 hideButton.Click += OnHideBlockClick;
+                Grid.SetColumn(hideButton, 2);
                 titleRow.Children.Add(hideButton);
                 Grid.SetRow(titleRow, 0);
                 card.Children.Add(titleRow);
@@ -174,7 +184,7 @@ public sealed partial class NfoEditorDialog : Window
                     new PointerEventHandler(OnBlockResizePointerReleased), true);
                 block.AddHandler(UIElement.PointerCaptureLostEvent,
                     new PointerEventHandler(OnBlockResizePointerCaptureLost), true);
-                block.PointerExited += (_, _) => { if (!_resizingBlock) SetArrowCursor(); };
+                block.PointerExited += (_, _) => { if (!_resizingBlock) SetElementCursor(block, Microsoft.UI.Input.InputSystemCursorShape.Arrow); };
                 block.Child = card;
                 block.MinWidth = BlockMinWidth;
                 block.MinHeight = BlockMinHeight;
@@ -209,7 +219,7 @@ public sealed partial class NfoEditorDialog : Window
                     if (block == null) continue;
                     if (item.Height >= BlockMinHeight && item.Height <= 1600) block.Height = item.Height;
                     if (item.Width >= BlockMinWidth && item.Width <= 1600) block.Width = item.Width;
-                    block.Visibility = item.Hidden ? Visibility.Collapsed : Visibility.Visible;
+                    block.Visibility = item.Hidden == false ? Visibility.Visible : Visibility.Collapsed;
                     if (containsCoordinates)
                     {
                         Canvas.SetLeft(block, Math.Clamp(item.X, 0, Math.Max(0, viewportWidth - block.Width)));
@@ -343,7 +353,7 @@ public sealed partial class NfoEditorDialog : Window
 
         var point = e.GetCurrentPoint(block).Position;
         var edge = GetResizeEdge(block, point);
-        SetResizeCursor(edge);
+        SetElementCursor(block, GetResizeCursorShape(edge));
     }
 
     private void OnBlockResizePointerReleased(object sender, PointerRoutedEventArgs e)
@@ -366,27 +376,26 @@ public sealed partial class NfoEditorDialog : Window
             point.Y <= edgeSize ? "N" : point.Y >= block.ActualHeight - edgeSize ? "S" : "");
     }
 
-    [DllImport("user32.dll", EntryPoint = "LoadCursorW", SetLastError = true)]
-    private static extern nint LoadSystemCursor(nint instance, nint cursorId);
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern nint SetCursor(nint cursor);
-
-    private static void SetResizeCursor(string edge)
+    private static Microsoft.UI.Input.InputSystemCursorShape GetResizeCursorShape(string edge)
     {
-        if (string.IsNullOrEmpty(edge)) { SetArrowCursor(); return; }
-        // Standard Windows resize cursors: NW-SE, NE-SW, horizontal and vertical.
-        var id = edge switch
+        return edge switch
         {
-            "WN" or "ES" => 32642,
-            "EN" or "WS" => 32643,
-            "W" or "E" => 32644,
-            "N" or "S" => 32645,
-            _ => 32512
+            "WN" or "ES" => Microsoft.UI.Input.InputSystemCursorShape.SizeNorthwestSoutheast,
+            "EN" or "WS" => Microsoft.UI.Input.InputSystemCursorShape.SizeNortheastSouthwest,
+            "W" or "E" => Microsoft.UI.Input.InputSystemCursorShape.SizeWestEast,
+            "N" or "S" => Microsoft.UI.Input.InputSystemCursorShape.SizeNorthSouth,
+            _ => Microsoft.UI.Input.InputSystemCursorShape.Arrow
         };
-        SetCursor(LoadSystemCursor(0, new nint(id)));
     }
 
-    private static void SetArrowCursor() => SetCursor(LoadSystemCursor(0, new nint(32512)));
+    private static void SetElementCursor(UIElement element, Microsoft.UI.Input.InputSystemCursorShape shape)
+    {
+        var cursor = Microsoft.UI.Input.InputSystemCursor.Create(shape);
+        typeof(UIElement).InvokeMember(
+            "ProtectedCursor",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.SetProperty,
+            binder: null, target: element, args: new object[] { cursor });
+    }
 
     private void BeginBlockResize(Border block, FrameworkElement handle, string edge, PointerRoutedEventArgs e)
     {
@@ -488,7 +497,7 @@ public sealed partial class NfoEditorDialog : Window
         public double Y { get; set; }
         public double Height { get; set; }
         public double Width { get; set; }
-        public bool Hidden { get; set; }
+        public bool? Hidden { get; set; }
     }
 
     private async void OnHideBlockClick(object sender, RoutedEventArgs e)
@@ -511,10 +520,18 @@ public sealed partial class NfoEditorDialog : Window
             return;
         }
 
-        var selector = new ComboBox { ItemsSource = hiddenBlocks.Select(x => x.Tag?.ToString() ?? "Раздел").ToList(), SelectedIndex = 0, MinWidth = 260 };
+        var selector = new ComboBox
+        {
+            ItemsSource = hiddenBlocks.Select(x => x.Tag?.ToString() ?? "Раздел").ToList(),
+            SelectedIndex = 0, MinWidth = 260, RequestedTheme = ElementTheme.Dark,
+            Background = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 37, 37, 43)),
+            Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 235, 235, 240))
+        };
         var dialog = new ContentDialog
         {
-            Title = "Добавить блок", Content = selector,
+            Title = "Добавить блок", Content = selector, RequestedTheme = ElementTheme.Dark,
+            Background = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 28, 28, 32)),
+            Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 235, 235, 240)),
             PrimaryButtonText = "Добавить", CloseButtonText = "Отмена",
             DefaultButton = ContentDialogButton.Primary, XamlRoot = RootGrid.XamlRoot
         };

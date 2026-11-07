@@ -218,7 +218,12 @@
                     </StackPanel>
 
                     <!-- Actions (wrap onto a second line in narrow windows) -->
-                    <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8" Margin="0,12,0,0">
+                    <Grid Margin="0,12,0,0" MinHeight="72">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <controls:WrapPanel Grid.Column="0" HorizontalSpacing="8" VerticalSpacing="8">
                         <StackPanel Spacing="6" VerticalAlignment="Top">
                             <Button x:Name="PlayBtn" Click="OnPlay"
                                     Background="#3B82F6" Foreground="White"
@@ -284,7 +289,17 @@
                                 <MenuFlyout x:Name="ListsFlyout" Placement="Bottom" Opening="OnListsFlyoutOpening"/>
                             </Button.Flyout>
                         </Button>
-                    </controls:WrapPanel>
+                        </controls:WrapPanel>
+                        <ScrollViewer x:Name="AwardsIconsScroll" Grid.Column="1" Visibility="Collapsed"
+                                      HorizontalScrollMode="Enabled" HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollMode="Disabled" VerticalScrollBarVisibility="Disabled"
+                                      Width="620" MaxWidth="620" HorizontalAlignment="Center"
+                                      VerticalAlignment="Center">
+                            <StackPanel x:Name="AwardsIconsPanel" Orientation="Horizontal"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </ScrollViewer>
+                    </Grid>
+
 
                     <!-- v2.5 — Lists this movie is on. Each chip has a ✕ that
                          removes the movie from that list immediately (with Undo
@@ -330,17 +345,6 @@
                                         VerticalAlignment="Center"/>
                     </StackPanel>
                 </StackPanel>
-
-                <!-- Awards are centered on their own row below the action buttons. -->
-                <Grid HorizontalAlignment="Stretch" Margin="0,0,0,0">
-                    <ScrollViewer x:Name="AwardsIconsScroll" Visibility="Collapsed"
-                                  HorizontalScrollMode="Enabled" HorizontalScrollBarVisibility="Auto"
-                                  VerticalScrollMode="Disabled" VerticalScrollBarVisibility="Disabled"
-                                  MaxWidth="620" HorizontalAlignment="Center">
-                        <StackPanel x:Name="AwardsIconsPanel" Orientation="Horizontal"
-                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </ScrollViewer>
-                </Grid>
 
                 <!-- v4.2.0 (#14): file info, plot, notes and details, one under another.
                      In a wide window the code moves them beside the poster. -->

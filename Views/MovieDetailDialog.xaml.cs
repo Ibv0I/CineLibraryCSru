@@ -1062,6 +1062,7 @@ public sealed partial class MovieDetailDialog : Window
         if (awards.Count == 0)
         {
             AwardsIconsPanel.Visibility = Visibility.Collapsed;
+            AwardsIconsScroll.Visibility = Visibility.Collapsed;
             return;
         }
 
@@ -1121,13 +1122,11 @@ public sealed partial class MovieDetailDialog : Window
             }
 
             ToolTipService.SetToolTip(icon, BuildAwardToolTip(group));
-            int index = i;
-            Grid.SetRow(icon, index / 9);
-            Grid.SetColumn(icon, index % 9);
             AwardsIconsPanel.Children.Add(icon);
         }
 
         AwardsIconsPanel.Visibility = Visibility.Visible;
+        AwardsIconsScroll.Visibility = Visibility.Visible;
     }
 
     private static int GetAwardSortOrder(string name)

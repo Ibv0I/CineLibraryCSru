@@ -515,7 +515,16 @@ public sealed partial class NfoEditorDialog : Window
             .ToList();
         if (hiddenBlocks.Count == 0)
         {
-            var info = new ContentDialog { Title = "Нет скрытых блоков", Content = "Все доступные блоки уже отображаются.", CloseButtonText = "ОК", XamlRoot = RootGrid.XamlRoot };
+            var info = new ContentDialog
+            {
+                Title = "Нет скрытых блоков",
+                Content = "Все доступные блоки уже отображаются.",
+                CloseButtonText = "ОК",
+                RequestedTheme = ElementTheme.Dark,
+                Background = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 28, 28, 32)),
+                Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 235, 235, 240)),
+                XamlRoot = RootGrid.XamlRoot
+            };
             await info.ShowAsync();
             return;
         }

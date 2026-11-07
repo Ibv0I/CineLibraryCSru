@@ -230,20 +230,7 @@
                                 AutomationProperties.Name="Смотреть фильм">
                             <FontIcon Glyph="&#xE768;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="18"/>
                         </Button>
-                                                    <Grid x:Name="AwardsIconsPanel" Visibility="Collapsed" Margin="0,2,0,0"
-                                  HorizontalAlignment="Left">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                            </Grid>
+                                                    
                         <Button x:Name="FolderBtn" Click="OnOpenFolder"
                                 Style="{StaticResource MovieDetailActionButtonStyle}"
                                 Background="{ThemeResource CardBrush}"
@@ -274,6 +261,20 @@
                                 AutomationProperties.Name="Редактировать NFO">
                             <FontIcon Glyph="&#xE8A5;" FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets" FontSize="16"/>
                         </Button>
+                        <Grid x:Name="AwardsIconsPanel" Visibility="Collapsed" Margin="8,2,0,0"
+                                  HorizontalAlignment="Left">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                            </Grid>
                         <Button x:Name="FavBtn" Click="OnToggleFav"
                                 Background="{ThemeResource CardBrush}"
                                 Foreground="{ThemeResource TextBrush}"

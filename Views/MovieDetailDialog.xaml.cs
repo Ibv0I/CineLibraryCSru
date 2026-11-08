@@ -271,7 +271,6 @@ public sealed partial class MovieDetailDialog : Window
         {
             PlotText.Text = plotText;
             PlotSection.Visibility = Visibility.Visible;
-            PlotDivider.Visibility = Visibility.Visible;
         }
 
         // Genres — clickable, filters library on click. v4.5.0 (#24): chips right
@@ -648,7 +647,7 @@ public sealed partial class MovieDetailDialog : Window
         _castFolderAbs = null;
         foreach (var e in new FrameworkElement[]
                  {
-                     OriginalTitle, TaglineWrap, PlotSection, PlotDivider, DirectorField, WriterField,
+                     OriginalTitle, TaglineWrap, PlotSection, DirectorField, WriterField,
                      StudioLabel, StudioText, StudioLink, CastSection, CastDivider, CastShowAllBtn,
                      CollectionSection, DirectorSection, FileInfoPanel, FinanceAwardsPanel, FiRuntimeBlock, FiReleaseBlock,
                      FiMpaaBlock, FiCountryBlock, FiSizeBlock, FiDurBlock, FiContainerBlock, FiLangBlock,

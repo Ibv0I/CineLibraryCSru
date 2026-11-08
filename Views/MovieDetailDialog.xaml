@@ -446,11 +446,8 @@
 
                     <!-- Plot — with section header + capped width for readability -->
                     <StackPanel x:Name="PlotBlock">
-                        <Border x:Name="PlotDivider" Visibility="Collapsed"
-                                Height="1" Background="{ThemeResource BorderBrush}"
-                                Margin="0,24,0,0" Opacity="0.5"/>
-                        <StackPanel x:Name="PlotSection" Visibility="Collapsed" Margin="0,20,0,0" Spacing="8">
-                            <TextBlock Text="OVERVIEW" FontSize="10" FontWeight="SemiBold"
+                        <StackPanel x:Name="PlotSection" Visibility="Collapsed" Margin="0,6,0,0" Spacing="6">
+                            <TextBlock Text="ОПИСАНИЕ" FontSize="10" FontWeight="SemiBold"
                                        CharacterSpacing="150" Opacity="0.65"
                                        Foreground="{ThemeResource MutedBrush}"/>
                             <TextBlock x:Name="PlotText" FontSize="15" Foreground="{ThemeResource TextBrush}"

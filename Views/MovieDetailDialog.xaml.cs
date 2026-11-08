@@ -1535,10 +1535,15 @@ public sealed partial class MovieDetailDialog : Window
     {
         var inner = e.NewSize.Width - ContentScroller.Padding.Left - ContentScroller.Padding.Right;
         ContentStack.Width = Math.Max(0, inner);
-        HeroBorder.Height = Math.Clamp(inner / 3.2 + 120, 340, 580);   // Extend the lower fade through the tagline without moving the poster/title layout.
         ApplyLayout(e.NewSize.Width < 900 ? DetailLayout.Narrow
                   : e.NewSize.Width >= 1600 ? DetailLayout.Wide
                   : DetailLayout.Standard);
+
+        // Extend the banner to the poster's bottom edge. Move TopGrid upward by
+        // the same amount so the poster and metadata keep their existing position.
+        var posterExtension = Math.Max(0, PosterFrame.Height - 240);
+        HeroBorder.Height = Math.Clamp(inner / 3.2 + 120, 340, 580) + posterExtension;
+        TopGrid.Margin = new Thickness(0, -240 - posterExtension, 0, 0);
     }
 
     private enum DetailLayout { Unset, Narrow, Standard, Wide }

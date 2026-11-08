@@ -110,7 +110,7 @@
         <!-- Scroll area + sticky action bar overlay (v2.3) -->
         <Grid Grid.Row="1">
             <ScrollViewer x:Name="ContentScroller" VerticalScrollBarVisibility="Auto"
-                          HorizontalScrollBarVisibility="Disabled" Padding="24"
+                          HorizontalScrollBarVisibility="Disabled" Padding="24,0,24,24"
                           ViewChanged="OnContentScrolled" SizeChanged="OnContentScrollerSizeChanged">
             <!-- v4.2.0 (#14): fills the window. The code picks a narrow, standard
                  or wide arrangement from the width (OnContentScrollerSizeChanged). -->

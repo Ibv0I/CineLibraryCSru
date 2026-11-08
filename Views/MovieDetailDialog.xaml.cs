@@ -1535,7 +1535,7 @@ public sealed partial class MovieDetailDialog : Window
     {
         var inner = e.NewSize.Width - ContentScroller.Padding.Left - ContentScroller.Padding.Right;
         ContentStack.Width = Math.Max(0, inner);
-        HeroBorder.Height = Math.Clamp(inner / 3.2, 220, 460);   // 1100 wide = the old 340
+        HeroBorder.Height = Math.Clamp(inner / 3.2 + 120, 340, 580);   // Extend the lower fade through the tagline without moving the poster/title layout.
         ApplyLayout(e.NewSize.Width < 900 ? DetailLayout.Narrow
                   : e.NewSize.Width >= 1600 ? DetailLayout.Wide
                   : DetailLayout.Standard);

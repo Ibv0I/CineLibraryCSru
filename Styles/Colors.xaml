@@ -28,12 +28,13 @@
             <SolidColorBrush x:Key="ChipBrush"       Color="#1E1E2E"/>
             <SolidColorBrush x:Key="HeroBgBrush"     Color="#990A0A1C"/>
             <LinearGradientBrush x:Key="HeroFadeBrush" StartPoint="0,0" EndPoint="0,1">
+                            <!-- Start blending earlier and finish exactly at the poster's lower edge. -->
                             <GradientStop Offset="0.00" Color="#000A0A0C"/>
-                            <GradientStop Offset="0.48" Color="#000A0A0C"/>
-                            <GradientStop Offset="0.62" Color="#080A0A0C"/>
-                            <GradientStop Offset="0.73" Color="#220A0A0C"/>
-                            <GradientStop Offset="0.83" Color="#660A0A0C"/>
-                            <GradientStop Offset="0.92" Color="#CC0A0A0C"/>
+                            <GradientStop Offset="0.24" Color="#000A0A0C"/>
+                            <GradientStop Offset="0.34" Color="#080A0A0C"/>
+                            <GradientStop Offset="0.46" Color="#220A0A0C"/>
+                            <GradientStop Offset="0.60" Color="#660A0A0C"/>
+                            <GradientStop Offset="0.76" Color="#CC0A0A0C"/>
                             <GradientStop Offset="1.00" Color="#FF0A0A0C"/>
                         </LinearGradientBrush>
             <SolidColorBrush x:Key="OverlayBrush"    Color="#CC0A0A1C"/>

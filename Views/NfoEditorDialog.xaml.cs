@@ -120,7 +120,10 @@ public sealed partial class NfoEditorDialog : Window
 
                 var card = new Grid { RowSpacing = 8 };
                 card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                card.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                // The content row consumes the remaining card height, so multiline
+                // fields can grow and shrink with the block during resizing.
+                card.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+                content.VerticalAlignment = VerticalAlignment.Stretch;
                 var titleRow = new Grid { ColumnSpacing = 8, VerticalAlignment = VerticalAlignment.Center };
                 titleRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 titleRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -242,7 +245,24 @@ public sealed partial class NfoEditorDialog : Window
         if (content is ComboBox comboBox && HeaderMatches(comboBox.Header, blockTitle)) comboBox.Header = null;
         if (content is NumberBox numberBox && HeaderMatches(numberBox.Header, blockTitle)) numberBox.Header = null;
 
-        // Some cards contain a StackPanel with one matching TextBox header rather than a top-level control.
+        // Walk Panel.Children directly as well as the visual tree: before the
+        // card is attached, some nested labels are not yet exposed by VisualTreeHelper.
+        if (content is Panel panel)
+        {
+            for (var i = panel.Children.Count - 1; i >= 0; i--)
+            {
+                if (panel.Children[i] is TextBlock label &&
+                    string.Equals(label.Text?.Trim(), blockTitle, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    panel.Children.RemoveAt(i);
+                    continue;
+                }
+                if (panel.Children[i] is FrameworkElement child)
+                    ClearDuplicateBlockHeader(child, blockTitle);
+            }
+            return;
+        }
+
         for (var i = 0; i < VisualTreeHelper.GetChildrenCount(content); i++)
         {
             if (VisualTreeHelper.GetChild(content, i) is FrameworkElement child)

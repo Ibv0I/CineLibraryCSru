@@ -20,8 +20,8 @@
             </Grid>
             <StackPanel Grid.Row="2" Spacing="3">
                 <CheckBox x:Name="DownloadActorPhotosCheckBox" Content="Скачивать фотографии актёров в папку .actors" IsChecked="True"/>
-                <CheckBox x:Name="IncludeKinopoiskRatingCheckBox" Content="Добавить данные фильма с КиноПоиска" IsChecked="False"/>
-                <TextBlock x:Name="KinopoiskApiHintText" Text="Чтобы использовать эту функцию, добавьте API-ключ КиноПоиска в настройках." FontSize="12" Foreground="#FFB8B8C0" TextWrapping="Wrap" Visibility="Collapsed"/>
+                <CheckBox x:Name="IncludeKinopoiskRatingCheckBox" Content="Добавить данные фильма с Kinopoisk API Unofficial" IsChecked="False"/>
+                <TextBlock x:Name="KinopoiskApiHintText" Text="Чтобы использовать эту функцию, добавьте API-ключ Kinopoisk API Unofficial в настройках приложения." FontSize="12" Foreground="#FFB8B8C0" TextWrapping="Wrap" Visibility="Collapsed"/>
             </StackPanel>
             <TextBlock x:Name="ImageStatusText" Grid.Row="3" Visibility="Collapsed" Text="" TextWrapping="Wrap"/>
             <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10"><Button Content="Отмена" Click="OnCancelClick" MinWidth="110"/><Button x:Name="UseSelectionButton" Content="Подтвердить выбор" Click="OnConfirmClick" MinWidth="170" Style="{ThemeResource AccentButtonStyle}" IsEnabled="False"/></StackPanel>

@@ -69,8 +69,7 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             var isKinopoiskSource = string.Equals(searchHit.SourceProvider, "kinopoisk", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(searchHit.SourceProvider, "poiskkino", StringComparison.OrdinalIgnoreCase);
             IncludeKinopoiskRatingCheckBox.Visibility = isKinopoiskSource ? Visibility.Collapsed : Visibility.Visible;
-            var hasKinopoiskApi = !string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken)
-                || !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken);
+            var hasKinopoiskApi = !string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken);
             IncludeKinopoiskRatingCheckBox.IsEnabled = hasKinopoiskApi && !isKinopoiskSource;
             KinopoiskApiHintText.Visibility = !hasKinopoiskApi && !isKinopoiskSource ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -301,11 +300,11 @@ public sealed partial class TmdbMoviePreviewDialog : Window
             return;
         }
 
-        // IMDb rating is also collected during a new movie addition whenever the
-        // Kinopoisk API is configured. The checkbox controls only whether Kinopoisk
-        // identifiers/rating are written to the library.
+        // IMDb rating is also collected during a new movie addition whenever
+        // Kinopoisk API Unofficial is configured. The checkbox controls whether
+        // the Kinopoisk ID/rating are written to the library.
         var shouldLoadExternalRatings = !_isEditingExistingMovie
-            && (!string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken) || !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken) || IncludeKinopoiskRating);
+            && (!string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken) || IncludeKinopoiskRating);
 
         if (shouldLoadExternalRatings)
         {
@@ -316,9 +315,9 @@ public sealed partial class TmdbMoviePreviewDialog : Window
                 var year = Movie.Year > 0 ? Movie.Year : (int?)null;
                 TmdbMovie? externalDetails = null;
 
-                // Try Kinopoisk API Unofficial first; if it is unavailable, fails,
-                // or cannot find the movie, retry through PoiskKino API.
-                Exception? firstProviderError = null;
+                // This option uses Kinopoisk API Unofficial exclusively.
+                // PoiskKino remains available only as a separate manual search source.
+                Exception? providerError = null;
                 if (!string.IsNullOrWhiteSpace(KinopoiskSettings.ApiToken))
                 {
                     try
@@ -332,49 +331,31 @@ public sealed partial class TmdbMoviePreviewDialog : Window
                             .OrderBy(m => year.HasValue && m.Year > 0 ? Math.Abs(m.Year - year.Value) : 0)
                             .ThenByDescending(m => TitleSimilarity(m.Title, Movie.Title))
                             .FirstOrDefault();
+
                         if (best != null)
                         {
-                            externalDetails = await kp.GetMovieDetailsAsync(best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId);
+                            externalDetails = await kp.GetMovieDetailsAsync(
+                                best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId);
                             if (IncludeKinopoiskRating && externalDetails != null && externalDetails.Rating <= 0)
-                                throw new InvalidOperationException("КиноПоиск API Unofficial не вернул рейтинг.");
+                                throw new InvalidOperationException("Kinopoisk API Unofficial не вернул рейтинг.");
                         }
                         else
-                            firstProviderError = new InvalidOperationException("КиноПоиск API Unofficial не нашёл фильм.");
-                    }
-                    catch (Exception ex) { externalDetails = null; firstProviderError = ex; }
-                }
-
-                if (externalDetails == null && !string.IsNullOrWhiteSpace(PoiskKinoSettings.ApiToken))
-                {
-                    try
-                    {
-                        using var poisk = new PoiskKinoClient();
-                        var matches = await poisk.SearchMovieAsync(Movie.Title, year);
-                        if (matches.Count == 0 && !string.IsNullOrWhiteSpace(Movie.OriginalTitle)
-                            && !string.Equals(Movie.OriginalTitle, Movie.Title, StringComparison.OrdinalIgnoreCase))
-                            matches = await poisk.SearchMovieAsync(Movie.OriginalTitle, year);
-                        var best = matches
-                            .OrderBy(m => year.HasValue && m.Year > 0 ? Math.Abs(m.Year - year.Value) : 0)
-                            .ThenByDescending(m => TitleSimilarity(m.Title, Movie.Title))
-                            .FirstOrDefault();
-                        if (best != null)
-                            externalDetails = await poisk.GetMovieDetailsAsync(best.KinopoiskId > 0 ? best.KinopoiskId : best.TmdbId);
-                        else if (IncludeKinopoiskRating)
-                            throw new InvalidOperationException("ПоискКино API не нашёл фильм.");
+                        {
+                            providerError = new InvalidOperationException("Kinopoisk API Unofficial не нашёл фильм.");
+                        }
                     }
                     catch (Exception ex)
                     {
-                        if (IncludeKinopoiskRating)
-                            throw new InvalidOperationException("Оба источника КиноПоиска не смогли получить данные. " +
-                                (firstProviderError == null ? string.Empty : "Первый источник: " + firstProviderError.GetBaseException().Message + " ") +
-                                "Второй источник: " + ex.GetBaseException().Message, ex);
+                        externalDetails = null;
+                        providerError = ex;
                     }
                 }
 
                 if (IncludeKinopoiskRating && externalDetails == null)
                 {
-                    var reason = firstProviderError?.GetBaseException().Message ?? "оба API-ключа не настроены";
-                    throw new InvalidOperationException("Не удалось получить данные КиноПоиска. " + reason);
+                    var reason = providerError?.GetBaseException().Message
+                        ?? "ключ Kinopoisk API Unofficial не настроен";
+                    throw new InvalidOperationException("Не удалось получить данные через Kinopoisk API Unofficial. " + reason);
                 }
 
                 if (externalDetails != null)
